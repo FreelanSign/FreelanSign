@@ -1,0 +1,9 @@
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+# Create your models here.
+class User(AbstractUser):
+    # We are extending the default Django User model (username, password, email, etc.)
+    # We just add phone and full name fields
+    full_name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=20, blank=True, null=True)
