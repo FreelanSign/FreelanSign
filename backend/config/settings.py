@@ -37,14 +37,16 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # CORS doit être en premier
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -138,6 +140,53 @@ SPECTACULAR_SETTINGS = {
 AUTH_USER_MODEL = 'user.User'
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+import os
+# En développement, on autorise les origines locales
+if os.getenv('DEBUG', 'False').lower() == 'true':
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",      # Frontend local
+        "http://127.0.0.1:3000",      # Alternative localhost
+        "http://0.0.0.0:3000",        # Docker internal
+    ]
+
+    # Pour le développement, on peut être plus permissif
+    CORS_ALLOW_ALL_ORIGINS = True  # ⚠️ UNIQUEMENT en développement !
+
+else:
+    # En production, spécifier les domaines autorisés
+    CORS_ALLOWED_ORIGINS = [
+        "https://votre-frontend-prod.com",
+        # Ajouter d'autres domaines autorisés
+    ]
+
+# Headers autorisés
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
+
+# Méthodes HTTP autorisées
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# Autoriser les cookies cross-origin si nécessaire
+CORS_ALLOW_CREDENTIALS = True
+
+# Préflight cache (optionnel)
+CORS_PREFLIGHT_MAX_AGE = 86400
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
