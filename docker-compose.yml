@@ -1,0 +1,95 @@
+services:
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: freelansign_postgres
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-freelansign}
+      POSTGRES_USER: ${DATABASE_USER:-fs_user}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-fs_password}
+    ports:
+      - "${DATABASE_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d  # Scripts d'initialisation
+      - ./database/dumps:/dumps  # Pour les sauvegardes/imports
+    networks:
+      - freelansign_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-fs_user} -d ${DATABASE_NAME:-freelansign}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Django
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: freelansign_backend
+    environment:
+      - DATABASE_HOST=postgres  # Nom du service postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=${DATABASE_NAME:-freelansign}
+      - DATABASE_USER=${DATABASE_USER:-fs_user}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-fs_password}
+      - DEBUG=${DEBUG:-True}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app  # Hot reload en dev
+      - backend_static:/app/static
+      - backend_media:/app/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - freelansign_network
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
+
+  # Frontend React
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: ${NODE_ENV:-development}  # development ou production
+    container_name: freelansign_frontend
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app  # Hot reload en dev
+      - /app/node_modules  # Évite les conflits de node_modules
+    depends_on:
+      - backend
+    networks:
+      - freelansign_network
+
+  # Service pour la gestion des dumps de base
+  db-manager:
+    image: postgres:15-alpine
+    container_name: freelansign_db_manager
+    environment:
+      PGPASSWORD: ${DATABASE_PASSWORD:-fs_password}
+    volumes:
+      - ./database/dumps:/dumps
+      - ./scripts:/scripts
+    networks:
+      - freelansign_network
+    profiles:
+      - tools  # Se lance uniquement avec --profile tools
+    command: tail -f /dev/null  # Garde le conteneur actif
+
+volumes:
+  postgres_data:
+  backend_static:
+  backend_media:
+
+networks:
+  freelansign_network:
+    driver: bridge
