@@ -1,0 +1,18 @@
+# backend/requirements/dev-requirements.txt
+# Outils de développement et qualité de code
+pre-commit==3.3.3
+black==23.3.0
+isort==5.12.0
+flake8==6.0.0
+flake8-docstrings==1.7.0
+pytest==7.4.0
+pytest-cov==4.1.0
+pytest-django==4.5.2
+
+# Outils de debugging
+ipdb==0.13.13
+django-debug-toolbar==4.1.0
+
+# Documentation
+sphinx==7.1.0
+sphinx-rtd-theme==1.3.0
