@@ -1,4 +1,3 @@
-import React from 'react';
 import type { User } from '../../domain/user';
 
 interface Props {
