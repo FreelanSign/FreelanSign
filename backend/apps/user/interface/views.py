@@ -1,9 +1,11 @@
 # apps/user/interface/views.py
-from rest_framework.response import Response
 from rest_framework import viewsets
-from apps.user.services.user_service import UserService
+from rest_framework.response import Response
+
 from apps.user.infrastructure.user_repository import UserRepository
 from apps.user.interface.serializers import UserSerializer
+from apps.user.services.user_service import UserService
+
 
 class UserViewSet(viewsets.ViewSet):
     service = UserService(user_repository=UserRepository())
