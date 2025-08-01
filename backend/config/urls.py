@@ -9,16 +9,12 @@ urlpatterns = [
     # OpenAPI schema & Swagger UI en public
     path(
         "api/schema/",
-        SpectacularAPIView.as_view(
-            permission_classes=[AllowAny], authentication_classes=[]
-        ),
+        SpectacularAPIView.as_view(permission_classes=[AllowAny], authentication_classes=[]),
         name="schema",
     ),
     path(
         "api/docs/",
-        SpectacularSwaggerView.as_view(
-            url_name="schema", permission_classes=[AllowAny], authentication_classes=[]
-        ),
+        SpectacularSwaggerView.as_view(url_name="schema", permission_classes=[AllowAny], authentication_classes=[]),
         name="docs",
     ),
     # Votre API users

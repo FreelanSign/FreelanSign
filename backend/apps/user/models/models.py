@@ -5,9 +5,7 @@ from django.db import models
 # Create your models here.
 class User(AbstractUser):
     username = None  # Disable the default username field
-    email = models.EmailField(
-        "email address", unique=True
-    )  # Use email as the unique identifier
+    email = models.EmailField("email address", unique=True)  # Use email as the unique identifier
     # We are extending the default Django User model (username, password, email, etc.)
     # We just add phone and full name fields
     full_name = models.CharField(max_length=255)
