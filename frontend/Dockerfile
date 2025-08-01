@@ -3,7 +3,7 @@ FROM node:22-alpine as base
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 # Target development
 FROM base as development
