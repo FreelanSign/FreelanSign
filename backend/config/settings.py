@@ -1,13 +1,14 @@
-import environ
 import os
 from pathlib import Path
+
+import environ
 from rest_framework.permissions import AllowAny
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from .env file
 env = environ.Env()
-environ.Env.read_env(os.path.join(Path(__file__).resolve().parent.parent, '.env'))
+environ.Env.read_env(os.path.join(Path(__file__).resolve().parent.parent, ".env"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -31,22 +32,21 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'rest_framework',
-    'drf_spectacular',
-    'apps.user.apps.UserConfig',
+    "rest_framework",
+    "drf_spectacular",
+    "apps.user.apps.UserConfig",
 ]
 
 MIDDLEWARE = [
     # CORS doit être en premier
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -73,16 +73,15 @@ WSGI_APPLICATION = "config.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('DATABASE_NAME'),
-        'USER': env('DATABASE_USER'),
-        'PASSWORD': env('DATABASE_PASSWORD'),
-        'HOST': env('DATABASE_HOST'),
-        'PORT': env('DATABASE_PORT'),
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": env("DATABASE_NAME"),
+        "USER": env("DATABASE_USER"),
+        "PASSWORD": env("DATABASE_PASSWORD"),
+        "HOST": env("DATABASE_HOST"),
+        "PORT": env("DATABASE_PORT"),
     }
 }
-
 
 
 # Password validation
@@ -126,27 +125,26 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema'
-}
+REST_FRAMEWORK = {"DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema"}
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'FreelanSign REST API',
-    'DESCRIPTION': 'API documentation for the FreelanSign REST application',
-    'VERSION': '0.1.0'
+    "TITLE": "FreelanSign REST API",
+    "DESCRIPTION": "API documentation for the FreelanSign REST application",
+    "VERSION": "0.1.0",
 }
 
 # Models
-AUTH_USER_MODEL = 'user.User'
+AUTH_USER_MODEL = "user.User"
 
 # CORS settings
 import os
+
 # En développement, on autorise les origines locales
-if os.getenv('DEBUG', 'False').lower() == 'true':
+if os.getenv("DEBUG", "False").lower() == "true":
     CORS_ALLOWED_ORIGINS = [
-        "http://localhost:3000",      # Frontend local
-        "http://127.0.0.1:3000",      # Alternative localhost
-        "http://0.0.0.0:3000",        # Docker internal
+        "http://localhost:3000",  # Frontend local
+        "http://127.0.0.1:3000",  # Alternative localhost
+        "http://0.0.0.0:3000",  # Docker internal
     ]
 
     # Pour le développement, on peut être plus permissif
@@ -161,25 +159,25 @@ else:
 
 # Headers autorisés
 CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
 ]
 
 # Méthodes HTTP autorisées
 CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
 ]
 
 # Autoriser les cookies cross-origin si nécessaire
@@ -188,5 +186,5 @@ CORS_ALLOW_CREDENTIALS = True
 # Préflight cache (optionnel)
 CORS_PREFLIGHT_MAX_AGE = 86400
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")

@@ -209,3 +209,5 @@ __marimo__/
 scripts/
 backend/staticfiles/
 token.txt
+
+frontend/coverage/
