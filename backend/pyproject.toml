@@ -1,0 +1,11 @@
+# Configuration black
+[tool:black]
+line-length = 127
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  migrations
+  | __pycache__
+)/
+'''
