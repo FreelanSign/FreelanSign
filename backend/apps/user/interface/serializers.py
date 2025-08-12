@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from ..models import User, Profile
 
@@ -26,7 +27,12 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserRegistrationSerializer(serializers.Serializer):
     # payload d’inscription contract-first
-    email = serializers.EmailField()
+    email = serializers.EmailField(
+        validators=[UniqueValidator(
+            queryset = User.objects.all(),
+            message = "A user with this email already exists."
+        )]
+    )
     password = serializers.CharField(write_only=True)
     profile = ProfileSerializer(required=False)
 

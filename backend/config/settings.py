@@ -3,12 +3,21 @@ from pathlib import Path
 
 import environ
 from rest_framework.permissions import AllowAny
+print("DATABASE_URL repr:", repr(os.getenv("DATABASE_URL")))
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from .env file
 env = environ.Env()
 environ.Env.read_env(os.path.join(Path(__file__).resolve().parent.parent, ".env"))
+print("DBVARS:",
+      repr(env("DATABASE_NAME", default=None)),
+      repr(env("DATABASE_USER", default=None)),
+      repr(env("DATABASE_PASSWORD", default=None)),
+      repr(env("DATABASE_HOST", default=None)),
+      repr(env("DATABASE_PORT", default=None)))
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -33,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework_simplejwt",
     "drf_spectacular",
     "apps.user.apps.UserConfig",
 ]
@@ -125,7 +135,24 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-REST_FRAMEWORK = {"DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema"}
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
+    "EXCEPTION_HANDLER": "config.exceptions.drf_exception_handler",
+}
+
+# Optionnel: personnalisation des headers JWT
+from datetime import timedelta
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "AUTH_HEADER_TYPES": ("Bearer",),  # donc "Authorization: Bearer <token>"
+}
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "FreelanSign REST API",

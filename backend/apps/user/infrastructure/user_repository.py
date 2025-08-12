@@ -1,6 +1,8 @@
 # adapter to Django's ORM
 from ..models.models import User, Profile
-from django.db import transaction
+from django.db import transaction, IntegrityError
+from rest_framework.exceptions import ValidationError
+
 
 def _split_full_name(full_name: str):
     parts = (full_name or "").strip().split()
@@ -33,14 +35,17 @@ class UserRepository:
 
         password = data.pop("password")
         email = data.pop("email").strip().lower()
-
-        user = User.objects.create_user(
-            email=email,
-            password=password,
-            **data
-        )
-        Profile.objects.create(user=user, **profile_data)
-        return user
+        try:
+            user = User.objects.create_user(
+                email=email,
+                password=password,
+                **data
+            )
+            Profile.objects.create(user=user, **profile_data)
+            return user
+        except IntegrityError:
+            # Ici on ne dépend pas du nom de contrainte : on renvoie un message champ-par-champ
+            raise ValidationError({"email": ["A user with this email already exists."]})
 
     def get(self, user_id: int):
         """Retrieve a user by ID."""
