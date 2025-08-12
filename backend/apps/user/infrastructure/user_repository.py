@@ -1,15 +1,62 @@
 # adapter to Django's ORM
-from ..models.models import User
+from ..models.models import User, Profile
+from django.db import transaction
 
+def _split_full_name(full_name: str):
+    parts = (full_name or "").strip().split()
+    if not parts:
+        return "", ""
+    if len(parts) == 1:
+        return parts[0], ""
+    return parts[0], " ".join(parts[1:])
 
 class UserRepository:
     def get_all(self):
         """Retrieve all users."""
-        return User.objects.all()
+        return User.objects.select_related("profile").all()
 
+    @transaction.atomic
     def create(self, **data):
-        """Create a new user."""
-        user = User(**data)
-        user.set_password(data["password"])
-        user.save()
+        profile_data = data.pop("profile", {}) or {}
+
+        # Compat: mapper full_name/phone du flat vers profile si fournis
+        full_name = data.pop("full_name", None)
+        if full_name and not profile_data.get("first_name") and not profile_data.get("last_name"):
+            first, last = _split_full_name(full_name)
+            profile_data.update({
+                "first_name": first,
+                "last_name": last,
+            })
+        legacy_phone = data.pop("phone", None)
+        if legacy_phone and not profile_data.get("phone"):
+            profile_data["phone"] = legacy_phone
+
+        password = data.pop("password")
+        email = data.pop("email").strip().lower()
+
+        user = User.objects.create_user(
+            email=email,
+            password=password,
+            **data
+        )
+        Profile.objects.create(user=user, **profile_data)
         return user
+
+    def get(self, user_id: int):
+        """Retrieve a user by ID."""
+        return User.objects.select_related("profile").get(pk=user_id)
+
+    def update(self, user_id: int):
+        # on limite le update aux profiles
+        """Update a user profile."""
+        profile_data = user_data.get("profile") or {}
+        user = self.get(user_id)
+        if profile_data:
+            for k, v in profile_data.items():
+                setattr(user.profile, k, v)
+            user.profile.save()
+        return user
+
+    def delete(self, user_id: int):
+        """Delete a user by ID."""
+        return User.objects.filter(pk=user_id).delete()
