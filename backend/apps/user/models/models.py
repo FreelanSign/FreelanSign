@@ -2,6 +2,8 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
+from django.db.models import UniqueConstraint
+from django.db.models.functions import Lower
 
 class UserManager(BaseUserManager):
 
@@ -49,6 +51,11 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []  # No required fields other than email
 
     objects = UserManager()  # Use the custom user manager
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(Lower('email'), name='uniq_user_email_ci')
+        ]
 
 class Profile(models.Model):
     class Role(models.TextChoices):
