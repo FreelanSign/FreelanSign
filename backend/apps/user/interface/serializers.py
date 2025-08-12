@@ -42,3 +42,10 @@ class UserRegistrationSerializer(serializers.Serializer):
 
     def validate_email(self, v):
         return v.strip().lower()
+
+class ChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField()
+    new_password = serializers.CharField()
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()

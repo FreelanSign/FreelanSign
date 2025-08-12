@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "drf_spectacular",
     "apps.user.apps.UserConfig",
 ]
@@ -144,6 +145,14 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ),
     "EXCEPTION_HANDLER": "config.exceptions.drf_exception_handler",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "user": "200/min",
+        "anon": "30/min",
+    },
 }
 
 # Optionnel: personnalisation des headers JWT
@@ -152,12 +161,17 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "AUTH_HEADER_TYPES": ("Bearer",),  # donc "Authorization: Bearer <token>"
+    "BLACKLIST_AFTER_ROTATION": True,  # pour blacklist les tokens après rotation
 }
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "FreelanSign REST API",
     "DESCRIPTION": "API documentation for the FreelanSign REST application",
     "VERSION": "0.1.0",
+    "TAGS": [
+        {"name": "Auth", "description": "JWT Authentication & session endpoints"},
+        {"name": "Users", "description": "User & profile management"}
+    ]
 }
 
 # Models
