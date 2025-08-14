@@ -5,6 +5,8 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from apps.user.interface.auth_views import AuthLoginView, AuthRefreshView
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     # OpenAPI schema & Swagger UI en public
@@ -20,6 +22,7 @@ urlpatterns = [
     ),
     # Votre API users
     path("api/user/", include("apps.user.urls", namespace="user")),
-    path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    # Auth endpoints
+    path("api/auth/login/", AuthLoginView.as_view(), name="auth_login"),
+    path("api/auth/refresh/", AuthRefreshView.as_view(), name="auth_refresh"),
 ]
