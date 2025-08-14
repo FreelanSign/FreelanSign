@@ -1,4 +1,4 @@
-# adapter to Django's ORM
+# apps/user/infrastructure/user_repository.py
 from ..models.models import User, Profile
 from django.db import transaction, IntegrityError
 from rest_framework.exceptions import ValidationError

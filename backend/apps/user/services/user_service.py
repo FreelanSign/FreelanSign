@@ -1,3 +1,4 @@
+# apps/user/services/user_service.py
 # Applicative logic for user management
 from apps.user.infrastructure.user_repository import UserRepository
 
