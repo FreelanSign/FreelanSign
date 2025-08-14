@@ -9,17 +9,15 @@ BASE = "/api/user/"
 ME = "/api/user/me/"
 ME_PROFILE = "/api/user/me/profile/"
 
-@override_settings(REST_FRAMEWORK={
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
-    "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
-    ),
-})
-class UserApiTests(APITestCase):
 
+@override_settings(
+    REST_FRAMEWORK={
+        "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+        "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
+        "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    }
+)
+class UserApiTests(APITestCase):
     def setUp(self):
         # user "classique" pour les tests /me
         self.user = User.objects.create_user(email="john@example.com", password="Secret123!")
@@ -41,8 +39,8 @@ class UserApiTests(APITestCase):
                 "phone": "0712345678",
                 "birthday": "1995-06-15",
                 "role": "freelance",
-                "avatar_url": "https://cdn.test/avatar.png"
-            }
+                "avatar_url": "https://cdn.test/avatar.png",
+            },
         }
         res = self.client.post(BASE, data=payload, format="json")
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
@@ -54,12 +52,7 @@ class UserApiTests(APITestCase):
         self.assertEqual(body["profile"]["last_name"], "Dupont")
 
     def test_register_user_legacy_full_name_phone(self):
-        payload = {
-            "email": "legacy@example.com",
-            "password": "Secret123!",
-            "full_name": "Marie Curie",
-            "phone": "0600000000"
-        }
+        payload = {"email": "legacy@example.com", "password": "Secret123!", "full_name": "Marie Curie", "phone": "0600000000"}
         res = self.client.post(BASE, data=payload, format="json")
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         body = res.json()
@@ -96,8 +89,8 @@ class UserApiTests(APITestCase):
         self.assertTrue(body["profile"]["avatar_url"].endswith("john.png"))
 
     def test_register_duplicate_email_returns_400(self):
-      payload = {"email": "john@example.com", "password": "Secret123!"}
-      # user initial créé en setUp()
-      res = self.client.post("/api/user/", data=payload, format="json")
-      assert res.status_code == status.HTTP_400_BAD_REQUEST
-      assert "email" in res.json()
+        payload = {"email": "john@example.com", "password": "Secret123!"}
+        # user initial créé en setUp()
+        res = self.client.post("/api/user/", data=payload, format="json")
+        assert res.status_code == status.HTTP_400_BAD_REQUEST
+        assert "email" in res.json()

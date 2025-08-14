@@ -3,6 +3,7 @@ from pathlib import Path
 
 import environ
 from rest_framework.permissions import AllowAny
+
 print("DATABASE_URL repr:", repr(os.getenv("DATABASE_URL")))
 
 
@@ -11,12 +12,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from .env file
 env = environ.Env()
 environ.Env.read_env(os.path.join(Path(__file__).resolve().parent.parent, ".env"))
-print("DBVARS:",
-      repr(env("DATABASE_NAME", default=None)),
-      repr(env("DATABASE_USER", default=None)),
-      repr(env("DATABASE_PASSWORD", default=None)),
-      repr(env("DATABASE_HOST", default=None)),
-      repr(env("DATABASE_PORT", default=None)))
+print(
+    "DBVARS:",
+    repr(env("DATABASE_NAME", default=None)),
+    repr(env("DATABASE_USER", default=None)),
+    repr(env("DATABASE_PASSWORD", default=None)),
+    repr(env("DATABASE_HOST", default=None)),
+    repr(env("DATABASE_PORT", default=None)),
+)
 
 
 # Quick-start development settings - unsuitable for production
@@ -138,12 +141,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
-    "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
-    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "EXCEPTION_HANDLER": "config.exceptions.drf_exception_handler",
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
@@ -157,6 +156,7 @@ REST_FRAMEWORK = {
 
 # Optionnel: personnalisation des headers JWT
 from datetime import timedelta
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
@@ -170,8 +170,8 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "0.1.0",
     "TAGS": [
         {"name": "Auth", "description": "JWT Authentication & session endpoints"},
-        {"name": "Users", "description": "User & profile management"}
-    ]
+        {"name": "Users", "description": "User & profile management"},
+    ],
 }
 
 # Models
