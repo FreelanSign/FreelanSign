@@ -147,10 +147,12 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
+        "rest_framework.throttling.ScopedRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
         "user": "200/min",
         "anon": "30/min",
+        "auth": "10/min",  # Limite pour les endpoints d'authentification
     },
 }
 
