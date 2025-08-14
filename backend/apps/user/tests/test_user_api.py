@@ -1,9 +1,9 @@
 from django.test import override_settings
-from rest_framework.test import APITestCase
 from rest_framework import status
+from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import AccessToken
 
-from apps.user.models import User, Profile
+from apps.user.models import Profile, User
 
 BASE = "/api/user/"
 ME = "/api/user/me/"

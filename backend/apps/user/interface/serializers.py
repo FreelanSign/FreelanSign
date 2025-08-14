@@ -2,7 +2,7 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from ..models import User, Profile
+from ..models import Profile, User
 
 
 class ProfileSerializer(serializers.ModelSerializer):

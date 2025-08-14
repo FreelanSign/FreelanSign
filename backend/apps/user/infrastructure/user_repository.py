@@ -1,7 +1,8 @@
 # apps/user/infrastructure/user_repository.py
-from ..models.models import User, Profile
-from django.db import transaction, IntegrityError
+from django.db import IntegrityError, transaction
 from rest_framework.exceptions import ValidationError
+
+from ..models.models import Profile, User
 
 
 def _split_full_name(full_name: str):
