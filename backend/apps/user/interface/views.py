@@ -1,22 +1,21 @@
 # apps/user/interface/views.py
-from drf_spectacular.utils import extend_schema, OpenApiResponse
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.contrib.auth import authenticate
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from apps.user.infrastructure.user_repository import UserRepository
 from apps.user.interface.serializers import (
-    UserSerializer,
-    UserRegistrationSerializer,
-    ProfileUpdateSerializer,
     ChangePasswordSerializer,
     LogoutSerializer,
+    ProfileUpdateSerializer,
+    UserRegistrationSerializer,
+    UserSerializer,
 )
 from apps.user.services.user_service import UserService
-from apps.user.infrastructure.user_repository import UserRepository
-from django.contrib.auth import authenticate
-from drf_spectacular.utils import extend_schema, extend_schema_view
 
 
 @extend_schema_view(
