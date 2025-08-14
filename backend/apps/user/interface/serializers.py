@@ -4,10 +4,12 @@ from rest_framework.validators import UniqueValidator
 
 from ..models import User, Profile
 
+
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ["first_name", "last_name", "birthday", "phone", "avatar_url", "role"]
+
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,6 +18,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "role": {"required": False},
         }
+
 
 class UserSerializer(serializers.ModelSerializer):
     # lecture : on expose le profil
@@ -26,13 +29,11 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["id", "email", "profile"]  # on n’expose plus full_name/phone ici
         read_only_fields = ["id", "email"]
 
+
 class UserRegistrationSerializer(serializers.Serializer):
     # payload d’inscription contract-first
     email = serializers.EmailField(
-        validators=[UniqueValidator(
-            queryset = User.objects.all(),
-            message = "A user with this email already exists."
-        )]
+        validators=[UniqueValidator(queryset=User.objects.all(), message="A user with this email already exists.")]
     )
     password = serializers.CharField(write_only=True)
     profile = ProfileSerializer(required=False)
@@ -44,9 +45,11 @@ class UserRegistrationSerializer(serializers.Serializer):
     def validate_email(self, v):
         return v.strip().lower()
 
+
 class ChangePasswordSerializer(serializers.Serializer):
     current_password = serializers.CharField()
     new_password = serializers.CharField()
+
 
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()

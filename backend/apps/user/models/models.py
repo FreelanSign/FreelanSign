@@ -6,9 +6,10 @@ from django.db import models
 from django.db.models import UniqueConstraint
 from django.db.models.functions import Lower
 
-class UserManager(BaseUserManager):
 
+class UserManager(BaseUserManager):
     use_in_migrations = True
+
     def _create_user(self, email, password=None, **extra_fields):
         """Create and return a user with an email and password."""
         if not email:
@@ -37,6 +38,7 @@ class UserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
+
 # Create your models here.
 class User(AbstractUser):
     username = None  # Disable the default username field
@@ -54,9 +56,8 @@ class User(AbstractUser):
     objects = UserManager()  # Use the custom user manager
 
     class Meta:
-        constraints = [
-            UniqueConstraint(Lower('email'), name='uniq_user_email_ci')
-        ]
+        constraints = [UniqueConstraint(Lower("email"), name="uniq_user_email_ci")]
+
 
 class Profile(models.Model):
     class Role(models.TextChoices):
@@ -81,6 +82,7 @@ class Profile(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         base = f"{self.first_name or ''} {self.last_name or ''}".strip()
         return base or f"Profile<{self.user_id}>"

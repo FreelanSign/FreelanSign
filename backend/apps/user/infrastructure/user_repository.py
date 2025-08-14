@@ -12,6 +12,7 @@ def _split_full_name(full_name: str):
         return parts[0], ""
     return parts[0], " ".join(parts[1:])
 
+
 class UserRepository:
     def get_all(self):
         """Retrieve all users."""
@@ -25,10 +26,12 @@ class UserRepository:
         full_name = data.pop("full_name", None)
         if full_name and not profile_data.get("first_name") and not profile_data.get("last_name"):
             first, last = _split_full_name(full_name)
-            profile_data.update({
-                "first_name": first,
-                "last_name": last,
-            })
+            profile_data.update(
+                {
+                    "first_name": first,
+                    "last_name": last,
+                }
+            )
         legacy_phone = data.pop("phone", None)
         if legacy_phone and not profile_data.get("phone"):
             profile_data["phone"] = legacy_phone
@@ -36,11 +39,7 @@ class UserRepository:
         password = data.pop("password")
         email = data.pop("email").strip().lower()
         try:
-            user = User.objects.create_user(
-                email=email,
-                password=password,
-                **data
-            )
+            user = User.objects.create_user(email=email, password=password, **data)
             Profile.objects.create(user=user, **profile_data)
             return user
         except IntegrityError:
@@ -51,7 +50,7 @@ class UserRepository:
         """Retrieve a user by ID."""
         return User.objects.select_related("profile").get(pk=user_id)
 
-    def update(self, user_id: int):
+    def update(self, user_id: int, user_data: dict):
         # on limite le update aux profiles
         """Update a user profile."""
         profile_data = user_data.get("profile") or {}
