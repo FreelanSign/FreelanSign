@@ -41,12 +41,6 @@ from apps.user.services.user_service import UserService
         responses={204: OpenApiResponse({"detail": "Password changed successfully"})},
         tags=["Users"],
     ),
-    logout=extend_schema(
-        summary="Logout current user",
-        request=LogoutSerializer,
-        responses={204: OpenApiResponse({"detail": "Logged out successfully"})},
-        tags=["Auth"],
-    ),
 )
 class UserViewSet(viewsets.ViewSet):
     service = UserService(user_repository=UserRepository())
@@ -91,14 +85,3 @@ class UserViewSet(viewsets.ViewSet):
         user.set_password(ser.validated_data["new_password"])
         user.save()
         return Response({"detail": "Password changed successfully"}, status=204)
-
-    @action(detail=False, methods=["post"], url_path="logout", permission_classes=[IsAuthenticated])
-    def logout(self, request):
-        ser = LogoutSerializer(data=request.data)
-        ser.is_valid(raise_exception=True)
-        try:
-            token = RefreshToken(ser.validated_data["refresh"])
-            token.blacklist()
-        except Exception:
-            return Response({"refresh": ["Invalid token"]}, status=400)
-        return Response({"detail": "Logged out successfully"}, status=204)
