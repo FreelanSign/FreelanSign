@@ -85,9 +85,3 @@ class UserViewSet(viewsets.ViewSet):
         user.set_password(ser.validated_data["new_password"])
         user.save()
         return Response({"detail": "Password changed successfully"}, status=204)
-        user = request.user
-        if not user.check_password(ser.validated_data["current_password"]):
-            return Response({"current_password": "Incorrect password"}, status=400)
-        user.set_password(ser.validated_data["new_password"])
-        user.save()
-        return Response({"detail": "Password changed successfully"}, status=204)
