@@ -1,6 +1,6 @@
 from django.test import SimpleTestCase
 
-from apps.core.enums import QuoteStatus, AddressType, PrestationStatus
+from apps.core.enums import AddressType, PrestationStatus, QuoteStatus
 
 
 class TestEnums(SimpleTestCase):

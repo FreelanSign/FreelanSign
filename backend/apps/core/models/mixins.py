@@ -2,18 +2,18 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-from apps.core.managers import (
-    SoftDeleteManager,
-    SoftDeleteManagerWithDeleted,
-)
+from apps.core.managers import SoftDeleteManager, SoftDeleteManagerWithDeleted
+
 
 class TimestampedModel(models.Model):
     """Ajoute created_at & updated_at à toutes les entités."""
+
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
 
     class Meta:
         abstract = True
+
 
 class SoftDeleteModel(models.Model):
     """
@@ -21,6 +21,7 @@ class SoftDeleteModel(models.Model):
     .objects    -> ne renvoie que les éléments non supprimés
     .all_objects -> renvoie tous les éléments
     """
+
     is_deleted = models.BooleanField(default=False, db_index=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
 
@@ -48,11 +49,13 @@ class SoftDeleteModel(models.Model):
             self.deleted_at = None
             self.save(update_fields=["is_deleted", "deleted_at"])
 
+
 class OwnedByUserMixin(models.Model):
     """
     Rattache l'entité à un utilisateur.
     Compatible avec SoftDeleteModel (héritage multiple).
     """
+
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

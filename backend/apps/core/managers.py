@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 
+
 class SoftDeleteQuerySet(models.QuerySet):
     def delete(self):
         # soft-delete en masse
@@ -16,6 +17,7 @@ class SoftDeleteQuerySet(models.QuerySet):
     def dead(self):
         return self.filter(is_deleted=True)
 
+
 class SoftDeleteManager(models.Manager):
     def get_queryset(self):
         return SoftDeleteQuerySet(self.model, using=self._db).alive()
@@ -26,10 +28,13 @@ class SoftDeleteManager(models.Manager):
     def dead(self):
         return self.get_queryset().dead()
 
+
 class SoftDeleteManagerWithDeleted(models.Manager):
     """Manager qui ne filtre pas par défaut (inclut supprimés)"""
+
     def get_queryset(self):
         return SoftDeleteQuerySet(self.model, using=self._db)
+
 
 class OwnedByUserQuerySet(models.QuerySet):
     def for_user(self, user):

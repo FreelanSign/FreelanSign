@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
-from django.db import models, connection
+from django.db import connection, models
 from django.test import TestCase
 from django.test.utils import isolate_apps
 
-from apps.core.models import TimestampedModel, SoftDeleteModel, OwnedByUserMixin
+from apps.core.models import OwnedByUserMixin, SoftDeleteModel, TimestampedModel
 
 User = get_user_model()
 
@@ -13,6 +13,7 @@ class TestMixins(TestCase):
     def test_timestamped_model(self):
         class Item(TimestampedModel, models.Model):
             name = models.CharField(max_length=64)
+
             class Meta:
                 app_label = "core"
 
@@ -34,6 +35,7 @@ class TestMixins(TestCase):
     def test_soft_delete_model(self):
         class Thing(SoftDeleteModel, models.Model):
             name = models.CharField(max_length=64)
+
             class Meta:
                 app_label = "core"
 
@@ -63,6 +65,7 @@ class TestMixins(TestCase):
     def test_owned_by_user_mixin(self):
         class Owned(OwnedByUserMixin, models.Model):
             title = models.CharField(max_length=64)
+
             class Meta:
                 app_label = "core"
 
