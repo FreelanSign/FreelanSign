@@ -19,7 +19,7 @@ def euros_to_cents(value) -> int:
     d = _to_decimal(value).quantize(_TWO_PLACES, rounding=ROUND_HALF_UP)
     return int((d*100).to_integral_value(rounding=ROUND_HALF_UP))
 
-def cents_to_euros(cents: int) -> Decimal:
+def cents_to_euros(cents: int | None) -> Decimal:
     """Centimes -> euros (Decimal à 2 décimales)."""
     if cents is not None:
         return (Decimal(int(cents)) / 100).quantize(_TWO_PLACES, rounding=ROUND_HALF_UP)
