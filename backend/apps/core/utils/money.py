@@ -21,9 +21,10 @@ def euros_to_cents(value) -> int:
 
 def cents_to_euros(cents: int) -> Decimal:
     """Centimes -> euros (Decimal à 2 décimales)."""
-    if cents is None:
+    if cents is not None:
+        return (Decimal(int(cents)) / 100).quantize(_TWO_PLACES, rounding=ROUND_HALF_UP)
+    else:
         raise ValueError("cents cannot be None")
-    return (Decimal(int(cents)) / 100).quantize(_TWO_PLACES, rounding=ROUND_HALF_UP)
 
 def format_euros(cents: int, with_symbol: bool = True) -> str:
     """
