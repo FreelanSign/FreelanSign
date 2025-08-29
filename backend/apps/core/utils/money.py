@@ -25,6 +25,7 @@ def cents_to_euros(cents: int | None) -> Decimal:
         raise ValueError("cents cannot be None")
 
     # Utiliser une variable locale pour clarifier le type
+    assert cents is not None  # Aide l'analyseur statique
     cents_value: int = cents
     return (Decimal(cents_value) / 100).quantize(_TWO_PLACES, rounding=ROUND_HALF_UP)
 
