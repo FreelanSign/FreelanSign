@@ -21,6 +21,8 @@ def euros_to_cents(value) -> int:
 
 def cents_to_euros(cents: int) -> Decimal:
     """Centimes -> euros (Decimal à 2 décimales)."""
+    if cents is None:
+        raise ValueError("cents cannot be None")
     return (Decimal(int(cents)) / 100).quantize(_TWO_PLACES, rounding=ROUND_HALF_UP)
 
 def format_euros(cents: int, with_symbol: bool = True) -> str:
@@ -50,7 +52,6 @@ def extract_vat_from_ttc(cents_ttc: int, vat_bps: int) -> tuple[int, int]:
     """
     rate = Decimal(vat_bps) / Decimal(10000)
     d_ttc = cents_to_euros(cents_ttc)
-    # HT = TTC / (1 + rate)
     d_ht = (d_ttc / (Decimal(1) + rate)).quantize(_TWO_PLACES, rounding=ROUND_HALF_UP)
     cents_ht = euros_to_cents(d_ht)
     return cents_ht, int(cents_ttc) - cents_ht
