@@ -1,0 +1,154 @@
+[
+  {
+    "key": "web_dev",
+    "name": "Développement web"
+  },
+  {
+    "key": "mobile_dev",
+    "name": "Développement mobile"
+  },
+  {
+    "key": "game_dev",
+    "name": "Développement de jeux vidéo"
+  },
+  {
+    "key": "ui_ux",
+    "name": "UI / UX Design"
+  },
+  {
+    "key": "data_science",
+    "name": "Data Science"
+  },
+  {
+    "key": "data_engineering",
+    "name": "Data Engineering"
+  },
+  {
+    "key": "cloud_devops",
+    "name": "Cloud & DevOps"
+  },
+  {
+    "key": "cybersecurity",
+    "name": "Cybersécurité"
+  },
+  {
+    "key": "ai_ml",
+    "name": "IA / Machine Learning"
+  },
+  {
+    "key": "marketing",
+    "name": "Marketing digital"
+  },
+  {
+    "key": "seo",
+    "name": "SEO / Référencement"
+  },
+  {
+    "key": "content_writing",
+    "name": "Rédaction de contenu"
+  },
+  {
+    "key": "copywriting",
+    "name": "Copywriting"
+  },
+  {
+    "key": "community_management",
+    "name": "Community management"
+  },
+  {
+    "key": "communication",
+    "name": "Communication"
+  },
+  {
+    "key": "brand_design",
+    "name": "Brand design & identité"
+  },
+  {
+    "key": "graphic_design",
+    "name": "Design graphique"
+  },
+  {
+    "key": "illustration",
+    "name": "Illustration"
+  },
+  {
+    "key": "motion_design",
+    "name": "Motion design"
+  },
+  {
+    "key": "photographie",
+    "name": "Photographie"
+  },
+  {
+    "key": "video",
+    "name": "Vidéo / Montage"
+  },
+  {
+    "key": "audio_podcast",
+    "name": "Audio / Podcast"
+  },
+  {
+    "key": "traduction",
+    "name": "Traduction / Localisation"
+  },
+  {
+    "key": "product_management",
+    "name": "Product Management"
+  },
+  {
+    "key": "project_management",
+    "name": "Gestion de projet"
+  },
+  {
+    "key": "finance_compta",
+    "name": "Finance & Comptabilité"
+  },
+  {
+    "key": "legal",
+    "name": "Juridique"
+  },
+  {
+    "key": "hr_recrutement",
+    "name": "RH & Recrutement"
+  },
+  {
+    "key": "formation_coaching",
+    "name": "Formation & Coaching"
+  },
+  {
+    "key": "evenementiel",
+    "name": "Événementiel"
+  },
+  {
+    "key": "immobilier",
+    "name": "Immobilier"
+  },
+  {
+    "key": "artisanat_batiment",
+    "name": "Artisanat & Bâtiment"
+  },
+  {
+    "key": "e_commerce",
+    "name": "E-commerce"
+  },
+  {
+    "key": "no_code",
+    "name": "No-code / Low-code"
+  },
+  {
+    "key": "web3",
+    "name": "Web3 / Blockchain"
+  },
+  {
+    "key": "sante_bien_etre",
+    "name": "Santé & Bien-être"
+  },
+  {
+    "key": "social_media_ads",
+    "name": "Publicité Réseaux Sociaux"
+  },
+  {
+    "key": "crm",
+    "name": "CRM & Automatisation"
+  }
+]

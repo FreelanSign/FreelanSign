@@ -1,0 +1,314 @@
+[
+  {
+    "area_key": "web_dev",
+    "name": "Site vitrine",
+    "description": "Création d’un site vitrine responsive (3–5 pages) avec CMS.",
+    "weight_days": 6,
+    "default_rate_eur": 45000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "web_dev",
+    "name": "Portfolio développeur",
+    "description": "Portfolio moderne avec section projets, blog et contact.",
+    "weight_days": 4,
+    "default_rate_eur": 42000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "web_dev",
+    "name": "Refonte performance",
+    "description": "Audit + optimisation Core Web Vitals et temps de chargement.",
+    "weight_days": 3,
+    "default_rate_eur": 50000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "e_commerce",
+    "name": "Boutique e‑commerce",
+    "description": "Mise en place d’une boutique (catalogue, paiement, livraison).",
+    "weight_days": 8,
+    "default_rate_eur": 55000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "mobile_dev",
+    "name": "App mobile MVP",
+    "description": "Prototype fonctionnel (iOS/Android) avec 3 écrans clés.",
+    "weight_days": 10,
+    "default_rate_eur": 65000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "no_code",
+    "name": "App no‑code",
+    "description": "Application interne via outils no‑code (Airtable/Glide/Notion).",
+    "weight_days": 3,
+    "default_rate_eur": 35000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "ui_ux",
+    "name": "Audit UX",
+    "description": "Audit heuristique + rapport priorisé avec quick wins.",
+    "weight_days": 2,
+    "default_rate_eur": 48000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "ui_ux",
+    "name": "Maquettes haute fidélité",
+    "description": "Maquettes Figma de 5 écrans clés + prototype cliquable.",
+    "weight_days": 4,
+    "default_rate_eur": 50000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "brand_design",
+    "name": "Identité visuelle",
+    "description": "Logo, couleurs, typographies et mini charte (10 pages).",
+    "weight_days": 5,
+    "default_rate_eur": 45000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "graphic_design",
+    "name": "Design system",
+    "description": "Bibliothèque de composants (UI kit) documentée.",
+    "weight_days": 6,
+    "default_rate_eur": 52000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "data_science",
+    "name": "Dashboard BI",
+    "description": "Création d’un tableau de bord (Power BI/Looker) connecté.",
+    "weight_days": 4,
+    "default_rate_eur": 60000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "data_engineering",
+    "name": "Pipeline de données",
+    "description": "Ingestion + transformation + stockage (ETL) prêt à l’emploi.",
+    "weight_days": 7,
+    "default_rate_eur": 70000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "ai_ml",
+    "name": "PoC IA Générative",
+    "description": "Prototype assisté IA pour un cas d’usage métier ciblé.",
+    "weight_days": 5,
+    "default_rate_eur": 75000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "cloud_devops",
+    "name": "Infra as Code",
+    "description": "Provisionnement cloud via Terraform + CI/CD de base.",
+    "weight_days": 5,
+    "default_rate_eur": 65000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "cybersecurity",
+    "name": "Pentest applicatif",
+    "description": "Test d’intrusion boîte grise + rapport de remédiation.",
+    "weight_days": 6,
+    "default_rate_eur": 90000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "marketing",
+    "name": "Stratégie marketing",
+    "description": "Plan d’acquisition 90 jours, personas & parcours clients.",
+    "weight_days": 3,
+    "default_rate_eur": 40000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "seo",
+    "name": "Audit SEO complet",
+    "description": "Technique + contenu + netlinking avec backlog d’actions.",
+    "weight_days": 3,
+    "default_rate_eur": 42000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "social_media_ads",
+    "name": "Campagne Meta Ads",
+    "description": "Création et gestion d’une campagne publicitaire 30 jours.",
+    "weight_days": 2,
+    "default_rate_eur": 38000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "crm",
+    "name": "Automatisation CRM",
+    "description": "Scénarios d’emailing et scoring leads (HubSpot/Make).",
+    "weight_days": 4,
+    "default_rate_eur": 50000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "content_writing",
+    "name": "Pack articles SEO (x4)",
+    "description": "4 articles optimisés (1200–1500 mots) avec brief & méta.",
+    "weight_days": 5,
+    "default_rate_eur": 30000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "copywriting",
+    "name": "Landing page copy",
+    "description": "Copy conversion (USP, preuves, CTA) pour une landing.",
+    "weight_days": 2,
+    "default_rate_eur": 35000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "communication",
+    "name": "Pitch deck",
+    "description": "Deck 12–16 slides pour levée de fonds ou vente B2B.",
+    "weight_days": 3,
+    "default_rate_eur": 45000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "community_management",
+    "name": "Gestion réseaux (30j)",
+    "description": "Calendrier éditorial + 12 posts + modération de base.",
+    "weight_days": 4,
+    "default_rate_eur": 32000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "photographie",
+    "name": "Shooting produit",
+    "description": "Prises de vue packshot (jusqu’à 15 produits) + retouches.",
+    "weight_days": 2,
+    "default_rate_eur": 40000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "video",
+    "name": "Vidéo courte (reel)",
+    "description": "Tournage + montage d’une vidéo 30–60 sec format vertical.",
+    "weight_days": 2,
+    "default_rate_eur": 42000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "audio_podcast",
+    "name": "Montage podcast (x4)",
+    "description": "Montage + habillage sonore pour 4 épisodes (20–30 min).",
+    "weight_days": 3,
+    "default_rate_eur": 30000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "product_management",
+    "name": "Atelier discovery",
+    "description": "Atelier cadrage (problèmes, hypothèses, métriques).",
+    "weight_days": 1,
+    "default_rate_eur": 60000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "project_management",
+    "name": "PM à temps partiel (mois)",
+    "description": "Pilotage projet 8 jours / mois avec cérémonies agiles.",
+    "weight_days": 8,
+    "default_rate_eur": 55000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "hr_recrutement",
+    "name": "Sprint recrutement",
+    "description": "Sourcing + entretiens + short‑list pour un poste tech.",
+    "weight_days": 5,
+    "default_rate_eur": 40000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "legal",
+    "name": "Pack CGV + Mentions",
+    "description": "Rédaction CGV, mentions légales, politique de confidentialité.",
+    "weight_days": 3,
+    "default_rate_eur": 65000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "finance_compta",
+    "name": "Prévisionnel financier",
+    "description": "Budget, trésorerie, seuil de rentabilité sur 12 mois.",
+    "weight_days": 3,
+    "default_rate_eur": 50000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "evenementiel",
+    "name": "Organisation d’événement",
+    "description": "Conception + logistique pour un événement B2B (50–100 pers.).",
+    "weight_days": 7,
+    "default_rate_eur": 45000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "immobilier",
+    "name": "Visite virtuelle 3D",
+    "description": "Capture et création d’une visite virtuelle d’un bien.",
+    "weight_days": 2,
+    "default_rate_eur": 42000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "artisanat_batiment",
+    "name": "Plan 3D d’aménagement",
+    "description": "Conception 3D d’un aménagement intérieur (une pièce).",
+    "weight_days": 2,
+    "default_rate_eur": 38000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "sante_bien_etre",
+    "name": "Programme bien‑être 4 semaines",
+    "description": "Plan d’entraînement + mobilité + habitudes.",
+    "weight_days": 2,
+    "default_rate_eur": 25000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "traduction",
+    "name": "Traduction FR↔EN (10k mots)",
+    "description": "Traduction professionnnelle et relecture contextualisée.",
+    "weight_days": 5,
+    "default_rate_eur": 28000,
+    "status": "ACTIVE"
+  },
+  {
+    "area_key": "web3",
+    "name": "Smart contract simple",
+    "description": "Contrat ERC‑20 basique avec tests.",
+    "weight_days": 3,
+    "default_rate_eur": 80000,
+    "status": "DRAFT"
+  },
+  {
+    "area_key": "game_dev",
+    "name": "Prototype jeu 2D",
+    "description": "Prototype jouable (Godot/Unity) avec 1 niveau.",
+    "weight_days": 7,
+    "default_rate_eur": 60000,
+    "status": "DRAFT"
+  },
+  {
+    "area_key": "marketing",
+    "name": "Refonte branding complète",
+    "description": "Rebranding global multi‑canal.",
+    "weight_days": 15,
+    "default_rate_eur": 70000,
+    "status": "ARCHIVED"
+  }
+]
