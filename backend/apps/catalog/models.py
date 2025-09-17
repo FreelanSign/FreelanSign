@@ -63,7 +63,7 @@ class Prestation(TimestampedModel, SoftDeleteModel):
 
     # helpers côté code/business
     @property
-    def default_rate_euros(self) -> float:
+    def default_rate_eur(self) -> float:
         return cents_to_euros(self.default_rate_cents)
 
     def set_default_rate_eur(self, euros_decimal):
