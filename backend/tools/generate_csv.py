@@ -41,6 +41,7 @@ def validate_areas(areas: List[Dict]):
         keys.add(a["key"])
     return keys
 
+
 def _ensure_required_fields(p: Dict, index: int) -> None:
     """Raise if a required field is missing in p."""
     for field in ["area_key", "name", "description", "weight_days", "default_rate_eur", "status"]:
@@ -67,6 +68,7 @@ def _validate_status(p: Dict, index: int) -> None:
     if p["status"] not in VALID_STATUS:
         raise ValueError(f"[prestations] Ligne {index}: status invalide '{p['status']}', attendu {VALID_STATUS}.")
 
+
 def validate_prestations(prestations: List[Dict], area_keys: set):
     """
     Validate prestations list. Delegates checks to small helpers so this function's
@@ -78,6 +80,7 @@ def validate_prestations(prestations: List[Dict], area_keys: set):
         _validate_weight_days(p, i)
         _validate_default_rate(p, i)
         _validate_status(p, i)
+
 
 def write_areas_csv(areas: List[Dict], out_path: Path):
     with open(out_path, "w", encoding=OUTPUT_ENCODING, newline="") as f:
