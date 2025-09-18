@@ -10,8 +10,19 @@ print("DATABASE_URL repr:", repr(os.getenv("DATABASE_URL")))
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from .env file
-env = environ.Env()
-environ.Env.read_env(os.path.join(Path(__file__).resolve().parent.parent, ".env"))
+env = environ.Env(
+    DEBUG=(bool, False),
+    DATABASE_URL=(str, None),
+)
+env_candidate = BASE_DIR / ".env"
+loaded_env_file = None
+if env_candidate.exists():
+    loaded_env_file = env_candidate
+    environ.Env.read_env(str(env_candidate))
+    print(f"Loaded .env file from {env_candidate}")
+
+# Debug logs pour vérifier ce qui est réellement chargé
+print("DATABASE_URL repr:", repr(env("DATABASE_URL", default=None)))
 print(
     "DBVARS:",
     repr(env("DATABASE_NAME", default=None)),
@@ -21,6 +32,35 @@ print(
     repr(env("DATABASE_PORT", default=None)),
 )
 
+DEBUG = env("DEBUG", default=True)
+
+# Si DATABASE_URL est défini (ex: postgres://user:pass@host:5432/dbname), on l'utilise.
+if env("DATABASE_URL", default=None):
+    DATABASES = {
+        "default": env.db("DATABASE_URL")
+    }
+else:
+    # Sinon on lit les variables séparées ; si manquantes, fallback SQLite pour permettre makemigrations
+    db_name = env("DATABASE_NAME", default=None)
+    if db_name:
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": db_name,
+                "USER": env("DATABASE_USER"),
+                "PASSWORD": env("DATABASE_PASSWORD"),
+                "HOST": env("DATABASE_HOST", default="localhost"),
+                "PORT": env("DATABASE_PORT", default="5432"),
+            }
+        }
+    else:
+        print("⚠️ Aucune config DB trouvée — fallback SQLite (dev only).")
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": BASE_DIR / "db.sqlite3",
+            }
+        }
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
