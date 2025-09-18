@@ -41,21 +41,43 @@ def validate_areas(areas: List[Dict]):
         keys.add(a["key"])
     return keys
 
+def _ensure_required_fields(p: Dict, index: int) -> None:
+    """Raise if a required field is missing in p."""
+    for field in ["area_key", "name", "description", "weight_days", "default_rate_eur", "status"]:
+        if field not in p:
+            raise ValueError(f"[prestations] Ligne {index}: champ manquant '{field}'.")
+
+
+def _validate_area_key(p: Dict, index: int, area_keys: set) -> None:
+    if p["area_key"] not in area_keys:
+        raise ValueError(f"[prestations] Ligne {index}: area_key inconnu '{p['area_key']}'")
+
+
+def _validate_weight_days(p: Dict, index: int) -> None:
+    if not isinstance(p["weight_days"], int) or p["weight_days"] <= 0:
+        raise ValueError(f"[prestations] Ligne {index}: weight_days doit être un entier > 0.")
+
+
+def _validate_default_rate(p: Dict, index: int) -> None:
+    if not isinstance(p["default_rate_eur"], int) or p["default_rate_eur"] < 0:
+        raise ValueError(f"[prestations] Ligne {index}: default_rate_eur doit être un entier (centimes) >= 0.")
+
+
+def _validate_status(p: Dict, index: int) -> None:
+    if p["status"] not in VALID_STATUS:
+        raise ValueError(f"[prestations] Ligne {index}: status invalide '{p['status']}', attendu {VALID_STATUS}.")
 
 def validate_prestations(prestations: List[Dict], area_keys: set):
+    """
+    Validate prestations list. Delegates checks to small helpers so this function's
+    cognitive complexity stays low (Sonar-friendly).
+    """
     for i, p in enumerate(prestations, start=1):
-        for field in ["area_key", "name", "description", "weight_days", "default_rate_eur", "status"]:
-            if field not in p:
-                raise ValueError(f"[prestations] Ligne {i}: champ manquant '{field}'.")
-        if p["area_key"] not in area_keys:
-            raise ValueError(f"[prestations] Ligne {i}: area_key inconnu '{p['area_key']}'")
-        if not isinstance(p["weight_days"], int) or p["weight_days"] <= 0:
-            raise ValueError(f"[prestations] Ligne {i}: weight_days doit être un entier > 0.")
-        if not isinstance(p["default_rate_eur"], int) or p["default_rate_eur"] < 0:
-            raise ValueError(f"[prestations] Ligne {i}: default_rate_eur doit être un entier (centimes) >= 0.")
-        if p["status"] not in VALID_STATUS:
-            raise ValueError(f"[prestations] Ligne {i}: status invalide '{p['status']}', attendu {VALID_STATUS}.")
-
+        _ensure_required_fields(p, i)
+        _validate_area_key(p, i, area_keys)
+        _validate_weight_days(p, i)
+        _validate_default_rate(p, i)
+        _validate_status(p, i)
 
 def write_areas_csv(areas: List[Dict], out_path: Path):
     with open(out_path, "w", encoding=OUTPUT_ENCODING, newline="") as f:
