@@ -1,0 +1,21 @@
+name: Enforce dev -> main
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+jobs:
+  enforce-dev-source:
+    # Ne s'exécute que pour les PRs ayant pour cible la branche `main`
+    if: ${{ github.event.pull_request.base.ref == 'main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérifier que la branche source est "dev"
+        run: |
+          echo "PR cible (base) : $GITHUB_BASE_REF"
+          echo "PR source (head) : $GITHUB_HEAD_REF"
+          if [ "$GITHUB_HEAD_REF" != "dev" ]; then
+            echo "❌ Seules les PRs provenant de la branche 'dev' peuvent être mergées dans 'main'. Branche source actuelle: $GITHUB_HEAD_REF" >&2
+            exit 1
+          fi
+          echo "✅ Branche source OK : $GITHUB_HEAD_REF"
