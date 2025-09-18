@@ -36,9 +36,7 @@ DEBUG = env("DEBUG", default=True)
 
 # Si DATABASE_URL est défini (ex: postgres://user:pass@host:5432/dbname), on l'utilise.
 if env("DATABASE_URL", default=None):
-    DATABASES = {
-        "default": env.db("DATABASE_URL")
-    }
+    DATABASES = {"default": env.db("DATABASE_URL")}
 else:
     # Sinon on lit les variables séparées ; si manquantes, fallback SQLite pour permettre makemigrations
     db_name = env("DATABASE_NAME", default=None)
