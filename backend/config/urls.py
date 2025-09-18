@@ -25,4 +25,6 @@ urlpatterns = [
     path("api/auth/login/", AuthLoginView.as_view(), name="auth_login"),
     path("api/auth/refresh/", SecureAuthRefreshView.as_view(), name="auth_refresh"),
     path("api/auth/logout/", AuthLogoutView.as_view(), name="auth_logout"),
+    # Catalog
+    path("api/catalog/", include("apps.catalog.interface.urls", namespace="catalog")),
 ]
