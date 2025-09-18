@@ -1,20 +1,24 @@
 # apps/user/interface/views.py
 from django.contrib.auth import authenticate
+from django.core.exceptions import ObjectDoesNotExist
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
-from rest_framework import status, viewsets
+from rest_framework import decorators, permissions, response, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.user.infrastructure.user_repository import UserRepository
 from apps.user.interface.serializers import (
     ChangePasswordSerializer,
     LogoutSerializer,
+    ProfessionalUserSerializer,
     ProfileUpdateSerializer,
     UserRegistrationSerializer,
     UserSerializer,
 )
+from apps.user.models.models import ProfessionalUser
 from apps.user.services.user_service import UserService
 
 
@@ -85,3 +89,75 @@ class UserViewSet(viewsets.ViewSet):
         user.set_password(ser.validated_data["new_password"])
         user.save()
         return Response({"detail": "Password changed successfully"}, status=204)
+
+
+class ProfessionalUserMeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(ProfessionalUserSerializer),
+            404: OpenApiResponse(description="Professional profile not found."),
+        },
+        summary="Get professional profile for current authenticated user",
+        tags=["Professional Users"],
+    )
+    def get(self, request):
+        prof = getattr(request.user, "professional", None)
+        if not prof:
+            return Response({"detail": "Professional profile not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = ProfessionalUserSerializer(prof, context={"request": request})
+        return Response(serializer.data)
+
+    @extend_schema(
+        request=ProfessionalUserSerializer,
+        responses={200: OpenApiResponse(ProfessionalUserSerializer)},
+        summary="Patch (create if missing) professional profile for current user",
+        tags=["Professional Users"],
+    )
+    def patch(self, request):
+        prof = getattr(request.user, "professional", None)
+        if not prof:
+            # create if missing
+            serializer = ProfessionalUserSerializer(data=request.data, context={"request": request})
+        else:
+            serializer = ProfessionalUserSerializer(prof, data=request.data, partial=True, context={"request": request})
+
+        serializer.is_valid(raise_exception=True)
+        obj = serializer.save()
+        return Response(ProfessionalUserSerializer(obj, context={"request": request}).data, status=status.HTTP_200_OK)
+
+
+class OnboardingProfessionalView(APIView):
+    """
+    Endpoint to create the professional entity during onboarding.
+    POST allowed for authenticated users; admins could have list/create elsewhere.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        request=ProfessionalUserSerializer,
+        responses={
+            201: OpenApiResponse(ProfessionalUserSerializer),
+            200: OpenApiResponse(ProfessionalUserSerializer),
+        },
+        summary="Create or update professional entity during onboarding",
+        tags=["Professional Users"],
+    )
+    def post(self, request):
+        try:
+            prof = request.user.professional
+        except ObjectDoesNotExist:
+            prof = None
+        if prof:
+            serializer = ProfessionalUserSerializer(prof, data=request.data, partial=True, context={"request": request})
+        else:
+            serializer = ProfessionalUserSerializer(data=request.data, context={"request": request})
+
+        serializer.is_valid(raise_exception=True)
+        obj = serializer.save()
+        return Response(
+            ProfessionalUserSerializer(obj, context={"request": request}).data,
+            status=status.HTTP_201_CREATED if not prof else status.HTTP_200_OK,
+        )
