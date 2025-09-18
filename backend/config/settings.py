@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "drf_spectacular",
     "apps.user.apps.UserConfig",
+    "apps.core.apps.CoreConfig",
+    "apps.catalog.apps.CatalogConfig",
 ]
 
 MIDDLEWARE = [
@@ -153,7 +155,15 @@ REST_FRAMEWORK = {
         "user": "200/min",
         "anon": "30/min",
         "auth": "10/min",  # Limite pour les endpoints d'authentification
+        "catalog": "60/min",
     },
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ],
 }
 
 # Optionnel: personnalisation des headers JWT
@@ -174,7 +184,10 @@ SPECTACULAR_SETTINGS = {
     "TAGS": [
         {"name": "Auth", "description": "JWT Authentication & session endpoints"},
         {"name": "Users", "description": "User & profile management"},
+        {"name": "Catalog", "description": "Areas & Prestations"},
     ],
+    "SERVE_INCLUDE_SCHEMA": False,  # include schema endpoint into schema
+    "COMPONENT_SPLIT_REQUEST": True,
 }
 
 # Models
