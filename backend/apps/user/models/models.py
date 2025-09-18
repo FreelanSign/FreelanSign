@@ -2,9 +2,20 @@
 from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import UniqueConstraint
 from django.db.models.functions import Lower
+
+from apps.catalog.models import Area, Prestation
+
+
+class StatusJuridique(models.TextChoices):
+    MICRO = "micro", "Micro-entrepreneur"
+    EIRL = "eirl", "EIRL"
+    EURL = "eurl", "EURL"
+    SASU = "sasu", "SASU"
+    OTHER = "other", "Autre"
 
 
 class UserManager(BaseUserManager):
@@ -86,3 +97,35 @@ class Profile(models.Model):
     def __str__(self):
         base = f"{self.first_name or ''} {self.last_name or ''}".strip()
         return base or f"Profile<{self.user_id}>"
+
+
+class ProfessionalUser(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="professional",
+    )
+    name = models.CharField(max_length=255, blank=True, null=True)
+    status_juridique = models.CharField(max_length=20, choices=StatusJuridique.choices, blank=True, null=True)
+    # use lazy string references to avoid circular imports
+    domaine = models.ForeignKey("catalog.Area", on_delete=models.SET_NULL, null=True, blank=True, related_name="professionals")
+    tjm_cents = models.BigIntegerField(default=0, validators=[MinValueValidator(0)])
+    number_pro = models.CharField(max_length=50, blank=True, null=True)  # SIRET / TVA / numéro pro
+    service_types = models.ManyToManyField("catalog.Prestation", blank=True, related_name="professionals")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Professional user"
+        verbose_name_plural = "Professional users"
+        indexes = [
+            models.Index(fields=["domaine"]),
+            models.Index(fields=["tjm_cents"]),
+        ]
+
+    def __str__(self):
+        return self.name or f"Professional<{self.user_id}>"
+
+    @property
+    def tjm_eur(self):
+        return (self.tjm_cents or 0) / 100.0
