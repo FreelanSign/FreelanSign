@@ -57,9 +57,8 @@ jobs:
 
   # Job pour le frontend Vue
   frontend:
-    name: Frontend (Vue)
+    name: Frontend (pnpm)
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: ./frontend
@@ -67,30 +66,35 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # Nécessaire pour SonarCloud
+        fetch-depth: 0
 
-    - name: Set up Node.js
+    - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
+        cache: 'pnpm'
+        cache-dependency-path: frontend/pnpm-lock.yaml
 
-    - name: Install dependencies
-      run: npm ci
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install dependencies (pnpm)
+      run: pnpm install --frozen-lockfile
 
     - name: Lint with ESLint
-      run: npm run lint
+      run: pnpm run lint
 
     - name: Check formatting with Prettier
-      run: npm run format:check
+      run: pnpm run format:check
 
-    - name: Type check (si TypeScript)
-      run: npm run type-check
+    - name: Type check
+      run: pnpm run type-check
       continue-on-error: true
 
     - name: Run tests with coverage
-      run: npm run test:coverage
+      run: pnpm run test:coverage
 
     - name: Build project
-      run: npm run build
+      run: pnpm run build
