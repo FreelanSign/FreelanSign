@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { fetchUsers } from '../../services/userService';
 import type { User } from '../../domain/user';
+import { fetchUsers } from '../../services/userService';
 import UserList from '../components/UserList';
 
 export default function UsersPage() {

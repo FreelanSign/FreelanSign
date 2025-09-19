@@ -1,5 +1,5 @@
-import { api } from '../infrastructure/api';
 import type { User } from '../domain/user';
+import { api } from '../infrastructure/api';
 
 export async function fetchUsers(): Promise<User[]> {
   const response = await api.get('/');
