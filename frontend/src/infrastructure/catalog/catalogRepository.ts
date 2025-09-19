@@ -17,6 +17,19 @@ import { API_ENDPOINTS } from '../../shared/endpoints';
 const prestationsCache = new Map<number, PrestationDto>();
 const areasCache = new Map<number, AreaDto>();
 
+function normalizeListResponse<T>(data: any): T[] {
+  if (!data) return [];
+  // DRF paginé -> { results: [...] }
+  if (Array.isArray(data)) return data as T[];
+  if (data.results && Array.isArray(data.results)) return data.results as T[];
+  // parfois le backend renvoie { items: [...] } ou { data: [...] }
+  if (Array.isArray(data.items)) return data.items as T[];
+  if (Array.isArray(data.data)) return data.data as T[];
+  // si c'est un objet clé->valeur, on retourne les valeurs
+  if (typeof data === 'object') return Object.values(data) as T[];
+  return [];
+}
+
 export const catalogRepository = {
   /**
    * Récupère une liste de prestations par ids.
@@ -61,6 +74,16 @@ export const catalogRepository = {
         throw err2;
       }
     }
+  },
+
+  async listPrestations(): Promise<PrestationDto[]> {
+    const { data } = await apiClient.get(API_ENDPOINTS.catalogPrestation);
+    return normalizeListResponse<PrestationDto>(data);
+  },
+
+  async listAreas(): Promise<AreaDto[]> {
+    const { data } = await apiClient.get(API_ENDPOINTS.catalogArea);
+    return normalizeListResponse<AreaDto>(data);
   },
 
   /**

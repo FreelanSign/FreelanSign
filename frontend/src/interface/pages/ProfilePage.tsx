@@ -153,6 +153,7 @@ export default function ProfilePage() {
           <p>Vous n'avez pas encore de profil professionnel. <button onClick={() => navigate('/onboarding-professional')} className="underline">Commencer l'onboarding</button></p>
         )}
       </section>
+      <button onClick={() => navigate('/profile/edit')} className="bg-yellow-500 text-white rounded px-3 py-2">Modifier le profil</button>
     </main>
   );
 }

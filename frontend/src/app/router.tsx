@@ -5,6 +5,7 @@ import RegisterPage from '../interface/pages/RegisterPage';
 import DashboardPage from '../interface/pages/DashboardPage';
 import { useAuth } from './providers/AuthProvider';
 import ProfilePage from '../interface/pages/ProfilePage';
+import ProfileEditPage from '../interface/pages/ProfileEditPage';
 
 /** Route protégée très simple */
 function Protected({ children }: { children: React.ReactNode }) {
@@ -19,6 +20,7 @@ const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/register', element: <RegisterPage /> },
   { path: '/profile', element: <Protected><ProfilePage /></Protected>}, // route protégée pour le profil
+  { path: '/profile/edit', element: <Protected><ProfileEditPage /></Protected>},
   {
     path: '/dashboard',
     element: (

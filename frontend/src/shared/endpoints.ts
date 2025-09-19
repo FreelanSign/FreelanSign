@@ -18,6 +18,7 @@ export const API_ENDPOINTS = {
   // "Me" : si tu exposes un endpoint pour récupérer l'utilisateur courant
   // Si absent, tu peux l'ignorer et te baser sur le token.
   me: '/api/user/me/',
+  meProfile: '/api/user/me/profile/',
   professionalMe: '/api/user/professional/me/',
   catalogPrestation: '/api/catalog/prestations/',
   catalogArea: '/api/catalog/areas/',
