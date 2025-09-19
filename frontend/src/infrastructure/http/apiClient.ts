@@ -1,5 +1,9 @@
 // src/infrastructure/http/apiClient.ts
-import axios, { AxiosError, type AxiosInstance, type AxiosRequestConfig } from 'axios';
+import axios, {
+  AxiosError,
+  type AxiosInstance,
+  type AxiosRequestConfig,
+} from 'axios';
 import { ENV } from '../../shared/env';
 import { API_ENDPOINTS } from '../../shared/endpoints';
 import { tokenStorage } from '../../infrastructure/storage/tokenStorage';
@@ -42,7 +46,8 @@ function processQueue(error: unknown, token: string | null) {
       reject(error);
     } else {
       if (token && originalRequest.headers) {
-        (originalRequest.headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+        (originalRequest.headers as Record<string, string>)['Authorization'] =
+          `Bearer ${token}`;
       }
       resolve(apiClient.request(originalRequest));
     }
@@ -54,7 +59,8 @@ function processQueue(error: unknown, token: string | null) {
 apiClient.interceptors.request.use((config: AxiosRequestConfig) => {
   const access = tokenStorage.getAccess();
   if (access && config.headers) {
-    (config.headers as Record<string, string>)['Authorization'] = `Bearer ${access}`;
+    (config.headers as Record<string, string>)['Authorization'] =
+      `Bearer ${access}`;
   }
   return config;
 });
@@ -63,7 +69,7 @@ apiClient.interceptors.request.use((config: AxiosRequestConfig) => {
 apiClient.interceptors.response.use(
   (res) => res,
   async (error: AxiosError<unknown>) => {
-    const originalRequest = (error.config as OriginalRequest | undefined);
+    const originalRequest = error.config as OriginalRequest | undefined;
 
     // Si pas de config ou pas de 401 -> on propage
     if (!originalRequest || error.response?.status !== 401) {
@@ -91,7 +97,11 @@ apiClient.interceptors.response.use(
     // Si déjà en refresh -> enqueue
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
-        pendingQueue.push({ resolve, reject, originalRequest: originalRequest as OriginalRequest });
+        pendingQueue.push({
+          resolve,
+          reject,
+          originalRequest: originalRequest as OriginalRequest,
+        });
       });
     }
 
@@ -101,7 +111,7 @@ apiClient.interceptors.response.use(
       const resp = await axios.post<RefreshResponse>(
         ENV.apiBaseUrl + API_ENDPOINTS.refresh,
         { refresh: refreshToken },
-        { withCredentials: false }
+        { withCredentials: false },
       );
 
       const newAccess: string | undefined = resp.data?.access;
@@ -126,5 +136,5 @@ apiClient.interceptors.response.use(
     } finally {
       isRefreshing = false;
     }
-  }
+  },
 );

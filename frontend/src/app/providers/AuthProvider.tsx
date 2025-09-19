@@ -1,5 +1,11 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { makeAuthUseCases } from '../../domain/auth/usecases';
 import { authRepository } from '../../infrastructure/auth/authRepository';
 import type { AuthUser } from '../../domain/types';
@@ -23,7 +29,9 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const uc = makeAuthUseCases(authRepository);
 
-export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+export const AuthProvider: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,38 +48,43 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
         if (active) setLoading(false);
       }
     })();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const value = useMemo<AuthContextValue>(() => ({
-    user,
-    loading,
-    async login(email, password) {
-      await uc.login({ email, password });
-      // Optionnel : charger user si endpoint /me existe
-      try {
-        const me = await uc.getMe();
-        setUser(me);
-      } catch {
-        setUser({ id: -1, email }); // fallback minimal si pas d'endpoint /me
-      }
-    },
-    async register(email, password) {
-      await uc.register({ email, password });
-      // on peut enchainer un login auto si souhaité
-      await uc.login({ email, password });
-      try {
-        const me = await uc.getMe();
-        setUser(me);
-      } catch {
-        setUser({ id: -1, email });
-      }
-    },
-    async logout() {
-      await uc.logout();
-      setUser(null);
-    },
-  }), [user, loading]);
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      loading,
+      async login(email, password) {
+        await uc.login({ email, password });
+        // Optionnel : charger user si endpoint /me existe
+        try {
+          const me = await uc.getMe();
+          setUser(me);
+        } catch {
+          setUser({ id: -1, email }); // fallback minimal si pas d'endpoint /me
+        }
+      },
+      async register(email, password) {
+        await uc.register({ email, password });
+        // on peut enchainer un login auto si souhaité
+        await uc.login({ email, password });
+        try {
+          const me = await uc.getMe();
+          setUser(me);
+        } catch {
+          setUser({ id: -1, email });
+        }
+      },
+      async logout() {
+        await uc.logout();
+        setUser(null);
+      },
+    }),
+    [user, loading],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

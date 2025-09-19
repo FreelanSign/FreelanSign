@@ -17,7 +17,9 @@ export default function LoginPage() {
       <LoginForm />
       <p>
         Pas encore de compte ?{' '}
-        <Link to="/register" className="underline">Créer un compte</Link>
+        <Link to="/register" className="underline">
+          Créer un compte
+        </Link>
       </p>
     </main>
   );

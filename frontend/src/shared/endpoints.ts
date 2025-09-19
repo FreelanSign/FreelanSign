@@ -4,9 +4,9 @@
  */
 export const API_ENDPOINTS = {
   // Auth (DRF SimpleJWT custom views)
-  login:   '/api/auth/login/',    // AuthLoginView (TokenObtainPair)
-  refresh: '/api/auth/refresh/',  // SecureAuthRefreshView (rotation + blacklist)
-  logout:  '/api/auth/logout/',   // AuthLogoutView (POST { refresh })
+  login: '/api/auth/login/', // AuthLoginView (TokenObtainPair)
+  refresh: '/api/auth/refresh/', // SecureAuthRefreshView (rotation + blacklist)
+  logout: '/api/auth/logout/', // AuthLogoutView (POST { refresh })
 
   // Registration : 2 variantes possibles -> garde celle qui colle à ton backend
   // Variante A (souvent utilisée) : via UserViewSet.create()

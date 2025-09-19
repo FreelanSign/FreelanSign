@@ -17,7 +17,9 @@ export default function RegisterPage() {
       <RegisterForm />
       <p>
         Déjà inscrit ?{' '}
-        <Link to="/login" className="underline">Se connecter</Link>
+        <Link to="/login" className="underline">
+          Se connecter
+        </Link>
       </p>
     </main>
   );

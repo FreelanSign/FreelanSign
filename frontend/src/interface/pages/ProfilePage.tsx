@@ -16,8 +16,12 @@ import { useAuth } from '../../app/providers/AuthProvider';
 export default function ProfilePage() {
   const { user: authUser } = useAuth();
   const [user, setUser] = useState<UserDto | null>(null);
-  const [professional, setProfessional] = useState<ProfessionalUserDto | null | 'loading'>('loading');
-  const [prestations, setPrestations] = useState<PrestationDto[] | 'loading' | null>(null);
+  const [professional, setProfessional] = useState<
+    ProfessionalUserDto | null | 'loading'
+  >('loading');
+  const [prestations, setPrestations] = useState<
+    PrestationDto[] | 'loading' | null
+  >(null);
   const [areaName, setAreaName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -26,9 +30,13 @@ export default function ProfilePage() {
   function isApiError(e: unknown): e is { response?: { status?: number } } {
     // Vérifie que c'est bien un objet qui contient 'response' et que response est aussi un objet.
     // On évite totalement `any` ici.
-    return typeof e === 'object' && e !== null && 'response' in e && typeof (e as Record<string, unknown>).response === 'object';
+    return (
+      typeof e === 'object' &&
+      e !== null &&
+      'response' in e &&
+      typeof (e as Record<string, unknown>).response === 'object'
+    );
   }
-
 
   useEffect(() => {
     let mounted = true;
@@ -50,7 +58,8 @@ export default function ProfilePage() {
           // fetch prestations (ids)
           const ids = prof.service_types ?? [];
           try {
-            const prestationsResult = await catalogRepository.getPrestationsByIds(ids);
+            const prestationsResult =
+              await catalogRepository.getPrestationsByIds(ids);
             if (!mounted) return;
             setPrestations(prestationsResult);
           } catch (err) {
@@ -82,10 +91,13 @@ export default function ProfilePage() {
         if (mounted) setLoading(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [navigate]);
 
-  if (loading) return <main className="container p-6">Chargement du profil…</main>;
+  if (loading)
+    return <main className="container p-6">Chargement du profil…</main>;
 
   return (
     <main className="container mx-auto p-6 grid gap-6">
@@ -93,16 +105,24 @@ export default function ProfilePage() {
 
       <section className="p-4 border rounded">
         <h2 className="font-medium">Utilisateur</h2>
-        <p><strong>Email :</strong> {user?.email ?? authUser?.email}</p>
+        <p>
+          <strong>Email :</strong> {user?.email ?? authUser?.email}
+        </p>
         <p>
           <strong>Nom :</strong>{' '}
           {user?.profile?.first_name || user?.profile?.last_name
             ? `${user?.profile?.first_name ?? ''} ${user?.profile?.last_name ?? ''}`.trim()
             : '—'}
         </p>
-        <p><strong>Téléphone :</strong> {user?.profile?.phone ?? '—'}</p>
+        <p>
+          <strong>Téléphone :</strong> {user?.profile?.phone ?? '—'}
+        </p>
         {user?.profile?.avatar_url && (
-          <img src={user.profile.avatar_url} alt="avatar" className="w-24 h-24 rounded-full mt-2" />
+          <img
+            src={user.profile.avatar_url}
+            alt="avatar"
+            className="w-24 h-24 rounded-full mt-2"
+          />
         )}
       </section>
 
@@ -112,12 +132,28 @@ export default function ProfilePage() {
           <p>Chargement…</p>
         ) : professional ? (
           <>
-            <p><strong>Nom structure :</strong> {professional.name ?? '—'}</p>
-            <p><strong>Statut juridique :</strong> {professional.status_juridique ?? '—'}</p>
-            <p><strong>Domaine :</strong> {areaName ?? '—'}</p>
-            <p><strong>TJM :</strong> {professional.tjm_cents ? (professional.tjm_cents / 100).toFixed(2) + ' €' : '—'}</p>
-            <p><strong>Numéro pro :</strong> {professional.number_pro ?? '—'}</p>
-            <p><strong>Crée le :</strong> {professional.created_at ?? '—'}</p>
+            <p>
+              <strong>Nom structure :</strong> {professional.name ?? '—'}
+            </p>
+            <p>
+              <strong>Statut juridique :</strong>{' '}
+              {professional.status_juridique ?? '—'}
+            </p>
+            <p>
+              <strong>Domaine :</strong> {areaName ?? '—'}
+            </p>
+            <p>
+              <strong>TJM :</strong>{' '}
+              {professional.tjm_cents
+                ? (professional.tjm_cents / 100).toFixed(2) + ' €'
+                : '—'}
+            </p>
+            <p>
+              <strong>Numéro pro :</strong> {professional.number_pro ?? '—'}
+            </p>
+            <p>
+              <strong>Crée le :</strong> {professional.created_at ?? '—'}
+            </p>
 
             <div className="mt-4">
               <h3 className="font-medium">Services proposés</h3>
@@ -132,8 +168,14 @@ export default function ProfilePage() {
               ) : (
                 <ul className="grid gap-3">
                   {prestations.map((p: PrestationDto) => {
-                    const title = getStringField(p, 'name', 'title', 'label') ?? `Service #${p.id}`;
-                    const desc = getStringField(p, 'short_description', 'description');
+                    const title =
+                      getStringField(p, 'name', 'title', 'label') ??
+                      `Service #${p.id}`;
+                    const desc = getStringField(
+                      p,
+                      'short_description',
+                      'description',
+                    );
                     const priceCents = getNumberField(p, 'price_cents'); // ou (p.price_cents as number | undefined)
                     return (
                       <li key={p.id} className="p-3 border rounded">
@@ -144,7 +186,9 @@ export default function ProfilePage() {
                           </div>
                           <div className="text-right">
                             {priceCents != null ? (
-                              <div className="text-sm font-medium">{(priceCents / 100).toFixed(2)} €</div>
+                              <div className="text-sm font-medium">
+                                {(priceCents / 100).toFixed(2)} €
+                              </div>
                             ) : null}
                           </div>
                         </div>
@@ -156,10 +200,23 @@ export default function ProfilePage() {
             </div>
           </>
         ) : (
-          <p>Vous n'avez pas encore de profil professionnel. <button onClick={() => navigate('/onboarding-professional')} className="underline">Commencer l'onboarding</button></p>
+          <p>
+            Vous n'avez pas encore de profil professionnel.{' '}
+            <button
+              onClick={() => navigate('/onboarding-professional')}
+              className="underline"
+            >
+              Commencer l'onboarding
+            </button>
+          </p>
         )}
       </section>
-      <button onClick={() => navigate('/profile/edit')} className="bg-yellow-500 text-white rounded px-3 py-2">Modifier le profil</button>
+      <button
+        onClick={() => navigate('/profile/edit')}
+        className="bg-yellow-500 text-white rounded px-3 py-2"
+      >
+        Modifier le profil
+      </button>
     </main>
   );
 }

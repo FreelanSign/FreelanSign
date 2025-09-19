@@ -55,13 +55,21 @@ export default function ProfileEditPage() {
 
   // keep the user state (we now use it in the UI below)
   const [user, setUser] = useState<UserDto | null>(null);
-  const [professional, setProfessional] = useState<ProfessionalUserDto | null | 'loading'>('loading');
-  const [prestationsList, setPrestationsList] = useState<PrestationDto[] | null>(null);
+  const [professional, setProfessional] = useState<
+    ProfessionalUserDto | null | 'loading'
+  >('loading');
+  const [prestationsList, setPrestationsList] = useState<
+    PrestationDto[] | null
+  >(null);
   const [areasList, setAreasList] = useState<AreaDto[] | null>(null);
 
   // react-hook-form instances
-  const profileForm = useForm<ProfileForm>({ resolver: zodResolver(ProfileSchema) });
-  const profForm = useForm<ProfessionalForm>({ resolver: zodResolver(ProfessionalSchema) });
+  const profileForm = useForm<ProfileForm>({
+    resolver: zodResolver(ProfileSchema),
+  });
+  const profForm = useForm<ProfessionalForm>({
+    resolver: zodResolver(ProfessionalSchema),
+  });
 
   // destructure the stable methods we'll call in the effect to avoid unnecessary reruns
   const { reset: resetProfile } = profileForm;
@@ -169,30 +177,49 @@ export default function ProfileEditPage() {
       <section className="p-4 border rounded max-w-lg">
         <h2 className="font-medium">Informations personnelles</h2>
 
-        <form onSubmit={profileForm.handleSubmit(() => {})} className="grid gap-3 mt-3">
+        <form
+          onSubmit={profileForm.handleSubmit(() => {})}
+          className="grid gap-3 mt-3"
+        >
           <label>
             <div className="text-sm">Prénom</div>
-            <input {...profileForm.register('first_name')} className="border p-2 rounded w-full" />
+            <input
+              {...profileForm.register('first_name')}
+              className="border p-2 rounded w-full"
+            />
           </label>
 
           <label>
             <div className="text-sm">Nom</div>
-            <input {...profileForm.register('last_name')} className="border p-2 rounded w-full" />
+            <input
+              {...profileForm.register('last_name')}
+              className="border p-2 rounded w-full"
+            />
           </label>
 
           <label>
             <div className="text-sm">Téléphone</div>
-            <input {...profileForm.register('phone')} className="border p-2 rounded w-full" />
+            <input
+              {...profileForm.register('phone')}
+              className="border p-2 rounded w-full"
+            />
           </label>
 
           <label>
             <div className="text-sm">Date de naissance</div>
-            <input {...profileForm.register('birthday')} type="date" className="border p-2 rounded w-full" />
+            <input
+              {...profileForm.register('birthday')}
+              type="date"
+              className="border p-2 rounded w-full"
+            />
           </label>
 
           <label>
             <div className="text-sm">Avatar (URL)</div>
-            <input {...profileForm.register('avatar_url')} className="border p-2 rounded w-full" />
+            <input
+              {...profileForm.register('avatar_url')}
+              className="border p-2 rounded w-full"
+            />
           </label>
         </form>
       </section>
@@ -204,20 +231,32 @@ export default function ProfileEditPage() {
         <section className="p-4 border rounded max-w-2xl">
           <h2 className="font-medium">Compte professionnel</h2>
 
-          <form onSubmit={profForm.handleSubmit(() => {})} className="grid gap-3 mt-3">
+          <form
+            onSubmit={profForm.handleSubmit(() => {})}
+            className="grid gap-3 mt-3"
+          >
             <label>
               <div className="text-sm">Nom structure</div>
-              <input {...profForm.register('name')} className="border p-2 rounded w-full" />
+              <input
+                {...profForm.register('name')}
+                className="border p-2 rounded w-full"
+              />
             </label>
 
             <label>
               <div className="text-sm">Statut juridique</div>
-              <input {...profForm.register('status_juridique')} className="border p-2 rounded w-full" />
+              <input
+                {...profForm.register('status_juridique')}
+                className="border p-2 rounded w-full"
+              />
             </label>
 
             <label>
               <div className="text-sm">Domaine</div>
-              <select {...profForm.register('domaine')} className="border p-2 rounded w-full">
+              <select
+                {...profForm.register('domaine')}
+                className="border p-2 rounded w-full"
+              >
                 <option value="">-- Aucune --</option>
                 {Array.isArray(areasList) && areasList.length > 0 ? (
                   areasList.map((a) => (
@@ -226,19 +265,31 @@ export default function ProfileEditPage() {
                     </option>
                   ))
                 ) : (
-                  <option value="">{areasList == null ? 'Chargement impossible' : 'Aucune area disponible'}</option>
+                  <option value="">
+                    {areasList == null
+                      ? 'Chargement impossible'
+                      : 'Aucune area disponible'}
+                  </option>
                 )}
               </select>
             </label>
 
             <label>
               <div className="text-sm">TJM (EUR)</div>
-              <input type="number" step="0.01" {...profForm.register('tjm_eur', { valueAsNumber: true })} className="border p-2 rounded w-full" />
+              <input
+                type="number"
+                step="0.01"
+                {...profForm.register('tjm_eur', { valueAsNumber: true })}
+                className="border p-2 rounded w-full"
+              />
             </label>
 
             <label>
               <div className="text-sm">Numéro pro (SIRET / TVA)</div>
-              <input {...profForm.register('number_pro')} className="border p-2 rounded w-full" />
+              <input
+                {...profForm.register('number_pro')}
+                className="border p-2 rounded w-full"
+              />
             </label>
 
             <label>
@@ -246,7 +297,8 @@ export default function ProfileEditPage() {
               <div className="grid gap-1">
                 {prestationsList === null ? (
                   <div>Impossible de charger la liste des services.</div>
-                ) : !Array.isArray(prestationsList) || prestationsList.length === 0 ? (
+                ) : !Array.isArray(prestationsList) ||
+                  prestationsList.length === 0 ? (
                   <div>Aucune prestation disponible.</div>
                 ) : (
                   prestationsList.map((p) => (
@@ -256,14 +308,23 @@ export default function ProfileEditPage() {
                         value={String(p.id)}
                         onChange={(e) => {
                           const val = Number(e.target.value);
-                          const current = profForm.getValues('service_types') ?? [];
+                          const current =
+                            profForm.getValues('service_types') ?? [];
                           if (e.target.checked) {
-                            profForm.setValue('service_types', [...current, val]);
+                            profForm.setValue('service_types', [
+                              ...current,
+                              val,
+                            ]);
                           } else {
-                            profForm.setValue('service_types', current.filter((id) => id !== val));
+                            profForm.setValue(
+                              'service_types',
+                              current.filter((id) => id !== val),
+                            );
                           }
                         }}
-                        checked={(profForm.getValues('service_types') ?? []).includes(p.id)}
+                        checked={(
+                          profForm.getValues('service_types') ?? []
+                        ).includes(p.id)}
                       />
                       <span>{p.name ?? p.title ?? `Service #${p.id}`}</span>
                     </label>
@@ -295,7 +356,12 @@ export default function ProfileEditPage() {
         <section className="p-4 border rounded">
           <p>
             Vous n'avez pas encore de profil professionnel.{' '}
-            <button onClick={() => navigate('/onboarding-professional')} className="underline">Commencer l'onboarding</button>
+            <button
+              onClick={() => navigate('/onboarding-professional')}
+              className="underline"
+            >
+              Commencer l'onboarding
+            </button>
           </p>
         </section>
       )}

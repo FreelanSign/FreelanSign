@@ -1,7 +1,13 @@
 import { API_ENDPOINTS } from '@/shared/endpoints';
 import { apiClient } from '@/infrastructure/http/apiClient';
 import { tokenStorage } from '@/infrastructure/storage/tokenStorage';
-import type { AuthPort, LoginPayload, RegisterPayload, TokenPair, AuthUser } from '@/domain/auth/types';
+import type {
+  AuthPort,
+  LoginPayload,
+  RegisterPayload,
+  TokenPair,
+  AuthUser,
+} from '@/domain/auth/types';
 
 /**
  * Implémentation concrète des appels Auth contre DRF.
@@ -32,7 +38,9 @@ export const authRepository: AuthPort = {
   },
 
   async refresh(refreshToken: string): Promise<TokenPair> {
-    const { data } = await apiClient.post(API_ENDPOINTS.refresh, { refresh: refreshToken });
+    const { data } = await apiClient.post(API_ENDPOINTS.refresh, {
+      refresh: refreshToken,
+    });
     const tokens: TokenPair = { access: data.access, refresh: data.refresh };
     tokenStorage.setAccess(tokens.access);
     if (tokens.refresh) tokenStorage.setRefresh(tokens.refresh);

@@ -1,5 +1,9 @@
 import React from 'react';
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from 'react-router-dom';
 import LoginPage from '../interface/pages/LoginPage';
 import RegisterPage from '../interface/pages/RegisterPage';
 import DashboardPage from '../interface/pages/DashboardPage';
@@ -19,8 +23,22 @@ const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/dashboard" replace /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/register', element: <RegisterPage /> },
-  { path: '/profile', element: <Protected><ProfilePage /></Protected>}, // route protégée pour le profil
-  { path: '/profile/edit', element: <Protected><ProfileEditPage /></Protected>},
+  {
+    path: '/profile',
+    element: (
+      <Protected>
+        <ProfilePage />
+      </Protected>
+    ),
+  }, // route protégée pour le profil
+  {
+    path: '/profile/edit',
+    element: (
+      <Protected>
+        <ProfileEditPage />
+      </Protected>
+    ),
+  },
   {
     path: '/dashboard',
     element: (

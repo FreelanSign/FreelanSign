@@ -25,7 +25,10 @@ export const userRepository = {
   },
 
   async updateMe(profilePayload: ProfilePayload): Promise<UserDto> {
-    const { data } = await apiClient.patch(API_ENDPOINTS.meProfile, profilePayload);
+    const { data } = await apiClient.patch(
+      API_ENDPOINTS.meProfile,
+      profilePayload,
+    );
     return data as UserDto;
   },
 
@@ -43,8 +46,13 @@ export const userRepository = {
     }
   },
 
-  async updateProfessionalMe(payload: Partial<ProfessionalUserDto>): Promise<ProfessionalUserDto> {
-    const { data } = await apiClient.patch(API_ENDPOINTS.professionalMe, payload);
+  async updateProfessionalMe(
+    payload: Partial<ProfessionalUserDto>,
+  ): Promise<ProfessionalUserDto> {
+    const { data } = await apiClient.patch(
+      API_ENDPOINTS.professionalMe,
+      payload,
+    );
     return data as ProfessionalUserDto;
   },
 };
