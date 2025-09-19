@@ -161,3 +161,66 @@ class OnboardingProfessionalView(APIView):
             ProfessionalUserSerializer(obj, context={"request": request}).data,
             status=status.HTTP_201_CREATED if not prof else status.HTTP_200_OK,
         )
+
+
+class IsOwnerOrAdmin(permissions.BasePermission):
+    """
+    Allow access only to staff (admin) or the owner of the object.
+
+    Important behaviour:
+    - For the ViewSet `list` action we explicitly only allow staff members (non-admins will receive 403).
+    - For other actions, authenticated users are allowed at the permission level; object-level ownership is enforced in `has_object_permission`.
+    """
+
+    def has_permission(self, request, view):
+        # Deny unauthenticated users globally
+        if not request.user or not request.user.is_authenticated:
+            return False
+        # Only staff may list all ProfessionalUser objects
+        if getattr(view, "action", None) == "list":
+            return request.user.is_staff
+        # Otherwise allow and let has_object_permission enforce ownership for object-level actions
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        # Allow staff to access any object
+        if request.user and request.user.is_staff:
+            return True
+        # Otherwise only the owner may access
+        return getattr(obj, "user", None) == request.user
+
+
+class ProfessionalUserViewSet(viewsets.ModelViewSet):
+    """
+    CRUD pour ProfessionalUser.
+    - Les non-admins ne voient que leur ressource (queryset filtré).
+    - Les admins voient tout.
+    """
+
+    serializer_class = ProfessionalUserSerializer
+    permission_classes = [IsOwnerOrAdmin]
+
+    def get_queryset(self):
+        qs = ProfessionalUser.objects.all().select_related("user", "domaine").prefetch_related("service_types")
+        if self.request.user.is_staff:
+            return qs
+        return qs.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # forcer la liaison à l'utilisateur courant
+        serializer.save(user=self.request.user)
+
+    def perform_destroy(self, instance):
+        # si tu souhaites soft-delete, remplace par instance.soft_delete() ou similar
+        instance.delete()
+
+    @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated])
+    def me(self, request):
+        """
+        GET /api/professional/me/  -> renvoie l'objet du user courant (même comportement que l'ancien /professional/me/)
+        """
+        prof = getattr(request.user, "professional", None)
+        if not prof:
+            return Response({"detail": "Professional profile not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = self.get_serializer(prof)
+        return Response(serializer.data)
