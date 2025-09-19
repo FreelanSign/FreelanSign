@@ -73,16 +73,10 @@ jobs:
         with:
           node-version: "18"
 
-      - name: Enable corepack & prepare pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@10.15.1 --activate
-          pnpm -v
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 10.15.1
 
       - name: Install dependencies (pnpm)
         run: pnpm install --frozen-lockfile
