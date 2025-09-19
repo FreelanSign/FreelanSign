@@ -4,6 +4,7 @@ import axios, {
   type AxiosInstance,
   type AxiosRequestConfig,
   type InternalAxiosRequestConfig,
+  type AxiosRequestHeaders,
 } from 'axios';
 import { ENV } from '../../shared/env';
 import { API_ENDPOINTS } from '../../shared/endpoints';
@@ -41,7 +42,10 @@ let pendingQueue: Array<{
   originalRequest: OriginalRequest;
 }> = [];
 
-// --- processQueue ---
+/**
+ * Normalise et injecte l'Authorization header sur la requête en file d'attente.
+ * On évite `any` en utilisant AxiosRequestHeaders / Record<string,string>.
+ */
 function processQueue(error: unknown, token: string | null) {
   pendingQueue.forEach(({ resolve, reject, originalRequest }) => {
     if (error) {
@@ -50,13 +54,24 @@ function processQueue(error: unknown, token: string | null) {
     }
 
     if (token) {
-      // Normalise headers en plain object et injecte Authorization
-      originalRequest.headers = {
-        ...(originalRequest.headers as Record<string, any> | undefined) ?? {},
+      // originalRequest.headers peut être de différents shapes -> normalise en plain object
+      const existingHeaders =
+        (originalRequest.headers as AxiosRequestHeaders | undefined) ?? {};
+      // construire un objet de headers simple de type Record<string,string>
+      const normalized: Record<string, string> = {
+        // spread existing headers (transform values to string where possible)
+        ...Object.fromEntries(
+          Object.entries(existingHeaders).map(([k, v]) => [
+            k,
+            String((v as unknown) ?? ''),
+          ]),
+        ),
         Authorization: `Bearer ${token}`,
-      } as any;
+      };
+      originalRequest.headers = normalized as unknown as AxiosRequestHeaders;
     }
 
+    // relancer la requête originale
     resolve(apiClient.request(originalRequest));
   });
   pendingQueue = [];
@@ -67,14 +82,19 @@ function processQueue(error: unknown, token: string | null) {
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const access = tokenStorage.getAccess();
 
-  // assure que headers est un objet (plain object) pour éviter les problèmes de type
-  config.headers = {
-    ...(config.headers as Record<string, any> | undefined) ?? {},
-  } as any;
+  // assure que headers est un objet plain (Record<string,string>) pour éviter les problèmes de type
+  const existing = (config.headers as AxiosRequestHeaders | undefined) ?? {};
+  const normalizedHeaders: Record<string, string> = Object.fromEntries(
+    Object.entries(existing).map(([k, v]) => [k, String((v as unknown) ?? '')]),
+  );
 
   if (access) {
-    (config.headers as Record<string, any>)['Authorization'] = `Bearer ${access}`;
+    normalizedHeaders['Authorization'] = `Bearer ${access}`;
   }
+
+  // Réaffecte en type attendu par axios
+  config.headers = normalizedHeaders as unknown as AxiosRequestHeaders;
+
   return config;
 });
 
@@ -113,7 +133,7 @@ apiClient.interceptors.response.use(
         pendingQueue.push({
           resolve,
           reject,
-          originalRequest: originalRequest as OriginalRequest,
+          originalRequest,
         });
       });
     }

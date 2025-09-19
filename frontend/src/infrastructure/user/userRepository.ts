@@ -8,11 +8,19 @@ type ProfilePayload = Partial<UserDto['profile']>;
 type UpdateMeArg = ProfilePayload | { profile: ProfilePayload };
 
 /**
+ * Type guard: determine si payload est du shape { profile: ... }.
+ * Evite l'utilisation d'any et permet au compilateur de faire le narrowing proprement.
+ */
+function isWrappedProfile(v: UpdateMeArg): v is { profile: ProfilePayload } {
+  // typeof v === 'object' && v !== null protège l'opérateur 'in'
+  return typeof v === 'object' && v !== null && 'profile' in v;
+}
+
+/**
  * Repository pour user/professional.
  * Attention : on évite l'usage de `any` dans les catches -> on utilise `unknown`
  * et axios.isAxiosError pour faire le narrowing.
  */
-
 export const userRepository = {
   async getMe(): Promise<UserDto> {
     const { data } = await apiClient.get(API_ENDPOINTS.me);
@@ -27,7 +35,7 @@ export const userRepository = {
    * On normalise en { profile: ... } avant d'envoyer au backend.
    */
   async updateMe(payload: UpdateMeArg): Promise<UserDto> {
-    const body = (payload && 'profile' in (payload as any)) ? (payload as { profile: ProfilePayload }) : { profile: payload as ProfilePayload };
+    const body = isWrappedProfile(payload) ? payload : { profile: payload };
     const { data } = await apiClient.patch(API_ENDPOINTS.me, body);
     return data as UserDto;
   },
