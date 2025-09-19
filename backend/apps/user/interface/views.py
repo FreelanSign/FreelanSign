@@ -162,6 +162,7 @@ class OnboardingProfessionalView(APIView):
             status=status.HTTP_201_CREATED if not prof else status.HTTP_200_OK,
         )
 
+
 class IsOwnerOrAdmin(permissions.BasePermission):
     """
     Allow access only to staff (admin) or the owner of the object.
@@ -170,6 +171,7 @@ class IsOwnerOrAdmin(permissions.BasePermission):
     - For the ViewSet `list` action we explicitly only allow staff members (non-admins will receive 403).
     - For other actions, authenticated users are allowed at the permission level; object-level ownership is enforced in `has_object_permission`.
     """
+
     def has_permission(self, request, view):
         # Deny unauthenticated users globally
         if not request.user or not request.user.is_authenticated:
@@ -187,12 +189,14 @@ class IsOwnerOrAdmin(permissions.BasePermission):
         # Otherwise only the owner may access
         return getattr(obj, "user", None) == request.user
 
+
 class ProfessionalUserViewSet(viewsets.ModelViewSet):
     """
     CRUD pour ProfessionalUser.
     - Les non-admins ne voient que leur ressource (queryset filtré).
     - Les admins voient tout.
     """
+
     serializer_class = ProfessionalUserSerializer
     permission_classes = [IsOwnerOrAdmin]
 

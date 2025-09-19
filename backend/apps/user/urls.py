@@ -1,6 +1,7 @@
 # apps/user/urls.py
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+
 from .interface.views import OnboardingProfessionalView, ProfessionalUserMeView, ProfessionalUserViewSet
 
 router = DefaultRouter()
