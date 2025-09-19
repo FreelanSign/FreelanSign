@@ -1,17 +1,31 @@
+// src/infrastructure/http/apiClient.ts
 import axios, { AxiosError, type AxiosInstance, type AxiosRequestConfig } from 'axios';
 import { ENV } from '../../shared/env';
 import { API_ENDPOINTS } from '../../shared/endpoints';
 import { tokenStorage } from '../../infrastructure/storage/tokenStorage';
 
 /**
+ * Refresh response attendu depuis le backend (SimpleJWT rotation)
+ */
+type RefreshResponse = {
+  access?: string;
+  refresh?: string;
+};
+
+/**
+ * Extends AxiosRequestConfig pour stocker un flag interne _retry
+ * (utile pour éviter boucle infinie de refresh)
+ */
+type OriginalRequest = AxiosRequestConfig & { _retry?: boolean };
+
+/**
  * Axios instance configurée :
  * - Attache le Bearer access token si présent
  * - Intercepte les 401 -> tente un refresh (file d’attente pour éviter multi-refresh)
  */
-
 export const apiClient: AxiosInstance = axios.create({
   baseURL: ENV.apiBaseUrl,
-  withCredentials: false, // true si tu utilises des cookies côté back
+  withCredentials: false,
 });
 
 // --- Gestion de la queue de refresh pour éviter les courses multiples ---
@@ -19,7 +33,7 @@ let isRefreshing = false;
 let pendingQueue: Array<{
   resolve: (value?: unknown) => void;
   reject: (reason?: unknown) => void;
-  originalRequest: AxiosRequestConfig;
+  originalRequest: OriginalRequest;
 }> = [];
 
 function processQueue(error: unknown, token: string | null) {
@@ -37,7 +51,7 @@ function processQueue(error: unknown, token: string | null) {
 }
 
 // --- Request: inject Authorization ---
-apiClient.interceptors.request.use((config) => {
+apiClient.interceptors.request.use((config: AxiosRequestConfig) => {
   const access = tokenStorage.getAccess();
   if (access && config.headers) {
     (config.headers as Record<string, string>)['Authorization'] = `Bearer ${access}`;
@@ -48,8 +62,8 @@ apiClient.interceptors.request.use((config) => {
 // --- Response: handle 401 -> refresh ---
 apiClient.interceptors.response.use(
   (res) => res,
-  async (error: AxiosError<any>) => {
-    const originalRequest = error.config;
+  async (error: AxiosError<unknown>) => {
+    const originalRequest = (error.config as OriginalRequest | undefined);
 
     // Si pas de config ou pas de 401 -> on propage
     if (!originalRequest || error.response?.status !== 401) {
@@ -57,13 +71,13 @@ apiClient.interceptors.response.use(
     }
 
     // Éviter boucle infinie: si on tente déjà un refresh pour cette requête
-    if ((originalRequest as any)._retry) {
+    if (originalRequest._retry) {
       return Promise.reject(error);
     }
-    (originalRequest as any)._retry = true;
+    originalRequest._retry = true;
 
     // Si le 401 vient de /refresh lui-même -> on échoue (logout)
-    const url = originalRequest.url || '';
+    const url = originalRequest.url ?? '';
     if (url.includes(API_ENDPOINTS.refresh)) {
       return Promise.reject(error);
     }
@@ -77,21 +91,21 @@ apiClient.interceptors.response.use(
     // Si déjà en refresh -> enqueue
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
-        pendingQueue.push({ resolve, reject, originalRequest });
+        pendingQueue.push({ resolve, reject, originalRequest: originalRequest as OriginalRequest });
       });
     }
 
     // Lancer un refresh
     isRefreshing = true;
     try {
-      const { data } = await axios.post(
+      const resp = await axios.post<RefreshResponse>(
         ENV.apiBaseUrl + API_ENDPOINTS.refresh,
         { refresh: refreshToken },
         { withCredentials: false }
       );
 
-      const newAccess: string | undefined = data?.access;
-      const newRefresh: string | undefined = data?.refresh;
+      const newAccess: string | undefined = resp.data?.access;
+      const newRefresh: string | undefined = resp.data?.refresh;
 
       if (!newAccess) {
         throw new Error('Refresh OK mais access manquant');

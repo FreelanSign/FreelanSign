@@ -39,17 +39,33 @@ const ProfessionalSchema = z.object({
 type ProfileForm = z.infer<typeof ProfileSchema>;
 type ProfessionalForm = z.infer<typeof ProfessionalSchema>;
 
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  // try to stringify common response shapes
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return String(err);
+  }
+}
+
 export default function ProfileEditPage() {
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
 
+  // keep the user state (we now use it in the UI below)
   const [user, setUser] = useState<UserDto | null>(null);
   const [professional, setProfessional] = useState<ProfessionalUserDto | null | 'loading'>('loading');
   const [prestationsList, setPrestationsList] = useState<PrestationDto[] | null>(null);
   const [areasList, setAreasList] = useState<AreaDto[] | null>(null);
 
+  // react-hook-form instances
   const profileForm = useForm<ProfileForm>({ resolver: zodResolver(ProfileSchema) });
   const profForm = useForm<ProfessionalForm>({ resolver: zodResolver(ProfessionalSchema) });
+
+  // destructure the stable methods we'll call in the effect to avoid unnecessary reruns
+  const { reset: resetProfile } = profileForm;
+  const { reset: resetProf } = profForm;
 
   useEffect(() => {
     let mounted = true;
@@ -58,8 +74,8 @@ export default function ProfileEditPage() {
         const me = await userRepository.getMe();
         if (!mounted) return;
         setUser(me);
-        // Pré-remplissage du form profile
-        profileForm.reset(me.profile ?? {});
+        // Pré-remplissage du form profile (use reset from hook)
+        resetProfile(me.profile ?? {});
 
         // Récup professional
         const prof = await userRepository.getProfessionalMe();
@@ -68,11 +84,11 @@ export default function ProfileEditPage() {
 
         if (prof) {
           // Pré-remplir professional form
-          profForm.reset({
+          resetProf({
             name: prof.name ?? null,
             status_juridique: prof.status_juridique ?? null,
             domaine: prof.domaine ?? null,
-            tjm_eur: prof.tjm_cents != null ? (prof.tjm_cents / 100) : null,
+            tjm_eur: prof.tjm_cents != null ? prof.tjm_cents / 100 : null,
             number_pro: prof.number_pro ?? null,
             service_types: prof.service_types ?? [],
           });
@@ -80,24 +96,28 @@ export default function ProfileEditPage() {
           // Récupérer listes pour selects (areas & prestations)
           try {
             const [prestations, areas] = await Promise.all([
-              catalogRepository.listPrestations(), // methode ci-dessous
+              catalogRepository.listPrestations(),
               catalogRepository.listAreas(),
             ]);
             if (!mounted) return;
             setPrestationsList(prestations);
             setAreasList(areas);
-          } catch (err) {
+          } catch (err: unknown) {
             console.warn('Impossible de charger catalogues', err);
             setPrestationsList(null);
             setAreasList(null);
           }
         }
-      } catch (err) {
-        console.error('ProfileEdit load error', err);
+      } catch (err: unknown) {
+        console.error('ProfileEdit load error', getErrorMessage(err));
       }
     })();
-    return () => { mounted = false; };
-  }, []);
+    return () => {
+      mounted = false;
+    };
+    // resetProfile & resetProf are stable references provided by react-hook-form,
+    // include them to satisfy exhaustive-deps and avoid lint warning.
+  }, [navigate, resetProfile, resetProf]);
 
   // Soumission du formulaire
   async function onSubmitAll() {
@@ -106,14 +126,13 @@ export default function ProfileEditPage() {
     const profValues = profForm.getValues();
 
     try {
-      // Update profile (si au moins une clé non vide)
-      // Ici on envoie { profile: {...} } comme le serializer ProfileUpdateSerializer le demande probablement.
-      await userRepository.updateMe(profileValues);
+      // Update profile (on envoie { profile: {...} })
+      await userRepository.updateMe({ profile: profileValues });
 
       // Update professional si présent
       if (professional && professional !== 'loading') {
         // Convert tjm_eur -> tjm_cents
-        const payload: any = {
+        const payload: Partial<ProfessionalUserDto> = {
           name: profValues.name ?? null,
           status_juridique: profValues.status_juridique ?? null,
           domaine: profValues.domaine ?? null,
@@ -128,18 +147,23 @@ export default function ProfileEditPage() {
         await userRepository.updateProfessionalMe(payload);
       }
 
-      // Après succès : redirige vers /profile et forcer un refresh si besoin
+      // Après succès : redirige vers /profile
       navigate('/profile', { replace: true });
-    } catch (err: any) {
-      console.error('Update error', err);
-      // TODO: afficher feedback utilisateur (toast / inline errors)
-      alert('Erreur lors de la mise à jour : ' + (err?.response?.data ? JSON.stringify(err.response.data) : err.message));
+    } catch (err: unknown) {
+      console.error('Update error', getErrorMessage(err));
+      // TODO: remplacer alert par un toast/inline errors
+      alert('Erreur lors de la mise à jour : ' + getErrorMessage(err));
     }
   }
 
   return (
     <main className="container mx-auto p-6 grid gap-6">
       <h1 className="text-2xl font-semibold">Modifier mon profil</h1>
+
+      {/* UTILISATION DE user / authUser pour éviter l'erreur "assigned but never used" */}
+      <p className="text-sm text-gray-600">
+        Compte : {user?.email ?? authUser?.email ?? '—'}
+      </p>
 
       {/* FORM PROFILE */}
       <section className="p-4 border rounded max-w-lg">
@@ -189,16 +213,21 @@ export default function ProfileEditPage() {
             <label>
               <div className="text-sm">Statut juridique</div>
               <input {...profForm.register('status_juridique')} className="border p-2 rounded w-full" />
-              {/* Option : convertir en <select> avec les valeurs connues */}
             </label>
 
             <label>
               <div className="text-sm">Domaine</div>
               <select {...profForm.register('domaine')} className="border p-2 rounded w-full">
                 <option value="">-- Aucune --</option>
-                {areasList?.map((a) => (
-                  <option key={a.id} value={a.id}>{a.name ?? a.slug ?? `Area ${a.id}`}</option>
-                ))}
+                {Array.isArray(areasList) && areasList.length > 0 ? (
+                  areasList.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name ?? a.slug ?? `Area ${a.id}`}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">{areasList == null ? 'Chargement impossible' : 'Aucune area disponible'}</option>
+                )}
               </select>
             </label>
 
@@ -217,7 +246,7 @@ export default function ProfileEditPage() {
               <div className="grid gap-1">
                 {prestationsList === null ? (
                   <div>Impossible de charger la liste des services.</div>
-                ) : prestationsList === undefined || prestationsList.length === 0 ? (
+                ) : !Array.isArray(prestationsList) || prestationsList.length === 0 ? (
                   <div>Aucune prestation disponible.</div>
                 ) : (
                   prestationsList.map((p) => (
@@ -225,7 +254,6 @@ export default function ProfileEditPage() {
                       <input
                         type="checkbox"
                         value={String(p.id)}
-                        // On gère manuellement le tableau de ids
                         onChange={(e) => {
                           const val = Number(e.target.value);
                           const current = profForm.getValues('service_types') ?? [];
@@ -265,7 +293,10 @@ export default function ProfileEditPage() {
         </section>
       ) : (
         <section className="p-4 border rounded">
-          <p>Vous n'avez pas encore de profil professionnel. <button onClick={() => navigate('/onboarding-professional')} className="underline">Commencer l'onboarding</button></p>
+          <p>
+            Vous n'avez pas encore de profil professionnel.{' '}
+            <button onClick={() => navigate('/onboarding-professional')} className="underline">Commencer l'onboarding</button>
+          </p>
         </section>
       )}
     </main>

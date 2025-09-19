@@ -1,5 +1,5 @@
 // src/infrastructure/catalog/catalogRepository.ts
-import { apiClient } from '../http/apiClient';
+import { apiClient } from '../../infrastructure/http/apiClient';
 import type { PrestationDto, AreaDto } from '../../domain/catalog/types';
 import { API_ENDPOINTS } from '../../shared/endpoints';
 
@@ -17,16 +17,29 @@ import { API_ENDPOINTS } from '../../shared/endpoints';
 const prestationsCache = new Map<number, PrestationDto>();
 const areasCache = new Map<number, AreaDto>();
 
-function normalizeListResponse<T>(data: any): T[] {
+/**
+ * Normalise la réponse côté backend en tableau.
+ * - supporte : tableau direct [], DRF paginé { results: [...] }, { items: [...] }, { data: [...] }
+ * - si c'est un objet clé->valeur on retourne Object.values()
+ */
+function normalizeListResponse<T>(data: unknown): T[] {
   if (!data) return [];
-  // DRF paginé -> { results: [...] }
+
+  // tableau direct
   if (Array.isArray(data)) return data as T[];
-  if (data.results && Array.isArray(data.results)) return data.results as T[];
-  // parfois le backend renvoie { items: [...] } ou { data: [...] }
-  if (Array.isArray(data.items)) return data.items as T[];
-  if (Array.isArray(data.data)) return data.data as T[];
-  // si c'est un objet clé->valeur, on retourne les valeurs
-  if (typeof data === 'object') return Object.values(data) as T[];
+
+  // si c'est un objet, on regarde plusieurs clés connues (results, items, data)
+  if (typeof data === 'object' && data !== null) {
+    const d = data as Record<string, unknown>;
+
+    if (Array.isArray(d.results)) return d.results as T[];
+    if (Array.isArray(d.items)) return d.items as T[];
+    if (Array.isArray(d.data)) return d.data as T[];
+
+    // dernier recours : si c'est un objet map-like, on retourne ses valeurs
+    return Object.values(d) as unknown as T[];
+  }
+
   return [];
 }
 
@@ -54,25 +67,21 @@ export const catalogRepository = {
       const resp = await apiClient.get(`${API_ENDPOINTS.catalogPrestation}`, {
         params: { ids: missingIds.join(',') },
       });
-      const data: PrestationDto[] = resp.data;
-      data.forEach((p) => prestationsCache.set(p.id, p));
-      return [...fromCache, ...data];
-    } catch (err) {
-      // fallback: try individual fetch for each id
-      try {
-        const results = await Promise.all(
-          missingIds.map(async (id) => {
-            const r = await apiClient.get(`${API_ENDPOINTS.catalogPrestation}${id}/`);
-            const p = r.data as PrestationDto;
-            prestationsCache.set(p.id, p);
-            return p;
-          })
-        );
-        return [...fromCache, ...results];
-      } catch (err2) {
-        // si ça échoue, on propage l'erreur (upstream pourra gérer)
-        throw err2;
-      }
+      const data = resp.data;
+      const normalized = normalizeListResponse<PrestationDto>(data);
+      normalized.forEach((p) => prestationsCache.set(p.id, p));
+      return [...fromCache, ...normalized];
+    } catch {
+      // fallback: individual fetches (laissons l'erreur remonter si ça échoue)
+      const results = await Promise.all(
+        missingIds.map(async (id) => {
+          const r = await apiClient.get(`${API_ENDPOINTS.catalogPrestation}${id}/`);
+          const p = r.data as PrestationDto;
+          prestationsCache.set(p.id, p);
+          return p;
+        })
+      );
+      return [...fromCache, ...results];
     }
   },
 

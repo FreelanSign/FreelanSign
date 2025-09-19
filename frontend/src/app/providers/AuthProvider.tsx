@@ -1,8 +1,9 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { makeAuthUseCases } from '@/domain/auth/usecases';
-import { authRepository } from '@/infrastructure/auth/authRepository';
-import type { AuthUser } from '@/domain/auth/types';
-import { tokenStorage } from '@/infrastructure/storage/tokenStorage';
+import { makeAuthUseCases } from '../../domain/auth/usecases';
+import { authRepository } from '../../infrastructure/auth/authRepository';
+import type { AuthUser } from '../../domain/types';
+import { tokenStorage } from '../../infrastructure/storage/tokenStorage';
 
 /** Contexte d'auth simple.
  *  - expose user (optionnel)

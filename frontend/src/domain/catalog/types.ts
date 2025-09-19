@@ -2,7 +2,12 @@
 /**
  * Types frontend pour le catalogue (Prestation & Area).
  * On reste permissif côté shape car la serialisation backend peut varier.
+ *
+ * On utilise `unknown` (plutôt que `any`) pour rester safe :
+ * - on n'autorise plus l'accès direct sans vérification de type
+ * - on force l'utilisation de guards ou helpers quand on veut lire un champ dynamique
  */
+
 export type PrestationDto = {
   id: number;
   name?: string | null;
@@ -11,13 +16,11 @@ export type PrestationDto = {
   description?: string | null;
   short_description?: string | null;
   price_cents?: number | null;
-  // others: whatever your backend sends
-  [key: string]: any;
-};
+  // other dynamic keys are allowed but typed as unknown
+} & Record<string, unknown>;
 
 export type AreaDto = {
   id: number;
   name?: string | null;
   slug?: string | null;
-  [key: string]: any;
-};
+} & Record<string, unknown>;

@@ -1,5 +1,6 @@
 // src/interface/pages/ProfilePage.tsx
 import React, { useEffect, useState } from 'react';
+import { getStringField, getNumberField } from '../../shared/utils/obj';
 import { userRepository } from '../../infrastructure/user/userRepository';
 import { catalogRepository } from '../../infrastructure/catalog/catalogRepository';
 import type { UserDto, ProfessionalUserDto } from '../../domain/user/types';
@@ -20,6 +21,14 @@ export default function ProfilePage() {
   const [areaName, setAreaName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  // helper type-guard (place-le dans le fichier, au-dessus du useEffect)
+  function isApiError(e: unknown): e is { response?: { status?: number } } {
+    // Vérifie que c'est bien un objet qui contient 'response' et que response est aussi un objet.
+    // On évite totalement `any` ici.
+    return typeof e === 'object' && e !== null && 'response' in e && typeof (e as Record<string, unknown>).response === 'object';
+  }
+
 
   useEffect(() => {
     let mounted = true;
@@ -62,8 +71,9 @@ export default function ProfilePage() {
             setAreaName(null);
           }
         }
-      } catch (e) {
-        if ((e as any)?.response?.status === 401) {
+      } catch (e: unknown) {
+        // utilise le type-guard pour vérifier la shape
+        if (isApiError(e) && e.response?.status === 401) {
           navigate('/login', { replace: true });
         } else {
           console.error('ProfilePage load error', e);
@@ -121,30 +131,26 @@ export default function ProfilePage() {
                 <p>Aucun service renseigné.</p>
               ) : (
                 <ul className="grid gap-3">
-                  {prestations.map((p) => (
-                    <li key={p.id} className="p-3 border rounded">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <strong className="block text-lg">
-                            {p.name ?? p.title ?? p.label ?? `Service #${p.id}`}
-                          </strong>
-                          { (p.short_description ?? p.description) && (
-                            <p className="text-sm mt-1">{p.short_description ?? p.description}</p>
-                          )}
+                  {prestations.map((p: PrestationDto) => {
+                    const title = getStringField(p, 'name', 'title', 'label') ?? `Service #${p.id}`;
+                    const desc = getStringField(p, 'short_description', 'description');
+                    const priceCents = getNumberField(p, 'price_cents'); // ou (p.price_cents as number | undefined)
+                    return (
+                      <li key={p.id} className="p-3 border rounded">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <strong className="block text-lg">{title}</strong>
+                            {desc && <p className="text-sm mt-1">{desc}</p>}
+                          </div>
+                          <div className="text-right">
+                            {priceCents != null ? (
+                              <div className="text-sm font-medium">{(priceCents / 100).toFixed(2)} €</div>
+                            ) : null}
+                          </div>
                         </div>
-                        <div className="text-right">
-                          {p.price_cents != null ? (
-                            <div className="text-sm font-medium">{(p.price_cents / 100).toFixed(2)} €</div>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      {/* link vers page de détail (si tu en as une) */}
-                      {/* <div className="mt-2">
-                        <Link to={`/services/${p.id}`} className="text-blue-600 underline">Voir le service</Link>
-                      </div> */}
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
