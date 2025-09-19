@@ -1,8 +1,11 @@
 // src/infrastructure/user/userRepository.ts
 import axios from 'axios';
-import { apiClient } from '@/infrastructure/http/apiClient';
-import { API_ENDPOINTS } from '@/shared/endpoints';
-import type { ProfessionalUserDto, UserDto } from '@/domain/user/types';
+import { apiClient } from '../../infrastructure/http/apiClient';
+import { API_ENDPOINTS } from '../../shared/endpoints';
+import type { ProfessionalUserDto, UserDto } from '../../domain/user/types';
+
+type ProfilePayload = Partial<UserDto['profile']>;
+type UpdateMeArg = ProfilePayload | { profile: ProfilePayload };
 
 /**
  * Repository pour user/professional.
@@ -10,25 +13,22 @@ import type { ProfessionalUserDto, UserDto } from '@/domain/user/types';
  * et axios.isAxiosError pour faire le narrowing.
  */
 
-export type ProfilePayload = Partial<{
-  first_name: string;
-  last_name: string;
-  phone: string;
-  birthday: string;
-  avatar_url: string;
-}>;
-
 export const userRepository = {
   async getMe(): Promise<UserDto> {
     const { data } = await apiClient.get(API_ENDPOINTS.me);
     return data as UserDto;
   },
 
-  async updateMe(profilePayload: ProfilePayload): Promise<UserDto> {
-    const { data } = await apiClient.patch(
-      API_ENDPOINTS.meProfile,
-      profilePayload,
-    );
+  /**
+   * updateMe accepte soit:
+   *  - un payload direct de profile (ex: { first_name: 'X' })
+   *  - soit un wrapper { profile: { ... } }
+   *
+   * On normalise en { profile: ... } avant d'envoyer au backend.
+   */
+  async updateMe(payload: UpdateMeArg): Promise<UserDto> {
+    const body = (payload && 'profile' in (payload as any)) ? (payload as { profile: ProfilePayload }) : { profile: payload as ProfilePayload };
+    const { data } = await apiClient.patch(API_ENDPOINTS.me, body);
     return data as UserDto;
   },
 

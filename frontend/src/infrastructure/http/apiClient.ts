@@ -3,6 +3,7 @@ import axios, {
   AxiosError,
   type AxiosInstance,
   type AxiosRequestConfig,
+  type InternalAxiosRequestConfig,
 } from 'axios';
 import { ENV } from '../../shared/env';
 import { API_ENDPOINTS } from '../../shared/endpoints';
@@ -40,27 +41,39 @@ let pendingQueue: Array<{
   originalRequest: OriginalRequest;
 }> = [];
 
+// --- processQueue ---
 function processQueue(error: unknown, token: string | null) {
   pendingQueue.forEach(({ resolve, reject, originalRequest }) => {
     if (error) {
       reject(error);
-    } else {
-      if (token && originalRequest.headers) {
-        (originalRequest.headers as Record<string, string>)['Authorization'] =
-          `Bearer ${token}`;
-      }
-      resolve(apiClient.request(originalRequest));
+      return;
     }
+
+    if (token) {
+      // Normalise headers en plain object et injecte Authorization
+      originalRequest.headers = {
+        ...(originalRequest.headers as Record<string, any> | undefined) ?? {},
+        Authorization: `Bearer ${token}`,
+      } as any;
+    }
+
+    resolve(apiClient.request(originalRequest));
   });
   pendingQueue = [];
 }
 
 // --- Request: inject Authorization ---
-apiClient.interceptors.request.use((config: AxiosRequestConfig) => {
+// utilise InternalAxiosRequestConfig (type attendu par axios interceptors)
+apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const access = tokenStorage.getAccess();
-  if (access && config.headers) {
-    (config.headers as Record<string, string>)['Authorization'] =
-      `Bearer ${access}`;
+
+  // assure que headers est un objet (plain object) pour éviter les problèmes de type
+  config.headers = {
+    ...(config.headers as Record<string, any> | undefined) ?? {},
+  } as any;
+
+  if (access) {
+    (config.headers as Record<string, any>)['Authorization'] = `Bearer ${access}`;
   }
   return config;
 });

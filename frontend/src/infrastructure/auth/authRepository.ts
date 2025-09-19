@@ -1,13 +1,13 @@
-import { API_ENDPOINTS } from '@/shared/endpoints';
-import { apiClient } from '@/infrastructure/http/apiClient';
-import { tokenStorage } from '@/infrastructure/storage/tokenStorage';
+import { API_ENDPOINTS } from '../../shared/endpoints';
+import { apiClient } from '../../infrastructure/http/apiClient';
+import { tokenStorage } from '../../infrastructure/storage/tokenStorage';
 import type {
   AuthPort,
   LoginPayload,
   RegisterPayload,
   TokenPair,
   AuthUser,
-} from '@/domain/auth/types';
+} from '../../domain/types';
 
 /**
  * Implémentation concrète des appels Auth contre DRF.

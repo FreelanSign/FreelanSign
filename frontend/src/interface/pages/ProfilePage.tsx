@@ -1,5 +1,5 @@
 // src/interface/pages/ProfilePage.tsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getStringField, getNumberField } from '../../shared/utils/obj';
 import { userRepository } from '../../infrastructure/user/userRepository';
 import { catalogRepository } from '../../infrastructure/catalog/catalogRepository';

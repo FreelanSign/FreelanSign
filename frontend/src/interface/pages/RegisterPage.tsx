@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
-import RegisterForm from '@/interface/components/forms/RegisterForm';
+import RegisterForm from '../../interface/components/forms/RegisterForm';
 import { useEffect } from 'react';
-import { useAuth } from '@/app/providers/AuthProvider';
+import { useAuth } from '../../app/providers/AuthProvider';
 
 export default function RegisterPage() {
   const { user } = useAuth();

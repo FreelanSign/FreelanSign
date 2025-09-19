@@ -3,8 +3,8 @@ import type {
   LoginPayload,
   RegisterPayload,
   AuthUser,
-} from './types';
-import { tokenStorage } from '@/infrastructure/storage/tokenStorage';
+} from '../types';
+import { tokenStorage } from '../../infrastructure/storage/tokenStorage';
 
 /** Les use-cases orchestrent l’implémentation du port et la persistance locale. */
 
