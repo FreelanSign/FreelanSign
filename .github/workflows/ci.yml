@@ -76,7 +76,7 @@ jobs:
       - name: Enable corepack & prepare pnpm
         run: |
           corepack enable
-          corepack prepare pnpm@8 --activate
+          corepack prepare pnpm@10.15.1 --activate
           pnpm -v
 
       - name: Setup pnpm
