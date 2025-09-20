@@ -89,6 +89,8 @@ INSTALLED_APPS = [
     "apps.user.apps.UserConfig",
     "apps.core.apps.CoreConfig",
     "apps.catalog.apps.CatalogConfig",
+    "apps.quote.apps.QuoteConfig",
+    "apps.client.apps.ClientConfig",
 ]
 
 MIDDLEWARE = [
