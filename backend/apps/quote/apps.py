@@ -7,4 +7,4 @@ class QuoteConfig(AppConfig):
     verbose_name = "Quotes"
 
     def ready(self):
-        from . import signals # noqa: F401
+        from . import signals  # noqa: F401

@@ -1,10 +1,13 @@
 # apps/quote/admin.py
 from django.contrib import admin
-from .models import Quote, QuoteLineItem, QuoteHistory, PaymentTerms
+
+from .models import PaymentTerms, Quote, QuoteHistory, QuoteLineItem
+
 
 class QuoteLineItemInline(admin.TabularInline):
     model = QuoteLineItem
     extra = 0
+
 
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
@@ -13,10 +16,12 @@ class QuoteAdmin(admin.ModelAdmin):
     search_fields = ("reference", "title", "client__name")
     inlines = [QuoteLineItemInline]
 
+
 @admin.register(PaymentTerms)
 class PaymentTermsAdmin(admin.ModelAdmin):
     list_display = ("name", "owner", "days", "updated_at")
     search_fields = ("name",)
+
 
 @admin.register(QuoteHistory)
 class QuoteHistoryAdmin(admin.ModelAdmin):

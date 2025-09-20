@@ -1,9 +1,14 @@
 # apps/quote/services/lineFromPrestation.py
 from decimal import Decimal
-from ..models import Prestation
+
 from apps.core.utils.money import cents_to_euros
 
-def create_line_from_prestation(quote, prestation: Prestation, qty: Decimal = None, tax_rate: Decimal = None, discount: Decimal = None, order: int = 0):
+from ..models import Prestation
+
+
+def create_line_from_prestation(
+    quote, prestation: Prestation, qty: Decimal = None, tax_rate: Decimal = None, discount: Decimal = None, order: int = 0
+):
     """
     Create a QuoteLineItem from a Prestation catalog entry.
     - Convert cents -> euros using existing helper

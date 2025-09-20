@@ -2,31 +2,32 @@
 from __future__ import annotations
 
 import uuid
-from decimal import Decimal, ROUND_HALF_UP
-from django.conf import settings
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db import models
-from django.db.models import F, Q, UniqueConstraint, Index
-from django.db.models.functions import Coalesce
-from django.core.exceptions import ValidationError
-from django.db import transaction
-from django.utils import timezone
+from decimal import ROUND_HALF_UP, Decimal
 
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models, transaction
+from django.db.models import F, Index, Q, UniqueConstraint
+from django.db.models.functions import Coalesce
+from django.utils import timezone
 
 # Reusable decimal options for money-like fields
 DECIMAL_KWARGS = dict(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+
 
 class PaymentTerms(models.Model):
     """
     Payment terms template owned by a user. Helps standardize due dates.
     Example: 'Net 30', 30 days.
     """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="payment_terms",
-        help_text="Owner of these payment terms."
+        help_text="Owner of these payment terms.",
     )
     name = models.CharField(max_length=128, help_text="Short label, e.g. 'Net 30'.")
     days = models.PositiveIntegerField(help_text="Number of days to add to issue_date.")
@@ -55,6 +56,7 @@ class Quote(models.Model):
     Commercial quote document. Stores header amounts separately from line items
     to allow integrity checks and faster reads.
     """
+
     class Status(models.TextChoices):
         DRAFT = "DRAFT", "Draft"
         SENT = "SENT", "Sent"
@@ -68,10 +70,7 @@ class Quote(models.Model):
 
     # Who owns the quote
     owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        related_name="quotes",
-        help_text="Quote owner (user/professional)."
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="quotes", help_text="Quote owner (user/professional)."
     )
 
     # Client reference — adapt the dotted path to your Client model
@@ -79,14 +78,11 @@ class Quote(models.Model):
         "client.Client",  # change to your actual app label if different
         on_delete=models.PROTECT,
         related_name="quotes",
-        help_text="Client associated with this quote."
+        help_text="Client associated with this quote.",
     )
 
     title = models.CharField(max_length=255)
-    reference = models.CharField(
-        max_length=64,
-        help_text="Human-readable reference unique per owner."
-    )
+    reference = models.CharField(max_length=64, help_text="Human-readable reference unique per owner.")
     currency = models.CharField(max_length=3, help_text="ISO currency code, e.g. 'EUR'.")
     language = models.CharField(max_length=8, default="fr", help_text="IETF language tag, e.g. 'fr', 'en'.")
 
@@ -102,12 +98,10 @@ class Quote(models.Model):
         null=True,
         blank=True,
         related_name="quotes",
-        help_text="Optional reference to predefined payment terms."
+        help_text="Optional reference to predefined payment terms.",
     )
     payment_terms_text = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text="Optional free-text payment terms if not using a template."
+        max_length=255, blank=True, help_text="Optional free-text payment terms if not using a template."
     )
 
     # Monetary fields (always Decimal)
@@ -136,7 +130,10 @@ class Quote(models.Model):
             # We use Q(...) with F(...) arithmetic which Django accepts here.
             models.CheckConstraint(
                 name="ck_quote_totals_match",
-                check=F("total") == Coalesce(F("subtotal"), Decimal("0.00")) + Coalesce(F("tax_total"), Decimal("0.00")) - Coalesce(F("discount_total"), Decimal("0.00")),
+                check=F("total")
+                == Coalesce(F("subtotal"), Decimal("0.00"))
+                + Coalesce(F("tax_total"), Decimal("0.00"))
+                - Coalesce(F("discount_total"), Decimal("0.00")),
             ),
         ]
         indexes = [
@@ -173,8 +170,9 @@ class Quote(models.Model):
         """
         Compute grand total = subtotal + tax_total - discount_total.
         """
-        return (self.compute_subtotal() + self.compute_tax_total() - self.discount_total)\
-            .quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        return (self.compute_subtotal() + self.compute_tax_total() - self.discount_total).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
 
     def totals_match(self) -> bool:
         """
@@ -206,11 +204,9 @@ class Quote(models.Model):
             # Use update to avoid triggering save() hooks that might call recalculate_totals again.
             # Also update updated_at manually (auto_now doesn't run on update()).
             from django.utils import timezone
+
             Quote.objects.filter(pk=self.pk).update(
-                subtotal=subtotal,
-                tax_total=tax_total,
-                total=total,
-                updated_at=timezone.now()
+                subtotal=subtotal, tax_total=tax_total, total=total, updated_at=timezone.now()
             )
 
     def clean(self):
@@ -218,37 +214,36 @@ class Quote(models.Model):
         Validate that header totals match derived totals.
         Prefer to call recalculate_totals() instead of relying on external user input.
         """
-        expected = (self.subtotal or Decimal("0.00")) + (self.tax_total or Decimal("0.00")) - (self.discount_total or Decimal("0.00"))
+        expected = (
+            (self.subtotal or Decimal("0.00")) + (self.tax_total or Decimal("0.00")) - (self.discount_total or Decimal("0.00"))
+        )
         expected = expected.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
         if (self.total or Decimal("0.00")).quantize(Decimal("0.01")) != expected:
             raise ValidationError({"total": f"Total mismatch: expected {expected} but got {self.total}"})
+
 
 class QuoteLineItem(models.Model):
     """
     Line item belonging to a Quote.
     Stores a metadata JSON field that keeps a reference to the catalog (area_key, prestation_name, etc.)
     """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    quote = models.ForeignKey(
-        "quote.Quote",
-        on_delete=models.CASCADE,
-        related_name="items",
-        help_text="Owning quote."
-    )
+    quote = models.ForeignKey("quote.Quote", on_delete=models.CASCADE, related_name="items", help_text="Owning quote.")
     description = models.CharField(max_length=255)
     qty = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=Decimal("0.00"),
         validators=[MinValueValidator(Decimal("0.00"))],
-        help_text="Quantity (can be fractional)."
+        help_text="Quantity (can be fractional).",
     )
     unit_price = models.DecimalField(
         **DECIMAL_KWARGS,
         validators=[MinValueValidator(Decimal("0.00"))],
-        help_text="Unit price (in EUR). Use Decimal, not float."
+        help_text="Unit price (in EUR). Use Decimal, not float.",
     )
 
     # tax_rate as percentage (0..100). Defaulted when creating the line from the owner/profile.
@@ -257,14 +252,14 @@ class QuoteLineItem(models.Model):
         decimal_places=2,
         default=Decimal("0.00"),
         validators=[MinValueValidator(Decimal("0.00")), MaxValueValidator(Decimal("100.00"))],
-        help_text="Tax rate as percentage (e.g. 20.00 for 20%)."
+        help_text="Tax rate as percentage (e.g. 20.00 for 20%).",
     )
 
     # per-line absolute discount (in EUR)
     discount = models.DecimalField(
         **DECIMAL_KWARGS,
         validators=[MinValueValidator(Decimal("0.00"))],
-        help_text="Line-level discount as absolute amount (EUR)."
+        help_text="Line-level discount as absolute amount (EUR).",
     )
 
     # stored pre-tax total for faster reads (kept in sync in save())
@@ -299,8 +294,7 @@ class QuoteLineItem(models.Model):
         """
         Compute tax amount for this line = pre_tax_total * (tax_rate / 100).
         """
-        return (self.pre_tax_total() * (self.tax_rate / Decimal("100")))\
-            .quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        return (self.pre_tax_total() * (self.tax_rate / Decimal("100"))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     def save(self, *args, **kwargs):
         """
@@ -313,10 +307,12 @@ class QuoteLineItem(models.Model):
     def __str__(self) -> str:
         return f"{self.description} ({self.qty} × {self.unit_price})"
 
+
 class QuoteHistory(models.Model):
     """
     Audit log for significant quote events (create/update/send/status changes).
     """
+
     class Action(models.TextChoices):
         CREATED = "created", "Created"
         UPDATED = "updated", "Updated"
@@ -324,12 +320,7 @@ class QuoteHistory(models.Model):
         STATUS_CHANGED = "status_changed", "Status changed"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    quote = models.ForeignKey(
-        Quote,
-        on_delete=models.CASCADE,
-        related_name="history",
-        help_text="Related quote."
-    )
+    quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="history", help_text="Related quote.")
     payload_snapshot = models.JSONField(default=dict, blank=True, help_text="Light snapshot for traceability.")
     action = models.CharField(max_length=32, choices=Action.choices)
     actor = models.ForeignKey(
@@ -338,7 +329,7 @@ class QuoteHistory(models.Model):
         null=True,
         blank=True,
         related_name="quote_actions",
-        help_text="User who performed the action, if any."
+        help_text="User who performed the action, if any.",
     )
     timestamp = models.DateTimeField(auto_now_add=True)
 
