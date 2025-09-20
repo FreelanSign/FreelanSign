@@ -8,7 +8,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
-from django.db.models import F, Index, Q, UniqueConstraint
+from django.db.models import DecimalField as DjangoDecimalField
+from django.db.models import F, Index, Q, UniqueConstraint, Value
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
@@ -123,17 +124,19 @@ class Quote(models.Model):
         db_table = "quote_quote"
         verbose_name = "Quote"
         verbose_name_plural = "Quotes"
+        # prepare a Decimal zero value as an expression (explicit output_field)
+        _ZERO = Value(Decimal("0.00"), output_field=DjangoDecimalField(max_digits=12, decimal_places=2))
+        # build the expected RHS expression safely using Coalesce + Value
+        _EXPECTED_TOTAL_EXPR = (
+            Coalesce(F("subtotal"), _ZERO) + Coalesce(F("tax_total"), _ZERO) - Coalesce(F("discount_total"), _ZERO)
+        )
+
         constraints = [
-            # Uniqueness of reference per owner
             UniqueConstraint(fields=["owner", "reference"], name="uq_quote_owner_reference"),
-            # Check that total == subtotal + tax_total - discount_total
-            # We use Q(...) with F(...) arithmetic which Django accepts here.
+            # Use a Q(...) with the expression on the right-hand side.
             models.CheckConstraint(
+                check=Q(total=_EXPECTED_TOTAL_EXPR),
                 name="ck_quote_totals_match",
-                check=F("total")
-                == Coalesce(F("subtotal"), Decimal("0.00"))
-                + Coalesce(F("tax_total"), Decimal("0.00"))
-                - Coalesce(F("discount_total"), Decimal("0.00")),
             ),
         ]
         indexes = [
