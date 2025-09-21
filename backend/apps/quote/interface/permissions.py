@@ -1,8 +1,9 @@
 # apps/quote/interface/permissions.py
 from __future__ import annotations
 
-from rest_framework.permissions import BasePermission, SAFE_METHODS
 from typing import Any
+
+from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
 class IsOwnerOrAdmin(BasePermission):

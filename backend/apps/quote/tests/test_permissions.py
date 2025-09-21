@@ -1,10 +1,10 @@
 # apps/quote/tests/test_permissions.py
-import pytest
 from datetime import date
 from decimal import Decimal
 
-from rest_framework.test import APIClient
+import pytest
 from django.contrib.auth import get_user_model
+from rest_framework.test import APIClient
 
 from apps.client.models import Client
 from apps.quote.models import Quote

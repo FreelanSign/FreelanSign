@@ -7,32 +7,26 @@ from decimal import Decimal
 from typing import Any, List, Optional
 
 from django.db import transaction
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.http import Http404
-
-from drf_spectacular.utils import extend_schema, extend_schema_view
-
-from rest_framework import viewsets, status, serializers
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.filters import OrderingFilter, SearchFilter
-
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import serializers, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
 from apps.quote.interface.permissions import IsOwnerOrAdmin
-from apps.quote.interface.serializers import (
-    QuoteSerializer,
-    QuoteCreateUpdateSerializer,
-    ClientReadSerializer,
-)
-from apps.quote.models import Quote, QuoteLineItem, QuoteHistory
+from apps.quote.interface.serializers import ClientReadSerializer, QuoteCreateUpdateSerializer, QuoteSerializer
+from apps.quote.models import Quote, QuoteHistory, QuoteLineItem
 
 # Try to import real services; provide safe no-op fallbacks when not present.
 try:
-    from apps.quote.services.email_pdf import generate_pdf_for_quote, attach_pdf_to_quote, send_quote_email  # type: ignore
+    from apps.quote.services.email_pdf import attach_pdf_to_quote, generate_pdf_for_quote, send_quote_email  # type: ignore
 except Exception:
+
     def generate_pdf_for_quote(quote: Quote) -> Optional[bytes]:
         """Stub: return None in test environment if service not implemented."""
         return None
@@ -114,6 +108,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
       - partial_delete: convenience to cancel (soft delete)
     Access rules: controlled by IsOwnerOrAdmin permission class and by get_queryset/get_object logic.
     """
+
     queryset = Quote.objects.all().select_related("owner", "client")
     permission_classes = [IsOwnerOrAdmin]
     pagination_class = StandardResultsSetPagination

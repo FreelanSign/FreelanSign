@@ -1,5 +1,6 @@
 # apps/quote/interface/urls.py
 from rest_framework.routers import DefaultRouter
+
 from .views import QuoteViewSet
 
 app_name = "quote"
