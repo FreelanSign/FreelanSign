@@ -9,7 +9,9 @@ export default function AppTopBar() {
   return (
     <header className="w-full border-b bg-white">
       <div className="container mx-auto p-3 flex items-center justify-between gap-3">
-        <Link to="/dashboard" className="font-semibold">FreelanSign</Link>
+        <Link to="/dashboard" className="font-semibold">
+          FreelanSign
+        </Link>
 
         <nav className="flex items-center gap-2">
           {/* Affiche le bouton partout sauf sur la page de création */}
@@ -24,11 +26,23 @@ export default function AppTopBar() {
           )}
           {user ? (
             <>
-              <Link to="/profile" className="rounded px-3 py-2 bg-gray-100">Mon profil</Link>
-              <button onClick={() => logout()} className="rounded px-3 py-2 bg-gray-200">Déconnexion</button>
+              <Link to="/profile" className="rounded px-3 py-2 bg-gray-100">
+                Mon profil
+              </Link>
+              <button
+                onClick={() => logout()}
+                className="rounded px-3 py-2 bg-gray-200"
+              >
+                Déconnexion
+              </button>
             </>
           ) : (
-            <Link to="/login" className="rounded px-3 py-2 bg-blue-600 text-white">Se connecter</Link>
+            <Link
+              to="/login"
+              className="rounded px-3 py-2 bg-blue-600 text-white"
+            >
+              Se connecter
+            </Link>
           )}
         </nav>
       </div>

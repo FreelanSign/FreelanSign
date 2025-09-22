@@ -27,7 +27,13 @@ export const quoteRepository = {
    * - params: page, page_size optional, filters (status, client, search)
    * Returns paginated response from DRF.
    */
-  async list(params?: { page?: number; page_size?: number; status?: string; client?: string; search?: string }) {
+  async list(params?: {
+    page?: number;
+    page_size?: number;
+    status?: string;
+    client?: string;
+    search?: string;
+  }) {
     const { data } = await apiClient.get(API_ENDPOINTS.quotes, {
       params: {
         page: params?.page,
@@ -46,5 +52,5 @@ export const quoteRepository = {
   async get(id: string) {
     const { data } = await apiClient.get(`${API_ENDPOINTS.quotes}${id}/`);
     return data;
-  }
+  },
 };

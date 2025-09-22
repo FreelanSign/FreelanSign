@@ -9,7 +9,7 @@ import { ENV } from '../../shared/env';
 import { API_ENDPOINTS } from '../../shared/endpoints';
 import { tokenStorage } from '../../infrastructure/storage/tokenStorage';
 
-type RefreshResponse = { access?: string; refresh?: string; };
+type RefreshResponse = { access?: string; refresh?: string };
 type OriginalRequest = AxiosRequestConfig & { _retry?: boolean };
 
 export const apiClient: AxiosInstance = axios.create({
@@ -34,7 +34,8 @@ type PartialAxiosDefaultsHeaders = {
   [key: string]: Record<string, string> | string | undefined;
 };
 
-const headersDefaults = apiClient.defaults.headers as unknown as PartialAxiosDefaultsHeaders;
+const headersDefaults = apiClient.defaults
+  .headers as unknown as PartialAxiosDefaultsHeaders;
 
 // Assure JSON par défaut pour POST (évite le 415)
 headersDefaults.post = {
@@ -70,7 +71,8 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (access) {
     config.headers = config.headers || {};
     // on assure que headers est un objet string->string pour l'Authorization
-    (config.headers as Record<string, string>)['Authorization'] = `Bearer ${access}`;
+    (config.headers as Record<string, string>)['Authorization'] =
+      `Bearer ${access}`;
   }
   return config;
 });
@@ -105,8 +107,11 @@ apiClient.interceptors.response.use(
         { refresh: refreshToken },
         {
           withCredentials: false,
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        }
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        },
       );
 
       const newAccess = resp.data?.access;
@@ -125,5 +130,5 @@ apiClient.interceptors.response.use(
     } finally {
       isRefreshing = false;
     }
-  }
+  },
 );

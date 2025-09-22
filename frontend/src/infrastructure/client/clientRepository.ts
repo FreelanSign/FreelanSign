@@ -44,8 +44,11 @@ export const clientRepository = {
 
     // Format inattendu : log et retourne tableau vide pour tolérance
     // (évite de propager `any` vers le reste de l'app)
-     
-    console.warn('[clientRepository] Unexpected response shape for GET clients', data);
+
+    console.warn(
+      '[clientRepository] Unexpected response shape for GET clients',
+      data,
+    );
     return [];
   },
 };

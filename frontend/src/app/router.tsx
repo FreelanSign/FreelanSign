@@ -50,10 +50,20 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: '/quotes/new', element: <Protected><QuoteCreatePage /></Protected>
+    path: '/quotes/new',
+    element: (
+      <Protected>
+        <QuoteCreatePage />
+      </Protected>
+    ),
   },
   {
-    path: 'quotes', element: <Protected><QuotesListPage /></Protected>
+    path: 'quotes',
+    element: (
+      <Protected>
+        <QuotesListPage />
+      </Protected>
+    ),
   },
 ]);
 

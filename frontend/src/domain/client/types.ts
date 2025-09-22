@@ -1,6 +1,6 @@
 export type ClientDto = {
-    id: string;
-    name: string;
-    email?: string | null;
-    phone?: string | null;
-}
+  id: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+};

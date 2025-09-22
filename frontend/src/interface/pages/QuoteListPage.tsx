@@ -25,7 +25,7 @@ type PageResponse<T> = {
   next: string | null;
   previous: string | null;
   results: T[];
-}
+};
 
 export default function QuotesListPage() {
   const [page, setPage] = useState<number>(1);
@@ -49,22 +49,31 @@ export default function QuotesListPage() {
         // safe extraction from unknown error shape
         const e = err as { response?: { data?: unknown }; message?: string };
         const server = e.response?.data;
-        setError(server ? JSON.stringify(server) : e.message ?? 'Erreur');
+        setError(server ? JSON.stringify(server) : (e.message ?? 'Erreur'));
       } finally {
         if (active) setLoading(false);
       }
     })();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [page, pageSize]);
 
   const next = data?.next ? () => setPage((p) => p + 1) : undefined;
-  const prev = data?.previous ? () => setPage((p) => Math.max(1, p - 1)) : undefined;
+  const prev = data?.previous
+    ? () => setPage((p) => Math.max(1, p - 1))
+    : undefined;
 
   return (
     <main className="container mx-auto p-6 grid gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Mes devis</h1>
-        <Link to="/quotes/new" className="bg-green-600 text-white px-3 py-2 rounded">+ Nouveau devis</Link>
+        <Link
+          to="/quotes/new"
+          className="bg-green-600 text-white px-3 py-2 rounded"
+        >
+          + Nouveau devis
+        </Link>
       </div>
 
       {loading ? (
@@ -73,24 +82,44 @@ export default function QuotesListPage() {
         <div className="text-red-600">Erreur : {error}</div>
       ) : (
         <>
-          {(!data || (Array.isArray(data.results) && data.results.length === 0)) ? (
+          {!data ||
+          (Array.isArray(data.results) && data.results.length === 0) ? (
             <div>Aucun devis trouvé.</div>
           ) : (
             <div className="grid gap-3">
               {(data.results as QuoteItem[]).map((q) => (
-                <article key={q.id} className="p-4 border rounded flex justify-between items-start">
+                <article
+                  key={q.id}
+                  className="p-4 border rounded flex justify-between items-start"
+                >
                   <div>
                     <div className="text-sm text-gray-500">{q.status}</div>
-                    <div className="text-lg font-medium">{q.reference} — {q.title}</div>
-                    <div className="text-sm text-gray-600">Émis le: {q.issue_date ?? '—'}</div>
+                    <div className="text-lg font-medium">
+                      {q.reference} — {q.title}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Émis le: {q.issue_date ?? '—'}
+                    </div>
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-semibold">
-                      {q.total != null ? `${Number(q.total).toFixed(2)} ${q.currency ?? '€'}` : '—'}
+                      {q.total != null
+                        ? `${Number(q.total).toFixed(2)} ${q.currency ?? '€'}`
+                        : '—'}
                     </div>
                     <div className="mt-2 flex gap-2">
-                      <Link to={`/quotes/${q.id}`} className="text-sm underline">Voir</Link>
-                      <Link to={`/quotes/${q.id}/edit`} className="text-sm underline">Éditer</Link>
+                      <Link
+                        to={`/quotes/${q.id}`}
+                        className="text-sm underline"
+                      >
+                        Voir
+                      </Link>
+                      <Link
+                        to={`/quotes/${q.id}/edit`}
+                        className="text-sm underline"
+                      >
+                        Éditer
+                      </Link>
                     </div>
                   </div>
                 </article>
@@ -100,10 +129,24 @@ export default function QuotesListPage() {
 
           {/* Pagination simple */}
           <div className="flex items-center justify-between mt-4">
-            <div>Page {page} — {data?.count ?? '—'} items</div>
+            <div>
+              Page {page} — {data?.count ?? '—'} items
+            </div>
             <div className="flex gap-2">
-              <button onClick={prev} disabled={!prev} className="px-3 py-1 bg-gray-200 rounded">Précédent</button>
-              <button onClick={next} disabled={!next} className="px-3 py-1 bg-gray-200 rounded">Suivant</button>
+              <button
+                onClick={prev}
+                disabled={!prev}
+                className="px-3 py-1 bg-gray-200 rounded"
+              >
+                Précédent
+              </button>
+              <button
+                onClick={next}
+                disabled={!next}
+                className="px-3 py-1 bg-gray-200 rounded"
+              >
+                Suivant
+              </button>
             </div>
           </div>
         </>
