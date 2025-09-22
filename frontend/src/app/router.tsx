@@ -10,6 +10,8 @@ import DashboardPage from '../interface/pages/DashboardPage';
 import { useAuth } from './providers/AuthProvider';
 import ProfilePage from '../interface/pages/ProfilePage';
 import ProfileEditPage from '../interface/pages/ProfileEditPage';
+import QuoteCreatePage from '../interface/pages/QuoteCreatePage';
+import QuotesListPage from '../interface/pages/QuoteListPage';
 
 /** Route protégée très simple */
 function Protected({ children }: { children: React.ReactNode }) {
@@ -44,6 +46,22 @@ const router = createBrowserRouter([
     element: (
       <Protected>
         <DashboardPage />
+      </Protected>
+    ),
+  },
+  {
+    path: '/quotes/new',
+    element: (
+      <Protected>
+        <QuoteCreatePage />
+      </Protected>
+    ),
+  },
+  {
+    path: 'quotes',
+    element: (
+      <Protected>
+        <QuotesListPage />
       </Protected>
     ),
   },

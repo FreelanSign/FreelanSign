@@ -28,7 +28,9 @@ class PaymentTerms(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="payment_terms",
-        help_text="Owner of these payment terms.",
+        null=True,
+        blank=True,
+        help_text="If null, this payment terms is global (available to all users).",
     )
     name = models.CharField(max_length=128, help_text="Short label, e.g. 'Net 30'.")
     days = models.PositiveIntegerField(help_text="Number of days to add to issue_date.")
@@ -43,6 +45,7 @@ class PaymentTerms(models.Model):
         constraints = [
             # Ensure a user cannot duplicate the same name
             UniqueConstraint(fields=["owner", "name"], name="uq_paymentterms_owner_name"),
+            UniqueConstraint(fields=["name"], condition=Q(owner__isnull=True), name="uq_payment_global_name"),
         ]
         indexes = [
             Index(fields=["owner", "name"], name="ix_paymentterms_owner_name"),
