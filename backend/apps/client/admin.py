@@ -6,5 +6,6 @@ from .models import Client
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ("name", "owner", "email")
-    search_fields = ("name", "email", "vat_number")
+    list_display = ("name", "owner", "email", "phone", "created_at")
+    search_fields = ("name", "email", "owner__email")
+    list_filter = ("owner",)

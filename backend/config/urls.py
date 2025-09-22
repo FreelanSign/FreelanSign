@@ -29,4 +29,6 @@ urlpatterns = [
     path("api/catalog/", include("apps.catalog.interface.urls", namespace="catalog")),
     # Quotes
     path("api/quotes/", include("apps.quote.interface.urls", namespace="quote")),
+    # Clients
+    path("api/clients/", include("apps.client.interface.urls", namespace="client")),
 ]

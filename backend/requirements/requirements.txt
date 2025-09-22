@@ -8,6 +8,7 @@ djangorestframework==3.16.0
 djangorestframework_simplejwt==5.5.1
 drf-spectacular==0.28.0
 inflection==0.5.1
+isort==6.0.1
 jsonschema==4.25.0
 jsonschema-specifications==2025.4.1
 psycopg2-binary==2.9.10

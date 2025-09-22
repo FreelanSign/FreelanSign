@@ -22,4 +22,6 @@ export const API_ENDPOINTS = {
   professionalMe: '/api/user/professional/me/',
   catalogPrestation: '/api/catalog/prestations/',
   catalogArea: '/api/catalog/areas/',
+  clients: '/api/clients/',
+  quotes: '/api/quotes/',
 } as const;
