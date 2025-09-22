@@ -20,9 +20,25 @@ export const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// 👉 Assure JSON par défaut pour POST (évite le 415)
-(apiClient.defaults.headers as any).post = {
-  ...(apiClient.defaults.headers as any).post,
+/**
+ * Typage sécurisé pour defaults.headers d'Axios.
+ * On cast via unknown -> shape partielle explicitée pour éviter `any`.
+ */
+type PartialAxiosDefaultsHeaders = {
+  common?: Record<string, string>;
+  get?: Record<string, string>;
+  post?: Record<string, string>;
+  put?: Record<string, string>;
+  patch?: Record<string, string>;
+  delete?: Record<string, string>;
+  [key: string]: Record<string, string> | string | undefined;
+};
+
+const headersDefaults = apiClient.defaults.headers as unknown as PartialAxiosDefaultsHeaders;
+
+// Assure JSON par défaut pour POST (évite le 415)
+headersDefaults.post = {
+  ...(headersDefaults.post ?? {}),
   'Content-Type': 'application/json',
 };
 
@@ -53,6 +69,7 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const access = tokenStorage.getAccess();
   if (access) {
     config.headers = config.headers || {};
+    // on assure que headers est un objet string->string pour l'Authorization
     (config.headers as Record<string, string>)['Authorization'] = `Bearer ${access}`;
   }
   return config;
@@ -88,7 +105,7 @@ apiClient.interceptors.response.use(
         { refresh: refreshToken },
         {
           withCredentials: false,
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, // 👈
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         }
       );
 

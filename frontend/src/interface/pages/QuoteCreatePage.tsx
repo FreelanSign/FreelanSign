@@ -1,3 +1,4 @@
+// src/interface/pages/QuoteCreatePage.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -10,9 +11,14 @@ import type { ClientDto } from '../../domain/client/types';
 /**
  * Formulaire création de devis avec au moins une ligne (items).
  * Chaque ligne contient: description, qty, unit_price, tax_rate, discount (optionnel).
+ *
+ * Corrections:
+ * - suppression des "any"
+ * - typage local du payload envoyé
+ * - helpers sûrs pour extraire messages d'erreur et inspecter les erreurs HTTP
  */
 
-// zod schema
+/* ---------- zod schema ---------- */
 const ItemSchema = z.object({
   description: z.string().min(1, 'Description requise'),
   qty: z.number().positive('Qty doit être > 0'),
@@ -35,12 +41,57 @@ const Schema = z.object({
 
 type FormData = z.infer<typeof Schema>;
 
-// helper: today ISO yyyy-mm-dd
-function todayISO() {
+/* ---------- helper types for payload ---------- */
+type QuoteItemPayload = {
+  description: string;
+  qty: number;
+  unit_price: number;
+  tax_rate?: number;
+  discount: number;
+  metadata?: Record<string, unknown>;
+};
+
+type QuotePayload = {
+  client: string;
+  title: string;
+  reference: string;
+  currency: string;
+  language: string;
+  issue_date: string;
+  valid_until?: string | null;
+  payment_terms_text?: string | null;
+  items: QuoteItemPayload[];
+};
+
+/* ---------- small utility helpers ---------- */
+
+function todayISO(): string {
   const d = new Date();
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 }
 
+/** Extract message from various error shapes (FieldError-like or simple string) */
+function extractErrorMessage(err: unknown): string | undefined {
+  if (!err) return undefined;
+  if (typeof err === 'string') return err;
+  if (typeof err === 'object' && err !== null) {
+    const e = err as Record<string, unknown>;
+    if ('message' in e) {
+      const m = e.message;
+      return typeof m === 'string' ? m : String(m ?? '');
+    }
+    // If DRF style: { field: ['msg'] } it's not directly a FieldError, fallback:
+    if ('toString' in e) return String(e);
+  }
+  return undefined;
+}
+
+/** Type guard minimal pour détecter un objet d'erreur axios-like */
+function isAxiosLikeError(e: unknown): e is { response?: { data?: unknown }; message?: string } {
+  return typeof e === 'object' && e !== null && ('response' in e || 'message' in e);
+}
+
+/* ---------- component ---------- */
 export default function QuoteCreatePage() {
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientDto[] | 'loading' | null>('loading');
@@ -51,7 +102,6 @@ export default function QuoteCreatePage() {
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
-    setValue,
   } = useForm<FormData>({
     resolver: zodResolver(Schema),
     defaultValues: {
@@ -63,17 +113,16 @@ export default function QuoteCreatePage() {
           description: 'Nouvelle prestation',
           qty: 1,
           unit_price: 0.0,
-          tax_rate: 20.0, // défaut 20% pour éviter erreur VAT FR
+          tax_rate: 20.0,
           discount: 0.0,
         },
       ],
     },
   });
 
-  // useFieldArray pour gérer les items dynamiques
   const { fields, append, remove } = useFieldArray({ control, name: 'items' });
 
-  // Charger clients
+  // Charger clients (normalise pagination DRF)
   useEffect(() => {
     let active = true;
     (async () => {
@@ -88,7 +137,9 @@ export default function QuoteCreatePage() {
         setClients(null);
       }
     })();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   const onSubmit = async (values: FormData) => {
@@ -96,8 +147,8 @@ export default function QuoteCreatePage() {
     try {
       const validUntil = values.valid_until && values.valid_until.length > 0 ? values.valid_until : undefined;
 
-      // Build payload — **ne pas** inclure subtotal/totals: backend calcule à partir des items
-      const payload: any = {
+      // Build strongly-typed payload
+      const payload: QuotePayload = {
         client: values.client,
         title: values.title,
         reference: values.reference,
@@ -106,27 +157,31 @@ export default function QuoteCreatePage() {
         issue_date: values.issue_date,
         valid_until: validUntil ?? null,
         payment_terms_text: values.payment_terms_text ?? null,
-        // items: assure que les champs numériques sont bien envoyés comme numbers
         items: values.items.map((it) => ({
           description: it.description,
           qty: Number(it.qty),
           unit_price: Number(it.unit_price),
           tax_rate: it.tax_rate === undefined || it.tax_rate === null ? undefined : Number(it.tax_rate),
           discount: it.discount === undefined || it.discount === null ? 0.0 : Number(it.discount),
-          metadata: {}, // optional
+          metadata: {},
         })),
       };
 
       const created = await quoteRepository.create(payload);
       console.log('Quote created', created);
       navigate('/dashboard', { replace: true });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Create quote error', err);
-      if (err?.response?.data) {
-        console.error('server errors', err.response.data);
+      if (isAxiosLikeError(err) && err.response?.data) {
+        // show server validation errors (DRF)
+         
         alert('Impossible de créer le devis : ' + JSON.stringify(err.response.data, null, 2));
+      } else if (isAxiosLikeError(err) && err.message) {
+         
+        alert('Impossible de créer le devis : ' + err.message);
       } else {
-        alert('Impossible de créer le devis : ' + (err?.message ?? 'Erreur inconnue'));
+         
+        alert('Impossible de créer le devis : erreur inconnue');
       }
     } finally {
       setLoading(false);
@@ -148,34 +203,34 @@ export default function QuoteCreatePage() {
           ) : (
             <select {...register('client')} className="border p-2 rounded">
               <option value="">— Sélectionner —</option>
-              {clients.map(c => (
+              {clients.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name} {c.email ? `— ${c.email}` : ''}
                 </option>
               ))}
             </select>
           )}
-          {errors.client && <small className="text-red-600">{(errors.client as any)?.message}</small>}
+          {errors.client && <small className="text-red-600">{extractErrorMessage(errors.client)}</small>}
         </label>
 
         {/* Header fields */}
         <label className="grid gap-1">
           <span>Titre</span>
           <input {...register('title')} className="border p-2 rounded" />
-          {errors.title && <small className="text-red-600">{(errors.title as any)?.message}</small>}
+          {errors.title && <small className="text-red-600">{extractErrorMessage(errors.title)}</small>}
         </label>
 
         <label className="grid gap-1">
           <span>Référence</span>
           <input {...register('reference')} className="border p-2 rounded" />
-          {errors.reference && <small className="text-red-600">{(errors.reference as any)?.message}</small>}
+          {errors.reference && <small className="text-red-600">{extractErrorMessage(errors.reference)}</small>}
         </label>
 
         <div className="grid grid-cols-2 gap-3">
           <label className="grid gap-1">
             <span>Date d’émission</span>
             <input type="date" {...register('issue_date')} className="border p-2 rounded" />
-            {errors.issue_date && <small className="text-red-600">{(errors.issue_date as any)?.message}</small>}
+            {errors.issue_date && <small className="text-red-600">{extractErrorMessage(errors.issue_date)}</small>}
           </label>
 
           <label className="grid gap-1">
@@ -191,50 +246,27 @@ export default function QuoteCreatePage() {
             <div key={field.id} className="grid gap-2 grid-cols-12 items-end border-b py-2">
               <div className="col-span-6">
                 <label className="block text-sm">Description</label>
-                <input
-                  {...register(`items.${index}.description` as const)}
-                  className="border p-1 rounded w-full"
-                />
+                <input {...register(`items.${index}.description` as const)} className="border p-1 rounded w-full" />
               </div>
 
               <div className="col-span-2">
                 <label className="block text-sm">Quantité</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  {...register(`items.${index}.qty`, { valueAsNumber: true })}
-                  className="border p-1 rounded w-full"
-                />
+                <input type="number" step="0.01" {...register(`items.${index}.qty`, { valueAsNumber: true })} className="border p-1 rounded w-full" />
               </div>
 
               <div className="col-span-2">
                 <label className="block text-sm">Prix unitaire</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  {...register(`items.${index}.unit_price`, { valueAsNumber: true })}
-                  className="border p-1 rounded w-full"
-                />
+                <input type="number" step="0.01" {...register(`items.${index}.unit_price`, { valueAsNumber: true })} className="border p-1 rounded w-full" />
               </div>
 
               <div className="col-span-1">
                 <label className="block text-sm">TVA %</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  {...register(`items.${index}.tax_rate`, { valueAsNumber: true })}
-                  className="border p-1 rounded w-full"
-                />
+                <input type="number" step="0.01" {...register(`items.${index}.tax_rate`, { valueAsNumber: true })} className="border p-1 rounded w-full" />
               </div>
 
               <div className="col-span-1">
                 <label className="block text-sm">Remise</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  {...register(`items.${index}.discount`, { valueAsNumber: true })}
-                  className="border p-1 rounded w-full"
-                />
+                <input type="number" step="0.01" {...register(`items.${index}.discount`, { valueAsNumber: true })} className="border p-1 rounded w-full" />
               </div>
 
               <div className="col-span-12 flex gap-2 mt-2">
@@ -259,7 +291,7 @@ export default function QuoteCreatePage() {
             >
               + Ajouter une ligne
             </button>
-            {errors.items && <div className="text-red-600 mt-2">{(errors.items as any)?.message}</div>}
+            {errors.items && <div className="text-red-600 mt-2">{extractErrorMessage(errors.items)}</div>}
           </div>
         </section>
 

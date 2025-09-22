@@ -1,5 +1,5 @@
 // src/interface/pages/QuotesListPage.tsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { quoteRepository } from '../../infrastructure/quote/quoteRepository';
 
@@ -19,11 +19,19 @@ type QuoteItem = {
   currency?: string | null;
 };
 
+/** type pour la page renvoyée par DRF */
+type PageResponse<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
 export default function QuotesListPage() {
   const [page, setPage] = useState<number>(1);
   const [pageSize] = useState<number>(20);
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<any | null>(null); // DRF page object
+  const [data, setData] = useState<PageResponse<QuoteItem> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,11 +42,14 @@ export default function QuotesListPage() {
       try {
         const res = await quoteRepository.list({ page, page_size: pageSize });
         if (!active) return;
-        setData(res);
-      } catch (err: any) {
+        setData(res as PageResponse<QuoteItem>);
+      } catch (err: unknown) {
         console.error('Load quotes error', err);
         if (!active) return;
-        setError(err?.response?.data ? JSON.stringify(err.response.data) : err.message ?? 'Erreur');
+        // safe extraction from unknown error shape
+        const e = err as { response?: { data?: unknown }; message?: string };
+        const server = e.response?.data;
+        setError(server ? JSON.stringify(server) : e.message ?? 'Erreur');
       } finally {
         if (active) setLoading(false);
       }
