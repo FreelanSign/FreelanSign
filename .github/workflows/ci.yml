@@ -83,7 +83,31 @@ jobs:
 
       - name: Lint with ESLint
         run: pnpm run lint
+      - name: Prettier & env debug (CI debug)
+        run: |
+          echo "== node/pnpm/prettier versions =="
+          node -v
+          pnpm -v
+          pnpm exec -- prettier --version
 
+          echo "== git ls-files (top) =="
+          git ls-files | sed -n '1,60p'
+
+          echo "== Prettier list-different (files) =="
+          pnpm exec -- prettier --list-different src/interface/pages/QuoteCreatePage.tsx || true
+
+          echo "== Running prettier --write (temporary) to show diff =="
+          pnpm exec -- prettier --write src/interface/pages/QuoteCreatePage.tsx || true
+
+          echo "== Git diff after prettier --write =="
+          git --no-pager diff -- src/interface/pages/QuoteCreatePage.tsx || true
+
+          # optional: show file head & line endings
+          echo "== File head (visible) =="
+          sed -n '1,120p' src/interface/pages/QuoteCreatePage.tsx || true
+
+          echo "== show last 3 bytes (EOL check) =="
+          hexdump -C -n 64 src/interface/pages/QuoteCreatePage.tsx | sed -n '1,10p' || true
       - name: Check formatting with Prettier
         run: pnpm run format:check
 
