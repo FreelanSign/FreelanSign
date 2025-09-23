@@ -42,7 +42,7 @@ except Exception:
 
 # Small serializer to document change_status payload in the schema
 class ChangeStatusSerializer(serializers.Serializer):
-    status = serializers.ChoiceField(choices=[c.value for c in Quote.Status])
+    status = serializers.ChoiceField(choices=Quote.Status.choices)
 
 
 # Pagination class
@@ -125,20 +125,20 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Base queryset used for list operations and normal lookups.
-        - Regular users see only their own quotes.
-        - Staff/superuser see all quotes.
-        - Unauthenticated users see none.
+        Owners see their quotes. Staff/superuser can see all if they pass ?all=true.
+        Unauthenticated users get empty queryset.
         """
         qs = super().get_queryset()
         user = getattr(self.request, "user", None)
-
         if not user or not user.is_authenticated:
             return qs.none()
-
+        # staff may optionally request everything with ?all=true
         if user.is_staff or user.is_superuser:
-            return qs
-
+            all_param = self.request.query_params.get("all", "").lower()
+            if all_param in ("1", "true", "yes"):
+                return qs
+            # default for staff: limit to their own quotes (safer), unless ?all=true
+            return qs.filter(owner=user)
         return qs.filter(owner=user)
 
     # ----------------------
@@ -220,7 +220,14 @@ class QuoteViewSet(viewsets.ModelViewSet):
         quote = self._get_detail_obj(pk)
         # perform object-level permission check (will raise 403 if not allowed)
         self.check_object_permissions(request, quote)
-
+        # --- Defensive check: ensure only the owner can send the quote ---
+        # This is redundant if the permission class already enforces it,
+        # but provides a clearer error message and explicit guard.
+        if getattr(quote, "owner", None) != getattr(request, "user", None):
+            return Response(
+                {"detail": "Only the owner of the quote is allowed to send it."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         quote.status = Quote.Status.SENT
         quote.sent_at = timezone.now()
         quote.save(update_fields=["status", "sent_at", "updated_at"])
@@ -269,7 +276,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
         owner = request.user
         cloned_fields = {
-            "owner": owner,
+            "owner": original.owner,  # keep same owner
             "client": original.client,
             "title": f"{original.title} (copy)",
             "reference": _generate_reference_for_owner(owner),
