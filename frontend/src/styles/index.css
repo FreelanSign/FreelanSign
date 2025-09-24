@@ -1,0 +1,61 @@
+/* src/styles/index.css*/
+@import 'tailwindcss';
+
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('../assets/fonts/PlayfairDisplay-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@theme {
+  --font-family-playfair: 'Playfair Display', serif;
+
+  /* Vos autres variables de couleurs shadcn */
+  --color-border: 214.3 31.8% 91.4%;
+  --color-input: 214.3 31.8% 91.4%;
+  --color-ring: 222.2 84% 4.9%;
+  --color-background: 0 0% 100%;
+  --color-foreground: 222.2 84% 4.9%;
+
+  --color-primary: 222.2 47.4% 11.2%;
+  --color-primary-foreground: 210 40% 98%;
+
+  --color-secondary: 210 40% 96%;
+  --color-secondary-foreground: 222.2 84% 4.9%;
+
+  --color-muted: 210 40% 96%;
+  --color-muted-foreground: 215.4 16.3% 46.9%;
+
+  --color-accent: 210 40% 96%;
+  --color-accent-foreground: 222.2 84% 4.9%;
+
+  --color-destructive: 0 72.2% 50.6%;
+  --color-destructive-foreground: 210 40% 98%;
+
+  --color-card: 0 0% 100%;
+  --color-card-foreground: 222.2 84% 4.9%;
+
+  --color-popover: 0 0% 100%;
+  --color-popover-foreground: 222.2 84% 4.9%;
+
+  --radius: 0.5rem;
+}
+
+@utility font-playfair {
+  font-family: theme(--font-family-playfair);
+}
+
+/* Mode sombre */
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-background: 222.2 84% 4.9%;
+    --color-foreground: 210 40% 98%;
+    /* Ajoutez vos autres couleurs sombres... */
+  }
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}

@@ -4,8 +4,8 @@ import {
   RouterProvider,
   Navigate,
 } from 'react-router-dom';
-import LoginPage from '../interface/pages/LoginPage';
-import RegisterPage from '../interface/pages/RegisterPage';
+import LoginPage from '../interface/pages/Login/LoginPage';
+import RegisterPage from '../interface/pages/Register/RegisterPage';
 import DashboardPage from '../interface/pages/DashboardPage';
 import { useAuth } from './providers/AuthProvider';
 import ProfilePage from '../interface/pages/ProfilePage';
