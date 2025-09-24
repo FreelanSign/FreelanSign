@@ -188,16 +188,13 @@ export default function QuoteCreatePage() {
     } catch (err: unknown) {
       console.error('Create quote error', err);
       if (isAxiosLikeError(err) && err.response?.data) {
-         
         alert(
           'Impossible de créer le devis : ' +
             JSON.stringify(err.response.data, null, 2),
         );
       } else if (isAxiosLikeError(err) && err.message) {
-         
         alert('Impossible de créer le devis : ' + err.message);
       } else {
-         
         alert('Impossible de créer le devis : erreur inconnue');
       }
     } finally {

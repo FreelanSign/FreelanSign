@@ -37,7 +37,10 @@ type AuthContextValue = {
    * - soit (email: string, password: string)
    * - soit (payload: RegisterPayload) -> payload complet (email, password, profile, professional, ...)
    */
-  register: (payloadOrEmail: string | RegisterPayload, maybePassword?: string) => Promise<void>;
+  register: (
+    payloadOrEmail: string | RegisterPayload,
+    maybePassword?: string,
+  ) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -120,7 +123,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
             registered = true;
           } catch (_e) {
             // ignore et fallback below
-            console.log("Erreur {}", _e);
+            console.log('Erreur {}', _e);
             registered = false;
           }
         }
