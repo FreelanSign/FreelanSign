@@ -11,17 +11,33 @@ import { authRepository } from '../../infrastructure/auth/authRepository';
 import type { AuthUser } from '../../domain/types';
 import { tokenStorage } from '../../infrastructure/storage/tokenStorage';
 
-/** Contexte d'auth simple.
- *  - expose user (optionnel)
- *  - expose actions login/register/logout
- *  - tente un getMe() si token présent au montage
- */
+type RegisterPayload = {
+  email?: string;
+  password?: string;
+  profile?: {
+    first_name?: string;
+    last_name?: string;
+    birthday?: string; // YYYY-MM-DD
+    phone?: string;
+    avatar_url?: string;
+    role?: 'freelance' | 'client' | 'admin' | string;
+    [k: string]: unknown;
+  };
+  full_name?: string;
+  phone?: string;
+  [k: string]: unknown;
+};
 
 type AuthContextValue = {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  /**
+   * register accepte maintenant :
+   * - soit (email: string, password: string)
+   * - soit (payload: RegisterPayload) -> payload complet (email, password, profile, professional, ...)
+   */
+  register: (payloadOrEmail: string | RegisterPayload, maybePassword?: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -35,7 +51,6 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Au montage: si access token présent -> tenter de récupérer le profil
   useEffect(() => {
     let active = true;
     (async () => {
@@ -59,25 +74,99 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
       loading,
       async login(email, password) {
         await uc.login({ email, password });
-        // Optionnel : charger user si endpoint /me existe
         try {
           const me = await uc.getMe();
           setUser(me);
         } catch {
-          setUser({ id: -1, email }); // fallback minimal si pas d'endpoint /me
+          setUser({ id: -1, email } as AuthUser);
         }
       },
-      async register(email, password) {
-        await uc.register({ email, password });
-        // on peut enchainer un login auto si souhaité
-        await uc.login({ email, password });
-        try {
-          const me = await uc.getMe();
-          setUser(me);
-        } catch {
-          setUser({ id: -1, email });
+
+      /**
+       * register peut recevoir :
+       * - (email, password)  => ancien comportement
+       * - (payloadObject)     => envoie payload complet au backend
+       */
+      async register(payloadOrEmail, maybePassword) {
+        // Cas ancien : (email: string, password: string)
+        if (typeof payloadOrEmail === 'string') {
+          const email = payloadOrEmail;
+          const password = maybePassword!;
+          await uc.register({ email, password });
+          await uc.login({ email, password });
+          try {
+            const me = await uc.getMe();
+            setUser(me);
+          } catch {
+            setUser({ id: -1, email } as AuthUser);
+          }
+          return;
+        }
+
+        // Cas nouveau : payload object (email, password, profile, professional, ...)
+        const payload = payloadOrEmail as RegisterPayload;
+
+        // Première tentative : déléguer à uc.register si le usecase gère un payload complet
+        let registered = false;
+
+        // nous castons uc en un type plus précis pour vérifier la présence de register(payload)
+        const ucWithMaybeRegister = uc as unknown as {
+          register?: (p: RegisterPayload) => Promise<void>;
+        };
+
+        if (typeof ucWithMaybeRegister.register === 'function') {
+          try {
+            await ucWithMaybeRegister.register(payload);
+            registered = true;
+          } catch (_e) {
+            // ignore et fallback below
+            console.log("Erreur {}", _e);
+            registered = false;
+          }
+        }
+
+        if (!registered) {
+          // Fallback simple : appeler directement l'endpoint d'inscription du backend
+          // Adapte l'URL à ton API si besoin
+          try {
+            const res = await fetch('/api/auth/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            if (!res.ok) {
+              const txt = await res.text();
+              throw new Error(`Register failed: ${res.status} ${txt}`);
+            }
+          } catch (e: unknown) {
+            // on loggue et on renvoie l'erreur pour que le caller puisse la traiter
+            console.error('Register fallback failed', e);
+            throw e;
+          }
+        }
+
+        // Si on a email + password, on fait login auto pour récupérer le user
+        const email = payload?.email;
+        const password = payload?.password;
+        if (email && password) {
+          try {
+            await uc.login({ email, password });
+            const me = await uc.getMe();
+            setUser(me);
+          } catch {
+            setUser({ id: -1, email } as AuthUser);
+          }
+        } else {
+          // si pas de mot de passe (par ex. flow OAuth), on peut tenter getMe si token a été fourni par le backend
+          try {
+            const me = await uc.getMe().catch(() => null);
+            if (me) setUser(me);
+          } catch {
+            // nothing to do
+          }
         }
       },
+
       async logout() {
         await uc.logout();
         setUser(null);

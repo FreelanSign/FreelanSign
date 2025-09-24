@@ -83,6 +83,7 @@ jobs:
 
       - name: Lint with ESLint
         run: pnpm run lint
+        
       - name: Prettier & env debug (CI debug)
         run: |
           echo "== node/pnpm/prettier versions =="

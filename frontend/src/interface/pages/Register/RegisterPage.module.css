@@ -1,0 +1,26 @@
+/* LoginPage.module.css - namespace : LoginPage */
+@import 'tailwindcss' reference;
+
+.registerPage {
+  @apply min-h-screen flex items-center justify-center bg-gray-50 p-6;
+  color: blue;
+}
+
+.card {
+  /* conteneur blanc centré */
+  @apply bg-white p-8 rounded-lg shadow-md w-full max-w-md grid gap-4;
+}
+
+.title {
+  @apply text-2xl font-semibold;
+  font-family: var(--font-family-playfair);
+  color: black;
+}
+
+.cta {
+  @apply text-sm mt-2;
+}
+
+.link {
+  @apply underline text-indigo-600 hover:text-indigo-700;
+}

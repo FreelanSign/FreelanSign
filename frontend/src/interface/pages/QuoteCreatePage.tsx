@@ -188,16 +188,16 @@ export default function QuoteCreatePage() {
     } catch (err: unknown) {
       console.error('Create quote error', err);
       if (isAxiosLikeError(err) && err.response?.data) {
-        // eslint-disable-next-line no-alert
+         
         alert(
           'Impossible de créer le devis : ' +
             JSON.stringify(err.response.data, null, 2),
         );
       } else if (isAxiosLikeError(err) && err.message) {
-        // eslint-disable-next-line no-alert
+         
         alert('Impossible de créer le devis : ' + err.message);
       } else {
-        // eslint-disable-next-line no-alert
+         
         alert('Impossible de créer le devis : erreur inconnue');
       }
     } finally {
