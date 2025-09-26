@@ -44,18 +44,44 @@ class Prestation(TimestampedModel, SoftDeleteModel):
         default=PrestationStatus.DRAFT,
         db_index=True,
     )
+    custom = models.BooleanField(
+        _("Custom"),
+        default=False,
+        help_text="Indique si la prestation a été ajoutée par un professionel (non partagée globalement).",
+        db_index=True,
+    )
+    professional_user = models.ForeignKey(
+        "user.ProfessionalUser",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="custom_prestations",
+        help_text=_("If set, indicates which professional created this custom prestation."),
+    )
 
     class Meta:
         verbose_name = _("Prestation")
         verbose_name_plural = _("Prestations")
         ordering = ("area__name", "name")
         constraints = [
-            models.UniqueConstraint(fields=["area", "name"], name="unique_area_prestation_name"),
+            # 1) Contrainte globale : area+name unique uniquement pour prestations globales (professional_user IS NULL)
+            models.UniqueConstraint(
+                fields=["area", "name"],
+                condition=models.Q(professional_user__isnull=True),
+                name="unique_area_prestation_name_global",
+            ),
+            # 2) Contrainte par pro : un pro ne peut pas créer deux prestations de même nom (au niveau pro)
+            models.UniqueConstraint(
+                fields=["professional_user", "name"],
+                condition=models.Q(professional_user__isnull=False),
+                name="unique_professional_prestation_name",
+            ),
             models.CheckConstraint(check=models.Q(weight_days__gte=0), name="prestation_weight_days_nonneg"),
             models.CheckConstraint(check=models.Q(default_rate_cents__gte=0), name="prestation_rate_nonneg"),
         ]
         indexes = [
             models.Index(fields=["area", "status"], name="idx_prest_area_status"),
+            models.Index(fields=["professional_user"], name="idx_prest_professional_user"),
         ]
 
     def __str__(self):

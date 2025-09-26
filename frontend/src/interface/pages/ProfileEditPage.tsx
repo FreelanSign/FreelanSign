@@ -1,370 +1,256 @@
 // src/interface/pages/ProfileEditPage.tsx
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../../app/providers/AuthProvider';
 import { userRepository } from '../../infrastructure/user/userRepository';
 import { catalogRepository } from '../../infrastructure/catalog/catalogRepository';
-import type { ProfessionalUserDto, UserDto } from '../../domain/user/types';
-import type { PrestationDto, AreaDto } from '../../domain/catalog/types';
+import type { UserDto, ProfessionalUserDto } from '../../domain/user/types';
+import type { AreaDto, PrestationDto } from '../../domain/catalog/types';
 
-/**
- * Page d'édition du profil utilisateur & professionnel.
- * - Récupère les données (prefill)
- * - Permet patcher user.profile et professional
- * - Feedback minimal (success / error)
- */
+import PersonalUserDataForm from '../components/profile/PersonalUserDataForm';
+import ProfessionalUserDataForm from '../components/profile/ProfessionalUserDataForm';
 
-// ------- schemas Zod pour validation -------
-const ProfileSchema = z.object({
-  first_name: z.string().optional().nullable(),
-  last_name: z.string().optional().nullable(),
-  phone: z.string().optional().nullable(),
-  birthday: z.string().optional().nullable(), // YYYY-MM-DD
-  avatar_url: z.string().url().optional().nullable(),
-});
-
-const ProfessionalSchema = z.object({
-  name: z.string().optional().nullable(),
-  status_juridique: z.string().optional().nullable(),
-  domaine: z.number().nullable().optional(),
-  // tjm en euros côté formulaire (number) -> convert to cents at submit
-  tjm_eur: z.number().nonnegative().nullable().optional(),
-  number_pro: z.string().optional().nullable(),
-  service_types: z.array(z.number()).optional().nullable(),
-});
-
-type ProfileForm = z.infer<typeof ProfileSchema>;
-type ProfessionalForm = z.infer<typeof ProfessionalSchema>;
-
-function getErrorMessage(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  // try to stringify common response shapes
-  try {
-    return JSON.stringify(err);
-  } catch {
-    return String(err);
-  }
+function Chip({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-3 py-1 rounded-full text-sm border transition ${
+        selected ? 'bg-black text-white border-black' : 'bg-white text-gray-800 border-gray-300'
+      }`}
+    >
+      {label}
+    </button>
+  );
 }
 
 export default function ProfileEditPage() {
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
 
-  // keep the user state (we now use it in the UI below)
   const [user, setUser] = useState<UserDto | null>(null);
-  const [professional, setProfessional] = useState<
-    ProfessionalUserDto | null | 'loading'
-  >('loading');
-  const [prestationsList, setPrestationsList] = useState<
-    PrestationDto[] | null
-  >(null);
-  const [areasList, setAreasList] = useState<AreaDto[] | null>(null);
-
-  // react-hook-form instances
-  const profileForm = useForm<ProfileForm>({
-    resolver: zodResolver(ProfileSchema),
-  });
-  const profForm = useForm<ProfessionalForm>({
-    resolver: zodResolver(ProfessionalSchema),
-  });
-
-  // destructure the stable methods we'll call in the effect to avoid unnecessary reruns
-  const { reset: resetProfile } = profileForm;
-  const { reset: resetProf } = profForm;
+  const [professional, setProfessional] = useState<ProfessionalUserDto | null | 'loading'>('loading');
+  const [areas, setAreas] = useState<AreaDto[] | null>(null);
+  const [prestations, setPrestations] = useState<PrestationDto[] | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
+        setLoading(true);
         const me = await userRepository.getMe();
         if (!mounted) return;
         setUser(me);
-        // Pré-remplissage du form profile (use reset from hook)
-        resetProfile(me.profile ?? {});
 
-        // Récup professional
         const prof = await userRepository.getProfessionalMe();
         if (!mounted) return;
         setProfessional(prof ?? null);
 
-        if (prof) {
-          // Pré-remplir professional form
-          resetProf({
-            name: prof.name ?? null,
-            status_juridique: prof.status_juridique ?? null,
-            domaine: prof.domaine ?? null,
-            tjm_eur: prof.tjm_cents != null ? prof.tjm_cents / 100 : null,
-            number_pro: prof.number_pro ?? null,
-            service_types: prof.service_types ?? [],
-          });
+        const areasList = await catalogRepository.listAreas();
+        if (!mounted) return;
+        setAreas(areasList);
 
-          // Récupérer listes pour selects (areas & prestations)
+        // initial prestations: if pro has domaine -> fetch filtered, else empty array
+        if (prof && prof.domaine) {
           try {
-            const [prestations, areas] = await Promise.all([
-              catalogRepository.listPrestations(),
-              catalogRepository.listAreas(),
-            ]);
+            const p = await catalogRepository.listPrestations({ area: prof.domaine });
             if (!mounted) return;
-            setPrestationsList(prestations);
-            setAreasList(areas);
-          } catch (err: unknown) {
-            console.warn('Impossible de charger catalogues', err);
-            setPrestationsList(null);
-            setAreasList(null);
+            setPrestations(p);
+          } catch {
+            // fallback: get all & filter client-side
+            const all = await catalogRepository.listPrestations();
+            if (!mounted) return;
+            setPrestations(all.filter((x) => (x.area ?? x.area_id ?? (x as any).area?.id) === prof.domaine));
           }
+        } else {
+          setPrestations([]);
         }
-      } catch (err: unknown) {
-        console.error('ProfileEdit load error', getErrorMessage(err));
+      } catch (err) {
+        console.error('ProfileEdit load error', err);
+        if (mounted) {
+          setAreas(null);
+          setPrestations(null);
+        }
+      } finally {
+        if (mounted) setLoading(false);
       }
     })();
+
     return () => {
       mounted = false;
     };
-    // resetProfile & resetProf are stable references provided by react-hook-form,
-    // include them to satisfy exhaustive-deps and avoid lint warning.
-  }, [navigate, resetProfile, resetProf]);
+  }, []);
 
-  // Soumission du formulaire
-  async function onSubmitAll() {
-    // On récupère les valeurs validées des deux forms
-    const profileValues = profileForm.getValues();
-    const profValues = profForm.getValues();
-
-    try {
-      // Update profile (on envoie { profile: {...} })
-      await userRepository.updateMe({ profile: profileValues });
-
-      // Update professional si présent
-      if (professional && professional !== 'loading') {
-        // Convert tjm_eur -> tjm_cents
-        const payload: Partial<ProfessionalUserDto> = {
-          name: profValues.name ?? null,
-          status_juridique: profValues.status_juridique ?? null,
-          domaine: profValues.domaine ?? null,
-          number_pro: profValues.number_pro ?? null,
-        };
-        if (typeof profValues.tjm_eur === 'number') {
-          payload.tjm_cents = Math.round(profValues.tjm_eur * 100);
-        }
-        if (Array.isArray(profValues.service_types)) {
-          payload.service_types = profValues.service_types;
-        }
-        await userRepository.updateProfessionalMe(payload);
-      }
-
-      // Après succès : redirige vers /profile
-      navigate('/profile', { replace: true });
-    } catch (err: unknown) {
-      console.error('Update error', getErrorMessage(err));
-      // TODO: remplacer alert par un toast/inline errors
-      alert('Erreur lors de la mise à jour : ' + getErrorMessage(err));
+  // fetch prestations for a given area id (null => clear)
+  async function onDomaineChangeFetch(areaId: number | null) {
+    if (areaId == null) {
+      setPrestations([]);
+      return;
     }
+    try {
+      const p = await catalogRepository.listPrestations({ area: areaId });
+      setPrestations(p);
+    } catch (err) {
+      // fallback client-side filtering
+      try {
+        const all = await catalogRepository.listPrestations();
+        setPrestations(all.filter((x) => (x.area ?? x.area_id ?? (x as any).area?.id) === areaId));
+      } catch (e) {
+        console.warn('Impossible de charger prestations pour area', areaId, e);
+        setPrestations(null);
+      }
+    }
+  }
+
+  // called when the professional form is saved (submit)
+  async function handleProfessionalSaved(payload: {
+    name?: string | null;
+    status_juridique?: string | null;
+    domaine?: number | null;
+    tjm_cents?: number | null;
+    number_pro?: string | null;
+    service_types?: number[] | null;
+  }) {
+    await userRepository.updateProfessionalMe(payload);
+    const prof = await userRepository.getProfessionalMe();
+    setProfessional(prof ?? null);
+
+    if (payload.domaine) {
+      await onDomaineChangeFetch(payload.domaine);
+    } else {
+      setPrestations([]);
+    }
+  }
+
+  // service_types management: toggle selection (local update)
+  function toggleServiceTypeLocal(id: number) {
+    if (!professional || professional === 'loading') return;
+    const current = professional.service_types ?? [];
+    const next = current.includes(id) ? current.filter((v) => v !== id) : [...current, id];
+    setProfessional({ ...(professional as ProfessionalUserDto), service_types: next });
+  }
+
+  async function saveServiceTypesToBackend() {
+    if (!professional || professional === 'loading') return;
+    await userRepository.updateProfessionalMe({ service_types: professional.service_types ?? [] });
+    const prof = await userRepository.getProfessionalMe();
+    setProfessional(prof ?? null);
+    alert('Services mis à jour');
+  }
+
+  if (loading) {
+    return <main className="container p-6">Chargement…</main>;
   }
 
   return (
     <main className="container mx-auto p-6 grid gap-6">
-      <h1 className="text-2xl font-semibold">Modifier mon profil</h1>
+      <header className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold">Modifier mon profil</h1>
+        <div>
+          <a href="/profile" className="text-sm text-blue-600">
+            Voir mon profil
+          </a>
+        </div>
+      </header>
 
-      {/* UTILISATION DE user / authUser pour éviter l'erreur "assigned but never used" */}
-      <p className="text-sm text-gray-600">
-        Compte : {user?.email ?? authUser?.email ?? '—'}
-      </p>
-
-      {/* FORM PROFILE */}
-      <section className="p-4 border rounded max-w-lg">
-        <h2 className="font-medium">Informations personnelles</h2>
-
-        <form
-          onSubmit={profileForm.handleSubmit(() => {})}
-          className="grid gap-3 mt-3"
-        >
-          <label>
-            <div className="text-sm">Prénom</div>
-            <input
-              {...profileForm.register('first_name')}
-              className="border p-2 rounded w-full"
-            />
-          </label>
-
-          <label>
-            <div className="text-sm">Nom</div>
-            <input
-              {...profileForm.register('last_name')}
-              className="border p-2 rounded w-full"
-            />
-          </label>
-
-          <label>
-            <div className="text-sm">Téléphone</div>
-            <input
-              {...profileForm.register('phone')}
-              className="border p-2 rounded w-full"
-            />
-          </label>
-
-          <label>
-            <div className="text-sm">Date de naissance</div>
-            <input
-              {...profileForm.register('birthday')}
-              type="date"
-              className="border p-2 rounded w-full"
-            />
-          </label>
-
-          <label>
-            <div className="text-sm">Avatar (URL)</div>
-            <input
-              {...profileForm.register('avatar_url')}
-              className="border p-2 rounded w-full"
-            />
-          </label>
-        </form>
+      <section className="p-4 border rounded max-w-2xl">
+        <h2 className="font-medium mb-2">Informations personnelles</h2>
+        <PersonalUserDataForm
+          initialValues={user?.profile ?? {}}
+          onSave={async (vals) => {
+            await userRepository.updateMe({ profile: vals });
+            const me = await userRepository.getMe();
+            setUser(me);
+            alert('Informations personnelles mises à jour');
+          }}
+          onCancel={() => navigate('/profile')}
+        />
       </section>
 
-      {/* FORM PROFESSIONAL */}
-      {professional === 'loading' ? (
-        <div>Chargement professionnel…</div>
-      ) : professional ? (
-        <section className="p-4 border rounded max-w-2xl">
-          <h2 className="font-medium">Compte professionnel</h2>
+      <section className="p-4 border rounded max-w-3xl">
+        <h2 className="font-medium mb-2">Compte professionnel</h2>
 
-          <form
-            onSubmit={profForm.handleSubmit(() => {})}
-            className="grid gap-3 mt-3"
-          >
-            <label>
-              <div className="text-sm">Nom structure</div>
-              <input
-                {...profForm.register('name')}
-                className="border p-2 rounded w-full"
-              />
-            </label>
+        {professional === 'loading' ? (
+          <div>Chargement…</div>
+        ) : professional ? (
+          <>
+            <ProfessionalUserDataForm
+              initialValues={{
+                name: professional.name ?? null,
+                status_juridique: professional.status_juridique ?? null,
+                domaine: professional.domaine ?? null,
+                tjm_cents: professional.tjm_cents ?? undefined,
+                number_pro: professional.number_pro ?? null,
+                service_types: professional.service_types ?? [],
+              } as any}
+              areas={areas}
+              onSave={async (payload) => {
+                await handleProfessionalSaved(payload);
+                alert('Compte professionnel mis à jour');
+              }}
+              onDomaineChange={async (areaId) => {
+                // persist domaine immediately (PATCH partial) so DB is in sync
+                try {
+                  // ensure we send either number or null
+                  const domainePayload = { domaine: areaId == null ? null : areaId };
+                  await userRepository.updateProfessionalMe(domainePayload);
+                  // refresh professional from backend
+                  const prof = await userRepository.getProfessionalMe();
+                  setProfessional(prof ?? null);
+                } catch (err) {
+                  console.error('Failed to persist domaine change', err);
+                }
 
-            <label>
-              <div className="text-sm">Statut juridique</div>
-              <input
-                {...profForm.register('status_juridique')}
-                className="border p-2 rounded w-full"
-              />
-            </label>
+                // then refresh prestations for UI
+                try {
+                  await onDomaineChangeFetch(areaId);
+                } catch (err) {
+                  console.warn('Fetching prestations after domaine change failed', err);
+                }
+              }}
+              onCancel={() => navigate('/profile')}
+            />
 
-            <label>
-              <div className="text-sm">Domaine</div>
-              <select
-                {...profForm.register('domaine')}
-                className="border p-2 rounded w-full"
-              >
-                <option value="">-- Aucune --</option>
-                {Array.isArray(areasList) && areasList.length > 0 ? (
-                  areasList.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name ?? a.slug ?? `Area ${a.id}`}
-                    </option>
-                  ))
+            <div className="mt-6">
+              <h3 className="font-medium">Prestations pour le domaine sélectionné</h3>
+              <p className="text-sm text-gray-500">Sélectionnez les services proposés pour ce domaine.</p>
+
+              <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))' }}>
+                {prestations === null ? (
+                  <div>Impossible de charger les prestations.</div>
+                ) : prestations.length === 0 ? (
+                  <div>Aucune prestation pour ce domaine.</div>
                 ) : (
-                  <option value="">
-                    {areasList == null
-                      ? 'Chargement impossible'
-                      : 'Aucune area disponible'}
-                  </option>
-                )}
-              </select>
-            </label>
-
-            <label>
-              <div className="text-sm">TJM (EUR)</div>
-              <input
-                type="number"
-                step="0.01"
-                {...profForm.register('tjm_eur', { valueAsNumber: true })}
-                className="border p-2 rounded w-full"
-              />
-            </label>
-
-            <label>
-              <div className="text-sm">Numéro pro (SIRET / TVA)</div>
-              <input
-                {...profForm.register('number_pro')}
-                className="border p-2 rounded w-full"
-              />
-            </label>
-
-            <label>
-              <div className="text-sm">Services proposés</div>
-              <div className="grid gap-1">
-                {prestationsList === null ? (
-                  <div>Impossible de charger la liste des services.</div>
-                ) : !Array.isArray(prestationsList) ||
-                  prestationsList.length === 0 ? (
-                  <div>Aucune prestation disponible.</div>
-                ) : (
-                  prestationsList.map((p) => (
-                    <label key={p.id} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        value={String(p.id)}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          const current =
-                            profForm.getValues('service_types') ?? [];
-                          if (e.target.checked) {
-                            profForm.setValue('service_types', [
-                              ...current,
-                              val,
-                            ]);
-                          } else {
-                            profForm.setValue(
-                              'service_types',
-                              current.filter((id) => id !== val),
-                            );
-                          }
-                        }}
-                        checked={(
-                          profForm.getValues('service_types') ?? []
-                        ).includes(p.id)}
-                      />
-                      <span>{p.name ?? p.title ?? `Service #${p.id}`}</span>
-                    </label>
-                  ))
+                  prestations.map((p) => {
+                    const id = p.id;
+                    const label = p.name ?? p.title ?? `Service #${id}`;
+                    const selected = (professional.service_types ?? []).includes(id);
+                    return (
+                      <div key={id} className="flex items-center justify-between gap-2">
+                        <Chip label={label} selected={selected} onClick={() => toggleServiceTypeLocal(id)} />
+                      </div>
+                    );
+                  })
                 )}
               </div>
-            </label>
 
-            <div className="flex gap-3 mt-4">
-              <button
-                type="button"
-                onClick={() => onSubmitAll()}
-                className="bg-blue-600 text-white rounded px-3 py-2"
-              >
-                Enregistrer
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate('/profile')}
-                className="bg-gray-200 rounded px-3 py-2"
-              >
-                Annuler
-              </button>
+              <div className="flex gap-3 mt-4">
+                <button onClick={() => saveServiceTypesToBackend()} className="bg-blue-600 text-white rounded px-3 py-2">
+                  Enregistrer les services
+                </button>
+              </div>
             </div>
-          </form>
-        </section>
-      ) : (
-        <section className="p-4 border rounded">
-          <p>
-            Vous n'avez pas encore de profil professionnel.{' '}
-            <button
-              onClick={() => navigate('/onboarding-professional')}
-              className="underline"
-            >
+          </>
+        ) : (
+          <div>
+            <p>Vous n'avez pas encore de profil professionnel.</p>
+            <button onClick={() => navigate('/onboarding-professional')} className="underline text-blue-600 mt-2">
               Commencer l'onboarding
             </button>
-          </p>
-        </section>
-      )}
+          </div>
+        )}
+      </section>
     </main>
   );
 }

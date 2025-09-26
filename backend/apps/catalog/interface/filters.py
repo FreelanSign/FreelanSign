@@ -1,27 +1,13 @@
+# apps/catalog/filters.py
 import django_filters
+from django_filters import rest_framework as filters
+from apps.catalog.models import Prestation
 
-from apps.catalog.models import Prestation, PrestationStatus
-
-
-class PrestationFilter(django_filters.FilterSet):
-    area = django_filters.NumberFilter(field_name="area__id", lookup_expr="exact")
-    status = django_filters.CharFilter(method="filter_status")
-
-    def filter_status(self, queryset, name, value: str):
-        if not value:
-            return queryset
-        value = value.strip().upper()
-        # safe list of valid values:
-        try:
-            valid_values = [c.value for c in PrestationStatus]
-        except Exception:
-            # fallback: try using .values attribute if it exists
-            valid_values = getattr(PrestationStatus, "values", tuple())
-        if value in valid_values:
-            return queryset.filter(status=value)
-        # si statut invalide, retourner queryset vide ou ne rien filtrer selon ton choix :
-        return queryset.none()
+class PrestationFilter(filters.FilterSet):
+    # area param expects a single id (exact match)
+    area = django_filters.NumberFilter(field_name="area_id", lookup_expr="exact")
+    status = django_filters.CharFilter(field_name="status", lookup_expr="iexact")
 
     class Meta:
         model = Prestation
-        fields = ("area", "status")
+        fields = ["area", "status", "weight_days"]

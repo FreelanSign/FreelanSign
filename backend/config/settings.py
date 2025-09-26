@@ -3,6 +3,7 @@ from pathlib import Path
 
 import environ
 from rest_framework.permissions import AllowAny
+from logging.handlers import RotatingFileHandler
 
 print("DATABASE_URL repr:", repr(os.getenv("DATABASE_URL")))
 
@@ -63,8 +64,9 @@ else:
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+from decouple import config
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = ""
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -96,6 +98,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     # CORS doit être en premier
     "corsheaders.middleware.CorsMiddleware",
+    "apps.core.middleware.request_logging.RequestLoggingMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -285,3 +288,51 @@ CORS_PREFLIGHT_MAX_AGE = 86400
 
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,   # garde les loggers Django
+    "filters": {
+        "context_filter": {
+            "()": "apps.core.logging.ContextFilter",
+        }
+    },
+    "formatters": {
+        "detailed": {
+            "format": "%(asctime)s %(levelname)s [%(name)s] [req=%(request_id)s user=%(user_id)s] %(message)s"
+        },
+        "standard": {"format": "%(asctime)s %(levelname)s [%(name)s] %(message)s"},
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "detailed",
+            "filters": ["context_filter"],
+        },
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "logs/app.log",
+            "maxBytes": 10 * 1024 * 1024,
+            "backupCount": 5,
+            "formatter": "detailed",
+            "filters": ["context_filter"],
+        },
+    },
+    "root": {
+        "handlers": ["console", "file"],
+        "level": LOG_LEVEL,
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # loggers spécifiques si tu veux niveauter différemment
+        # "apps.catalog": {"handlers": ["console","file"], "level": "DEBUG", "propagate": False},
+    },
+}
