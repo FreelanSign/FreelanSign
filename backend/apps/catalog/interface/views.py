@@ -1,24 +1,29 @@
-from curses.ascii import isdigit
-import django_filters
 import logging
+from curses.ascii import isdigit
+
+import django_filters
 from django.db.models import Q
+from django_filters import rest_framework as django_filters
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
 from rest_framework import filters as drf_filters
 from rest_framework import mixins, viewsets
 from rest_framework.permissions import AllowAny
 from rest_framework.throttling import ScopedRateThrottle
-from django_filters import rest_framework as django_filters
+
 from apps.catalog.models import Area, Prestation
 from apps.core.permissions import IsAuthenticatedReadOnly
+
 from .filters import PrestationFilter
 from .serializers import AreaSerializer, PrestationSerializer
 
 logging = logging.getLogger(__name__)
 
+
 class CatalogBaseViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     """
     ViewSet de base pour les catalogues.
     """
+
     permission_classes = [
         AllowAny,
     ]  # read-only + auth
@@ -64,7 +69,7 @@ class PrestationViewSet(CatalogBaseViewSet):
     queryset = Prestation.objects.select_related("area").all().order_by("area__name", "name")
     serializer_class = PrestationSerializer
     filter_backends = [drf_filters.SearchFilter, drf_filters.OrderingFilter, django_filters.DjangoFilterBackend]
-    filterset_class = PrestationFilter   # <-- use filterset_class (not filter_class)
+    filterset_class = PrestationFilter  # <-- use filterset_class (not filter_class)
     search_fields = ["name", "description"]
     ordering_fields = ["name", "area", "status", "weight_days", "default_rate_cents", "id"]
     ordering = ["area", "name"]
@@ -119,7 +124,7 @@ class PrestationViewSet(CatalogBaseViewSet):
                 return Prestation.objects.none()
 
     def list(self, request, *args, **kwargs):
-        logging.info("Prestation list requested user=%s params=%s",
-                     getattr(request.user, "id", None),
-                     dict(request.query_params))
+        logging.info(
+            "Prestation list requested user=%s params=%s", getattr(request.user, "id", None), dict(request.query_params)
+        )
         return super().list(request, *args, **kwargs)

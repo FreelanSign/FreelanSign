@@ -1,9 +1,9 @@
 import os
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 import environ
 from rest_framework.permissions import AllowAny
-from logging.handlers import RotatingFileHandler
 
 print("DATABASE_URL repr:", repr(os.getenv("DATABASE_URL")))
 
@@ -65,8 +65,9 @@ else:
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 from decouple import config
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -295,16 +296,14 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
 LOGGING = {
     "version": 1,
-    "disable_existing_loggers": False,   # garde les loggers Django
+    "disable_existing_loggers": False,  # garde les loggers Django
     "filters": {
         "context_filter": {
             "()": "apps.core.logging.ContextFilter",
         }
     },
     "formatters": {
-        "detailed": {
-            "format": "%(asctime)s %(levelname)s [%(name)s] [req=%(request_id)s user=%(user_id)s] %(message)s"
-        },
+        "detailed": {"format": "%(asctime)s %(levelname)s [%(name)s] [req=%(request_id)s user=%(user_id)s] %(message)s"},
         "standard": {"format": "%(asctime)s %(levelname)s [%(name)s] %(message)s"},
     },
     "handlers": {

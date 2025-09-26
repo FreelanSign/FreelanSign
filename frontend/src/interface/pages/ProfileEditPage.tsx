@@ -8,15 +8,27 @@ import type { UserDto, ProfessionalUserDto } from '../../domain/user/types';
 import type { AreaDto, PrestationDto } from '../../domain/catalog/types';
 
 import PersonalUserDataForm from '../components/profile/PersonalUserDataForm';
-import ProfessionalUserDataForm from '../components/profile/ProfessionalUserDataForm';
+import ProfessionalUserDataForm, {
+  type ProfessionalUserFormValues,
+} from '../components/profile/ProfessionalUserDataForm';
 
-function Chip({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
+function Chip({
+  label,
+  selected,
+  onClick,
+}: {
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={`px-3 py-1 rounded-full text-sm border transition ${
-        selected ? 'bg-black text-white border-black' : 'bg-white text-gray-800 border-gray-300'
+        selected
+          ? 'bg-black text-white border-black'
+          : 'bg-white text-gray-800 border-gray-300'
       }`}
     >
       {label}
@@ -24,12 +36,49 @@ function Chip({ label, selected, onClick }: { label: string; selected: boolean; 
   );
 }
 
+/** helper: extract area id from various possible shapes of PrestationDto */
+function getPrestationAreaId(p: PrestationDto): number | null {
+  // Try p.area as number
+  const areaField = (p as unknown as { area?: unknown }).area;
+  if (typeof areaField === 'number') return areaField;
+
+  // p.area may be object with id
+  if (typeof areaField === 'object' && areaField !== null) {
+    const id = (areaField as { id?: unknown }).id;
+    if (typeof id === 'number') return id;
+    if (
+      typeof id === 'string' &&
+      id.trim() !== '' &&
+      Number.isFinite(Number(id))
+    ) {
+      const parsed = Number(id);
+      if (Number.isInteger(parsed)) return parsed;
+    }
+  }
+
+  // try p.area_id
+  const areaIdField = (p as unknown as { area_id?: unknown }).area_id;
+  if (typeof areaIdField === 'number') return areaIdField;
+  if (
+    typeof areaIdField === 'string' &&
+    areaIdField.trim() !== '' &&
+    Number.isFinite(Number(areaIdField))
+  ) {
+    const parsed = Number(areaIdField);
+    if (Number.isInteger(parsed)) return parsed;
+  }
+
+  return null;
+}
+
 export default function ProfileEditPage() {
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
 
   const [user, setUser] = useState<UserDto | null>(null);
-  const [professional, setProfessional] = useState<ProfessionalUserDto | null | 'loading'>('loading');
+  const [professional, setProfessional] = useState<
+    ProfessionalUserDto | null | 'loading'
+  >('loading');
   const [areas, setAreas] = useState<AreaDto[] | null>(null);
   const [prestations, setPrestations] = useState<PrestationDto[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,22 +101,26 @@ export default function ProfileEditPage() {
         setAreas(areasList);
 
         // initial prestations: if pro has domaine -> fetch filtered, else empty array
-        if (prof && prof.domaine) {
+        if (prof && typeof prof.domaine === 'number') {
           try {
-            const p = await catalogRepository.listPrestations({ area: prof.domaine });
+            const p = await catalogRepository.listPrestations({
+              area: prof.domaine,
+            });
             if (!mounted) return;
             setPrestations(p);
           } catch {
             // fallback: get all & filter client-side
             const all = await catalogRepository.listPrestations();
             if (!mounted) return;
-            setPrestations(all.filter((x) => (x.area ?? x.area_id ?? (x as any).area?.id) === prof.domaine));
+            setPrestations(
+              all.filter((x) => getPrestationAreaId(x) === prof.domaine),
+            );
           }
         } else {
           setPrestations([]);
         }
-      } catch (err) {
-        console.error('ProfileEdit load error', err);
+      } catch (error) {
+        console.error('ProfileEdit load error', error);
         if (mounted) {
           setAreas(null);
           setPrestations(null);
@@ -91,11 +144,11 @@ export default function ProfileEditPage() {
     try {
       const p = await catalogRepository.listPrestations({ area: areaId });
       setPrestations(p);
-    } catch (err) {
+    } catch {
       // fallback client-side filtering
       try {
         const all = await catalogRepository.listPrestations();
-        setPrestations(all.filter((x) => (x.area ?? x.area_id ?? (x as any).area?.id) === areaId));
+        setPrestations(all.filter((x) => getPrestationAreaId(x) === areaId));
       } catch (e) {
         console.warn('Impossible de charger prestations pour area', areaId, e);
         setPrestations(null);
@@ -116,7 +169,7 @@ export default function ProfileEditPage() {
     const prof = await userRepository.getProfessionalMe();
     setProfessional(prof ?? null);
 
-    if (payload.domaine) {
+    if (payload.domaine && typeof payload.domaine === 'number') {
       await onDomaineChangeFetch(payload.domaine);
     } else {
       setPrestations([]);
@@ -127,13 +180,20 @@ export default function ProfileEditPage() {
   function toggleServiceTypeLocal(id: number) {
     if (!professional || professional === 'loading') return;
     const current = professional.service_types ?? [];
-    const next = current.includes(id) ? current.filter((v) => v !== id) : [...current, id];
-    setProfessional({ ...(professional as ProfessionalUserDto), service_types: next });
+    const next = current.includes(id)
+      ? current.filter((v) => v !== id)
+      : [...current, id];
+    setProfessional({
+      ...(professional as ProfessionalUserDto),
+      service_types: next,
+    });
   }
 
   async function saveServiceTypesToBackend() {
     if (!professional || professional === 'loading') return;
-    await userRepository.updateProfessionalMe({ service_types: professional.service_types ?? [] });
+    await userRepository.updateProfessionalMe({
+      service_types: professional.service_types ?? [],
+    });
     const prof = await userRepository.getProfessionalMe();
     setProfessional(prof ?? null);
     alert('Services mis à jour');
@@ -143,10 +203,44 @@ export default function ProfileEditPage() {
     return <main className="container p-6">Chargement…</main>;
   }
 
+  // build strongly-typed initial values for ProfessionalUserDataForm
+  const profInitialValues: Partial<
+    ProfessionalUserFormValues & { tjm_cents?: number }
+  > = {
+    name:
+      professional && typeof professional.name === 'string'
+        ? professional.name
+        : null,
+    status_juridique:
+      professional && typeof professional.status_juridique === 'string'
+        ? professional.status_juridique
+        : null,
+    domaine:
+      professional && typeof professional.domaine === 'number'
+        ? professional.domaine
+        : null,
+    tjm_cents:
+      professional && typeof professional.tjm_cents === 'number'
+        ? professional.tjm_cents
+        : undefined,
+    number_pro:
+      professional && typeof professional.number_pro === 'string'
+        ? professional.number_pro
+        : null,
+    service_types: Array.isArray(professional?.service_types)
+      ? professional!.service_types
+      : [],
+  };
+
   return (
     <main className="container mx-auto p-6 grid gap-6">
       <header className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Modifier mon profil</h1>
+        <div>
+          <h1 className="text-2xl font-semibold">Modifier mon profil</h1>
+          <p className="text-sm text-gray-600">
+            {user?.email ?? authUser?.email ?? '—'}
+          </p>
+        </div>
         <div>
           <a href="/profile" className="text-sm text-blue-600">
             Voir mon profil
@@ -176,14 +270,7 @@ export default function ProfileEditPage() {
         ) : professional ? (
           <>
             <ProfessionalUserDataForm
-              initialValues={{
-                name: professional.name ?? null,
-                status_juridique: professional.status_juridique ?? null,
-                domaine: professional.domaine ?? null,
-                tjm_cents: professional.tjm_cents ?? undefined,
-                number_pro: professional.number_pro ?? null,
-                service_types: professional.service_types ?? [],
-              } as any}
+              initialValues={profInitialValues}
               areas={areas}
               onSave={async (payload) => {
                 await handleProfessionalSaved(payload);
@@ -192,31 +279,44 @@ export default function ProfileEditPage() {
               onDomaineChange={async (areaId) => {
                 // persist domaine immediately (PATCH partial) so DB is in sync
                 try {
-                  // ensure we send either number or null
-                  const domainePayload = { domaine: areaId == null ? null : areaId };
+                  const domainePayload = {
+                    domaine: areaId == null ? null : areaId,
+                  };
                   await userRepository.updateProfessionalMe(domainePayload);
                   // refresh professional from backend
                   const prof = await userRepository.getProfessionalMe();
                   setProfessional(prof ?? null);
-                } catch (err) {
-                  console.error('Failed to persist domaine change', err);
+                } catch (error) {
+                  console.error('Failed to persist domaine change', error);
                 }
 
                 // then refresh prestations for UI
                 try {
                   await onDomaineChangeFetch(areaId);
-                } catch (err) {
-                  console.warn('Fetching prestations after domaine change failed', err);
+                } catch (error) {
+                  console.warn(
+                    'Fetching prestations after domaine change failed',
+                    error,
+                  );
                 }
               }}
               onCancel={() => navigate('/profile')}
             />
 
             <div className="mt-6">
-              <h3 className="font-medium">Prestations pour le domaine sélectionné</h3>
-              <p className="text-sm text-gray-500">Sélectionnez les services proposés pour ce domaine.</p>
+              <h3 className="font-medium">
+                Prestations pour le domaine sélectionné
+              </h3>
+              <p className="text-sm text-gray-500">
+                Sélectionnez les services proposés pour ce domaine.
+              </p>
 
-              <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))' }}>
+              <div
+                className="mt-3 grid gap-2"
+                style={{
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                }}
+              >
                 {prestations === null ? (
                   <div>Impossible de charger les prestations.</div>
                 ) : prestations.length === 0 ? (
@@ -224,11 +324,29 @@ export default function ProfileEditPage() {
                 ) : (
                   prestations.map((p) => {
                     const id = p.id;
-                    const label = p.name ?? p.title ?? `Service #${id}`;
-                    const selected = (professional.service_types ?? []).includes(id);
+                    // safe title extraction without `any`
+                    const maybeTitle = (p as unknown as { title?: unknown })
+                      .title;
+                    const label =
+                      typeof p.name === 'string'
+                        ? p.name
+                        : typeof maybeTitle === 'string'
+                          ? maybeTitle
+                          : `Service #${id}`;
+
+                    const selected = (
+                      professional.service_types ?? []
+                    ).includes(id);
                     return (
-                      <div key={id} className="flex items-center justify-between gap-2">
-                        <Chip label={label} selected={selected} onClick={() => toggleServiceTypeLocal(id)} />
+                      <div
+                        key={id}
+                        className="flex items-center justify-between gap-2"
+                      >
+                        <Chip
+                          label={label}
+                          selected={selected}
+                          onClick={() => toggleServiceTypeLocal(id)}
+                        />
                       </div>
                     );
                   })
@@ -236,7 +354,10 @@ export default function ProfileEditPage() {
               </div>
 
               <div className="flex gap-3 mt-4">
-                <button onClick={() => saveServiceTypesToBackend()} className="bg-blue-600 text-white rounded px-3 py-2">
+                <button
+                  onClick={() => saveServiceTypesToBackend()}
+                  className="bg-blue-600 text-white rounded px-3 py-2"
+                >
                   Enregistrer les services
                 </button>
               </div>
@@ -245,7 +366,10 @@ export default function ProfileEditPage() {
         ) : (
           <div>
             <p>Vous n'avez pas encore de profil professionnel.</p>
-            <button onClick={() => navigate('/onboarding-professional')} className="underline text-blue-600 mt-2">
+            <button
+              onClick={() => navigate('/onboarding-professional')}
+              className="underline text-blue-600 mt-2"
+            >
               Commencer l'onboarding
             </button>
           </div>

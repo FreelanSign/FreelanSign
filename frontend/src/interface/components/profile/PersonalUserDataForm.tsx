@@ -32,7 +32,7 @@ export default function PersonalUserDataForm({
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting, isDirty },
+    formState: { errors, isSubmitting },
   } = useForm<PersonalUserFormValues>({
     resolver: zodResolver(PersonalUserSchema),
     defaultValues: {
@@ -67,7 +67,9 @@ export default function PersonalUserDataForm({
           className={`border p-2 rounded w-full ${errors.first_name ? 'border-red-500' : ''}`}
         />
         {errors.first_name && (
-          <p className="text-xs text-red-600 mt-1">{String(errors.first_name.message)}</p>
+          <p className="text-xs text-red-600 mt-1">
+            {String(errors.first_name.message)}
+          </p>
         )}
       </label>
 
@@ -78,7 +80,9 @@ export default function PersonalUserDataForm({
           className={`border p-2 rounded w-full ${errors.last_name ? 'border-red-500' : ''}`}
         />
         {errors.last_name && (
-          <p className="text-xs text-red-600 mt-1">{String(errors.last_name.message)}</p>
+          <p className="text-xs text-red-600 mt-1">
+            {String(errors.last_name.message)}
+          </p>
         )}
       </label>
 
@@ -88,7 +92,11 @@ export default function PersonalUserDataForm({
           {...register('phone')}
           className={`border p-2 rounded w-full ${errors.phone ? 'border-red-500' : ''}`}
         />
-        {errors.phone && <p className="text-xs text-red-600 mt-1">{String(errors.phone.message)}</p>}
+        {errors.phone && (
+          <p className="text-xs text-red-600 mt-1">
+            {String(errors.phone.message)}
+          </p>
+        )}
       </label>
 
       <label>
@@ -99,7 +107,9 @@ export default function PersonalUserDataForm({
           className={`border p-2 rounded w-full ${errors.birthday ? 'border-red-500' : ''}`}
         />
         {errors.birthday && (
-          <p className="text-xs text-red-600 mt-1">{String(errors.birthday.message)}</p>
+          <p className="text-xs text-red-600 mt-1">
+            {String(errors.birthday.message)}
+          </p>
         )}
       </label>
 
@@ -110,11 +120,15 @@ export default function PersonalUserDataForm({
           className={`border p-2 rounded w-full ${errors.avatar_url ? 'border-red-500' : ''}`}
         />
         {errors.avatar_url && (
-          <p className="text-xs text-red-600 mt-1">{String(errors.avatar_url.message)}</p>
+          <p className="text-xs text-red-600 mt-1">
+            {String(errors.avatar_url.message)}
+          </p>
         )}
       </label>
 
-      {submitError && <p className="text-sm text-red-600 mt-1">Erreur: {submitError}</p>}
+      {submitError && (
+        <p className="text-sm text-red-600 mt-1">Erreur: {submitError}</p>
+      )}
 
       {showButtons && (
         <div className="flex gap-3 mt-2">

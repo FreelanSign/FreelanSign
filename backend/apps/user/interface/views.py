@@ -1,5 +1,6 @@
 # apps/user/interface/views.py
 import logging
+
 from django.contrib.auth import authenticate
 from django.core.exceptions import ObjectDoesNotExist
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
@@ -23,6 +24,7 @@ from apps.user.models.models import ProfessionalUser
 from apps.user.services.user_service import UserService
 
 logger = logging.getLogger("apps.user.views")
+
 
 @extend_schema_view(
     list=extend_schema(summary="List all users", responses={200: OpenApiResponse(UserSerializer(many=True))}, tags=["Users"]),
@@ -109,6 +111,8 @@ class UserViewSet(viewsets.ViewSet):
         user.save()
         logger.info("change_password succeeded for user_id=%s", user.id)
         return Response({"detail": "Password changed successfully"}, status=204)
+
+
 class ProfessionalUserMeView(APIView):
     permission_classes = [IsAuthenticated]
     logger = logging.getLogger("apps.user.views.ProfessionalUserMeView")
@@ -154,7 +158,12 @@ class ProfessionalUserMeView(APIView):
             logger.exception("ProfessionalUserMeView.patch failed for user_id=%s", request.user.id)
             raise
 
-        logger.info("ProfessionalUserMeView.patch %s succeeded for professional_id=%s user_id=%s", action, getattr(obj, "id", None), request.user.id)
+        logger.info(
+            "ProfessionalUserMeView.patch %s succeeded for professional_id=%s user_id=%s",
+            action,
+            getattr(obj, "id", None),
+            request.user.id,
+        )
         return Response(ProfessionalUserSerializer(obj, context={"request": request}).data, status=status.HTTP_200_OK)
 
 
@@ -193,7 +202,12 @@ class OnboardingProfessionalView(APIView):
             logger.exception("OnboardingProfessionalView.post failed for user_id=%s", request.user.id)
             raise
 
-        logger.info("OnboardingProfessionalView.post %s succeeded professional_id=%s user_id=%s", action, getattr(obj, "id", None), request.user.id)
+        logger.info(
+            "OnboardingProfessionalView.post %s succeeded professional_id=%s user_id=%s",
+            action,
+            getattr(obj, "id", None),
+            request.user.id,
+        )
         return Response(ProfessionalUserSerializer(obj, context={"request": request}).data, status=status_code)
 
 
@@ -214,7 +228,12 @@ class IsOwnerOrAdmin(permissions.BasePermission):
             return True
         owner = getattr(obj, "user", None)
         allowed = owner == request.user
-        logger.debug("IsOwnerOrAdmin.has_object_permission owner=%s user=%s allowed=%s", getattr(owner, "id", None), request.user.id, allowed)
+        logger.debug(
+            "IsOwnerOrAdmin.has_object_permission owner=%s user=%s allowed=%s",
+            getattr(owner, "id", None),
+            request.user.id,
+            allowed,
+        )
         return allowed
 
 
@@ -235,7 +254,9 @@ class ProfessionalUserViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         self.logger.info("ProfessionalUserViewSet.perform_create called user_id=%s", getattr(self.request.user, "id", None))
         serializer.save(user=self.request.user)
-        self.logger.info("ProfessionalUserViewSet.perform_create finished saved professional for user_id=%s", self.request.user.id)
+        self.logger.info(
+            "ProfessionalUserViewSet.perform_create finished saved professional for user_id=%s", self.request.user.id
+        )
 
     def perform_destroy(self, instance):
         self.logger.info("ProfessionalUserViewSet.perform_destroy called professional_id=%s", getattr(instance, "id", None))

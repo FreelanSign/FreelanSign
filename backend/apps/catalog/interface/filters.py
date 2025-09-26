@@ -1,7 +1,9 @@
 # apps/catalog/filters.py
 import django_filters
 from django_filters import rest_framework as filters
+
 from apps.catalog.models import Prestation
+
 
 class PrestationFilter(filters.FilterSet):
     # area param expects a single id (exact match)

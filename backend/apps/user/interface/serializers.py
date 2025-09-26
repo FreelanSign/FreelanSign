@@ -1,5 +1,6 @@
 # apps/user/interface/serializers.py
 import logging
+
 from django.apps import apps
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -11,6 +12,8 @@ from apps.user.models.models import ProfessionalUser
 from ..models import Profile, User
 
 logger = logging.getLogger("apps.user.serializers")
+
+
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
@@ -59,6 +62,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
 
+
 class ProfessionalUserSerializer(serializers.ModelSerializer):
     service_types = serializers.ListField(child=serializers.IntegerField(), required=False)
     domaine = serializers.IntegerField(allow_null=True, required=False)
@@ -66,7 +70,16 @@ class ProfessionalUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProfessionalUser
         fields = (
-            "id", "user", "name", "status_juridique", "domaine", "tjm_cents", "number_pro", "service_types", "created_at", "updated_at",
+            "id",
+            "user",
+            "name",
+            "status_juridique",
+            "domaine",
+            "tjm_cents",
+            "number_pro",
+            "service_types",
+            "created_at",
+            "updated_at",
         )
         read_only_fields = ("user", "created_at", "updated_at")
 
@@ -74,8 +87,12 @@ class ProfessionalUserSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
         Prestation = apps.get_model("catalog", "Prestation")
         Area = apps.get_model("catalog", "Area")
-        self.fields["service_types"] = serializers.PrimaryKeyRelatedField(queryset=Prestation.objects.all(), many=True, required=False)
-        self.fields["domaine"] = serializers.PrimaryKeyRelatedField(queryset=Area.objects.all(), allow_null=True, required=False)
+        self.fields["service_types"] = serializers.PrimaryKeyRelatedField(
+            queryset=Prestation.objects.all(), many=True, required=False
+        )
+        self.fields["domaine"] = serializers.PrimaryKeyRelatedField(
+            queryset=Area.objects.all(), allow_null=True, required=False
+        )
 
     def create(self, validated_data):
         service_types = validated_data.pop("service_types", [])

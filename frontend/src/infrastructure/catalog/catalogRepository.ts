@@ -69,7 +69,9 @@ export const catalogRepository = {
       // fallback: individual fetches
       const results = await Promise.all(
         missingIds.map(async (id) => {
-          const r = await apiClient.get(`${API_ENDPOINTS.catalogPrestation}${id}/`);
+          const r = await apiClient.get(
+            `${API_ENDPOINTS.catalogPrestation}${id}/`,
+          );
           const p = r.data as PrestationDto;
           prestationsCache.set(p.id, p);
           return p;

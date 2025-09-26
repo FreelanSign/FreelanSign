@@ -1,9 +1,12 @@
 import logging
+
 from rest_framework import serializers
+
 from apps.catalog.models import Area, Prestation
 from apps.core.logging import get_logger
 
 logger = logging.getLogger(__name__)
+
 
 class AreaSerializer(serializers.ModelSerializer):
     class Meta:

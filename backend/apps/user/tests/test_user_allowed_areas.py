@@ -1,10 +1,12 @@
-from apps.user.interface.serializers import ProfessionalUserSerializer
 import pytest
 from django.contrib.auth import get_user_model
+
 from apps.catalog.models import Area, Prestation
+from apps.user.interface.serializers import ProfessionalUserSerializer
 from apps.user.models.models import ProfessionalUser
 
 User = get_user_model()
+
 
 @pytest.mark.django_db
 def test_service_types_off_domain_flag(client):
@@ -27,7 +29,7 @@ def test_service_types_off_domain_flag(client):
 
     serializer = ProfessionalUserSerializer(prof, context={"request": None})
     data = serializer.data
-    meta = {m['id']: m for m in data['service_types_meta']}
-    assert meta[p_a.id]['off_domain'] is False
-    assert meta[p_b.id]['off_domain'] is False
-    assert meta[p_c.id]['off_domain'] is True
+    meta = {m["id"]: m for m in data["service_types_meta"]}
+    assert meta[p_a.id]["off_domain"] is False
+    assert meta[p_b.id]["off_domain"] is False
+    assert meta[p_c.id]["off_domain"] is True
