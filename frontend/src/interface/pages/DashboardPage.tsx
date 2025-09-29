@@ -1,41 +1,67 @@
+import Sidebar from '../components/sidebar/Sidebar';
+import Navbar from '../components/navbar/Navbar';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/providers/AuthProvider';
-import Navbar from '../components/navbar/Navbar';
+import QuotesListPage from './Quote/QuoteListPage';
+import styles from './dashboard.module.css'; // <-- nouveau
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   return (
-    <>
-      <Navbar />
-      <main className="container mx-auto p-6 grid gap-6">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <p>Bienvenue {user?.profile?.first_name ?? user?.email} 👋</p>
+    <div>
+      <Sidebar />
+      <div className={styles.page}>
+        <Navbar />
+        <main className={`${styles.inner} container mx-auto grid gap-6`}>
+          <div className={styles.headerRow}>
+            <h1 className={styles.title}>Dashboard</h1>
+            <div className={styles.headerCta}>
+              <Link
+                to="/profile"
+                className={`${styles.btn} ${styles.btnPrimary}`}
+              >
+                Mon profil
+              </Link>
+              <Link
+                to="/quotes"
+                className={`${styles.btn} ${styles.btnIndigo}`}
+              >
+                Mes devis
+              </Link>
+              <Link
+                to="/quotes/new"
+                className={`${styles.btn} ${styles.btnSuccess}`}
+              >
+                + Créer un devis
+              </Link>
+            </div>
+          </div>
 
-        <div className="flex gap-3">
-          <Link
-            to="/profile"
-            className="bg-blue-600 text-white rounded px-3 py-2"
-          >
-            Mon profil
-          </Link>
-          <Link
-            to="/quotes"
-            className="bg-indigo-600 text-white rounded px-3 py-2"
-          >
-            Mes devis
-          </Link>
-          <Link
-            to="/quotes/new"
-            className="bg-green-600 text-white rounded px-3 py-2"
-          >
-            + Créer un devis
-          </Link>
-          <button onClick={() => logout()} className="bg-gray-200 rounded p-2">
-            Se déconnecter
-          </button>
-        </div>
-      </main>
-    </>
+          <p className={styles.welcome}>
+            Bienvenue {user?.profile?.first_name ?? user?.email} 👋
+          </p>
+
+          {/* Card qui emballe la liste des devis (applique le style "card") */}
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2 style={{ margin: 0, fontWeight: 600 }}>Derniers devis</h2>
+              <Link to="/quotes" className="text-indigo-600 hover:underline">
+                Voir tout
+              </Link>
+            </div>
+
+            {/* si QuotesListPage rend toute la page, mieux l'encapsuler dans une zone */}
+            <div className={styles.containerOverride}>
+              <QuotesListPage />
+            </div>
+
+            <div className={styles.cardMeta}>
+              Affichage limité — tu peux ajuster le widget depuis le dashboard.
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
   );
 }

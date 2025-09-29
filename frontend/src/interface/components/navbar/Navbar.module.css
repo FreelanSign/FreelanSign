@@ -60,3 +60,10 @@
     @apply gap-2;
   }
 }
+
+/* Ensure logo fits nicely inside the navbar */
+.logo {
+  height: 32px; /* adjust if your navbar is taller/shorter */
+  width: auto;
+  display: block;
+}

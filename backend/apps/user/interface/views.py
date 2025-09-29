@@ -78,11 +78,38 @@ class UserViewSet(viewsets.ViewSet):
         logger.info("users.create succeeded for user_id=%s", getattr(user, "id", None))
         return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
 
-    @action(detail=False, methods=["get"], url_path="me", permission_classes=[IsAuthenticated])
-    @extend_schema(responses=UserSerializer, summary="Get current authenticated user")
+    @action(
+        detail=False,
+        methods=["get", "patch"],
+        url_path="me",
+        permission_classes=[IsAuthenticated],
+    )
+    @extend_schema(responses=UserSerializer, summary="Get or patch current authenticated user")
     def me(self, request):
-        logger.debug("users.me called", extra={"user_id": request.user.id})
-        return Response(UserSerializer(request.user).data)
+        """
+        GET  -> retourne l'utilisateur courant (comme avant)
+        PATCH -> met à jour le profil courant (attend partial payload pour Profile)
+        """
+        user = request.user
+
+        if request.method == "GET":
+            logger.debug("users.me called", extra={"user_id": getattr(user, "id", None)})
+            return Response(UserSerializer(user).data)
+
+        # PATCH handling
+        logger.info("users.me (PATCH) called", extra={"user_id": getattr(user, "id", None), "params": request.data})
+        data = request.data
+        if "profile" in data and isinstance(data["profile"], dict):
+            payload = data["profile"]
+        else:
+            payload = data
+
+        ser = ProfileUpdateSerializer(user.profile, data=payload, partial=True)
+        ser.is_valid(raise_exception=True)
+        ser.save()
+
+        logger.info("users.me (PATCH) succeeded", extra={"user_id": getattr(user, "id", None)})
+        return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["patch"], url_path="me/profile", permission_classes=[IsAuthenticated])
     @extend_schema(request=ProfileUpdateSerializer, responses=UserSerializer, summary="Update profile of current user")
