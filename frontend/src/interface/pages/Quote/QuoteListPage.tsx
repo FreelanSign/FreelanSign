@@ -1,7 +1,7 @@
 // src/interface/pages/QuotesListPage.tsx
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { quoteRepository } from '../../infrastructure/quote/quoteRepository';
+import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 
 /**
  * Liste des devis de l'utilisateur.

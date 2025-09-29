@@ -62,7 +62,7 @@ export default function Navbar() {
             {user ? (
               <>
                 <li>
-                  <Link to="/quotes/create" className={styles.navLink}>
+                  <Link to="/quotes/new" className={styles.navLink}>
                     Créer un devis
                   </Link>
                 </li>
