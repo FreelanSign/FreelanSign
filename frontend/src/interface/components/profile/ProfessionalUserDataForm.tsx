@@ -29,7 +29,6 @@ function normalizeToNumberArray(value: unknown): number[] {
         return Number.isNaN(n) ? NaN : n;
       }
       if (typeof v === 'object' && v !== null && 'id' in v) {
-        // safe extraction of an 'id' property without using `any`
         const maybe = (v as Record<string, unknown>)['id'];
         if (typeof maybe === 'number') return maybe;
         const n = Number(String(maybe));
@@ -52,6 +51,7 @@ type Props = {
     service_types?: number[] | null;
   }) => Promise<void> | void;
   onDomaineChange?: (domaine: number | null) => void;
+  onChange?: (values: ProfessionalUserFormValues) => void; // NEW
   onCancel?: () => void;
   submitLabel?: string;
   showButtons?: boolean;
@@ -62,11 +62,11 @@ export default function ProfessionalUserDataForm({
   areas = null,
   onSave,
   onDomaineChange,
+  onChange,
   onCancel,
   submitLabel = 'Enregistrer',
-  showButtons = true,
+  showButtons = false, // parent handles save
 }: Props) {
-  // create a strongly typed local alias to avoid using `any` in multiple places
   const init: Partial<ProfessionalUserFormValues & { tjm_cents?: number }> =
     initialValues ?? {};
 
@@ -92,15 +92,25 @@ export default function ProfessionalUserDataForm({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const isSubmitting = formState.isSubmitting;
 
-  // watch domaine and notify parent on change (immediate)
+  // watch domaine and notify parent immediately (same behaviour as before)
   const domaineWatched = watch('domaine');
   useEffect(() => {
-    if (!onDomaineChange) return;
-    const raw = domaineWatched;
-    const d = raw === '' || raw == null ? null : Number(raw);
-    onDomaineChange(Number.isNaN(d) ? null : d);
+    if (onDomaineChange) {
+      const d =
+        domaineWatched === '' || domaineWatched == null
+          ? null
+          : Number(domaineWatched);
+      onDomaineChange(Number.isNaN(d) ? null : d);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domaineWatched]);
+
+  // watch whole form and notify parent on changes (draft)
+  const watched = watch();
+  useEffect(() => {
+    if (onChange) onChange(watched as ProfessionalUserFormValues);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(watched)]);
 
   async function internalOnSubmit(values: ProfessionalUserFormValues) {
     setSubmitError(null);
@@ -138,7 +148,11 @@ export default function ProfessionalUserDataForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(internalOnSubmit)} className="grid gap-3">
+    <form
+      onSubmit={handleSubmit(internalOnSubmit)}
+      className="grid gap-3"
+      noValidate
+    >
       <label>
         <div className="text-sm">Nom structure</div>
         <input

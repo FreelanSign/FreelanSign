@@ -1,5 +1,5 @@
-// src/interface/components/PersonalUserDataForm.tsx
-import React, { useState } from 'react';
+// src/interface/components/profile/PersonalUserDataForm.tsx
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,6 +18,7 @@ type Props = {
   initialValues?: Partial<PersonalUserFormValues>;
   onSave?: (values: PersonalUserFormValues) => Promise<void> | void;
   onCancel?: () => void;
+  onChange?: (values: PersonalUserFormValues) => void; // NEW
   submitLabel?: string;
   showButtons?: boolean; // if false, component will not render Save/Cancel (useful if parent handles submit)
 };
@@ -26,13 +27,15 @@ export default function PersonalUserDataForm({
   initialValues = {},
   onSave,
   onCancel,
+  onChange,
   submitLabel = 'Enregistrer',
-  showButtons = true,
+  showButtons = false, // parent will handle save
 }: Props) {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    watch,
   } = useForm<PersonalUserFormValues>({
     resolver: zodResolver(PersonalUserSchema),
     defaultValues: {
@@ -45,6 +48,13 @@ export default function PersonalUserDataForm({
   });
 
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // notify parent on every change
+  const watched = watch();
+  useEffect(() => {
+    if (onChange) onChange(watched as PersonalUserFormValues);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(watched)]);
 
   async function onSubmit(values: PersonalUserFormValues) {
     setSubmitError(null);
@@ -59,7 +69,7 @@ export default function PersonalUserDataForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-3">
+    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-3" noValidate>
       <label>
         <div className="text-sm">Prénom</div>
         <input

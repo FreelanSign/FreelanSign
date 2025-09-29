@@ -9,9 +9,9 @@ import {
 } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { clientRepository } from '../../infrastructure/client/clientRepository';
-import { quoteRepository } from '../../infrastructure/quote/quoteRepository';
-import type { ClientDto } from '../../domain/client/types';
+import { clientRepository } from '../../../infrastructure/client/clientRepository';
+import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
+import type { ClientDto } from '../../../domain/client/types';
 
 /* ---------- zod schema ---------- */
 const ItemSchema = z.object({
