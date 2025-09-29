@@ -1,5 +1,4 @@
 // src/interface/components/profile/ProfessionalInfoBox.tsx
-import React from 'react';
 import type { ProfessionalUserDto } from '../../../domain/user/types';
 
 type Props = {

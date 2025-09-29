@@ -1,5 +1,5 @@
 // src/interface/pages/ProfileEditPage.tsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../app/providers/AuthProvider';
 import { userRepository } from '../../../infrastructure/user/userRepository';
@@ -79,8 +79,8 @@ export default function ProfileEditPage() {
       name: values.name ?? null,
       status_juridique: values.status_juridique ?? null,
       domaine: values.domaine ?? null,
-      // keep tjm_eur in draft as euros - only convert on save
-      tjm_eur: values.tjm_eur ?? null,
+      // use undefined (not null) to match the state's tjm_eur type
+      tjm_eur: values.tjm_eur ?? undefined,
       number_pro: values.number_pro ?? null,
     }));
   }

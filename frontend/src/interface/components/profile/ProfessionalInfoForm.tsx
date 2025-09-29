@@ -1,5 +1,5 @@
 // src/interface/components/profile/ProfessionalInfoForm.tsx
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -56,6 +56,7 @@ export default function ProfessionalInfoForm({
       number_pro: init.number_pro ?? null,
     },
   });
+
   // watch values to notify parent
   const watchedAll = watch();
 
@@ -64,11 +65,31 @@ export default function ProfessionalInfoForm({
     if (onValuesChange) {
       onValuesChange(watchedAll);
     }
+
     // also notify domaine change separately (keeps previous behavior)
     if (onDomaineChange) {
-      const raw = watchedAll.domaine;
-      const d = raw === '' || raw == null ? null : Number(raw);
-      onDomaineChange(Number.isNaN(d) ? null : d);
+      // domaine peut être string | number | null | undefined selon le navigateur / register options
+      const raw: unknown = watchedAll.domaine;
+
+      let parsed: number | null = null;
+      if (raw == null) {
+        parsed = null;
+      } else if (typeof raw === 'number') {
+        parsed = raw;
+      } else if (typeof raw === 'string') {
+        // empty string -> null, otherwise try to parse number
+        if (raw === '') {
+          parsed = null;
+        } else {
+          const n = Number(raw);
+          parsed = Number.isNaN(n) ? null : n;
+        }
+      } else {
+        // valeur inattendue -> null
+        parsed = null;
+      }
+
+      onDomaineChange(parsed);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -78,7 +99,6 @@ export default function ProfessionalInfoForm({
     watchedAll.tjm_eur,
     watchedAll.number_pro,
   ]);
-
   async function internalOnSubmit(values: ProfessionalInfoValues) {
     const payload: {
       name?: string | null;

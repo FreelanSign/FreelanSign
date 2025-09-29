@@ -1,5 +1,5 @@
 // src/interface/components/profile/PrestationsSelector.tsx
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { PrestationDto } from '../../../domain/catalog/types';
 import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
 
@@ -95,7 +95,6 @@ export default function PrestationsSelector({
       // either update it or replace this call by a dedicated API function.
       // We'll call it with params; if it throws, we fallback to the no-param call below.
       try {
-        // @ts-expect-error allow optional params call (adjust repo signature if needed)
         const lista = await catalogRepository.listPrestations(params);
         setPrestations(lista);
       } catch {

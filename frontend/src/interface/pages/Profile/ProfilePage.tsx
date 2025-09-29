@@ -1,5 +1,5 @@
 // src/interface/pages/ProfilePage.tsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { userRepository } from '../../../infrastructure/user/userRepository';
 import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
 import type { UserDto, ProfessionalUserDto } from '../../../domain/user/types';

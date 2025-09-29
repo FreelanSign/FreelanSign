@@ -1,5 +1,4 @@
 // src/interface/components/profile/PrestationsList.tsx
-import React from 'react';
 import type { PrestationDto } from '../../../domain/catalog/types';
 import { getStringField, getNumberField } from '../../../shared/utils/obj';
 

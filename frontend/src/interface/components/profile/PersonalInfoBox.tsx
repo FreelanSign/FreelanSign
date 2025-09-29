@@ -1,5 +1,4 @@
 // src/interface/components/profile/PersonalInfoBox.tsx
-import React from 'react';
 import type { UserDto } from '../../../domain/user/types';
 
 type Props = {

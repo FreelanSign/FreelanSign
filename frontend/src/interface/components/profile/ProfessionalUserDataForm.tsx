@@ -1,5 +1,5 @@
 // src/interface/components/profile/ProfessionalUserDataForm.tsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -92,16 +92,32 @@ export default function ProfessionalUserDataForm({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const isSubmitting = formState.isSubmitting;
 
-  // watch domaine and notify parent immediately (same behaviour as before)
+  // watch domaine and notify parent on change (immediate)
   const domaineWatched = watch('domaine');
+
   useEffect(() => {
-    if (onDomaineChange) {
-      const d =
-        domaineWatched === '' || domaineWatched == null
-          ? null
-          : Number(domaineWatched);
-      onDomaineChange(Number.isNaN(d) ? null : d);
+    if (!onDomaineChange) return;
+
+    const raw: unknown = domaineWatched;
+
+    let parsed: number | null;
+    if (raw == null) {
+      parsed = null;
+    } else if (typeof raw === 'number') {
+      parsed = Number.isNaN(raw) ? null : raw;
+    } else if (typeof raw === 'string') {
+      // empty string -> null, otherwise parse to number (fallback to null if NaN)
+      if (raw.trim() === '') {
+        parsed = null;
+      } else {
+        const n = Number(raw);
+        parsed = Number.isNaN(n) ? null : n;
+      }
+    } else {
+      parsed = null;
     }
+
+    onDomaineChange(parsed);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domaineWatched]);
 
