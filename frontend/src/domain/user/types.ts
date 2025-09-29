@@ -27,6 +27,14 @@ export type ProfessionalUserDto = {
   tjm_cents?: number | null;
   number_pro?: string | null;
   service_types?: number[]; // list of prestation ids
+  // optional meta information to help the frontend render warnings (read-only)
+  service_types_meta?: Array<{
+    id: number;
+    name?: string | null;
+    area_id?: number | null;
+    area_name?: string | null;
+    off_domain?: boolean;
+  }>;
   created_at?: string;
   updated_at?: string;
 };

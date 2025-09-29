@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import LoginForm from '../../../interface/components/forms/LoginForm';
+import LoginForm from '../../components/login/LoginForm';
 import Navbar from '../../../interface/components/navbar/Navbar';
 import { useEffect } from 'react';
 import { useAuth } from '../../../app/providers/AuthProvider';

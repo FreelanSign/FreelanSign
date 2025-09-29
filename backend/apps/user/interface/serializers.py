@@ -1,4 +1,6 @@
 # apps/user/interface/serializers.py
+import logging
+
 from django.apps import apps
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -8,6 +10,8 @@ from apps.catalog.models import Area, Prestation
 from apps.user.models.models import ProfessionalUser
 
 from ..models import Profile, User
+
+logger = logging.getLogger("apps.user.serializers")
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -36,19 +40,18 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserRegistrationSerializer(serializers.Serializer):
-    # payload d’inscription contract-first
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=User.objects.all(), message="A user with this email already exists.")]
     )
     password = serializers.CharField(write_only=True)
     profile = ProfileSerializer(required=False)
-
-    # compat legacy (si tu veux encore accepter full_name/phone plats)
     full_name = serializers.CharField(required=False, allow_blank=True)
     phone = serializers.CharField(required=False, allow_blank=True)
 
     def validate_email(self, v):
-        return v.strip().lower()
+        cleaned = v.strip().lower()
+        logger.debug("UserRegistrationSerializer.validate_email -> %s", cleaned)
+        return cleaned
 
 
 class ChangePasswordSerializer(serializers.Serializer):
@@ -61,7 +64,6 @@ class LogoutSerializer(serializers.Serializer):
 
 
 class ProfessionalUserSerializer(serializers.ModelSerializer):
-    # declare here to keep schema generation; we'll override in __init__
     service_types = serializers.ListField(child=serializers.IntegerField(), required=False)
     domaine = serializers.IntegerField(allow_null=True, required=False)
 
@@ -83,10 +85,8 @@ class ProfessionalUserSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # get models lazily
         Prestation = apps.get_model("catalog", "Prestation")
         Area = apps.get_model("catalog", "Area")
-        # replace the placeholders with proper PK related fields for validation & browsable API
         self.fields["service_types"] = serializers.PrimaryKeyRelatedField(
             queryset=Prestation.objects.all(), many=True, required=False
         )
@@ -97,19 +97,33 @@ class ProfessionalUserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         service_types = validated_data.pop("service_types", [])
         request = self.context.get("request")
+        user_id = getattr(request.user, "id", None) if request else None
+        logger.info("ProfessionalUserSerializer.create called user_id=%s", user_id)
         if not request or not getattr(request, "user", None) or not request.user.is_authenticated:
+            logger.warning("ProfessionalUserSerializer.create denied - unauthenticated")
             raise ValidationError("Authenticated user required to create a ProfessionalUser.")
         user = request.user
-        prof = ProfessionalUser.objects.create(user=user, **validated_data)
-        if service_types:
-            prof.service_types.set(service_types)
-        return prof
+        try:
+            prof = ProfessionalUser.objects.create(user=user, **validated_data)
+            if service_types:
+                prof.service_types.set(service_types)
+            logger.info("ProfessionalUserSerializer.create succeeded professional_id=%s user_id=%s", prof.id, user_id)
+            return prof
+        except Exception:
+            logger.exception("ProfessionalUserSerializer.create failed for user_id=%s", user_id)
+            raise
 
     def update(self, instance, validated_data):
         service_types = validated_data.pop("service_types", None)
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-        if service_types is not None:
-            instance.service_types.set(service_types)
-        return instance
+        logger.info("ProfessionalUserSerializer.update called professional_id=%s", getattr(instance, "id", None))
+        try:
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+            if service_types is not None:
+                instance.service_types.set(service_types)
+            logger.info("ProfessionalUserSerializer.update succeeded professional_id=%s", instance.id)
+            return instance
+        except Exception:
+            logger.exception("ProfessionalUserSerializer.update failed professional_id=%s", getattr(instance, "id", None))
+            raise

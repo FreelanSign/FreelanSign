@@ -13,11 +13,11 @@ def test_onboarding_creates_professional_user():
     user = User.objects.create_user(email="test@example.com", password="pass")
     client.force_authenticate(user=user)
 
-    url = reverse("onboarding-professional")
+    # use namespaced route
+    url = reverse("user:onboarding-professional")
     payload = {"name": "Mon agence", "tjm_cents": 45000}
     resp = client.post(url, payload, format="json")
     assert resp.status_code == 201
-    # objet lié
     assert hasattr(user, "professional")
     assert user.professional.name == "Mon agence"
     assert user.professional.tjm_cents == 45000
@@ -29,9 +29,9 @@ def test_me_patch_updates_professional():
     user = User.objects.create_user(email="test2@example.com", password="pass")
     client.force_authenticate(user=user)
     # create first
-    client.post(reverse("onboarding-professional"), {"name": "A", "tjm_cents": 1000}, format="json")
+    client.post(reverse("user:onboarding-professional"), {"name": "A", "tjm_cents": 1000}, format="json")
 
-    resp = client.patch(reverse("professional-me"), {"name": "B"}, format="json")
+    resp = client.patch(reverse("user:professional-me"), {"name": "B"}, format="json")
     assert resp.status_code == 200
     user.refresh_from_db()
     assert user.professional.name == "B"

@@ -1,4 +1,6 @@
 # apps/user/interface/views.py
+import logging
+
 from django.contrib.auth import authenticate
 from django.core.exceptions import ObjectDoesNotExist
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
@@ -20,6 +22,8 @@ from apps.user.interface.serializers import (
 )
 from apps.user.models.models import ProfessionalUser
 from apps.user.services.user_service import UserService
+
+logger = logging.getLogger("apps.user.views")
 
 
 @extend_schema_view(
@@ -56,43 +60,62 @@ class UserViewSet(viewsets.ViewSet):
 
     @extend_schema(responses=UserSerializer(many=True))
     def list(self, request):
+        logger.info("users.list called", extra={"user_id": getattr(request.user, "id", None)})
         users = self.service.list_users()
+        logger.debug("users.list returning %d users", len(users))
         return Response(UserSerializer(users, many=True).data)
 
     @extend_schema(request=UserRegistrationSerializer, responses={201: UserSerializer}, summary="Register a new user")
     def create(self, request):
+        logger.info("users.create called", extra={"params": {k: v for k, v in request.data.items() if k != "password"}})
         reg = UserRegistrationSerializer(data=request.data)
-        reg.is_valid(raise_exception=True)
+        try:
+            reg.is_valid(raise_exception=True)
+        except Exception as e:
+            logger.warning("users.create validation failed: %s", reg.errors)
+            raise
         user = self.service.register_user(**reg.validated_data)
+        logger.info("users.create succeeded for user_id=%s", getattr(user, "id", None))
         return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=["get"], url_path="me", permission_classes=[IsAuthenticated])
     @extend_schema(responses=UserSerializer, summary="Get current authenticated user")
     def me(self, request):
+        logger.debug("users.me called", extra={"user_id": request.user.id})
         return Response(UserSerializer(request.user).data)
 
     @action(detail=False, methods=["patch"], url_path="me/profile", permission_classes=[IsAuthenticated])
     @extend_schema(request=ProfileUpdateSerializer, responses=UserSerializer, summary="Update profile of current user")
     def update_me_profile(self, request):
+        logger.info("users.update_me_profile called", extra={"user_id": request.user.id, "params": request.data})
         ser = ProfileUpdateSerializer(request.user.profile, data=request.data, partial=True)
-        ser.is_valid(raise_exception=True)
-        ser.save()
+        try:
+            ser.is_valid(raise_exception=True)
+            ser.save()
+        except Exception:
+            logger.exception("users.update_me_profile failed for user_id=%s", request.user.id)
+            raise
+        logger.info("users.update_me_profile succeeded for user_id=%s", request.user.id)
         return Response(UserSerializer(request.user).data)
 
     @action(detail=False, methods=["post"], url_path="me/change-password", permission_classes=[IsAuthenticated])
     def change_password(self, request):
+        logger.info("change_password called", extra={"user_id": request.user.id})
         ser = ChangePasswordSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
         user = request.user
         if not user.check_password(ser.validated_data["current_password"]):
+            logger.warning("change_password incorrect current_password for user_id=%s", user.id)
             return Response({"current_password": "Incorrect password"}, status=400)
         user.set_password(ser.validated_data["new_password"])
         user.save()
+        logger.info("change_password succeeded for user_id=%s", user.id)
         return Response({"detail": "Password changed successfully"}, status=204)
 
 
 class ProfessionalUserMeView(APIView):
     permission_classes = [IsAuthenticated]
+    logger = logging.getLogger("apps.user.views.ProfessionalUserMeView")
 
     @extend_schema(
         responses={
@@ -103,10 +126,13 @@ class ProfessionalUserMeView(APIView):
         tags=["Professional Users"],
     )
     def get(self, request):
+        logger.info("ProfessionalUserMeView.get called", extra={"user_id": request.user.id})
         prof = getattr(request.user, "professional", None)
         if not prof:
+            logger.debug("ProfessionalUserMeView.get: no professional for user_id=%s", request.user.id)
             return Response({"detail": "Professional profile not found."}, status=status.HTTP_404_NOT_FOUND)
         serializer = ProfessionalUserSerializer(prof, context={"request": request})
+        logger.debug("ProfessionalUserMeView.get: returning professional id=%s", prof.id)
         return Response(serializer.data)
 
     @extend_schema(
@@ -116,25 +142,34 @@ class ProfessionalUserMeView(APIView):
         tags=["Professional Users"],
     )
     def patch(self, request):
+        logger.info("ProfessionalUserMeView.patch called", extra={"user_id": request.user.id, "params": request.data})
         prof = getattr(request.user, "professional", None)
         if not prof:
-            # create if missing
             serializer = ProfessionalUserSerializer(data=request.data, context={"request": request})
+            action = "create"
         else:
             serializer = ProfessionalUserSerializer(prof, data=request.data, partial=True, context={"request": request})
+            action = "update"
 
-        serializer.is_valid(raise_exception=True)
-        obj = serializer.save()
+        try:
+            serializer.is_valid(raise_exception=True)
+            obj = serializer.save()
+        except Exception:
+            logger.exception("ProfessionalUserMeView.patch failed for user_id=%s", request.user.id)
+            raise
+
+        logger.info(
+            "ProfessionalUserMeView.patch %s succeeded for professional_id=%s user_id=%s",
+            action,
+            getattr(obj, "id", None),
+            request.user.id,
+        )
         return Response(ProfessionalUserSerializer(obj, context={"request": request}).data, status=status.HTTP_200_OK)
 
 
 class OnboardingProfessionalView(APIView):
-    """
-    Endpoint to create the professional entity during onboarding.
-    POST allowed for authenticated users; admins could have list/create elsewhere.
-    """
-
     permission_classes = [IsAuthenticated]
+    logger = logging.getLogger("apps.user.views.OnboardingProfessionalView")
 
     @extend_schema(
         request=ProfessionalUserSerializer,
@@ -146,81 +181,94 @@ class OnboardingProfessionalView(APIView):
         tags=["Professional Users"],
     )
     def post(self, request):
+        logger.info("OnboardingProfessionalView.post called", extra={"user_id": request.user.id, "params": request.data})
         try:
             prof = request.user.professional
         except ObjectDoesNotExist:
             prof = None
         if prof:
             serializer = ProfessionalUserSerializer(prof, data=request.data, partial=True, context={"request": request})
+            status_code = status.HTTP_200_OK
+            action = "update"
         else:
             serializer = ProfessionalUserSerializer(data=request.data, context={"request": request})
+            status_code = status.HTTP_201_CREATED
+            action = "create"
 
-        serializer.is_valid(raise_exception=True)
-        obj = serializer.save()
-        return Response(
-            ProfessionalUserSerializer(obj, context={"request": request}).data,
-            status=status.HTTP_201_CREATED if not prof else status.HTTP_200_OK,
+        try:
+            serializer.is_valid(raise_exception=True)
+            obj = serializer.save()
+        except Exception:
+            logger.exception("OnboardingProfessionalView.post failed for user_id=%s", request.user.id)
+            raise
+
+        logger.info(
+            "OnboardingProfessionalView.post %s succeeded professional_id=%s user_id=%s",
+            action,
+            getattr(obj, "id", None),
+            request.user.id,
         )
+        return Response(ProfessionalUserSerializer(obj, context={"request": request}).data, status=status_code)
 
 
 class IsOwnerOrAdmin(permissions.BasePermission):
-    """
-    Allow access only to staff (admin) or the owner of the object.
-
-    Important behaviour:
-    - For the ViewSet `list` action we explicitly only allow staff members (non-admins will receive 403).
-    - For other actions, authenticated users are allowed at the permission level; object-level ownership is enforced in `has_object_permission`.
-    """
-
     def has_permission(self, request, view):
-        # Deny unauthenticated users globally
         if not request.user or not request.user.is_authenticated:
+            logger.debug("IsOwnerOrAdmin.has_permission denied unauthenticated request")
             return False
-        # Only staff may list all ProfessionalUser objects
         if getattr(view, "action", None) == "list":
-            return request.user.is_staff
-        # Otherwise allow and let has_object_permission enforce ownership for object-level actions
+            allowed = request.user.is_staff
+            logger.debug("IsOwnerOrAdmin.has_permission for list -> is_staff=%s", request.user.is_staff)
+            return allowed
         return True
 
     def has_object_permission(self, request, view, obj):
-        # Allow staff to access any object
         if request.user and request.user.is_staff:
+            logger.debug("IsOwnerOrAdmin.has_object_permission allowed for staff user_id=%s", request.user.id)
             return True
-        # Otherwise only the owner may access
-        return getattr(obj, "user", None) == request.user
+        owner = getattr(obj, "user", None)
+        allowed = owner == request.user
+        logger.debug(
+            "IsOwnerOrAdmin.has_object_permission owner=%s user=%s allowed=%s",
+            getattr(owner, "id", None),
+            request.user.id,
+            allowed,
+        )
+        return allowed
 
 
 class ProfessionalUserViewSet(viewsets.ModelViewSet):
-    """
-    CRUD pour ProfessionalUser.
-    - Les non-admins ne voient que leur ressource (queryset filtré).
-    - Les admins voient tout.
-    """
-
     serializer_class = ProfessionalUserSerializer
     permission_classes = [IsOwnerOrAdmin]
+    logger = logging.getLogger("apps.user.views.ProfessionalUserViewSet")
 
     def get_queryset(self):
+        self.logger.debug("ProfessionalUserViewSet.get_queryset called user_id=%s", getattr(self.request.user, "id", None))
         qs = ProfessionalUser.objects.all().select_related("user", "domaine").prefetch_related("service_types")
         if self.request.user.is_staff:
+            self.logger.debug("ProfessionalUserViewSet.get_queryset returning full queryset for staff user")
             return qs
+        self.logger.debug("ProfessionalUserViewSet.get_queryset filtering by user=%s", self.request.user.id)
         return qs.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        # forcer la liaison à l'utilisateur courant
+        self.logger.info("ProfessionalUserViewSet.perform_create called user_id=%s", getattr(self.request.user, "id", None))
         serializer.save(user=self.request.user)
+        self.logger.info(
+            "ProfessionalUserViewSet.perform_create finished saved professional for user_id=%s", self.request.user.id
+        )
 
     def perform_destroy(self, instance):
-        # si tu souhaites soft-delete, remplace par instance.soft_delete() ou similar
+        self.logger.info("ProfessionalUserViewSet.perform_destroy called professional_id=%s", getattr(instance, "id", None))
         instance.delete()
+        self.logger.info("ProfessionalUserViewSet.perform_destroy finished professional_id=%s", getattr(instance, "id", None))
 
     @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated])
     def me(self, request):
-        """
-        GET /api/professional/me/  -> renvoie l'objet du user courant (même comportement que l'ancien /professional/me/)
-        """
+        self.logger.debug("ProfessionalUserViewSet.me called user_id=%s", request.user.id)
         prof = getattr(request.user, "professional", None)
         if not prof:
+            self.logger.debug("ProfessionalUserViewSet.me: professional not found for user_id=%s", request.user.id)
             return Response({"detail": "Professional profile not found."}, status=status.HTTP_404_NOT_FOUND)
         serializer = self.get_serializer(prof)
         return Response(serializer.data)
