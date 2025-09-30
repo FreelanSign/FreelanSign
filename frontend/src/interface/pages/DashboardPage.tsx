@@ -2,8 +2,8 @@ import Sidebar from '../components/sidebar/Sidebar';
 import Navbar from '../components/navbar/Navbar';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/providers/AuthProvider';
-import QuotesListPage from './Quote/QuoteListPage';
-import styles from './dashboard.module.css'; // <-- nouveau
+import styles from './dashboard.module.css';
+import QuotesTable from '../components/quote/QuotesTable';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -37,25 +37,13 @@ export default function DashboardPage() {
               </Link>
             </div>
           </div>
-
           <p className={styles.welcome}>
             Bienvenue {user?.profile?.first_name ?? user?.email} 👋
           </p>
-
-          {/* Card qui emballe la liste des devis (applique le style "card") */}
           <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <h2 style={{ margin: 0, fontWeight: 600 }}>Derniers devis</h2>
-              <Link to="/quotes" className="text-indigo-600 hover:underline">
-                Voir tout
-              </Link>
-            </div>
-
-            {/* si QuotesListPage rend toute la page, mieux l'encapsuler dans une zone */}
             <div className={styles.containerOverride}>
-              <QuotesListPage />
+              <QuotesTable />
             </div>
-
             <div className={styles.cardMeta}>
               Affichage limité — tu peux ajuster le widget depuis le dashboard.
             </div>
