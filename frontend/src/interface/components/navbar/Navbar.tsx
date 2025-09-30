@@ -53,7 +53,11 @@ export default function Navbar() {
       <div className={styles.container}>
         <div className={styles.brandWrapper}>
           <Link to="/" className={styles.brand}>
-            FreelanSign
+            <img
+              src="/img/logo.png"
+              alt="FreelanSign"
+              className={styles.logo}
+            />
           </Link>
         </div>
 

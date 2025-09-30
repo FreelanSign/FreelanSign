@@ -7,7 +7,9 @@ import { catalogRepository } from '../../../infrastructure/catalog/catalogReposi
 import type { UserDto, ProfessionalUserDto } from '../../../domain/user/types';
 import type { AreaDto } from '../../../domain/catalog/types';
 
-import PersonalUserDataForm from '../../components/profile/PersonalUserDataForm';
+import PersonalUserDataForm, {
+  type PersonalUserFormValues,
+} from '../../components/profile/PersonalUserDataForm';
 import ProfessionalInfoForm, {
   type ProfessionalInfoValues,
 } from '../../components/profile/ProfessionalInfoForm';
@@ -33,6 +35,11 @@ export default function ProfileEditPage() {
   const [proDraft, setProDraft] = useState<ProDraftType>({});
   const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>([]);
 
+  // NEW: profile draft tracked so Save All can persist profile + pro
+  const [profileDraft, setProfileDraft] = useState<
+    Partial<PersonalUserFormValues>
+  >({});
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -41,6 +48,9 @@ export default function ProfileEditPage() {
         const me = await userRepository.getMe();
         if (!mounted) return;
         setUser(me);
+
+        // initialize profileDraft from backend values
+        setProfileDraft(me?.profile ?? {});
 
         const prof = await userRepository.getProfessionalMe();
         if (!mounted) return;
@@ -101,11 +111,38 @@ export default function ProfileEditPage() {
     tjm_cents?: number | null;
   };
 
+  // helper: normalise profile fields (convert '' -> null)
+  const normalizeProfile = (p: Partial<PersonalUserFormValues>) => ({
+    first_name: p.first_name && p.first_name !== '' ? p.first_name : null,
+    last_name: p.last_name && p.last_name !== '' ? p.last_name : null,
+    phone: p.phone && p.phone !== '' ? p.phone : null,
+    birthday: p.birthday && p.birthday !== '' ? p.birthday : null,
+    avatar_url: p.avatar_url && p.avatar_url !== '' ? p.avatar_url : null,
+  });
+
   // central save all
   async function handleSaveAll() {
     try {
       setSaving(true);
-      // build payload
+
+      // 0) determine if profile changed vs current backend user
+      const currentProfile = user?.profile ?? {};
+      const profileChanged =
+        JSON.stringify(profileDraft ?? {}) !== JSON.stringify(currentProfile);
+
+      // 1) if profile changed, persist it first
+      if (profileChanged) {
+        const normalized = normalizeProfile(profileDraft ?? {});
+        await userRepository.updateMe({ profile: normalized });
+
+        // re-fetch me to update local user state (and to keep canonical source)
+        const me = await userRepository.getMe();
+        setUser(me);
+        // ensure profileDraft reflect canonical state (avoid drift)
+        setProfileDraft(me?.profile ?? {});
+      }
+
+      // 2) build payload for professional (existing code)
       const payload: SavePayload = {
         name: proDraft.name ?? null,
         status_juridique: proDraft.status_juridique ?? null,
@@ -124,7 +161,7 @@ export default function ProfileEditPage() {
         payload.tjm_cents = null;
       }
 
-      // single PATCH with everything
+      // single PATCH with everything for professional
       await userRepository.updateProfessionalMe(payload);
 
       // re-fetch professional
@@ -140,7 +177,7 @@ export default function ProfileEditPage() {
         number_pro: prof?.number_pro ?? null,
       });
 
-      // redirect to profile page after successful save
+      // navigate to profile page after successful save
       navigate('/profile', { replace: true });
     } catch (err) {
       console.error('Save all failed', err);
@@ -185,12 +222,16 @@ export default function ProfileEditPage() {
         <PersonalUserDataForm
           initialValues={user?.profile ?? {}}
           onSave={async (vals) => {
-            await userRepository.updateMe({ profile: vals });
+            // keep individual save available (backwards compatible)
+            await userRepository.updateMe({ profile: normalizeProfile(vals) });
             const me = await userRepository.getMe();
             setUser(me);
+            setProfileDraft(me?.profile ?? {});
             alert('Informations personnelles mises à jour');
           }}
           onCancel={() => navigate('/profile')}
+          onChange={(vals) => setProfileDraft(vals)}
+          showButtons={false} // we want a single global Save button
         />
       </section>
 
