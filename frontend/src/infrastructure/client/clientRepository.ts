@@ -51,4 +51,16 @@ export const clientRepository = {
     );
     return [];
   },
+
+  async retrieve(id: string): Promise<ClientDto> {
+    const { data } = await apiClient.get(`${API_ENDPOINTS.clients}${id}/`);
+    return data as ClientDto;
+  },
+  async update(id: string, payload: unknown) {
+    const { data } = await apiClient.patch(
+      `${API_ENDPOINTS.clients}${id}/`,
+      payload,
+    );
+    return data;
+  },
 };

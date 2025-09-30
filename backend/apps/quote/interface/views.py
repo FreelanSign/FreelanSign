@@ -7,6 +7,7 @@ from decimal import Decimal
 from typing import Any, List, Optional
 
 from django.db import transaction
+from django.db.models import Prefetch
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -14,10 +15,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
+from apps.core.logging import get_logger
 from apps.quote.interface.permissions import IsOwnerOrAdmin
 from apps.quote.interface.serializers import ClientReadSerializer, QuoteCreateUpdateSerializer, QuoteSerializer
 from apps.quote.models import Quote, QuoteHistory, QuoteLineItem
@@ -109,7 +112,8 @@ class QuoteViewSet(viewsets.ModelViewSet):
     Access rules: controlled by IsOwnerOrAdmin permission class and by get_queryset/get_object logic.
     """
 
-    queryset = Quote.objects.all().select_related("owner", "client")
+    queryset = Quote.objects.all().select_related("client").prefetch_related("items")
+    serializer_class = QuoteSerializer
     permission_classes = [IsOwnerOrAdmin]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
@@ -124,22 +128,9 @@ class QuoteViewSet(viewsets.ModelViewSet):
         return QuoteSerializer
 
     def get_queryset(self):
-        """
-        Owners see their quotes. Staff/superuser can see all if they pass ?all=true.
-        Unauthenticated users get empty queryset.
-        """
-        qs = super().get_queryset()
-        user = getattr(self.request, "user", None)
-        if not user or not user.is_authenticated:
-            return qs.none()
-        # staff may optionally request everything with ?all=true
-        if user.is_staff or user.is_superuser:
-            all_param = self.request.query_params.get("all", "").lower()
-            if all_param in ("1", "true", "yes"):
-                return qs
-            # default for staff: limit to their own quotes (safer), unless ?all=true
-            return qs.filter(owner=user)
-        return qs.filter(owner=user)
+        return Quote.objects.select_related("client").prefetch_related(
+            Prefetch("items", queryset=QuoteLineItem.objects.select_related().order_by("order"))
+        )
 
     # ----------------------
     # Helper: robust detail lookup
@@ -182,10 +173,30 @@ class QuoteViewSet(viewsets.ModelViewSet):
     # Standard handlers (keep audit behavior on destroy)
     # ----------------------
     def retrieve(self, request, *args, **kwargs):
-        """Explicit retrieve using our get_object to ensure consistent lookup behaviour."""
-        obj = self.get_object()
-        serializer = self.get_serializer(obj)
-        return Response(serializer.data)
+        logger = get_logger(__name__, request)
+        logger.info("quote.retrieve.start", extra={"req": getattr(request, "req_id", None), "quote_id": kwargs.get("pk")})
+        try:
+            resp = super().retrieve(request, *args, **kwargs)
+            client_payload = resp.data.get("client") if isinstance(resp.data, dict) else None
+            logger.info(
+                "quote.retrieve.done",
+                extra={
+                    "req": getattr(request, "req_id", None),
+                    "quote_id": kwargs.get("pk"),
+                    "has_client": bool(client_payload),
+                    "client_keys": list(client_payload.keys()) if isinstance(client_payload, dict) else None,
+                },
+            )
+            return resp
+        except Exception as e:
+            logger.exception(
+                "quote.retrieve.error",
+                extra={
+                    "req": getattr(request, "req_id", None),
+                    "quote_id": kwargs.get("pk"),
+                },
+            )
+            raise
 
     def perform_destroy(self, instance: Quote):
         """
@@ -377,3 +388,56 @@ class QuoteViewSet(viewsets.ModelViewSet):
         self.check_object_permissions(request, quote)
         self.perform_destroy(quote)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def _log_request(self, request, action_name: str, pk=None):
+        logger = get_logger(__name__, request)
+        logger.info(
+            f"quote.{action_name}.request",
+            extra={
+                "quote_id": pk,
+                "user_id": getattr(request.user, "id", None),
+                "is_auth": bool(getattr(request.user, "is_authenticated", False)),
+                "data": request.data,
+                "headers_auth": (
+                    request.headers.get("Authorization", "")[:24] + "…" if request.headers.get("Authorization") else None
+                ),
+            },
+        )
+
+    def partial_update(self, request, *args, **kwargs):
+        logger = get_logger(__name__, request)
+        instance = self.get_object()
+        logger.info(
+            "quote.partial_update.request",
+            extra={
+                "quote_id": str(getattr(instance, "id", None)),
+                "user_id": getattr(request.user, "id", None),
+                "data": request.data,
+            },
+        )
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        if not serializer.is_valid():
+            logger.warning("quote.partial_update.validation_error errors=%s", serializer.errors)
+            raise ValidationError(serializer.errors)
+        self.perform_update(serializer)
+        logger.info("quote.partial_update.response", extra={"status": 200})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def update(self, request, *args, **kwargs):
+        logger = get_logger(__name__, request)
+        instance = self.get_object()
+        logger.info(
+            "quote.update.request",
+            extra={
+                "quote_id": str(getattr(instance, "id", None)),
+                "user_id": getattr(request.user, "id", None),
+                "data": request.data,
+            },
+        )
+        serializer = self.get_serializer(instance, data=request.data)
+        if not serializer.is_valid():
+            logger.warning("quote.partial_update.validation_error errors=%s", serializer.errors)
+            raise ValidationError(serializer.errors)
+        self.perform_update(serializer)
+        logger.info("quote.update.response", extra={"status": 200})
+        return Response(serializer.data, status=status.HTTP_200_OK)

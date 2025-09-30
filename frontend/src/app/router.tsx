@@ -12,6 +12,8 @@ import ProfilePage from '../interface/pages/Profile/ProfilePage';
 import ProfileEditPage from '../interface/pages/Profile/ProfileEditPage';
 import QuoteCreatePage from '../interface/pages/Quote/QuoteCreatePage';
 import QuotesListPage from '../interface/pages/Quote/QuoteListPage';
+import QuoteDetailPage from '../interface/pages/Quote/QuoteDetailPage';
+import QuoteEditPage from '../interface/pages/Quote/QuoteEditPage';
 
 /** Route protégée très simple */
 function Protected({ children }: { children: React.ReactNode }) {
@@ -32,7 +34,7 @@ const router = createBrowserRouter([
         <ProfilePage />
       </Protected>
     ),
-  }, // route protégée pour le profil
+  },
   {
     path: '/profile/edit',
     element: (
@@ -64,6 +66,14 @@ const router = createBrowserRouter([
         <QuotesListPage />
       </Protected>
     ),
+  },
+  {
+    path: '/quotes/:id',
+    element: <QuoteDetailPage />,
+  },
+  {
+    path: '/quotes/:id/edit/',
+    element: <QuoteEditPage />,
   },
 ]);
 

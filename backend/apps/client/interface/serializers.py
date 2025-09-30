@@ -40,3 +40,17 @@ class ClientSerializer(serializers.ModelSerializer):
         if not v:
             raise serializers.ValidationError("Client name cannot be empty.")
         return v
+
+
+# ----------------------------
+# Small client read serializer (ENRICHED)
+# ----------------------------
+class ClientReadSerializer(serializers.ModelSerializer):
+    """
+    Représentation enrichie du client pour les endpoints de lecture du devis.
+    (on n'expose pas owner/created/updated ici)
+    """
+
+    class Meta:
+        model = Client
+        fields = ["id", "name", "email", "phone", "address", "vat_number", "metadata"]

@@ -3,7 +3,6 @@ import axios, {
   AxiosError,
   type AxiosInstance,
   type AxiosRequestConfig,
-  type InternalAxiosRequestConfig,
 } from 'axios';
 import { ENV } from '../../shared/env';
 import { API_ENDPOINTS } from '../../shared/endpoints';
@@ -43,6 +42,15 @@ headersDefaults.post = {
   'Content-Type': 'application/json',
 };
 
+headersDefaults.patch = {
+  ...(headersDefaults.patch ?? {}),
+  'Content-Type': 'application/json',
+};
+headersDefaults.put = {
+  ...(headersDefaults.put ?? {}),
+  'Content-Type': 'application/json',
+};
+
 // --- refresh queue ---
 let isRefreshing = false;
 let pendingQueue: Array<{
@@ -66,14 +74,19 @@ function processQueue(error: unknown, token: string | null) {
 }
 
 // --- Request: ajoute seulement Authorization, NE PAS remplacer headers ---
-apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+apiClient.interceptors.request.use((config) => {
   const access = tokenStorage.getAccess();
   if (access) {
     config.headers = config.headers || {};
-    // on assure que headers est un objet string->string pour l'Authorization
     (config.headers as Record<string, string>)['Authorization'] =
       `Bearer ${access}`;
   }
+  // DEBUG TEMP:
+
+  console.debug('[api] =>', config.method?.toUpperCase(), config.url, {
+    hasAuth: Boolean(access),
+    authHead: access ? `Bearer ${access.slice(0, 12)}…` : null,
+  });
   return config;
 });
 
