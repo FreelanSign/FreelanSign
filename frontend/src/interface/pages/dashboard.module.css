@@ -1,0 +1,156 @@
+:global(:root) {
+  /* palette */
+  --brand: #2456c2;
+  --success: #3ccf91;
+  --accent: #ff8a3d;
+  --dark: #0d0d0d;
+  --paper: #f5f7fa;
+  --sidebar-bg: #f5f7fa;
+  --icon-bg: rgba(255, 255, 255, 0.92);
+  --icon-border: #3ccf91;
+  --text: #222;
+}
+
+/* wrapper global de la page (garde l'espace pour la sidebar) */
+.page {
+  min-height: 100vh;
+  background: var(--paper);
+  /* NB: 96px = largeur de ta sidebar */
+  margin-left: 96px;
+  transition: margin-left 150ms ease;
+  box-sizing: border-box;
+}
+
+/* responsive : si sidebar cachée (taille < 1024px) on reset margin */
+@media (max-width: 1024px) {
+  .page {
+    margin-left: 0;
+  }
+}
+
+/* centre le contenu (tu utilises déjà tailwind .container). Ici on fixe la zone principale */
+.inner {
+  padding: 1.5rem;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* header */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.title {
+  font-size: 1.375rem; /* ~text-2xl */
+  font-weight: 600;
+  color: var(--dark);
+  margin: 0;
+}
+
+/* welcome line */
+.welcome {
+  color: var(--text);
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+/* actions group (boutons) */
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* boutons : base + variants */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  color: white;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    opacity 120ms;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+.btn:active {
+  transform: translateY(0);
+}
+
+.btnPrimary {
+  background: var(--brand);
+  box-shadow: 0 6px 14px rgba(36, 86, 194, 0.12);
+}
+.btnIndigo {
+  background: #4f46e5; /* indigo-600 */
+  box-shadow: 0 6px 14px rgba(79, 70, 229, 0.12);
+}
+.btnSuccess {
+  background: var(--success);
+  box-shadow: 0 6px 14px rgba(60, 207, 145, 0.12);
+  color: #06281a;
+}
+.btnGhost {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--dark);
+  font-weight: 500;
+}
+
+/* petite carte pour le tableau des devis */
+.card {
+  background: white;
+  border-radius: 0.6rem;
+  padding: 1rem;
+  box-shadow: 0 6px 18px rgba(12, 12, 12, 0.06);
+  border: 1px solid rgba(10, 10, 10, 0.04);
+}
+
+/* header de la card (titre + link) */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+/* petite meta under the card (count / info) */
+.cardMeta {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: #6b7280; /* gray-500 */
+}
+
+/* adapt table list spacing (si QuotesListPage rend des articles) */
+.articlesList > article {
+  margin-bottom: 0.6rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* utile si QuotesListPage utilise .container etc : on peut forcer couleurs */
+.containerOverride {
+  background: transparent;
+}
+
+/* CTA group (en haut à droite) */
+.headerCta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
