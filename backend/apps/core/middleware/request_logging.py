@@ -3,44 +3,50 @@ import logging
 import time
 import uuid
 
-logger = logging.getLogger("apps.core.middleware.request_logging")
+from django.utils.deprecation import MiddlewareMixin
+
+logger = logging.getLogger(__name__)
 
 
-class RequestLoggingMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
+def _uid(request):
+    user = getattr(request, "user", None)
+    return getattr(user, "id", None) if user is not None else None
 
-    def __call__(self, request):
-        request.request_id = str(uuid.uuid4())
-        start = time.time()
-        user_id = None
-        try:
-            user_id = getattr(request.user, "id", None)
-        except Exception:
-            pass
 
+class RequestLoggingMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        req_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+        request.req_id = req_id
         logger.info(
-            "request.start %s",
-            request.path,
+            "request.start",
             extra={
-                "request_id": request.request_id,
-                "user_id": user_id,
-                "method": request.method,
-                "params": dict(request.GET),
+                "req": req_id,
+                "user": _uid(request),  # ← safe
+                "path": getattr(request, "path", None),
             },
         )
 
-        response = self.get_response(request)
-
-        duration_ms = int((time.time() - start) * 1000)
+    def process_response(self, request, response):
+        req_id = getattr(request, "req_id", None)
+        if req_id:
+            response["X-Request-ID"] = req_id
         logger.info(
-            "request.end %s",
-            request.path,
+            "request.end",
             extra={
-                "request_id": request.request_id,
-                "user_id": user_id,
-                "status_code": getattr(response, "status_code", None),
-                "duration_ms": duration_ms,
+                "req": req_id,
+                "user": _uid(request),  # ← safe
+                "path": getattr(request, "path", None),
             },
         )
         return response
+
+    def process_exception(self, request, exception):
+        logger.exception(
+            "request.exception",
+            extra={
+                "req": getattr(request, "req_id", None),
+                "user": _uid(request),  # ← safe
+                "path": getattr(request, "path", None),
+            },
+        )
+        return None

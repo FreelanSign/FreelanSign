@@ -1,14 +1,15 @@
-// src/interface/pages/QuotesListPage.tsx
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import Sidebar from '../../components/sidebar/Sidebar';
+import Navbar from '../../components/navbar/Navbar';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
+import styles from './quotes-list.module.css';
 
 /**
  * Liste des devis de l'utilisateur.
  * Affiche : référence, titre, status, issue_date, total, lien détail.
  * Pagination simple (prev / next).
  */
-
 type QuoteItem = {
   id: string;
   reference: string;
@@ -18,14 +19,28 @@ type QuoteItem = {
   total?: number | string | null;
   currency?: string | null;
 };
-
-/** type pour la page renvoyée par DRF */
 type PageResponse<T> = {
   count: number;
   next: string | null;
   previous: string | null;
   results: T[];
 };
+
+function StatusBadge({ status }: { status: string }) {
+  const s = (status ?? '').toLowerCase();
+  const map: Record<string, string> = {
+    draft: styles.badge,
+    sent: `${styles.badge} ${styles.badgeInfo}`,
+    accepted: `${styles.badge} ${styles.badgeSuccess}`,
+    paid: `${styles.badge} ${styles.badgeSuccess}`,
+    expired: `${styles.badge} ${styles.badgeWarning}`,
+    refused: `${styles.badge} ${styles.badgeDanger}`,
+    rejected: `${styles.badge} ${styles.badgeDanger}`,
+    cancelled: styles.badge,
+    canceled: styles.badge,
+  };
+  return <span className={map[s] ?? styles.badge}>{status}</span>;
+}
 
 export default function QuotesListPage() {
   const [page, setPage] = useState<number>(1);
@@ -46,7 +61,6 @@ export default function QuotesListPage() {
       } catch (err: unknown) {
         console.error('Load quotes error', err);
         if (!active) return;
-        // safe extraction from unknown error shape
         const e = err as { response?: { data?: unknown }; message?: string };
         const server = e.response?.data;
         setError(server ? JSON.stringify(server) : (e.message ?? 'Erreur'));
@@ -64,71 +78,114 @@ export default function QuotesListPage() {
     ? () => setPage((p) => Math.max(1, p - 1))
     : undefined;
 
+  const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <div>
+      <Sidebar />
+      <div className={styles.page}>
+        <Navbar />
+        <main className={`${styles.inner} container mx-auto grid gap-6`}>
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <Shell>
+        <div className={styles.skel + ' ' + styles.skelHeader} />
+        <div className={styles.card}>
+          <div className={styles.skel + ' ' + styles.skelItem} />
+          <div className={styles.skel + ' ' + styles.skelItem} />
+          <div className={styles.skel + ' ' + styles.skelItem} />
+        </div>
+      </Shell>
+    );
+  }
+
+  if (error) {
+    return (
+      <Shell>
+        <div className={styles.headerRow}>
+          <h1 className={styles.title}>Mes devis</h1>
+          <Link
+            to="/quotes/new"
+            className={`${styles.btn} ${styles.btnPrimary}`}
+          >
+            + Nouveau devis
+          </Link>
+        </div>
+        <div className={styles.error}>Erreur : {error}</div>
+      </Shell>
+    );
+  }
+
   return (
-    <main className="container mx-auto p-6 grid gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Mes devis</h1>
-        <Link
-          to="/quotes/new"
-          className="bg-green-600 text-white px-3 py-2 rounded"
-        >
-          + Nouveau devis
-        </Link>
+    <Shell>
+      <div className={styles.headerRow}>
+        <h1 className={styles.title}>Mes devis</h1>
+        <div className={styles.actions}>
+          <Link
+            to="/quotes/new"
+            className={`${styles.btn} ${styles.btnPrimary}`}
+          >
+            + Nouveau devis
+          </Link>
+          <Link to="/dashboard" className={`${styles.btn} ${styles.btnGhost}`}>
+            ← Dashboard
+          </Link>
+        </div>
       </div>
 
-      {loading ? (
-        <div>Chargement des devis…</div>
-      ) : error ? (
-        <div className="text-red-600">Erreur : {error}</div>
+      {!data || (Array.isArray(data.results) && data.results.length === 0) ? (
+        <div className={styles.empty}>Aucun devis trouvé.</div>
       ) : (
-        <>
-          {!data ||
-          (Array.isArray(data.results) && data.results.length === 0) ? (
-            <div>Aucun devis trouvé.</div>
-          ) : (
-            <div className="grid gap-3">
-              {(data.results as QuoteItem[]).map((q) => (
-                <article
-                  key={q.id}
-                  className="p-4 border rounded flex justify-between items-start"
-                >
+        <div className={styles.card}>
+          <div className={styles.list}>
+            {(data.results as QuoteItem[]).map((q) => (
+              <article key={q.id} className={styles.item}>
+                <div className="flex-1 itemLeft">
                   <div>
-                    <div className="text-sm text-gray-500">{q.status}</div>
-                    <div className="text-lg font-medium">
-                      {q.reference} — {q.title}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      Émis le: {q.issue_date ?? '—'}
-                    </div>
+                    <small>
+                      <StatusBadge status={q.status} />
+                    </small>
                   </div>
-                  <div className="text-right">
-                    <div className="text-lg font-semibold">
-                      {q.total != null
-                        ? `${Number(q.total).toFixed(2)} ${q.currency ?? '€'}`
-                        : '—'}
-                    </div>
-                    <div className="mt-2 flex gap-2">
-                      <Link
-                        to={`/quotes/${q.id}`}
-                        className="text-sm underline"
-                      >
-                        Voir
-                      </Link>
-                      <Link
-                        to={`/quotes/${q.id}/edit`}
-                        className="text-sm underline"
-                      >
-                        Éditer
-                      </Link>
-                    </div>
+                  <div className={styles.itemTitle}>
+                    {q.reference} — {q.title}
                   </div>
-                </article>
-              ))}
-            </div>
-          )}
+                  <div className={styles.itemMeta}>
+                    Émis le&nbsp;
+                    {q.issue_date
+                      ? new Intl.DateTimeFormat(undefined, {
+                          year: 'numeric',
+                          month: 'short',
+                          day: '2-digit',
+                        }).format(new Date(q.issue_date))
+                      : '—'}
+                  </div>
+                </div>
 
-          {/* Pagination simple */}
-          <div className="flex items-center justify-between mt-4">
+                <div className={styles.itemActions}>
+                  <div className={styles.itemTotal}>
+                    {q.total != null
+                      ? `${Number(q.total).toFixed(2)} ${q.currency ?? '€'}`
+                      : '—'}
+                  </div>
+                  <div className="mt-2 flex gap-2 justify-end">
+                    <Link to={`/quotes/${q.id}`} className={styles.link}>
+                      Voir
+                    </Link>
+                    <Link to={`/quotes/${q.id}/edit`} className={styles.link}>
+                      Éditer
+                    </Link>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          <div className={styles.pagination}>
             <div>
               Page {page} — {data?.count ?? '—'} items
             </div>
@@ -136,21 +193,21 @@ export default function QuotesListPage() {
               <button
                 onClick={prev}
                 disabled={!prev}
-                className="px-3 py-1 bg-gray-200 rounded"
+                className={styles.pagerBtn}
               >
                 Précédent
               </button>
               <button
                 onClick={next}
                 disabled={!next}
-                className="px-3 py-1 bg-gray-200 rounded"
+                className={styles.pagerBtn}
               >
                 Suivant
               </button>
             </div>
           </div>
-        </>
+        </div>
       )}
-    </main>
+    </Shell>
   );
 }
