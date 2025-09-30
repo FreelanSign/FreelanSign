@@ -99,6 +99,6 @@ const Sidebar: React.FC = () => {
       </div>
     </aside>
   );
-}
+};
 
 export default Sidebar;

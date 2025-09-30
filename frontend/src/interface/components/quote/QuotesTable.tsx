@@ -85,38 +85,75 @@ const QuotesTable: React.FC<{ pageSize?: number }> = ({ pageSize = 5 }) => {
         <div className="py-8 text-center text-gray-500">Chargement…</div>
       ) : error ? (
         <div className="text-sm text-red-600">Erreur : {error}</div>
-      ) : !data || (Array.isArray(data.results) && data.results.length === 0) ? (
-        <div className="py-8 text-center text-gray-600">Aucun devis trouvé.</div>
+      ) : !data ||
+        (Array.isArray(data.results) && data.results.length === 0) ? (
+        <div className="py-8 text-center text-gray-600">
+          Aucun devis trouvé.
+        </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm divide-y divide-gray-100">
             <thead>
               <tr>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Réf</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Titre</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Statut</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Émis le</th>
-                <th className="px-3 py-2 text-right text-xs font-medium text-gray-500">Total</th>
-                <th className="px-3 py-2 text-right text-xs font-medium text-gray-500">Actions</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
+                  Réf
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
+                  Titre
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
+                  Statut
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
+                  Émis le
+                </th>
+                <th className="px-3 py-2 text-right text-xs font-medium text-gray-500">
+                  Total
+                </th>
+                <th className="px-3 py-2 text-right text-xs font-medium text-gray-500">
+                  Actions
+                </th>
               </tr>
             </thead>
 
             <tbody className="bg-white divide-y divide-gray-100">
               {(data!.results as QuoteItem[]).map((q) => (
                 <tr key={q.id}>
-                  <td className="px-3 py-3 whitespace-nowrap text-gray-700">{q.reference}</td>
-                  <td className="px-3 py-3 whitespace-nowrap text-gray-800">{q.title}</td>
+                  <td className="px-3 py-3 whitespace-nowrap text-gray-700">
+                    {q.reference}
+                  </td>
+                  <td className="px-3 py-3 whitespace-nowrap text-gray-800">
+                    {q.title}
+                  </td>
                   <td className="px-3 py-3 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusBadgeClass(q.status)}`}>
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusBadgeClass(q.status)}`}
+                    >
                       {q.status ?? '—'}
                     </span>
                   </td>
-                  <td className="px-3 py-3 whitespace-nowrap text-gray-600">{q.issue_date ? new Date(q.issue_date).toLocaleDateString() : '—'}</td>
-                  <td className="px-3 py-3 whitespace-nowrap text-right font-medium">{formatMoney(q.total, q.currency)}</td>
+                  <td className="px-3 py-3 whitespace-nowrap text-gray-600">
+                    {q.issue_date
+                      ? new Date(q.issue_date).toLocaleDateString()
+                      : '—'}
+                  </td>
+                  <td className="px-3 py-3 whitespace-nowrap text-right font-medium">
+                    {formatMoney(q.total, q.currency)}
+                  </td>
                   <td className="px-3 py-3 whitespace-nowrap text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Link to={`/quotes/${q.id}`} className="text-indigo-600 text-sm hover:underline">Voir</Link>
-                      <Link to={`/quotes/${q.id}/edit`} className="text-gray-600 text-sm hover:underline">Éditer</Link>
+                      <Link
+                        to={`/quotes/${q.id}`}
+                        className="text-indigo-600 text-sm hover:underline"
+                      >
+                        Voir
+                      </Link>
+                      <Link
+                        to={`/quotes/${q.id}/edit`}
+                        className="text-gray-600 text-sm hover:underline"
+                      >
+                        Éditer
+                      </Link>
                     </div>
                   </td>
                 </tr>
@@ -127,7 +164,8 @@ const QuotesTable: React.FC<{ pageSize?: number }> = ({ pageSize = 5 }) => {
           <div className="mt-3 text-xs text-gray-500">
             {data && (
               <>
-                {data.results.length} sur {data.count} — affichage limité à {pageSize}
+                {data.results.length} sur {data.count} — affichage limité à{' '}
+                {pageSize}
               </>
             )}
           </div>
