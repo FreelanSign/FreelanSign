@@ -1,0 +1,105 @@
+:global(:root) {
+  --brand: #2456c2;
+  --dark: #0d0d0d;
+  --paper: #f5f7fa;
+  --text: #222;
+  --muted: #6b7280;
+  --border: rgba(10, 10, 10, 0.08);
+  --ring: rgba(36, 86, 194, 0.25);
+  --danger: #dc2626;
+  --input-bg: #fff;
+}
+
+.form {
+  background: var(--paper);
+  padding: 1rem;
+  border-radius: 12px;
+  width: 100%;
+  display: grid;
+  gap: 1rem;
+}
+
+/* ✅ Pile verticale (une seule colonne, tout le temps) */
+.stack {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.label {
+  font-size: 0.9rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.input {
+  appearance: none;
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.95rem;
+  color: var(--text);
+  outline: none;
+  transition:
+    box-shadow 120ms ease,
+    border-color 120ms ease,
+    transform 80ms ease;
+}
+
+.input:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+}
+
+.error {
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 0.25rem;
+}
+
+.submit {
+  background: var(--brand);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(36, 86, 194, 0.18);
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    opacity 120ms ease;
+}
+.submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(36, 86, 194, 0.22);
+}
+.submit:active {
+  transform: translateY(0);
+}
+.submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
