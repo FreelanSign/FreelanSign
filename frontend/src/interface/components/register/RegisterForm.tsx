@@ -1,8 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-// Update the path below to the correct relative path if needed
 import { useAuth } from '../../../app/providers/AuthProvider';
+import styles from './register-form.module.css';
 
 const schema = z.object({
   email: z.string().email('Email invalide'),
@@ -32,6 +32,7 @@ type FormData = z.infer<typeof schema>;
 
 export default function RegisterForm() {
   const { register: registerUser } = useAuth();
+
   const {
     register,
     handleSubmit,
@@ -41,164 +42,272 @@ export default function RegisterForm() {
     defaultValues: {
       profile: { role: 'freelance' },
     },
+    mode: 'onBlur',
+  });
+
+  const onSubmit = handleSubmit(async (data) => {
+    await registerUser(data);
   });
 
   return (
-    <form
-      onSubmit={handleSubmit(async (data) => {
-        // Si registerUser attend seulement (email, password) :
-        // await registerUser(data.email, data.password);
-        // Sinon envoie tout l'objet :
-        await registerUser(data);
-      })}
-      className="grid gap-3 max-w-sm"
-    >
-      <label className="grid gap-1">
-        <span>Email</span>
-        <input
-          type="email"
-          {...register('email')}
-          className="border p-2 rounded"
-        />
-        {errors.email && (
-          <small className="text-red-600">{errors.email.message}</small>
-        )}
-      </label>
+    <form onSubmit={onSubmit} className={styles.form} noValidate>
+      {/* Section: Compte */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Compte</h2>
+        <div className={styles.grid}>
+          <div className={styles.field}>
+            <label htmlFor="email" className={styles.label}>
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              {...register('email')}
+              className={styles.input}
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? 'email-error' : undefined}
+              placeholder="ex. jean.dupont@exemple.com"
+            />
+            {errors.email && (
+              <small id="email-error" className={styles.error}>
+                {errors.email.message}
+              </small>
+            )}
+          </div>
 
-      <label className="grid gap-1">
-        <span>Mot de passe</span>
-        <input
-          type="password"
-          {...register('password')}
-          className="border p-2 rounded"
-        />
-        {errors.password && (
-          <small className="text-red-600">{errors.password.message}</small>
-        )}
-      </label>
+          <div className={styles.field}>
+            <label htmlFor="password" className={styles.label}>
+              Mot de passe
+            </label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="new-password"
+              {...register('password')}
+              className={styles.input}
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? 'password-error' : undefined}
+              placeholder="Minimum 6 caractères"
+            />
+            {errors.password && (
+              <small id="password-error" className={styles.error}>
+                {errors.password.message}
+              </small>
+            )}
+          </div>
 
-      <label className="grid gap-1">
-        <span>Nom complet</span>
-        <input
-          type="text"
-          {...register('full_name')}
-          className="border p-2 rounded"
-        />
-        {errors.full_name && (
-          <small className="text-red-600">{errors.full_name.message}</small>
-        )}
-      </label>
+          <div className={styles.field}>
+            <label htmlFor="full_name" className={styles.label}>
+              Nom complet (optionnel)
+            </label>
+            <input
+              id="full_name"
+              type="text"
+              autoComplete="name"
+              {...register('full_name')}
+              className={styles.input}
+              aria-invalid={!!errors.full_name}
+              aria-describedby={
+                errors.full_name ? 'full-name-error' : undefined
+              }
+              placeholder="Jean Dupont"
+            />
+            {errors.full_name && (
+              <small id="full-name-error" className={styles.error}>
+                {errors.full_name.message}
+              </small>
+            )}
+          </div>
 
-      <label className="grid gap-1">
-        <span>Téléphone (top-level)</span>
-        <input
-          type="tel"
-          {...register('phone')}
-          className="border p-2 rounded"
-        />
-        {errors.phone && (
-          <small className="text-red-600">{errors.phone.message}</small>
-        )}
-      </label>
+          <div className={styles.field}>
+            <label htmlFor="phone" className={styles.label}>
+              Téléphone (optionnel)
+            </label>
+            <input
+              id="phone"
+              type="tel"
+              autoComplete="tel"
+              {...register('phone')}
+              className={styles.input}
+              aria-invalid={!!errors.phone}
+              aria-describedby={errors.phone ? 'phone-error' : undefined}
+              placeholder="+33 6 12 34 56 78"
+            />
+            {errors.phone && (
+              <small id="phone-error" className={styles.error}>
+                {errors.phone.message}
+              </small>
+            )}
+          </div>
+        </div>
+      </section>
 
-      <fieldset className="border p-3 rounded">
-        <legend className="font-medium">Profil</legend>
+      {/* Section: Profil */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Profil</h2>
 
-        <label className="grid gap-1">
-          <span>Prénom</span>
-          <input
-            type="text"
-            {...register('profile.first_name')}
-            className="border p-2 rounded"
-          />
-          {errors.profile?.first_name && (
-            <small className="text-red-600">
-              {errors.profile.first_name.message}
-            </small>
-          )}
-        </label>
+        <div className={styles.grid}>
+          <div className={styles.field}>
+            <label htmlFor="first_name" className={styles.label}>
+              Prénom
+            </label>
+            <input
+              id="first_name"
+              type="text"
+              autoComplete="given-name"
+              {...register('profile.first_name')}
+              className={styles.input}
+              aria-invalid={!!errors.profile?.first_name}
+              aria-describedby={
+                errors.profile?.first_name ? 'first-name-error' : undefined
+              }
+              placeholder="Prénom"
+            />
+            {errors.profile?.first_name && (
+              <small id="first-name-error" className={styles.error}>
+                {errors.profile.first_name.message}
+              </small>
+            )}
+          </div>
 
-        <label className="grid gap-1">
-          <span>Nom</span>
-          <input
-            type="text"
-            {...register('profile.last_name')}
-            className="border p-2 rounded"
-          />
-          {errors.profile?.last_name && (
-            <small className="text-red-600">
-              {errors.profile.last_name.message}
-            </small>
-          )}
-        </label>
+          <div className={styles.field}>
+            <label htmlFor="last_name" className={styles.label}>
+              Nom
+            </label>
+            <input
+              id="last_name"
+              type="text"
+              autoComplete="family-name"
+              {...register('profile.last_name')}
+              className={styles.input}
+              aria-invalid={!!errors.profile?.last_name}
+              aria-describedby={
+                errors.profile?.last_name ? 'last-name-error' : undefined
+              }
+              placeholder="Nom"
+            />
+            {errors.profile?.last_name && (
+              <small id="last-name-error" className={styles.error}>
+                {errors.profile.last_name.message}
+              </small>
+            )}
+          </div>
 
-        <label className="grid gap-1">
-          <span>Date de naissance</span>
-          <input
-            type="date"
-            {...register('profile.birthday')}
-            className="border p-2 rounded"
-          />
-          {errors.profile?.birthday && (
-            <small className="text-red-600">
-              {errors.profile.birthday.message}
-            </small>
-          )}
-        </label>
+          <div className={styles.field}>
+            <label htmlFor="birthday" className={styles.label}>
+              Date de naissance
+            </label>
+            <input
+              id="birthday"
+              type="date"
+              {...register('profile.birthday')}
+              className={styles.input}
+              aria-invalid={!!errors.profile?.birthday}
+              aria-describedby={
+                errors.profile?.birthday ? 'birthday-error' : undefined
+              }
+            />
+            {errors.profile?.birthday && (
+              <small id="birthday-error" className={styles.error}>
+                {errors.profile.birthday.message}
+              </small>
+            )}
+          </div>
 
-        <label className="grid gap-1">
-          <span>Téléphone (profil)</span>
-          <input
-            type="tel"
-            {...register('profile.phone')}
-            className="border p-2 rounded"
-          />
-          {errors.profile?.phone && (
-            <small className="text-red-600">
-              {errors.profile.phone.message}
-            </small>
-          )}
-        </label>
+          <div className={styles.field}>
+            <label htmlFor="profile_phone" className={styles.label}>
+              Téléphone (profil)
+            </label>
+            <input
+              id="profile_phone"
+              type="tel"
+              autoComplete="tel"
+              {...register('profile.phone')}
+              className={styles.input}
+              aria-invalid={!!errors.profile?.phone}
+              aria-describedby={
+                errors.profile?.phone ? 'profile-phone-error' : undefined
+              }
+              placeholder="+33 6 12 34 56 78"
+            />
+            {errors.profile?.phone && (
+              <small id="profile-phone-error" className={styles.error}>
+                {errors.profile.phone.message}
+              </small>
+            )}
+          </div>
 
-        <label className="grid gap-1">
-          <span>Avatar URL</span>
-          <input
-            type="url"
-            {...register('profile.avatar_url')}
-            className="border p-2 rounded"
-          />
-          {errors.profile?.avatar_url && (
-            <small className="text-red-600">
-              {errors.profile.avatar_url.message}
-            </small>
-          )}
-        </label>
+          <div className={styles.field}>
+            <label htmlFor="avatar_url" className={styles.label}>
+              Avatar URL
+            </label>
+            <input
+              id="avatar_url"
+              type="url"
+              inputMode="url"
+              placeholder="https://…"
+              {...register('profile.avatar_url')}
+              className={styles.input}
+              aria-invalid={!!errors.profile?.avatar_url}
+              aria-describedby={
+                errors.profile?.avatar_url ? 'avatar-error' : undefined
+              }
+            />
+            {errors.profile?.avatar_url && (
+              <small id="avatar-error" className={styles.error}>
+                {errors.profile.avatar_url.message}
+              </small>
+            )}
+            <p className={styles.help}>
+              Tu pourras importer un fichier plus tard (upload côté app).
+            </p>
+          </div>
+        </div>
 
-        <label className="grid gap-1">
-          <span>Rôle</span>
-          <select
-            {...register('profile.role')}
-            className="border p-2 rounded"
-            defaultValue="freelance"
-          >
-            <option value="freelance">Freelance</option>
-            <option value="client">Client</option>
-            <option value="admin">Admin</option>
-          </select>
+        {/* Rôle : radios segmentées */}
+        <div className={styles.roleGroup}>
+          <span className={styles.label}>Rôle</span>
+          <div className={styles.segmented}>
+            <label className={styles.segment}>
+              <input
+                type="radio"
+                value="freelance"
+                {...register('profile.role')}
+                defaultChecked
+              />
+              <span>Freelance</span>
+            </label>
+            <label className={styles.segment}>
+              <input
+                type="radio"
+                value="client"
+                {...register('profile.role')}
+              />
+              <span>Client</span>
+            </label>
+            <label className={styles.segment}>
+              <input type="radio" value="admin" {...register('profile.role')} />
+              <span>Admin</span>
+            </label>
+          </div>
           {errors.profile?.role && (
-            <small className="text-red-600">
+            <small className={styles.error}>
               {errors.profile.role.message}
             </small>
           )}
-        </label>
-      </fieldset>
+        </div>
+      </section>
 
-      <button
-        disabled={isSubmitting}
-        className="bg-black text-white rounded p-2"
-      >
-        {isSubmitting ? 'Création…' : "S'inscrire"}
-      </button>
+      {/* Actions */}
+      <footer className={styles.actions}>
+        <button type="submit" disabled={isSubmitting} className={styles.submit}>
+          {isSubmitting ? 'Création…' : "S'inscrire"}
+        </button>
+        <button type="button" disabled={isSubmitting} className={styles.ghost}>
+          Annuler
+        </button>
+      </footer>
     </form>
   );
 }

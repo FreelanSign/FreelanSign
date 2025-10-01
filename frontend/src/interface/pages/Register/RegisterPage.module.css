@@ -1,26 +1,200 @@
-/* LoginPage.module.css - namespace : LoginPage */
+/* RegisterPage.module.css – namespace: RegisterPage */
 @import 'tailwindcss' reference;
 
+/* Réutilise les variables globales déjà définies dans le dashboard */
+:global(:root) {
+  --brand: #2456c2;
+  --success: #3ccf91;
+  --accent: #ff8a3d;
+  --dark: #0d0d0d;
+  --paper: #f5f7fa;
+  --text: #222;
+}
+
+/* Wrapper pleine hauteur avec un fond subtil et responsive */
 .registerPage {
-  @apply min-h-screen flex items-center justify-center bg-gray-50 p-6;
-  color: blue;
+  @apply min-h-screen flex items-center justify-center px-6 py-10;
+  background:
+    radial-gradient(
+      1200px 600px at 10% -10%,
+      rgba(36, 86, 194, 0.08),
+      transparent 60%
+    ),
+    radial-gradient(
+      1000px 500px at 110% 10%,
+      rgba(255, 138, 61, 0.08),
+      transparent 60%
+    ),
+    var(--paper);
+  transition: background 200ms ease;
+  box-sizing: border-box;
 }
 
+/* Carte centrale compacte, respirante, avec hover/focus-within clean */
+/* RegisterPage.module.css */
 .card {
-  /* conteneur blanc centré */
-  @apply bg-white p-8 rounded-lg shadow-md w-full max-w-md grid gap-4;
+  @apply w-full grid gap-5 bg-white rounded-xl p-8 shadow-lg;
+  /* remplace max-w-md par un conteneur responsive “fluide mais borné” */
+  width: min(100%, 920px); /* ~max-w-3xl */
+  border: 1px solid rgba(13, 13, 13, 0.05);
+  box-shadow:
+    0 10px 24px rgba(13, 13, 13, 0.06),
+    0 2px 6px rgba(13, 13, 13, 0.04);
 }
 
+/* option: resserrer un peu sur petits écrans, élargir sur grands */
+@media (min-width: 640px) {
+  .card {
+    width: min(100%, 760px);
+  } /* ~max-w-2xl */
+}
+@media (min-width: 1024px) {
+  .card {
+    width: min(100%, 980px);
+  } /* ~max-w-4xl si tu veux */
+}
+
+.card:focus-within {
+  outline: none;
+  box-shadow:
+    0 12px 28px rgba(13, 13, 13, 0.08),
+    0 0 0 4px rgba(36, 86, 194, 0.1);
+  border-color: rgba(36, 86, 194, 0.25);
+}
+
+/* Titre avec Playfair + petit soulignement accent */
 .title {
-  @apply text-2xl font-semibold;
-  font-family: var(--font-family-playfair);
-  color: black;
+  @apply text-2xl font-semibold leading-tight;
+  font-family:
+    var(--font-family-playfair), ui-serif, Georgia, Cambria, 'Times New Roman',
+    Times, serif;
+  color: var(--dark);
+  position: relative;
+}
+
+.title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -10px;
+  width: 52px;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--brand), var(--accent));
+}
+
+/* Accroche sous le titre (optionnelle) */
+.subtitle {
+  @apply text-sm;
+  color: #4b5563; /* gray-600 */
+  margin-top: 0.75rem;
+}
+
+/* Texte d’appel à l’action sous le formulaire */
+.cta {
+  @apply text-sm mt-2;
+  color: #374151; /* gray-700 */
+}
+
+/* Lien d’action */
+.link {
+  @apply underline;
+  color: var(--brand);
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+}
+
+.link:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Style de base pour inputs & boutons contenus dans la card,
+   sans casser les styles locaux de RegisterForm (scope via :global) */
+.card
+  :global(
+    input[type='text'],
+    input[type='email'],
+    input[type='password'],
+    input[type='tel'],
+    select,
+    textarea
+  ) {
+  @apply w-full rounded-lg px-3 py-2;
+  background: #fff;
+  border: 1px solid rgba(13, 13, 13, 0.12);
+  color: var(--text);
+  transition:
+    box-shadow 120ms ease,
+    border-color 120ms ease;
+}
+
+.card :global(input:focus, select:focus, textarea:focus) {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px rgba(36, 86, 194, 0.12);
+}
+
+.card :global(button[type='submit']) {
+  @apply inline-flex items-center justify-center font-semibold rounded-lg px-4 py-2;
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    opacity 120ms ease;
+  box-shadow: 0 8px 20px rgba(36, 86, 194, 0.18);
+}
+
+.card :global(button[type='submit']:hover) {
+  transform: translateY(-2px);
+}
+
+.card :global(button[type='submit']:active) {
+  transform: translateY(0);
 }
 
 .cta {
-  @apply text-sm mt-2;
+  @apply text-sm mt-2 text-center; /* ⬅️ ajoute text-center */
+  color: #374151;
+}
+.linkInline {
+  @apply inline-flex items-center gap-1;
 }
 
-.link {
-  @apply underline text-indigo-600 hover:text-indigo-700;
-}
+/* Dark mode (optionnel, auto via préférence système) */
+/*@media (prefers-color-scheme: dark) {
+  .registerPage {
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(36, 86, 194, 0.15), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, rgba(255, 138, 61, 0.12), transparent 60%),
+      #0f1115;
+  }
+
+  .card {
+    background: #0f141a;
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow:
+      0 10px 24px rgba(0, 0, 0, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.35);
+  }
+
+  .title { color: #e5e7eb; }
+  .subtitle { color: #9ca3af; }
+  .cta { color: #cbd5e1; }
+
+  .card :global(input,
+                select,
+                textarea) {
+    background: #0b0f14;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #e5e7eb;
+  }
+
+  .card :global(button[type="submit"]) {
+    box-shadow: 0 10px 24px rgba(36, 86, 194, 0.35);
+  }
+}*/
