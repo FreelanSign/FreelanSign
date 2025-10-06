@@ -211,3 +211,5 @@ backend/staticfiles/
 token.txt
 
 frontend/coverage/
+
+node_modules/
