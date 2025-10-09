@@ -109,7 +109,9 @@ export default function QuoteCreatePage() {
   const [clients, setClients] = useState<ClientDto[] | 'loading' | null>(
     'loading',
   );
-  const [prestations, setPrestations] = useState<PrestationDto[] | 'loading' | null>('loading');
+  const [prestations, setPrestations] = useState<
+    PrestationDto[] | 'loading' | null
+  >('loading');
   const [me, setMe] = useState<ProfessionalMeDto | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -168,7 +170,9 @@ export default function QuoteCreatePage() {
     (async () => {
       try {
         // 1) qui suis-je ?
-        const meResp = await apiClient.get<ProfessionalMeDto>('/api/user/professional/me/');
+        const meResp = await apiClient.get<ProfessionalMeDto>(
+          '/api/user/professional/me/',
+        );
         const ids = meResp.data?.service_types ?? [];
         setMe(meResp.data ?? null);
 
@@ -194,7 +198,10 @@ export default function QuoteCreatePage() {
   }, []);
 
   // ---- helpers de narrowing sûrs
-  function pickString(o: Record<string, unknown>, keys: string[]): string | undefined {
+  function pickString(
+    o: Record<string, unknown>,
+    keys: string[],
+  ): string | undefined {
     for (const k of keys) {
       const v = o[k];
       if (typeof v === 'string' && v.trim() !== '') return v;
@@ -202,7 +209,10 @@ export default function QuoteCreatePage() {
     return undefined;
   }
 
-  function pickNumber(o: Record<string, unknown>, keys: string[]): number | undefined {
+  function pickNumber(
+    o: Record<string, unknown>,
+    keys: string[],
+  ): number | undefined {
     for (const k of keys) {
       const v = o[k];
       if (typeof v === 'number' && Number.isFinite(v)) return v;
@@ -210,7 +220,10 @@ export default function QuoteCreatePage() {
     return undefined;
   }
 
-  function pickMoney(o: Record<string, unknown>, keys: string[]): number | undefined {
+  function pickMoney(
+    o: Record<string, unknown>,
+    keys: string[],
+  ): number | undefined {
     for (const k of keys) {
       const v = o[k];
       if (typeof v === 'number' && Number.isFinite(v)) return v;
@@ -400,11 +413,15 @@ export default function QuoteCreatePage() {
                 {prestations === 'loading' ? (
                   <div>Chargement des prestations…</div>
                 ) : prestations === null ? (
-                  <div className="text-red-600">Erreur lors du chargement des prestations.</div>
+                  <div className="text-red-600">
+                    Erreur lors du chargement des prestations.
+                  </div>
                 ) : (
                   (() => {
                     // on récupère l’objet register pour pouvoir relayer onChange
-                    const prestReg = register(`items.${index}.prestation_id`, { valueAsNumber: true });
+                    const prestReg = register(`items.${index}.prestation_id`, {
+                      valueAsNumber: true,
+                    });
                     return (
                       <select
                         {...prestReg}
@@ -413,12 +430,18 @@ export default function QuoteCreatePage() {
                           // relayer l'événement à RHF, sinon la valeur n'est pas prise en compte
                           prestReg.onChange(e);
 
-                          const id = e.target.value ? Number(e.target.value) : undefined;
+                          const id = e.target.value
+                            ? Number(e.target.value)
+                            : undefined;
 
-                          setValue(`items.${index}.prestation_id`, id as number | undefined, {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          });
+                          setValue(
+                            `items.${index}.prestation_id`,
+                            id as number | undefined,
+                            {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            },
+                          );
                           if (!id) return;
 
                           const p = prestations.find((pp) => pp.id === id);
@@ -432,15 +455,34 @@ export default function QuoteCreatePage() {
                           // - La QUANTITÉ = nombre de prestations (laisse l'utilisateur saisir 1,2,3...)
                           // - Le PRIX UNITAIRE = (taux journalier) × (weight_days)
                           //   • taux journalier = TJM du pro si défini, sinon tarif par jour de la prestation
-                          const tjm = me?.tjm_cents ? me.tjm_cents / 100 : undefined; // €/jour
+                          const tjm = me?.tjm_cents
+                            ? me.tjm_cents / 100
+                            : undefined; // €/jour
                           const fallbackDayRate = getPrestationPrice(p); // €/jour si dispo via défaut catalogue
-                          const dayRate = typeof tjm === 'number' ? tjm : (typeof fallbackDayRate === 'number' ? fallbackDayRate : undefined);
-                          const unit = typeof dayRate === 'number' ? dayRate * weight : undefined;
+                          const dayRate =
+                            typeof tjm === 'number'
+                              ? tjm
+                              : typeof fallbackDayRate === 'number'
+                                ? fallbackDayRate
+                                : undefined;
+                          const unit =
+                            typeof dayRate === 'number'
+                              ? dayRate * weight
+                              : undefined;
 
-                          if (name) setValue(`items.${index}.description`, name, { shouldDirty: true });
-                          if (typeof taxRate === 'number') setValue(`items.${index}.tax_rate`, taxRate, { shouldDirty: true });
+                          if (name)
+                            setValue(`items.${index}.description`, name, {
+                              shouldDirty: true,
+                            });
+                          if (typeof taxRate === 'number')
+                            setValue(`items.${index}.tax_rate`, taxRate, {
+                              shouldDirty: true,
+                            });
                           // ne PAS toucher à qty ici (c'est le nombre de prestations)
-                          if (typeof unit === 'number') setValue(`items.${index}.unit_price`, unit, { shouldDirty: true });
+                          if (typeof unit === 'number')
+                            setValue(`items.${index}.unit_price`, unit, {
+                              shouldDirty: true,
+                            });
                         }}
                       >
                         <option value="">— Choisir —</option>
