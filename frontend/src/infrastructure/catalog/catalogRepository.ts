@@ -122,3 +122,4 @@ export const catalogRepository = {
     return data;
   },
 };
+
