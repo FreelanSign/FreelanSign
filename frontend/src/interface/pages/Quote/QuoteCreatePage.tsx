@@ -10,11 +10,15 @@ import {
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { clientRepository } from '../../../infrastructure/client/clientRepository';
+import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
+import type { PrestationDto } from '../../../domain/catalog/types';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 import type { ClientDto } from '../../../domain/client/types';
+import { apiClient } from '../../../infrastructure/http/apiClient';
 
 /* ---------- zod schema ---------- */
 const ItemSchema = z.object({
+  prestation_id: z.number().int().positive().optional(),
   description: z.string().min(1, 'Description requise'),
   qty: z.number().positive('Qty doit être > 0'),
   unit_price: z.number().nonnegative('Prix unitaire >= 0'),
@@ -38,6 +42,7 @@ type FormData = z.infer<typeof Schema>;
 
 /* ---------- helper types for payload ---------- */
 type QuoteItemPayload = {
+  prestation_id?: number;
   description: string;
   qty: number;
   unit_price: number;
@@ -56,6 +61,13 @@ type QuotePayload = {
   valid_until?: string | null;
   payment_terms_text?: string | null;
   items: QuoteItemPayload[];
+};
+
+type ProfessionalMeDto = {
+  id: number;
+  name?: string;
+  tjm_cents?: number | null;
+  service_types: number[];
 };
 
 /* ---------- small utility helpers ---------- */
@@ -97,6 +109,10 @@ export default function QuoteCreatePage() {
   const [clients, setClients] = useState<ClientDto[] | 'loading' | null>(
     'loading',
   );
+  const [prestations, setPrestations] = useState<
+    PrestationDto[] | 'loading' | null
+  >('loading');
+  const [me, setMe] = useState<ProfessionalMeDto | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Remarque: on force le type Resolver<FormData> pour que zodResolver soit compatible
@@ -106,6 +122,7 @@ export default function QuoteCreatePage() {
     register,
     control,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver,
@@ -115,6 +132,7 @@ export default function QuoteCreatePage() {
       issue_date: todayISO(),
       items: [
         {
+          prestation_id: undefined,
           description: 'Nouvelle prestation',
           qty: 1,
           unit_price: 0.0,
@@ -146,6 +164,107 @@ export default function QuoteCreatePage() {
       active = false;
     };
   }, []);
+  // Charger les prestations liées au professionnel (me)
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        // 1) qui suis-je ?
+        const meResp = await apiClient.get<ProfessionalMeDto>(
+          '/api/user/professional/me/',
+        );
+        const ids = meResp.data?.service_types ?? [];
+        setMe(meResp.data ?? null);
+
+        // s’il n’y a rien de lié -> vide explicite (et un message UI sympa)
+        if (!ids.length) {
+          if (active) setPrestations([]);
+          return;
+        }
+
+        // 2) catalogue filtré sur ces IDs
+        const list = await catalogRepository.listPrestations({ ids });
+        if (!active) return;
+        setPrestations(list);
+      } catch (e) {
+        console.error('Erreur chargement prestations liées', e);
+        if (!active) return;
+        setPrestations(null);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // ---- helpers de narrowing sûrs
+  function pickString(
+    o: Record<string, unknown>,
+    keys: string[],
+  ): string | undefined {
+    for (const k of keys) {
+      const v = o[k];
+      if (typeof v === 'string' && v.trim() !== '') return v;
+    }
+    return undefined;
+  }
+
+  function pickNumber(
+    o: Record<string, unknown>,
+    keys: string[],
+  ): number | undefined {
+    for (const k of keys) {
+      const v = o[k];
+      if (typeof v === 'number' && Number.isFinite(v)) return v;
+    }
+    return undefined;
+  }
+
+  function pickMoney(
+    o: Record<string, unknown>,
+    keys: string[],
+  ): number | undefined {
+    for (const k of keys) {
+      const v = o[k];
+      if (typeof v === 'number' && Number.isFinite(v)) return v;
+      if (typeof v === 'string') {
+        const n = Number(v);
+        if (Number.isFinite(n)) return n;
+      }
+    }
+    return undefined;
+  }
+
+  function getPrestationWeightDays(p: PrestationDto): number {
+    const o = p as unknown as Record<string, unknown>;
+    const w = pickNumber(o, ['weight_days', 'days', 'effort_days']);
+    return typeof w === 'number' && w > 0 ? w : 1;
+  }
+
+  // ---- accessors Prestation
+  function getPrestationName(p: PrestationDto): string {
+    const o = p as unknown as Record<string, unknown>;
+    return pickString(o, ['name', 'label', 'title']) ?? `Prestation #${p.id}`;
+  }
+
+  function getPrestationPrice(p: PrestationDto): number | undefined {
+    const o = p as unknown as Record<string, unknown>;
+    // explicit cents → euros
+    const cents = pickNumber(o, ['price_cents', 'default_rate_cents']);
+    if (typeof cents === 'number') return cents / 100;
+
+    // values already in EUR (string or number)
+    const eur = pickMoney(o, ['default_rate_eur', 'price_eur', 'price']);
+    if (typeof eur === 'number') return eur;
+
+    // last fallbacks
+    return pickNumber(o, ['default_price', 'default_rate']);
+  }
+
+  function getPrestationTaxRate(p: PrestationDto): number | undefined {
+    const o = p as unknown as Record<string, unknown>;
+    return pickNumber(o, ['tax_rate', 'tax_rate_value', 'default_tax_rate']);
+  }
 
   // Typage correct pour la fonction de submit attendu par react-hook-form
   const onSubmit: SubmitHandler<FormData> = async (values) => {
@@ -167,6 +286,7 @@ export default function QuoteCreatePage() {
         valid_until: validUntil ?? null,
         payment_terms_text: values.payment_terms_text ?? null,
         items: values.items.map((it) => ({
+          prestation_id: it.prestation_id ?? undefined,
           description: it.description,
           qty: Number(it.qty),
           unit_price: Number(it.unit_price),
@@ -281,13 +401,102 @@ export default function QuoteCreatePage() {
 
         {/* Items list */}
         <section className="p-4 border rounded">
-          <h3 className="font-medium">Lignes du devis</h3>
+          <h3 className="font-medium">Prestations du devis</h3>
           {fields.map((field, index) => (
             <div
               key={field.id}
               className="grid gap-2 grid-cols-12 items-end border-b py-2"
             >
-              <div className="col-span-6">
+              <div className="col-span-4">
+                <label className="block text-sm">Prestation</label>
+
+                {prestations === 'loading' ? (
+                  <div>Chargement des prestations…</div>
+                ) : prestations === null ? (
+                  <div className="text-red-600">
+                    Erreur lors du chargement des prestations.
+                  </div>
+                ) : (
+                  (() => {
+                    // on récupère l’objet register pour pouvoir relayer onChange
+                    const prestReg = register(`items.${index}.prestation_id`, {
+                      valueAsNumber: true,
+                    });
+                    return (
+                      <select
+                        {...prestReg}
+                        className="border p-1 rounded w-full"
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                          // relayer l'événement à RHF, sinon la valeur n'est pas prise en compte
+                          prestReg.onChange(e);
+
+                          const id = e.target.value
+                            ? Number(e.target.value)
+                            : undefined;
+
+                          setValue(
+                            `items.${index}.prestation_id`,
+                            id as number | undefined,
+                            {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            },
+                          );
+                          if (!id) return;
+
+                          const p = prestations.find((pp) => pp.id === id);
+                          if (!p) return;
+
+                          const name = getPrestationName(p);
+                          const taxRate = getPrestationTaxRate(p);
+                          const weight = getPrestationWeightDays(p); // nombre de jours "dans" une prestation
+
+                          // Nouvelle règle métier:
+                          // - La QUANTITÉ = nombre de prestations (laisse l'utilisateur saisir 1,2,3...)
+                          // - Le PRIX UNITAIRE = (taux journalier) × (weight_days)
+                          //   • taux journalier = TJM du pro si défini, sinon tarif par jour de la prestation
+                          const tjm = me?.tjm_cents
+                            ? me.tjm_cents / 100
+                            : undefined; // €/jour
+                          const fallbackDayRate = getPrestationPrice(p); // €/jour si dispo via défaut catalogue
+                          const dayRate =
+                            typeof tjm === 'number'
+                              ? tjm
+                              : typeof fallbackDayRate === 'number'
+                                ? fallbackDayRate
+                                : undefined;
+                          const unit =
+                            typeof dayRate === 'number'
+                              ? dayRate * weight
+                              : undefined;
+
+                          if (name)
+                            setValue(`items.${index}.description`, name, {
+                              shouldDirty: true,
+                            });
+                          if (typeof taxRate === 'number')
+                            setValue(`items.${index}.tax_rate`, taxRate, {
+                              shouldDirty: true,
+                            });
+                          // ne PAS toucher à qty ici (c'est le nombre de prestations)
+                          if (typeof unit === 'number')
+                            setValue(`items.${index}.unit_price`, unit, {
+                              shouldDirty: true,
+                            });
+                        }}
+                      >
+                        <option value="">— Choisir —</option>
+                        {prestations.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {getPrestationName(p)}
+                          </option>
+                        ))}
+                      </select>
+                    );
+                  })()
+                )}
+              </div>
+              <div className="col-span-5">
                 <label className="block text-sm">Description</label>
                 <input
                   {...register(`items.${index}.description` as const)}
