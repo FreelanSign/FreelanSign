@@ -14,7 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/
 lib64/
 parts/
 sdist/
@@ -211,3 +211,5 @@ backend/staticfiles/
 token.txt
 
 frontend/coverage/
+
+node_modules/

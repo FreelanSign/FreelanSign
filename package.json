@@ -1,0 +1,12 @@
+{
+	"dependencies": {
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"react-helmet-async": "^2"
+	},
+	"devDependencies": {
+		"@types/react": "^18.3.25",
+		"@types/react-dom": "^18.3.7",
+		"typescript": "^5.9.3"
+	}
+}
