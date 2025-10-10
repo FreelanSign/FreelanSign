@@ -1,11 +1,12 @@
 // src/interface/pages/QuoteCreatePage.tsx
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   useForm,
   useFieldArray,
   type SubmitHandler,
   type Resolver,
+  useWatch,
 } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,6 +16,9 @@ import type { PrestationDto } from '../../../domain/catalog/types';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 import type { ClientDto } from '../../../domain/client/types';
 import { apiClient } from '../../../infrastructure/http/apiClient';
+import NavBar from '../../components/navbar/Navbar';
+import Sidebar from '../../components/sidebar/Sidebar';
+import styles from './quote-edit-create.module.css';
 
 /* ---------- zod schema ---------- */
 const ItemSchema = z.object({
@@ -71,6 +75,18 @@ type ProfessionalMeDto = {
 };
 
 /* ---------- small utility helpers ---------- */
+
+function useMoneyFormatter(currency?: string | null) {
+  return useMemo(
+    () =>
+      new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency: currency ?? 'EUR',
+        maximumFractionDigits: 2,
+      }),
+    [currency],
+  );
+}
 
 function todayISO(): string {
   const d = new Date();
@@ -144,6 +160,31 @@ export default function QuoteCreatePage() {
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: 'items' });
+  const watchedItems = useWatch({ control, name: 'items' }) as
+    | FormData['items']
+    | undefined;
+  const watchedCurrency = useWatch({ control, name: 'currency' }) || 'EUR';
+  const money = useMoneyFormatter(watchedCurrency);
+
+  const totals = useMemo(() => {
+    const lines = watchedItems ?? [];
+    let sub = 0;
+    let tax = 0;
+    for (const line of lines) {
+      const qty = Number(line?.qty ?? 0);
+      const unit = Number(line?.unit_price ?? 0);
+      const discount = Number(line?.discount ?? 0);
+      const taxRate = Number(line?.tax_rate ?? 0);
+
+      const base = qty * unit;
+      const afterDiscount = base * (1 - discount / 100);
+      const lineTax = afterDiscount * (taxRate / 100);
+
+      sub += afterDiscount;
+      tax += lineTax;
+    }
+    return { sub, tax, total: sub + tax };
+  }, [watchedItems]);
 
   // Charger clients — clientRepository.list() renvoie désormais toujours ClientDto[]
   useEffect(() => {
@@ -322,294 +363,480 @@ export default function QuoteCreatePage() {
     }
   };
 
+  if (clients === 'loading' || prestations === 'loading') {
+    return (
+      <main className={`container mx-auto p-6 ${styles.page}`}>
+        <div className={styles.skeletonHeader} />
+        <div className={styles.skeletonCard} />
+      </main>
+    );
+  }
+
   return (
-    <main className="container mx-auto p-6 grid gap-6">
-      <h1 className="text-2xl font-semibold">Nouveau devis</h1>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 max-w-2xl">
-        {/* Client */}
-        <label className="grid gap-1">
-          <span>Client</span>
-          {clients === 'loading' ? (
-            <div>Chargement des clients…</div>
-          ) : clients === null ? (
-            <div className="text-red-600">
-              Erreur lors du chargement des clients.
-            </div>
-          ) : (
-            <select {...register('client')} className="border p-2 rounded">
-              <option value="">— Sélectionner —</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} {c.email ? `— ${c.email}` : ''}
-                </option>
-              ))}
-            </select>
-          )}
-          {errors.client && (
-            <small className="text-red-600">
-              {extractErrorMessage(errors.client)}
-            </small>
-          )}
-        </label>
-
-        {/* Header fields */}
-        <label className="grid gap-1">
-          <span>Titre</span>
-          <input {...register('title')} className="border p-2 rounded" />
-          {errors.title && (
-            <small className="text-red-600">
-              {extractErrorMessage(errors.title)}
-            </small>
-          )}
-        </label>
-
-        <label className="grid gap-1">
-          <span>Référence</span>
-          <input {...register('reference')} className="border p-2 rounded" />
-          {errors.reference && (
-            <small className="text-red-600">
-              {extractErrorMessage(errors.reference)}
-            </small>
-          )}
-        </label>
-
-        <div className="grid grid-cols-2 gap-3">
-          <label className="grid gap-1">
-            <span>Date d’émission</span>
-            <input
-              type="date"
-              {...register('issue_date')}
-              className="border p-2 rounded"
-            />
-            {errors.issue_date && (
-              <small className="text-red-600">
-                {extractErrorMessage(errors.issue_date)}
-              </small>
-            )}
-          </label>
-
-          <label className="grid gap-1">
-            <span>Valable jusqu’au</span>
-            <input
-              type="date"
-              {...register('valid_until')}
-              className="border p-2 rounded"
-            />
-          </label>
-        </div>
-
-        {/* Items list */}
-        <section className="p-4 border rounded">
-          <h3 className="font-medium">Prestations du devis</h3>
-          {fields.map((field, index) => (
-            <div
-              key={field.id}
-              className="grid gap-2 grid-cols-12 items-end border-b py-2"
+    <main className={`container mx-auto p-6 grid gap-6 ${styles.page}`}>
+      <Sidebar />
+      <NavBar />
+      {/* Header */}
+      <header className={styles.header}>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className={styles.title}>Créer un nouveau devis</h1>
+            <p className={styles.meta}>
+              Remplissez les informations ci-dessous pour générer un devis.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Link to="/dashboard" className={styles.buttonGhost}>
+              Annuler
+            </Link>
+            <button
+              type="button"
+              className={styles.buttonPrimary}
+              onClick={handleSubmit(onSubmit)}
+              disabled={isSubmitting || loading}
             >
-              <div className="col-span-4">
-                <label className="block text-sm">Prestation</label>
+              {isSubmitting || loading ? 'Création…' : 'Créer le devis'}
+            </button>
+          </div>
+        </div>
+      </header>
 
-                {prestations === 'loading' ? (
-                  <div>Chargement des prestations…</div>
-                ) : prestations === null ? (
-                  <div className="text-red-600">
-                    Erreur lors du chargement des prestations.
-                  </div>
-                ) : (
-                  (() => {
-                    // on récupère l’objet register pour pouvoir relayer onChange
-                    const prestReg = register(`items.${index}.prestation_id`, {
-                      valueAsNumber: true,
-                    });
-                    return (
-                      <select
-                        {...prestReg}
-                        className="border p-1 rounded w-full"
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                          // relayer l'événement à RHF, sinon la valeur n'est pas prise en compte
-                          prestReg.onChange(e);
+      {/* Erreurs globales */}
+      {(errors.client || errors.title || errors.reference || errors.items) && (
+        <div className={styles.errorBox}>
+          ⚠️{' '}
+          {[
+            extractErrorMessage(errors.client),
+            extractErrorMessage(errors.title),
+            extractErrorMessage(errors.reference),
+            extractErrorMessage(errors.items),
+          ]
+            .filter(Boolean)
+            .join(' • ')}
+        </div>
+      )}
 
-                          const id = e.target.value
-                            ? Number(e.target.value)
-                            : undefined;
+      <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6">
+        {/* Bloc Client */}
+        <section className={styles.card}>
+          <h2 className={styles.h2}>Client</h2>
+          <div className={styles.formGrid}>
+            <label className={styles.label}>
+              <span>Client *</span>
+              {clients === null ? (
+                <div className={styles.errorBox}>
+                  Erreur lors du chargement des clients.
+                </div>
+              ) : (
+                <select {...register('client')} className={styles.input}>
+                  <option value="">— Sélectionner un client —</option>
+                  {clients.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} {c.email ? `(${c.email})` : ''}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {errors.client && (
+                <small className={styles.errorBox}>
+                  {extractErrorMessage(errors.client)}
+                </small>
+              )}
+            </label>
+          </div>
+        </section>
 
-                          setValue(
-                            `items.${index}.prestation_id`,
-                            id as number | undefined,
-                            {
-                              shouldValidate: true,
-                              shouldDirty: true,
-                            },
-                          );
-                          if (!id) return;
+        {/* Bloc Devis */}
+        <section className={styles.card}>
+          <h2 className={styles.h2}>Informations du devis</h2>
+          <div className={styles.formGrid}>
+            <label className={styles.label}>
+              <span>Titre *</span>
+              <input
+                {...register('title')}
+                className={styles.input}
+                placeholder="Site vitrine 5 pages"
+              />
+              {errors.title && (
+                <small className={styles.errorBox}>
+                  {extractErrorMessage(errors.title)}
+                </small>
+              )}
+            </label>
 
-                          const p = prestations.find((pp) => pp.id === id);
-                          if (!p) return;
+            <label className={styles.label}>
+              <span>Référence *</span>
+              <input
+                {...register('reference')}
+                className={styles.input}
+                placeholder="FS-2025-001"
+              />
+              {errors.reference && (
+                <small className={styles.errorBox}>
+                  {extractErrorMessage(errors.reference)}
+                </small>
+              )}
+            </label>
 
-                          const name = getPrestationName(p);
-                          const taxRate = getPrestationTaxRate(p);
-                          const weight = getPrestationWeightDays(p); // nombre de jours "dans" une prestation
+            <label className={styles.label}>
+              <span>Devise</span>
+              <input
+                {...register('currency')}
+                className={styles.input}
+                placeholder="EUR"
+              />
+            </label>
 
-                          // Nouvelle règle métier:
-                          // - La QUANTITÉ = nombre de prestations (laisse l'utilisateur saisir 1,2,3...)
-                          // - Le PRIX UNITAIRE = (taux journalier) × (weight_days)
-                          //   • taux journalier = TJM du pro si défini, sinon tarif par jour de la prestation
-                          const tjm = me?.tjm_cents
-                            ? me.tjm_cents / 100
-                            : undefined; // €/jour
-                          const fallbackDayRate = getPrestationPrice(p); // €/jour si dispo via défaut catalogue
-                          const dayRate =
-                            typeof tjm === 'number'
-                              ? tjm
-                              : typeof fallbackDayRate === 'number'
-                                ? fallbackDayRate
-                                : undefined;
-                          const unit =
-                            typeof dayRate === 'number'
-                              ? dayRate * weight
-                              : undefined;
+            <label className={styles.label}>
+              <span>Langue</span>
+              <input
+                {...register('language')}
+                className={styles.input}
+                placeholder="fr"
+              />
+            </label>
 
-                          if (name)
-                            setValue(`items.${index}.description`, name, {
-                              shouldDirty: true,
-                            });
-                          if (typeof taxRate === 'number')
-                            setValue(`items.${index}.tax_rate`, taxRate, {
-                              shouldDirty: true,
-                            });
-                          // ne PAS toucher à qty ici (c'est le nombre de prestations)
-                          if (typeof unit === 'number')
-                            setValue(`items.${index}.unit_price`, unit, {
-                              shouldDirty: true,
-                            });
-                        }}
-                      >
-                        <option value="">— Choisir —</option>
-                        {prestations.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {getPrestationName(p)}
-                          </option>
-                        ))}
-                      </select>
-                    );
-                  })()
-                )}
-              </div>
-              <div className="col-span-5">
-                <label className="block text-sm">Description</label>
-                <input
-                  {...register(`items.${index}.description` as const)}
-                  className="border p-1 rounded w-full"
-                />
-              </div>
+            <label className={styles.label}>
+              <span>Date d'émission *</span>
+              <input
+                type="date"
+                {...register('issue_date')}
+                className={styles.input}
+              />
+              {errors.issue_date && (
+                <small className={styles.errorBox}>
+                  {extractErrorMessage(errors.issue_date)}
+                </small>
+              )}
+            </label>
 
-              <div className="col-span-2">
-                <label className="block text-sm">Quantité</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  {...register(`items.${index}.qty`, { valueAsNumber: true })}
-                  className="border p-1 rounded w-full"
-                />
-              </div>
+            <label className={styles.label}>
+              <span>Valable jusqu'au</span>
+              <input
+                type="date"
+                {...register('valid_until')}
+                className={styles.input}
+              />
+            </label>
+          </div>
 
-              <div className="col-span-2">
-                <label className="block text-sm">Prix unitaire</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  {...register(`items.${index}.unit_price`, {
-                    valueAsNumber: true,
-                  })}
-                  className="border p-1 rounded w-full"
-                />
-              </div>
+          <div className={styles.formGrid}>
+            <label className={styles.labelCol}>
+              <span>Conditions de paiement</span>
+              <textarea
+                {...register('payment_terms_text')}
+                className={styles.textarea}
+                rows={3}
+                placeholder="Ex: Paiement à 30 jours fin de mois"
+              />
+            </label>
+          </div>
+        </section>
 
-              <div className="col-span-1">
-                <label className="block text-sm">TVA %</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  {...register(`items.${index}.tax_rate`, {
-                    valueAsNumber: true,
-                  })}
-                  className="border p-1 rounded w-full"
-                />
-              </div>
-
-              <div className="col-span-1">
-                <label className="block text-sm">Remise</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  {...register(`items.${index}.discount`, {
-                    valueAsNumber: true,
-                  })}
-                  className="border p-1 rounded w-full"
-                />
-              </div>
-
-              <div className="col-span-12 flex gap-2 mt-2">
-                <button
-                  type="button"
-                  onClick={() => remove(index)}
-                  className="bg-red-600 text-white px-2 py-1 rounded"
-                >
-                  Suppr
-                </button>
-              </div>
-            </div>
-          ))}
-
-          <div className="mt-3">
+        {/* Bloc Prestations */}
+        <section className={styles.card}>
+          <div
+            className="flex items-center justify-between"
+            style={{ marginBottom: '16px' }}
+          >
+            <h2 className={styles.h2}>Prestations</h2>
             <button
               type="button"
               onClick={() =>
                 append({
-                  description: 'Nouvelle ligne',
+                  description: 'Nouvelle prestation',
                   qty: 1,
                   unit_price: 0.0,
                   tax_rate: 20.0,
                   discount: 0.0,
                 })
               }
-              className="bg-gray-800 text-white px-3 py-1 rounded"
+              className={styles.buttonAccent}
             >
-              + Ajouter une ligne
+              + Ajouter
             </button>
-            {errors.items && (
-              <div className="text-red-600 mt-2">
-                {extractErrorMessage(errors.items)}
-              </div>
-            )}
           </div>
+
+          {fields.length === 0 ? (
+            <div className={styles.empty}>Aucune prestation</div>
+          ) : (
+            <>
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {fields.map((field, index) => {
+                  const prestReg = register(`items.${index}.prestation_id`, {
+                    valueAsNumber: true,
+                  });
+
+                  return (
+                    <div
+                      key={field.id}
+                      style={{
+                        padding: '16px',
+                        border: '1px solid rgba(13,13,13,0.1)',
+                        borderRadius: '8px',
+                        background: '#fff',
+                        display: 'grid',
+                        gap: '12px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '12px',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <span
+                          style={{
+                            minWidth: '32px',
+                            height: '32px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: '#f0f4ff',
+                            borderRadius: '6px',
+                            fontWeight: '600',
+                            fontSize: '0.9rem',
+                            color: 'var(--brand)',
+                          }}
+                        >
+                          {index + 1}
+                        </span>
+
+                        {prestations === null ? (
+                          <div className={styles.errorBox} style={{ flex: 1 }}>
+                            Erreur de chargement
+                          </div>
+                        ) : (
+                          <select
+                            {...prestReg}
+                            className={styles.input}
+                            style={{ flex: 1 }}
+                            onChange={(e) => {
+                              prestReg.onChange(e);
+                              const id = e.target.value
+                                ? Number(e.target.value)
+                                : undefined;
+
+                              setValue(`items.${index}.prestation_id`, id, {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+
+                              if (!id) return;
+
+                              const p = prestations.find((pp) => pp.id === id);
+                              if (!p) return;
+
+                              const name = getPrestationName(p);
+                              const taxRate = getPrestationTaxRate(p);
+                              const weight = getPrestationWeightDays(p);
+
+                              const tjm = me?.tjm_cents
+                                ? me.tjm_cents / 100
+                                : undefined;
+                              const fallbackDayRate = getPrestationPrice(p);
+                              const dayRate =
+                                typeof tjm === 'number'
+                                  ? tjm
+                                  : typeof fallbackDayRate === 'number'
+                                    ? fallbackDayRate
+                                    : undefined;
+                              const unit =
+                                typeof dayRate === 'number'
+                                  ? dayRate * weight
+                                  : undefined;
+
+                              if (name)
+                                setValue(`items.${index}.description`, name, {
+                                  shouldDirty: true,
+                                });
+                              if (typeof taxRate === 'number')
+                                setValue(`items.${index}.tax_rate`, taxRate, {
+                                  shouldDirty: true,
+                                });
+                              if (typeof unit === 'number')
+                                setValue(`items.${index}.unit_price`, unit, {
+                                  shouldDirty: true,
+                                });
+                            }}
+                          >
+                            <option value="">— Choisir une prestation —</option>
+                            {prestations.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {getPrestationName(p)}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => remove(index)}
+                          style={{
+                            padding: '8px 12px',
+                            border: '1px solid rgba(13,13,13,0.1)',
+                            borderRadius: '6px',
+                            background: '#fff',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      <input
+                        {...register(`items.${index}.description`)}
+                        className={styles.input}
+                        placeholder="Description"
+                      />
+
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns:
+                            'repeat(auto-fit, minmax(100px, 1fr))',
+                          gap: '12px',
+                        }}
+                      >
+                        <label style={{ display: 'grid', gap: '4px' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
+                            Quantité
+                          </span>
+                          <input
+                            className={styles.input}
+                            type="number"
+                            step="0.01"
+                            {...register(`items.${index}.qty`, {
+                              valueAsNumber: true,
+                            })}
+                          />
+                        </label>
+
+                        <label style={{ display: 'grid', gap: '4px' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
+                            Prix unitaire HT
+                          </span>
+                          <div
+                            style={{ display: 'flex', alignItems: 'stretch' }}
+                          >
+                            <input
+                              className={styles.input}
+                              type="number"
+                              step="0.01"
+                              {...register(`items.${index}.unit_price`, {
+                                valueAsNumber: true,
+                              })}
+                              style={{
+                                borderTopRightRadius: 0,
+                                borderBottomRightRadius: 0,
+                                borderRight: 'none',
+                              }}
+                            />
+                            <span
+                              style={{
+                                padding: '0 12px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                border: '1px solid rgba(13,13,13,0.12)',
+                                borderTopRightRadius: '12px',
+                                borderBottomRightRadius: '12px',
+                                background: '#f8fafc',
+                                fontSize: '0.9rem',
+                              }}
+                            >
+                              €
+                            </span>
+                          </div>
+                        </label>
+
+                        <label style={{ display: 'grid', gap: '4px' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
+                            TVA (%)
+                          </span>
+                          <input
+                            className={styles.input}
+                            type="number"
+                            step="0.01"
+                            {...register(`items.${index}.tax_rate`, {
+                              valueAsNumber: true,
+                            })}
+                          />
+                        </label>
+
+                        <label style={{ display: 'grid', gap: '4px' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
+                            Remise (%)
+                          </span>
+                          <input
+                            className={styles.input}
+                            type="number"
+                            step="0.01"
+                            {...register(`items.${index}.discount`, {
+                              valueAsNumber: true,
+                            })}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Récapitulatif Totaux */}
+              <div
+                style={{
+                  marginTop: '16px',
+                  padding: '16px',
+                  background: '#f8fafc',
+                  borderRadius: '8px',
+                  display: 'grid',
+                  gap: '8px',
+                }}
+              >
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between' }}
+                >
+                  <span>Sous-total HT</span>
+                  <strong>{money.format(totals.sub)}</strong>
+                </div>
+
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between' }}
+                >
+                  <span>TVA</span>
+                  <strong>{money.format(totals.tax)}</strong>
+                </div>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    paddingTop: '8px',
+                    borderTop: '2px solid rgba(13,13,13,0.1)',
+                    fontSize: '1.1rem',
+                  }}
+                >
+                  <strong>Total TTC</strong>
+                  <strong>{money.format(totals.total)}</strong>
+                </div>
+              </div>
+            </>
+          )}
         </section>
 
-        {/* Payment terms (free text for now) */}
-        <label className="grid gap-1">
-          <span>Conditions de paiement</span>
-          <input
-            {...register('payment_terms_text')}
-            className="border p-2 rounded"
-          />
-        </label>
-
-        <div className="flex gap-3">
+        {/* Actions bas de page */}
+        <div className="flex items-center gap-2">
           <button
-            disabled={isSubmitting || loading}
-            className="bg-green-600 text-white rounded px-4 py-2"
             type="submit"
+            className={styles.buttonPrimary}
+            disabled={isSubmitting || loading}
           >
             {isSubmitting || loading ? 'Création…' : 'Créer le devis'}
           </button>
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="bg-gray-200 rounded px-4 py-2"
-          >
+          <Link to="/dashboard" className={styles.buttonGhost}>
             Annuler
-          </button>
+          </Link>
         </div>
       </form>
     </main>

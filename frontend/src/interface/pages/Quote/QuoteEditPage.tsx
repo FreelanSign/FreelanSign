@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
-import styles from './quote-edit.module.css';
+import styles from './quote-edit-create.module.css';
 
 import type {
   ApiQuoteResponse,
@@ -494,66 +494,114 @@ export default function QuoteEditPage() {
           </div>
         </section>
 
-        {/* Bloc Lignes */}
         <section className={styles.card}>
-          <div className="flex items-center justify-between">
+          <div
+            className="flex items-center justify-between"
+            style={{ marginBottom: '16px' }}
+          >
             <h2 className={styles.h2}>Lignes</h2>
             <button
               type="button"
               onClick={addLine}
               className={styles.buttonAccent}
             >
-              + Ajouter une ligne
+              + Ajouter
             </button>
           </div>
 
           {quote.line_items.length === 0 ? (
-            <div className={styles.empty}>
-              Aucune ligne. Ajoutez votre première ligne.
-            </div>
+            <div className={styles.empty}>Aucune ligne</div>
           ) : (
-            <div className={styles.tableWrapper}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Prestation</th>
-                    <th>Description</th>
-                    <th className="text-right">Qté</th>
-                    <th className="text-right">PU HT</th>
-                    <th className="text-right">TVA</th>
-                    <th className="text-right">Total</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {quote.line_items.map((l, i) => {
-                    const base = l.quantity * l.unit_price;
-                    const tot = base * (1 + (l.tax_rate ?? 0));
-                    return (
-                      <tr key={i}>
-                        <td>
+            <>
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {quote.line_items.map((l, i) => {
+                  const base = l.quantity * l.unit_price;
+                  const tot = base * (1 + (l.tax_rate ?? 0));
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        padding: '16px',
+                        border: '1px solid rgba(13,13,13,0.1)',
+                        borderRadius: '8px',
+                        background: '#fff',
+                        display: 'grid',
+                        gap: '12px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '12px',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <span
+                          style={{
+                            minWidth: '32px',
+                            height: '32px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: '#f0f4ff',
+                            borderRadius: '6px',
+                            fontWeight: '600',
+                            fontSize: '0.9rem',
+                            color: 'var(--brand)',
+                          }}
+                        >
+                          {i + 1}
+                        </span>
+
+                        <input
+                          className={styles.input}
+                          value={l.designation}
+                          onChange={(e) =>
+                            updateLine(i, { designation: e.target.value })
+                          }
+                          placeholder="Prestation"
+                          style={{ flex: 1 }}
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => removeLine(i)}
+                          style={{
+                            padding: '8px 12px',
+                            border: '1px solid rgba(13,13,13,0.1)',
+                            borderRadius: '6px',
+                            background: '#fff',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      <input
+                        className={styles.input}
+                        value={l.description ?? ''}
+                        onChange={(e) =>
+                          updateLine(i, { description: e.target.value })
+                        }
+                        placeholder="Description (optionnel)"
+                      />
+
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns:
+                            'repeat(auto-fit, minmax(100px, 1fr))',
+                          gap: '12px',
+                        }}
+                      >
+                        <label style={{ display: 'grid', gap: '4px' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
+                            Quantité
+                          </span>
                           <input
                             className={styles.input}
-                            value={l.designation}
-                            onChange={(e) =>
-                              updateLine(i, { designation: e.target.value })
-                            }
-                            placeholder="Ex: Maquettage UI"
-                          />
-                        </td>
-                        <td>
-                          <input
-                            className={styles.input}
-                            value={l.description ?? ''}
-                            onChange={(e) =>
-                              updateLine(i, { description: e.target.value })
-                            }
-                            placeholder="Détail de la prestation"
-                          />
-                        </td>
-                        <td className="text-right">
-                          <input
-                            className={`${styles.input} ${styles.inputNum}`}
                             type="number"
                             min={0}
                             step="1"
@@ -564,80 +612,127 @@ export default function QuoteEditPage() {
                               })
                             }
                           />
-                        </td>
-                        <td className="text-right">
-                          <input
-                            className={`${styles.input} ${styles.inputNum}`}
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            value={l.unit_price}
-                            onChange={(e) =>
-                              updateLine(i, {
-                                unit_price: Number(e.target.value),
-                              })
-                            }
-                          />
-                        </td>
-                        <td className="text-right">
-                          <input
-                            className={`${styles.input} ${styles.inputNum}`}
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            value={l.tax_rate ?? 0}
+                        </label>
+
+                        <label style={{ display: 'grid', gap: '4px' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
+                            Prix unitaire
+                          </span>
+                          <div
+                            style={{ display: 'flex', alignItems: 'stretch' }}
+                          >
+                            <input
+                              className={styles.input}
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              value={l.unit_price}
+                              onChange={(e) =>
+                                updateLine(i, {
+                                  unit_price: Number(e.target.value),
+                                })
+                              }
+                              style={{
+                                borderTopRightRadius: 0,
+                                borderBottomRightRadius: 0,
+                                borderRight: 'none',
+                              }}
+                            />
+                            <span
+                              style={{
+                                padding: '0 12px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                border: '1px solid rgba(13,13,13,0.12)',
+                                borderTopRightRadius: '12px',
+                                borderBottomRightRadius: '12px',
+                                background: '#f8fafc',
+                                fontSize: '0.9rem',
+                              }}
+                            >
+                              €
+                            </span>
+                          </div>
+                        </label>
+
+                        <label style={{ display: 'grid', gap: '4px' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
+                            TVA
+                          </span>
+                          <select
+                            className={styles.input}
+                            value={(l.tax_rate ?? 0).toString()}
                             onChange={(e) =>
                               updateLine(i, {
                                 tax_rate: Number(e.target.value),
                               })
                             }
-                          />
-                          <div className={styles.help}>ex: 0.2 pour 20%</div>
-                        </td>
-                        <td className="text-right">{money.format(tot)}</td>
-                        <td className="text-right">
-                          <button
-                            type="button"
-                            className={styles.buttonGhost}
-                            onClick={() => removeLine(i)}
                           >
-                            Suppr.
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colSpan={5} className="text-right">
-                      Sous-total
-                    </td>
-                    <td className="text-right">{money.format(totals.sub)}</td>
-                    <td />
-                  </tr>
-                  <tr>
-                    <td colSpan={5} className="text-right">
-                      TVA
-                    </td>
-                    <td className="text-right">{money.format(totals.tax)}</td>
-                    <td />
-                  </tr>
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className={`${styles.totalLabel} text-right`}
-                    >
-                      Total
-                    </td>
-                    <td className={`${styles.totalValue} text-right`}>
-                      {money.format(totals.total)}
-                    </td>
-                    <td />
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
+                            <option value="0">0%</option>
+                            <option value="0.055">5,5%</option>
+                            <option value="0.1">10%</option>
+                            <option value="0.2">20%</option>
+                          </select>
+                        </label>
+
+                        <div style={{ display: 'grid', gap: '4px' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
+                            Total TTC
+                          </span>
+                          <div
+                            style={{
+                              padding: '12px 16px',
+                              background: '#f8fafc',
+                              borderRadius: '12px',
+                              fontWeight: '600',
+                              fontSize: '1rem',
+                            }}
+                          >
+                            {money.format(tot)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div
+                style={{
+                  marginTop: '16px',
+                  padding: '16px',
+                  background: '#f8fafc',
+                  borderRadius: '8px',
+                  display: 'grid',
+                  gap: '8px',
+                }}
+              >
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between' }}
+                >
+                  <span>Sous-total HT</span>
+                  <strong>{money.format(totals.sub)}</strong>
+                </div>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between' }}
+                >
+                  <span>TVA</span>
+                  <strong>{money.format(totals.tax)}</strong>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    paddingTop: '8px',
+                    borderTop: '2px solid rgba(13,13,13,0.1)',
+                    fontSize: '1.1rem',
+                  }}
+                >
+                  <strong>Total TTC</strong>
+                  <strong>{money.format(totals.total)}</strong>
+                </div>
+              </div>
+            </>
           )}
         </section>
 
