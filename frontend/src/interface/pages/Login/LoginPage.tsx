@@ -17,10 +17,10 @@ export default function LoginPage() {
 
   return (
     <>
-    <Helmet>
-      <title>Connexion — {SITE.name}</title>
-      <meta name="description" content={`Connexion à ${SITE.name}`} />
-    </Helmet>
+      <Helmet>
+        <title>Connexion — {SITE.name}</title>
+        <meta name="description" content={`Connexion à ${SITE.name}`} />
+      </Helmet>
       <Navbar />
       <main className={styles.loginPage} data-component="LoginPage">
         <section className={styles.card}>

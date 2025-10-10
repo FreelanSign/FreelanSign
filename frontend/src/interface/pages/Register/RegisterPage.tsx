@@ -19,10 +19,10 @@ export default function RegisterPage() {
 
   return (
     <>
-    <Helmet>
-      <title>Créer un compte — {SITE.name}</title>
-      <meta name="description" content={`Créer un compte sur ${SITE.name}`} />
-    </Helmet>
+      <Helmet>
+        <title>Créer un compte — {SITE.name}</title>
+        <meta name="description" content={`Créer un compte sur ${SITE.name}`} />
+      </Helmet>
       <Navbar />
       <main className={styles.registerPage} data-component="RegisterPage">
         <section className={styles.card} aria-labelledby="register-title">

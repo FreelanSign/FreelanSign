@@ -1,13 +1,23 @@
-import { Helmet } from "react-helmet-async";
-import { SITE } from "../../lib/constants/site.config";
+import { Helmet } from 'react-helmet-async';
+import { SITE } from '../../lib/constants/site.config';
 
 export default function RootSeo() {
   return (
     <Helmet>
       <title>{SITE.name}</title>
       <meta name="description" content={SITE.description} />
-      <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png" />
-      <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png" />
+      <link
+        rel="icon"
+        type="image/png"
+        sizes="32x32"
+        href="/img/favicon-32.png"
+      />
+      <link
+        rel="icon"
+        type="image/png"
+        sizes="16x16"
+        href="/img/favicon-16.png"
+      />
       <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
 
       {/* Open Graph */}
