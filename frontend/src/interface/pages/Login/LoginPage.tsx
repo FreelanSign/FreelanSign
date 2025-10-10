@@ -4,6 +4,8 @@ import Navbar from '../../../interface/components/navbar/Navbar';
 import { useEffect } from 'react';
 import { useAuth } from '../../../app/providers/AuthProvider';
 import styles from './LoginPage.module.css';
+import { Helmet } from 'react-helmet-async';
+import { SITE } from '../../../lib/constants/site.config';
 
 export default function LoginPage() {
   const { user } = useAuth();
@@ -15,6 +17,10 @@ export default function LoginPage() {
 
   return (
     <>
+      <Helmet>
+        <title>Connexion — {SITE.name}</title>
+        <meta name="description" content={`Connexion à ${SITE.name}`} />
+      </Helmet>
       <Navbar />
       <main className={styles.loginPage} data-component="LoginPage">
         <section className={styles.card}>

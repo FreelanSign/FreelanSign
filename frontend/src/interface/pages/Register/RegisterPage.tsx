@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { useAuth } from '../../../app/providers/AuthProvider';
 import Navbar from '../../components/navbar/Navbar';
 import styles from './RegisterPage.module.css';
+import { Helmet } from 'react-helmet-async';
+import { SITE } from '../../../lib/constants/site.config';
 
 export default function RegisterPage() {
   const { user } = useAuth();
@@ -17,6 +19,10 @@ export default function RegisterPage() {
 
   return (
     <>
+      <Helmet>
+        <title>Créer un compte — {SITE.name}</title>
+        <meta name="description" content={`Créer un compte sur ${SITE.name}`} />
+      </Helmet>
       <Navbar />
       <main className={styles.registerPage} data-component="RegisterPage">
         <section className={styles.card} aria-labelledby="register-title">
