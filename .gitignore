@@ -222,3 +222,12 @@ node_modules/
 *.env.local
 *.env.development
 *.env.production
+
+# 🔒 Secrets / env files & DB dumps (jamais dans Git)
+.env
+.env.*
+**/.env
+**/.env.*
+*.sql
+database/dumps/
+database/backups/
