@@ -213,3 +213,12 @@ token.txt
 frontend/coverage/
 
 node_modules/
+# 🔒 Secrets / env files (jamais dans Git)
+.env
+.env.*
+**/.env
+**/.env.*
+# Doubles file watchers sur certains OS
+*.env.local
+*.env.development
+*.env.production
