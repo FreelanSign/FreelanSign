@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+
 import environ
 
 # --------------------------------------------------------------------------------------
@@ -7,9 +8,9 @@ import environ
 # settings.py est dans backend/config/settings.py
 # parents[0] = backend/config, parents[1] = backend, parents[2] = RACINE DU REPO
 # --------------------------------------------------------------------------------------
-REPO_ROOT = Path(__file__).resolve().parents[2]   # <-- racine du repo (là où est .env)
-PROJECT_DIR = Path(__file__).resolve().parents[1] # backend/
-BASE_DIR = PROJECT_DIR                             # compat Django (si tu l'utilises ailleurs)
+REPO_ROOT = Path(__file__).resolve().parents[2]  # <-- racine du repo (là où est .env)
+PROJECT_DIR = Path(__file__).resolve().parents[1]  # backend/
+BASE_DIR = PROJECT_DIR  # compat Django (si tu l'utilises ailleurs)
 
 # --------------------------------------------------------------------------------------
 # Env loading (django-environ)
