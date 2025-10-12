@@ -1,79 +1,69 @@
 import os
-from logging.handlers import RotatingFileHandler
 from pathlib import Path
-
 import environ
-from rest_framework.permissions import AllowAny
 
-print("DATABASE_URL repr:", repr(os.getenv("DATABASE_URL")))
+# --------------------------------------------------------------------------------------
+# Paths
+# settings.py est dans backend/config/settings.py
+# parents[0] = backend/config, parents[1] = backend, parents[2] = RACINE DU REPO
+# --------------------------------------------------------------------------------------
+REPO_ROOT = Path(__file__).resolve().parents[2]   # <-- racine du repo (là où est .env)
+PROJECT_DIR = Path(__file__).resolve().parents[1] # backend/
+BASE_DIR = PROJECT_DIR                             # compat Django (si tu l'utilises ailleurs)
 
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-# Load environment variables from .env file
+# --------------------------------------------------------------------------------------
+# Env loading (django-environ)
+# --------------------------------------------------------------------------------------
 env = environ.Env(
     DEBUG=(bool, False),
-    DATABASE_URL=(str, None),
-)
-env_candidate = BASE_DIR / ".env"
-loaded_env_file = None
-if env_candidate.exists():
-    loaded_env_file = env_candidate
-    environ.Env.read_env(str(env_candidate))
-    print(f"Loaded .env file from {env_candidate}")
-
-# Debug logs pour vérifier ce qui est réellement chargé
-print("DATABASE_URL repr:", repr(env("DATABASE_URL", default=None)))
-print(
-    "DBVARS:",
-    repr(env("DATABASE_NAME", default=None)),
-    repr(env("DATABASE_USER", default=None)),
-    repr(env("DATABASE_PASSWORD", default=None)),
-    repr(env("DATABASE_HOST", default=None)),
-    repr(env("DATABASE_PORT", default=None)),
 )
 
-DEBUG = env("DEBUG", default=True)
+# Charge .env à la racine du repo (fallback: ne crashe pas s'il n'existe pas)
+env_file = REPO_ROOT / ".env"
+if env_file.exists():
+    environ.Env.read_env(str(env_file))
 
-# Si DATABASE_URL est défini (ex: postgres://user:pass@host:5432/dbname), on l'utilise.
-if env("DATABASE_URL", default=None):
+# --------------------------------------------------------------------------------------
+# Core settings
+# --------------------------------------------------------------------------------------
+SECRET_KEY = env("SECRET_KEY")  # lève si manquant (voulu)
+DEBUG = env("DEBUG", default=False)
+
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+
+# --------------------------------------------------------------------------------------
+# Database
+# - Priorité à DATABASE_URL
+# - Sinon, variables séparées
+# - En dernier recours, SQLite pour dev
+# --------------------------------------------------------------------------------------
+DATABASE_URL = env("DATABASE_URL", default=None)
+
+if DATABASE_URL:
     DATABASES = {"default": env.db("DATABASE_URL")}
 else:
-    # Sinon on lit les variables séparées ; si manquantes, fallback SQLite pour permettre makemigrations
     db_name = env("DATABASE_NAME", default=None)
     if db_name:
         DATABASES = {
             "default": {
-                "ENGINE": "django.db.backends.postgresql",
+                "ENGINE": env("DATABASE_ENGINE", default="django.db.backends.postgresql"),
                 "NAME": db_name,
-                "USER": env("DATABASE_USER"),
-                "PASSWORD": env("DATABASE_PASSWORD"),
+                "USER": env("DATABASE_USER", default=""),
+                "PASSWORD": env("DATABASE_PASSWORD", default=""),
                 "HOST": env("DATABASE_HOST", default="localhost"),
                 "PORT": env("DATABASE_PORT", default="5432"),
+                "CONN_MAX_AGE": 600,
             }
         }
     else:
+        # Dernier recours (dev local sans config) : SQLite
         print("⚠️ Aucune config DB trouvée — fallback SQLite (dev only).")
         DATABASES = {
             "default": {
                 "ENGINE": "django.db.backends.sqlite3",
-                "NAME": BASE_DIR / "db.sqlite3",
+                "NAME": REPO_ROOT / "db.sqlite3",
             }
         }
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-from decouple import config
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config("SECRET_KEY")
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
 
 # Application definition
 
