@@ -24,7 +24,7 @@ const schema = z.object({
       .string()
       .optional()
       .refine((v) => !v || /^https?:\/\//.test(v), "URL d'avatar invalide"),
-    role: z.enum(['freelance', 'client', 'admin']),
+    role: z.literal('freelance'),
   }),
 });
 
@@ -263,39 +263,6 @@ export default function RegisterForm() {
               Tu pourras importer un fichier plus tard (upload côté app).
             </p>
           </div>
-        </div>
-
-        {/* Rôle : radios segmentées */}
-        <div className={styles.roleGroup}>
-          <span className={styles.label}>Rôle</span>
-          <div className={styles.segmented}>
-            <label className={styles.segment}>
-              <input
-                type="radio"
-                value="freelance"
-                {...register('profile.role')}
-                defaultChecked
-              />
-              <span>Freelance</span>
-            </label>
-            <label className={styles.segment}>
-              <input
-                type="radio"
-                value="client"
-                {...register('profile.role')}
-              />
-              <span>Client</span>
-            </label>
-            <label className={styles.segment}>
-              <input type="radio" value="admin" {...register('profile.role')} />
-              <span>Admin</span>
-            </label>
-          </div>
-          {errors.profile?.role && (
-            <small className={styles.error}>
-              {errors.profile.role.message}
-            </small>
-          )}
         </div>
       </section>
 

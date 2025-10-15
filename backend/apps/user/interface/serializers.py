@@ -11,7 +11,7 @@ from apps.user.models.models import ProfessionalUser
 
 from ..models import Profile, User
 
-logger = logging.getLogger("apps.user.serializers")
+logger = logging.getLogger("apps.user")
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -24,9 +24,21 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ["first_name", "last_name", "birthday", "phone", "avatar_url", "role"]
-        extra_kwargs = {
-            "role": {"required": False},
-        }
+        extra_kwargs = {"role": {"required": False}}
+
+    def get_fields(self):
+        fields = super().get_fields()
+        request = self.context.get("request")
+        # Si pas staff: role non éditable
+        if not (request and getattr(request.user, "is_staff", False)):
+            fields["role"].read_only = True
+        return fields
+
+    def validate_role(self, value):
+        request = self.context.get("request")
+        if value == Profile.Role.ADMIN and not (request and request.user.is_staff):
+            raise ValidationError("Only staff can assign admin role.")
+        return value
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -52,6 +64,35 @@ class UserRegistrationSerializer(serializers.Serializer):
         cleaned = v.strip().lower()
         logger.debug("UserRegistrationSerializer.validate_email -> %s", cleaned)
         return cleaned
+
+    def validate(self, attrs):
+        # Si un role 'admin' arrive, on l'ignore ou lève une erreur
+        prof = attrs.get("profile") or {}
+        if prof.get("role") == Profile.Role.ADMIN:
+            prof["role"] = Profile.Role.FREELANCE
+            attrs["profile"] = prof
+            logger.warning("UserRegistration: attempt to self-register as admin -> forcing role=freelance")
+        return attrs
+
+    def create(self, validated_data):
+        profile_data = validated_data.pop("profile", {}) or {}
+        # Créer l'utilisateur
+        user = User.objects.create_user(
+            email=validated_data["email"],
+            password=validated_data["password"],
+            **validated_data,
+        )
+        # Créer le profil
+        Profile.objects.create(
+            user=user,
+            first_name=profile_data.get("first_name") or "",
+            last_name=profile_data.get("last_name") or "",
+            birthday=profile_data.get("birthday") or "",
+            phone=profile_data.get("phone") or "",
+            avatar_url=profile_data.get("avatar_url") or "",
+            role=profile_data.get("role") or Profile.Role.FREELANCE,
+        )
+        return user
 
 
 class ChangePasswordSerializer(serializers.Serializer):

@@ -104,7 +104,7 @@ class UserViewSet(viewsets.ViewSet):
         else:
             payload = data
 
-        ser = ProfileUpdateSerializer(user.profile, data=payload, partial=True)
+        ser = ProfileUpdateSerializer(user.profile, data=payload, partial=True, context={"request": request})
         ser.is_valid(raise_exception=True)
         ser.save()
 
@@ -115,7 +115,7 @@ class UserViewSet(viewsets.ViewSet):
     @extend_schema(request=ProfileUpdateSerializer, responses=UserSerializer, summary="Update profile of current user")
     def update_me_profile(self, request):
         logger.info("users.update_me_profile called", extra={"user_id": request.user.id, "params": request.data})
-        ser = ProfileUpdateSerializer(request.user.profile, data=request.data, partial=True)
+        ser = ProfileUpdateSerializer(request.user.profile, data=request.data, partial=True, context={"request": request})
         try:
             ser.is_valid(raise_exception=True)
             ser.save()
