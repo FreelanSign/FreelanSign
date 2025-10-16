@@ -559,3 +559,63 @@ class QuoteSerializer(serializers.ModelSerializer):
             except Exception:
                 return ""
         return ""
+
+
+# --------------------------------------------------------------------------------------
+# PDF preview serializer
+# --------------------------------------------------------------------------------------
+class QuotePreviewLineSerializer(serializers.Serializer):
+    designation = serializers.CharField(required=False)
+    description = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    quantity = serializers.FloatField()
+    unit_price = serializers.FloatField()
+    tax_rate = serializers.FloatField(required=False, allow_null=True)  # 0.2 => 20% (fraction UI)
+
+
+class QuotePreviewPayloadSerializer(serializers.Serializer):
+    seller = serializers.DictField()
+    client = serializers.DictField()
+    meta = serializers.DictField()
+    lines = QuotePreviewLineSerializer(many=True)
+    branding = serializers.DictField(required=False)
+
+    def validate(self, data):
+        # normalise "designation" & "tax_rate"
+        normalized_lines = []
+        for line in data["lines"]:
+            if not line.get("designation") and line.get("name"):
+                line["designation"] = line["name"]
+            if not line.get("designation"):
+                raise serializers.ValidationError("Designation/name is required for each line.")
+            tr = line.get("tax_rate")
+            if tr is not None:
+                tr = float(tr)
+                if tr > 1.0:
+                    tr = tr / 100.0
+                line["tax_rate"] = tr
+            # discount
+            discount = float(line.get("discount") or 0.0)
+            if discount < 0:
+                discount = 0.0
+            # totaux lines
+            qty = float(line["quantity"])
+            unit = float(line["unit_price"])
+            base = qty * unit
+            after_discount = base * (1 - discount / 100.0)
+            line["total_ht"] = round(after_discount, 2)
+            line["tax_rate_display"] = round((line.get("tax_rate") or 0.0) * 100.0, 2)
+            normalized_lines.append(line)
+        data["lines"] = normalized_lines
+        # calcule le total ici pour centraliser (pas d'effet DB)
+        subtotal = sum(line["total_ht"] for line in data["lines"])
+        tax = 0.0
+        for line in data["lines"]:
+            tr = float(line.get("tax_rate") or 0.0)
+            tax += line["total_ht"] * tr
+        totals = {
+            "subtotal": round(subtotal, 2),
+            "tax": round(tax, 2),
+            "grand_total": round(subtotal + tax, 2),
+        }
+        data["totals"] = totals
+        return data

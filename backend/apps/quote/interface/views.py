@@ -1,14 +1,16 @@
 # apps/quote/interface/views.py
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import datetime
 from decimal import Decimal
+from turtle import pd
 from typing import Any, List, Optional
 
 from django.db import transaction
 from django.db.models import Prefetch
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -18,12 +20,24 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from apps.core.logging import get_logger
 from apps.quote.interface.permissions import IsOwnerOrAdmin
-from apps.quote.interface.serializers import ClientReadSerializer, QuoteCreateUpdateSerializer, QuoteSerializer
+from apps.quote.interface.renderers import PDFRenderer
+from apps.quote.interface.serializers import (
+    ClientReadSerializer,
+    QuoteCreateUpdateSerializer,
+    QuotePreviewPayloadSerializer,
+    QuoteSerializer,
+)
 from apps.quote.models import Quote, QuoteHistory, QuoteLineItem
+from apps.quote.services.pdf_preview import QuotePreviewContext, render_quote_pdf
+
+logger = logging.getLogger(__name__)
 
 # Try to import real services; provide safe no-op fallbacks when not present.
 try:
@@ -128,9 +142,14 @@ class QuoteViewSet(viewsets.ModelViewSet):
         return QuoteSerializer
 
     def get_queryset(self):
-        return Quote.objects.select_related("client").prefetch_related(
+        queryset = Quote.objects.select_related("client").prefetch_related(
             Prefetch("items", queryset=QuoteLineItem.objects.select_related().order_by("order"))
         )
+        user = getattr(self.request, "user", None)
+        # Non admin ne voient que leurs propres devis, admins voient tous les devis
+        if user and (user.is_staff or user.is_superuser):
+            return queryset
+        return queryset.filter(owner=user)
 
     # ----------------------
     # Helper: robust detail lookup
@@ -441,3 +460,30 @@ class QuoteViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
         logger.info("quote.update.response", extra={"status": 200})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class QuotePreviewPdfView(APIView):
+    permission_classes = [IsAuthenticated]
+    renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
+
+    def post(self, request):
+        serializer = QuotePreviewPayloadSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        context = QuotePreviewContext(
+            seller=data["seller"],
+            client=data["client"],
+            meta=data["meta"],
+            lines=data["lines"],
+            totals=data["totals"],
+            branding=data.get("branding"),
+        )
+        try:
+            pdf_bytes = render_quote_pdf(context)
+        except Exception:
+            logger.exception("Unexpected error in quote preview PDF generation")
+            raise
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = 'inline; filename="quote-preview.pdf"'
+        return response
