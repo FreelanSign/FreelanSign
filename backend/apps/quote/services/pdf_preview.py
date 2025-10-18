@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Dict
 
 from django.conf import settings
+from django.template.exceptions import TemplateDoesNotExist
 from django.template.loader import render_to_string
 
 from apps.quote.domain.errors import (

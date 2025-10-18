@@ -1,6 +1,4 @@
 // src/interface/components/quote/PdfPreviewPane.tsx
-import React from 'react';
-
 export function PdfPreviewPane({
   url,
   loading,
