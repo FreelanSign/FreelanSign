@@ -24,4 +24,5 @@ export const API_ENDPOINTS = {
   catalogArea: '/api/catalog/areas/',
   clients: '/api/clients/',
   quotes: '/api/quotes/',
+  quotePreview: '/api/quotes/preview-pdf/',
 } as const;

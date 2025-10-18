@@ -19,6 +19,11 @@ import { apiClient } from '../../../infrastructure/http/apiClient';
 import NavBar from '../../components/navbar/Navbar';
 import Sidebar from '../../components/sidebar/Sidebar';
 import styles from './quote-edit-create.module.css';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { usePdfPreview } from '../../hooks/usePdfPreview';
+import { PdfPreviewPane } from '../../components/quote/PdfPreviewPane';
+import Modal from '../../components/common/Modal';
+import { openBlobUrlInNewTab, saveBlobUrlAs } from '../../utils/saveFile';
 
 /* ---------- zod schema ---------- */
 const ItemSchema = z.object({
@@ -70,6 +75,8 @@ type QuotePayload = {
 type ProfessionalMeDto = {
   id: number;
   name?: string;
+  email?: string;
+  siret?: string;
   tjm_cents?: number | null;
   service_types: number[];
 };
@@ -121,6 +128,7 @@ function isAxiosLikeError(
 
 /* ---------- component ---------- */
 export default function QuoteCreatePage() {
+  const [previewOpen, setPreviewOpen] = useState(false);
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientDto[] | 'loading' | null>(
     'loading',
@@ -164,7 +172,107 @@ export default function QuoteCreatePage() {
     | FormData['items']
     | undefined;
   const watchedCurrency = useWatch({ control, name: 'currency' }) || 'EUR';
+  const watchedClientId = useWatch({ control, name: 'client' }) as
+    | string
+    | undefined;
+  const watchedTitle = useWatch({ control, name: 'title' }) as
+    | string
+    | undefined;
+  const watchedReference = useWatch({ control, name: 'reference' }) as
+    | string
+    | undefined;
+  const watchedLanguage = useWatch({ control, name: 'language' }) as
+    | string
+    | undefined;
+  const watchedIssueDate = useWatch({ control, name: 'issue_date' }) as
+    | string
+    | undefined;
+  const watchedValidUntil = useWatch({ control, name: 'valid_until' }) as
+    | string
+    | undefined;
+  const watchedPaymentTermsText = useWatch({
+    control,
+    name: 'payment_terms_text',
+  }) as string | undefined;
   const money = useMoneyFormatter(watchedCurrency);
+
+  // ----- Build du payload de preview -----
+  const selectedClient: ClientDto | undefined =
+    clients && clients !== 'loading'
+      ? clients.find((c) => String(c.id) === String(watchedClientId || ''))
+      : undefined;
+
+  const previewPayload = useMemo(() => {
+    const seller = {
+      name: me?.name ?? 'FreelanSign - Professional',
+      email: me?.email ?? 'professional@freelansign.com',
+      siret: me?.siret ?? '12345678901234',
+    };
+    const client = selectedClient
+      ? {
+          name: selectedClient.name,
+          email: selectedClient.email,
+          phone: selectedClient.phone,
+        }
+      : {
+          name: 'Client non sélectionné',
+        };
+
+    const meta = {
+      number: 'PREVIEW',
+      date: watchedIssueDate || todayISO(),
+      valid_until: watchedValidUntil || todayISO(),
+      payment_terms:
+        watchedPaymentTermsText || 'Conditions générales sur demande.',
+      currency: watchedCurrency || 'EUR',
+      language: watchedLanguage || 'fr',
+      title: watchedTitle || 'Undefined Devis',
+      reference: watchedReference || 'Undefined PREVIEW',
+    };
+
+    const lines =
+      (watchedItems || []).map((item) => ({
+        designation: item.description || 'Prestation',
+        description: null,
+        quantity: Number(item.qty ?? 0),
+        unit_price: Number(item.unit_price ?? 0),
+        // backend attend une facturation (0.2 => 20%)
+        tax_rate:
+          typeof item.tax_rate === 'number'
+            ? Number(item.tax_rate) / 100
+            : null,
+        discount: typeof item.discount === 'number' ? Number(item.discount) : 0,
+      })) ?? [];
+    const branding = { name: 'FreelanSign' };
+    return { seller, client, meta, lines, branding };
+  }, [
+    me?.name,
+    me?.email,
+    me?.siret,
+    selectedClient,
+    watchedItems,
+    watchedIssueDate,
+    watchedValidUntil,
+    watchedPaymentTermsText,
+    watchedCurrency,
+    watchedLanguage,
+    watchedTitle,
+    watchedReference,
+  ]);
+
+  // On évite de spammer l'API : debounce 500ms
+  const debouncedPreviewPayload = useDebouncedValue(previewPayload, 500);
+  const {
+    url: pdfUrl,
+    loading: pdfLoading,
+    error: pdfError,
+    refresh: refreshPdf,
+  } = usePdfPreview(debouncedPreviewPayload, previewOpen);
+  useEffect(() => {
+    if (previewOpen) {
+      refreshPdf();
+    }
+  }, [previewOpen, refreshPdf]);
 
   const totals = useMemo(() => {
     const lines = watchedItems ?? [];
@@ -386,6 +494,13 @@ export default function QuoteCreatePage() {
             </p>
           </div>
           <div className="flex gap-2">
+            <button
+              type="button"
+              className={styles.buttonGhost}
+              onClick={() => setPreviewOpen(true)}
+            >
+              Aperçu
+            </button>
             <Link to="/dashboard" className={styles.buttonGhost}>
               Annuler
             </Link>
@@ -824,7 +939,6 @@ export default function QuoteCreatePage() {
             </>
           )}
         </section>
-
         {/* Actions bas de page */}
         <div className="flex items-center gap-2">
           <button
@@ -839,6 +953,49 @@ export default function QuoteCreatePage() {
           </Link>
         </div>
       </form>
+      <Modal
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        title="Aperçu du devis"
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={refreshPdf}
+              className="fs-btn fs-btn--ghost"
+            >
+              Actualiser
+            </button>
+            {pdfUrl && (
+              <>
+                <button
+                  type="button"
+                  className="fs-btn fs-btn--ghost"
+                  onClick={() => openBlobUrlInNewTab(pdfUrl)}
+                >
+                  Ouvrir dans un nouvel onglet
+                </button>
+                <button
+                  type="button"
+                  className="fs-btn fs-btn--primary"
+                  onClick={() =>
+                    saveBlobUrlAs(
+                      pdfUrl,
+                      `devis-${(watchedReference || 'preview').replace(/\s+/g, '_')}.pdf`,
+                    )
+                  }
+                >
+                  Télécharger
+                </button>
+              </>
+            )}
+          </>
+        }
+      >
+        <div className="fs-pdf-shell">
+          <PdfPreviewPane url={pdfUrl} loading={pdfLoading} error={pdfError} />
+        </div>
+      </Modal>
     </main>
   );
 }

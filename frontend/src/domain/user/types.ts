@@ -22,6 +22,8 @@ export type ProfessionalUserDto = {
   id: number;
   user: number; // user id
   name?: string | null;
+  email?: string | null;
+  siret?: string | null;
   status_juridique?: string | null;
   domaine?: number | null; // id of area
   tjm_cents?: number | null;

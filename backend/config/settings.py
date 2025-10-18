@@ -116,6 +116,8 @@ TEMPLATES = [
         },
     },
 ]
+TEMPLATES[0]["DIRS"] = [BASE_DIR / "templates"]
+
 
 WSGI_APPLICATION = "config.wsgi.application"
 
@@ -180,7 +182,7 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "EXCEPTION_HANDLER": "config.exceptions.drf_exception_handler",
+    "EXCEPTION_HANDLER": "config.api_errors.custom_exception_handler",
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
