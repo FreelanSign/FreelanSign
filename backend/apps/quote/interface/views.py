@@ -35,7 +35,14 @@ from apps.quote.interface.serializers import (
     QuoteSerializer,
 )
 from apps.quote.models import Quote, QuoteHistory, QuoteLineItem
-from apps.quote.services.pdf_preview import QuotePreviewContext, render_quote_pdf
+from apps.quote.services.pdf_generator import (
+    QuotePdfError,
+)
+from apps.quote.services.pdf_generator import render_quote_pdf as render_quote_document_pdf
+from apps.quote.services.pdf_preview import (
+    QuotePreviewContext,
+)
+from apps.quote.services.pdf_preview import render_quote_pdf as render_quote_preview_pdf
 
 logger = logging.getLogger(__name__)
 
@@ -461,6 +468,19 @@ class QuoteViewSet(viewsets.ModelViewSet):
         logger.info("quote.update.response", extra={"status": 200})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=["get"], url_path="pdf", renderer_classes=[PDFRenderer, JSONRenderer, BrowsableAPIRenderer])
+    def download_pdf(self, request, pk=None):
+        """Download the quote PDF."""
+        try:
+            pdf_bytes, filename = render_quote_document_pdf(pk)
+        except QuotePdfError as e:
+            # 422 pour signaler une erreur métier de génération
+            return HttpResponse(str(e), status=422, content_type="text/plain; charset=utf-8")
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        response["Cache-Control"] = "no-store"
+        return response
+
 
 class QuotePreviewPdfView(APIView):
     permission_classes = [IsAuthenticated]
@@ -480,7 +500,7 @@ class QuotePreviewPdfView(APIView):
             branding=data.get("branding"),
         )
         try:
-            pdf_bytes = render_quote_pdf(context)
+            pdf_bytes = render_quote_preview_pdf(context)
         except Exception:
             logger.exception("Unexpected error in quote preview PDF generation")
             raise
