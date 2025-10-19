@@ -1,0 +1,137 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Devis — Document</title>
+  <link rel="stylesheet" href="{% static 'css/pdf.css' %}">
+  <style>
+    @page { size: A4; margin: 18mm 16mm; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif; font-size: 12px; color: #111; }
+    h1,h2,h3 { margin: 0 0 6px; }
+    .header { display:flex; justify-content: space-between; align-items:flex-start; margin-bottom: 18px; }
+    .brand { font-weight: 700; font-size: 20px; }
+    .muted { color: #666; }
+    .box { padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; }
+    table { width:100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: left; vertical-align: top; }
+    th { background: #f9fafb; font-weight: 600; }
+    .totals { margin-top: 12px; width: 50%; margin-left: auto; }
+    .totals td { padding: 6px 8px; }
+    .right { text-align: right; }
+  </style>
+</head>
+<body>
+  <!-- En-tête marque + vendeur (facultatif si seller absent dans le contexte) -->
+  <div class="header">
+    <div>
+      <div class="brand">{{ branding.name|default:"FreelanSign" }}</div>
+      {% if branding.logo_url %}
+        <img src="{{ branding.logo_url }}" alt="Logo" style="height:40px;margin-top:6px">
+      {% endif %}
+    </div>
+    <div class="muted">
+      {% if seller %}
+        <div>{{ seller.name }}</div>
+        {% if seller.siret %}<div>SIRET : {{ seller.siret }}</div>{% endif %}
+        {% if seller.vat_number %}<div>TVA : {{ seller.vat_number }}</div>{% endif %}
+        {% if seller.address %}<div>{{ seller.address }}</div>{% endif %}
+        {% if seller.email %}<div>{{ seller.email }}</div>{% endif %}
+      {% else %}
+        <!-- Fallback minimal si 'seller' n'est pas fourni -->
+        <div>{{ quote.owner.get_full_name|default:quote.owner.username }}</div>
+        {% if quote.owner.email %}<div>{{ quote.owner.email }}</div>{% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  <h1>Devis</h1>
+  <div class="muted">
+    Réf : {{ meta.number|default:quote.reference|default:"—" }}
+    • Date : {{ meta.date|default:quote.issue_date|default:"—" }}
+  </div>
+
+  <!-- Encadrés Client / Conditions -->
+  <div style="display:flex; gap:12px; margin-top:12px">
+    <div class="box" style="flex:1">
+      <h3>Client</h3>
+      {% if client %}
+        <div>{{ client.name }}</div>
+        {% if client.company %}<div>{{ client.company }}</div>{% endif %}
+        {% if client.address_line1 %}<div>{{ client.address_line1 }}</div>{% endif %}
+        {% if client.postal_code or client.city %}
+          <div>{{ client.postal_code }} {{ client.city }}</div>
+        {% endif %}
+        {% if client.email %}<div>{{ client.email }}</div>{% endif %}
+      {% else %}
+        <div class="muted">—</div>
+      {% endif %}
+    </div>
+
+    <div class="box" style="flex:1">
+      <h3>Conditions</h3>
+      <div class="muted">
+        {{ meta.terms|default:"Conditions générales sur demande." }}
+      </div>
+      {% if meta.valid_until or quote.valid_until %}
+        <div>Validité : {{ meta.valid_until|default:quote.valid_until }}</div>
+      {% endif %}
+      {% if meta.payment_terms or quote.payment_terms %}
+        <div>Règlement : {{ meta.payment_terms|default:quote.payment_terms }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Tableau des lignes -->
+  <table>
+    <thead>
+      <tr>
+        <th style="width:42%">Désignation</th>
+        <th style="width:28%">Description</th>
+        <th class="right">Qté</th>
+        <th class="right">PU HT</th>
+        <th class="right">TVA</th>
+        <th class="right">Total HT</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for l in lines %}
+      <tr>
+        <td>{{ l.designation|default:l.description|default:"" }}</td>
+        <td class="muted">{{ l.description }}</td>
+        <td class="right">{{ l.quantity|default:l.qty|floatformat:2 }}</td>
+        <td class="right">{{ l.unit_price|floatformat:2 }}</td>
+        <td class="right">
+          {% if l.tax_rate_display is not None %}
+            {{ l.tax_rate_display|floatformat:0 }}%
+          {% elif l.tax_rate is not None %}
+            {# Si tax_rate est stocké en pourcentage déjà formatté (ex: 20.00), on l'affiche tel quel #}
+            {{ l.tax_rate }}
+          {% else %}
+            —
+          {% endif %}
+        </td>
+        <td class="right">
+          {% if l.total_ht is not None %}
+            {{ l.total_ht|floatformat:2 }}
+          {% elif l.pre_tax_total is not None %}
+            {{ l.pre_tax_total|floatformat:2 }}
+          {% else %}
+            —
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="muted">Aucune ligne.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Totaux (alignés à tes clés côté service: subtotal / tax_total / total) -->
+  <table class="totals">
+    <tr><td>Sous-total HT</td><td class="right">{{ totals.subtotal|default_if_none:"0.00"|floatformat:2 }}</td></tr>
+    <tr><td>TVA</td><td class="right">{{ totals.tax_total|default_if_none:"0.00"|floatformat:2 }}</td></tr>
+    <tr><td><strong>Total TTC</strong></td><td class="right"><strong>{{ totals.total|default_if_none:"0.00"|floatformat:2 }}</strong></td></tr>
+  </table>
+</body>
+</html>

@@ -83,4 +83,32 @@ export const quoteRepository = {
     );
     return data;
   },
+
+  async downloadPdf(id: string | number): Promise<void> {
+    const url = API_ENDPOINTS.quotePdf(id);
+    try {
+      const res = await apiClient.get(url, { responseType: 'blob' });
+      const blob = res.data as Blob;
+      const cd = (res.headers['content-disposition'] as string) || '';
+      const match = /filename="?(.*?)"?$/.exec(cd);
+      const filename = match?.[1] || `devis-${id}.pdf`;
+
+      const urlObj = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = urlObj;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(urlObj);
+    } catch (error: unknown) {
+      const resp = (error as { response?: { data: Blob } | undefined })
+        ?.response;
+      if (resp?.data instanceof Blob) {
+        const text = await resp.data.text().catch(() => null);
+        throw new Error(text || 'Erreur lors du téléchargement du PDF');
+      }
+      throw error;
+    }
+  },
 };

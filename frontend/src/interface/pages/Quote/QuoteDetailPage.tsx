@@ -57,6 +57,18 @@ export default function QuoteDetailPage() {
   const [loading, setLoading] = useState(false);
   const [quote, setQuote] = useState<UiQuoteDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  async function handleDownload() {
+    try {
+      setDownloading(true);
+      await quoteRepository.downloadPdf(id ?? '');
+    } catch (err) {
+      alert((err as Error).message || 'Erreur téléchargement PDF');
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   useEffect(() => {
     if (!id) return;
@@ -344,6 +356,14 @@ export default function QuoteDetailPage() {
             </table>
           </div>
         )}
+        <button
+          onClick={handleDownload}
+          disabled={downloading}
+          className={styles.buttonAccent}
+          title="Télécharger le devis (PDF)"
+        >
+          {downloading ? 'Téléchargement en cours...' : 'Télécharger (PDF)'}
+        </button>
       </section>
 
       {!!quote.note && (
