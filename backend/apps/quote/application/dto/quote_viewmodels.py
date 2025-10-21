@@ -28,11 +28,11 @@ class TotalsVM:
 
     Args:
         subtotal: The subtotal of the quote.
-        tax_total: The tax total of the quote.
+        tax: The tax total of the quote.
         grand_total: The grand total of the quote.
     """
     subtotal: float
-    tax_total: float
+    tax: float
     grand_total: float
 
 @dataclass(frozen=True)

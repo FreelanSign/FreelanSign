@@ -36,14 +36,14 @@ def effective_rate_for_line(
     explicit_rate_pct: Decimal | None,
     *,
     owner_vat_exempt: bool,
-    owner_default_tax_rate: Decimal,
+    owner_default_rate_pct: Decimal,
     ) -> Decimal:
     """Compute the effective % tax rate for a line.
 
     Args:
         explicit_rate_pct: The explicit tax rate for the line (as percentage).
         owner_vat_exempt: Whether the owner is VAT-exempt.
-        owner_default_tax_rate: The default tax rate for the owner (as percentage).
+        owner_default_rate_pct: The default tax rate for the owner (as percentage).
 
     Returns:
         The effective tax rate for the line (as percentage).
@@ -52,7 +52,7 @@ def effective_rate_for_line(
         return ZERO
     if explicit_rate_pct is not None:
         return normalize_rate_percent(explicit_rate_pct)
-    return normalize_rate_percent(owner_default_tax_rate) # fallback
+    return normalize_rate_percent(owner_default_rate_pct) # fallback
 
 def validate_client_vat_rule(
     client_country: str | None,

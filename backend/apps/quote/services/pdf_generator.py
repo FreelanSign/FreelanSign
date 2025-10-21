@@ -7,7 +7,8 @@ from pathlib import Path
 
 from django.conf import settings
 from django.template.loader import render_to_string
-from weasyprint import HTML
+import pdfkit
+import os
 
 from apps.quote.models import Quote
 
@@ -72,10 +73,38 @@ def render_quote_pdf(quote_id: int | str, *, options: QuotePdfOptions = QuotePdf
     except Exception as e:
         raise QuotePdfError(f"Erreur lors du rendu HTML: {e}") from e
 
-    # 2) Conversion HTML en PDF
-    base_url = str(Path(settings.BASE_DIR).resolve())
+    # 2) Conversion HTML en PDF avec wkhtmltopdf
     try:
-        pdf_bytes = HTML(string=html, base_url=base_url).write_pdf()
+        # Configuration wkhtmltopdf
+        config = None
+        wkhtmltopdf_path = getattr(settings, 'WKHTMLTOPDF_PATH', None)
+
+        if wkhtmltopdf_path and os.path.exists(wkhtmltopdf_path):
+            config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
+
+        # Options PDF
+        options_pdf = {
+            'encoding': 'UTF-8',
+            'page-size': 'A4',
+            'margin-top': '10mm',
+            'margin-right': '10mm',
+            'margin-bottom': '10mm',
+            'margin-left': '10mm',
+            'no-outline': None,
+            'enable-local-file-access': None,  # Pour charger les CSS/images locales,
+            'print-media-type': None,
+            'load-error-handling': 'ignore',
+        }
+
+        pdf_bytes = pdfkit.from_string(html, False, options=options_pdf, configuration=config)
+
+    except OSError as e:
+        if 'No wkhtmltopdf executable found' in str(e):
+            raise QuotePdfError(
+                f"wkhtmltopdf n'est pas trouvé. Chemin configuré: {getattr(settings, 'WKHTMLTOPDF_PATH', 'Non défini')}. "
+                "Vérifiez l'installation ou la variable WKHTMLTOPDF_PATH."
+            ) from e
+        raise QuotePdfError(f"Erreur système lors de la génération du PDF: {e}") from e
     except Exception as e:
         raise QuotePdfError(f"Erreur lors de la conversion HTML en PDF: {e}") from e
 

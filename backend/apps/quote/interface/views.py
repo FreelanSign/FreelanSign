@@ -5,12 +5,11 @@ import logging
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from turtle import pd
 from typing import Any, List, Optional
 
 from django.db import transaction
 from django.db.models import Prefetch
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -43,6 +42,15 @@ from apps.quote.services.pdf_preview import (
     QuotePreviewContext,
 )
 from apps.quote.services.pdf_preview import render_quote_pdf as render_quote_preview_pdf
+from apps.quote.application.dto.quote_inputs import PreviewPayloadDTO, LineItemInputDTO
+from apps.quote.application.usecases.generate_preview import generate_preview
+from apps.quote.domain.errors import (
+    QuotePreviewError,
+    QuotePreviewValidationError,
+    QuotePreviewTemplateError,
+    QuotePreviewEngineError,
+    QuotePreviewSecurityError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -468,7 +476,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
         logger.info("quote.update.response", extra={"status": 200})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["get"], url_path="pdf", renderer_classes=[PDFRenderer, JSONRenderer, BrowsableAPIRenderer])
+    @action(detail=True, methods=["get"], url_path="download-pdf", renderer_classes=[PDFRenderer, JSONRenderer, BrowsableAPIRenderer])
     def download_pdf(self, request, pk=None):
         """Download the quote PDF."""
         try:
@@ -482,28 +490,131 @@ class QuoteViewSet(viewsets.ModelViewSet):
         return response
 
 
+def _owner_vat_config_from_request_user(user) -> tuple[bool, Decimal]:
+    """
+    Helper to get the owner VAT config from the request user.
+    Args:
+        user: The request user.
+    Returns:
+        A tuple containing the VAT exempt status and the default tax rate.
+    """
+    profile = getattr(user, "profile", None)
+    vat_exempt = bool(getattr(profile, "vat_exempt", False))
+    default_rate = getattr(profile, "default_tax_rate", None)
+    if default_rate is None:
+        default_rate = Decimal("20.00")
+    else:
+        default_rate = Decimal(str(default_rate)).quantize(Decimal("0.01"))
+    return vat_exempt, default_rate
+
+
+def _client_country_from_payload(client_dict: dict | None) -> str | None:
+    """
+    Helper to get the client country from the payload.
+    Args:
+        client_dict: The client dictionary.
+    Returns:
+        The client country.
+    """
+    if not client_dict:
+        return None
+    for key in ("country", "country_code", "billing_country"):
+        val = client_dict.get(key)
+        if val:
+            return str(val).upper()
+    return None
+
+
+
 class QuotePreviewPdfView(APIView):
     permission_classes = [IsAuthenticated]
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
 
     def post(self, request):
+        # Validate the payload
         serializer = QuotePreviewPayloadSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        context = QuotePreviewContext(
+        # Policy context
+        vat_exempt, default_rate = _owner_vat_config_from_request_user(request.user)
+        client_country = _client_country_from_payload(data.get("client"))
+
+        # Mapper payload -> DTO (on fournit tax_rate_pct en % quand présent)
+        lines_dto: list[LineItemInputDTO] = []
+        for line in data["lines"]:
+            raw_tr = line.get("tax_rate")
+            tax_rate_pct = None
+            if raw_tr is not None:
+                raw = float(raw_tr)
+                # l’UI peut envoyer 0..1 (fraction) ou 0..100 (%)
+                tax_rate_pct = Decimal(str(raw * 100.0)) if raw <= 1.0 else Decimal(str(raw))
+
+            discount_val = line.get("discount")
+            discount_dec = Decimal(str(discount_val)) if discount_val is not None else None
+
+            lines_dto.append(
+                LineItemInputDTO(
+                    description=str(line.get("designation") or line.get("name") or ""),
+                    qty=Decimal(str(line["quantity"])),
+                    unit_price=Decimal(str(line["unit_price"])),
+                    discount=discount_dec,
+                    tax_rate_pct=tax_rate_pct,
+                )
+            )
+
+        dto = PreviewPayloadDTO(
             seller=data["seller"],
             client=data["client"],
             meta=data["meta"],
-            lines=data["lines"],
-            totals=data["totals"],
+            lines=lines_dto,
             branding=data.get("branding"),
+            owner_vat_exempt=vat_exempt,
+            owner_default_rate_pct=default_rate,  # <-- nom harmonisé
+            client_country=client_country,
         )
+
+
+        # Use case
+        vm = generate_preview(dto)
+
+        # Adapter le ViewModel au contexte PDF
+        context = QuotePreviewContext(
+            seller=vm.seller,
+            client=vm.client,
+            meta=vm.meta,
+            lines=[
+                {
+                    "designation": l.designation,
+                    "description": l.description,
+                    "quantity": l.quantity,
+                    "unit_price": l.unit_price,
+                    "tax_rate": (l.tax_rate_display / 100.0),  # fraction pour les templates (0.2)
+                    "tax_rate_display": l.tax_rate_display,    # % affichable (20.0)
+                    "total_ht": l.total_ht,
+                }
+                for l in vm.lines
+            ],
+            totals={
+                "subtotal": vm.totals.subtotal,
+                "tax": vm.totals.tax,                   # <-- pas tax_total
+                "grand_total": vm.totals.grand_total,
+            },
+            branding=vm.branding,
+        )
+
+        # Rendu pdf
         try:
             pdf_bytes = render_quote_preview_pdf(context)
-        except Exception:
-            logger.exception("Unexpected error in quote preview PDF generation")
-            raise
+        except QuotePreviewValidationError as e:
+            return Response({"code": "validation_error", "detail": str(e)}, status=422)
+        except QuotePreviewEngineError as e:
+            return Response({"code": "engine_error", "detail": str(e)}, status=503)
+        except QuotePreviewTemplateError as e:
+            return Response({"code": "template_error", "detail": str(e)}, status=500)
+        except QuotePreviewError as e:
+            return Response({"code": "preview_error", "detail": str(e)}, status=500)
+
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = 'inline; filename="quote-preview.pdf"'
         return response

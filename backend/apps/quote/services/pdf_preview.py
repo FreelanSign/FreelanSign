@@ -1,10 +1,15 @@
 # apps/quote/services/pdf_preview.py
 from dataclasses import dataclass
 from typing import Any, Dict
+import os
+from pathlib import Path
+import shutil
+import subprocess
 
 from django.conf import settings
 from django.template.exceptions import TemplateDoesNotExist
 from django.template.loader import render_to_string
+import pdfkit
 
 from apps.quote.domain.errors import (
     QuotePreviewEngineError,
@@ -19,12 +24,12 @@ from apps.quote.domain.errors import (
 class QuotePreviewContext:
     """Données minimales pour le template PDF (pas d'accès DB ici)."""
 
-    seller: Dict[str, Any]  # ex : ton pro (nom, siret...)
-    client: Dict[str, Any]  # ex : le client saisi dans le formulaire
-    meta: Dict[str, Any]  # ex : les méta-données du devis
-    lines: list[Dict[str, Any]]  # ex : les lignes (prestations) du devis
-    totals: Dict[str, Any]  # ex : les totaux (subtotal, tax_total, discount_total, total)
-    branding: Dict[str, Any] | None  # logo, couleurs, typo
+    seller: Dict[str, Any]
+    client: Dict[str, Any]
+    meta: Dict[str, Any]
+    lines: list[Dict[str, Any]]
+    totals: Dict[str, Any]
+    branding: Dict[str, Any] | None
 
 
 def render_quote_html(context: QuotePreviewContext) -> str:
@@ -48,14 +53,55 @@ def render_quote_html(context: QuotePreviewContext) -> str:
 
 
 def html_to_pdf_bytes(html: str) -> bytes:
-    """Convertir le HTML en PDF bytes."""
-    from weasyprint import HTML
-
+    """Convertir le HTML en PDF bytes avec wkhtmltopdf."""
     try:
-        base_url = getattr(settings, "BASE_DIR", None)
-        return HTML(string=html, base_url=str(base_url)).write_pdf()
+        # Configuration wkhtmltopdf
+        config = None
+        wkhtmltopdf_cfg = getattr(settings, "WKHTMLTOPDF_PATH", None)
+
+        if wkhtmltopdf_cfg:
+            wk_path = str(wkhtmltopdf_cfg)
+            if not Path(wk_path).exists():
+                raise QuotePreviewEngineError(
+                    f"wkhtmltopdf n'est pas trouvé au chemin: {wk_path}. "
+                    "Vérifiez l'installation ou la variable WKHTMLTOPDF_PATH."
+                )
+            config = pdfkit.configuration(wkhtmltopdf=wk_path)
+        else:
+            found = shutil.which("wkhtmltopdf")
+            if found:
+                config = pdfkit.configuration(wkhtmltopdf=found)
+            else:
+                raise QuotePreviewEngineError(
+                    "wkhtmltopdf n'est pas trouvé dans le PATH. "
+                    "Vérifiez l'installation ou la variable WKHTMLTOPDF_PATH."
+                )
+        # Options PDF
+        options = {
+            'encoding': 'UTF-8',
+            'page-size': 'A4',
+            'margin-top': '10mm',
+            'margin-right': '10mm',
+            'margin-bottom': '10mm',
+            'margin-left': '10mm',
+            'no-outline': None,
+            'enable-local-file-access': None,
+            'print-media-type': None,
+            'load-error-handling': 'ignore',
+        }
+
+        return pdfkit.from_string(html, False, options=options, configuration=config)
+    except OSError as e:
+        if 'No wkhtmltopdf executable found' in str(e):
+            raise QuotePreviewEngineError(
+                f"wkhtmltopdf n'est pas trouvé au chemin: {getattr(settings, 'WKHTMLTOPDF_PATH', 'Non défini')}."
+                "Vérifiez l'installation ou la variable WKHTMLTOPDF_PATH."
+            ) from e
+        raise QuotePreviewEngineError(f"Erreur système: {e}") from e
     except Exception as e:
-        raise QuotePreviewEngineError(f"Erreur lors de la conversion HTML en PDF: {e.__class__.__name__}: {e}") from e
+        raise QuotePreviewEngineError(
+            f"Erreur lors de la conversion HTML en PDF: {e.__class__.__name__}: {e}"
+        ) from e
 
 
 def render_quote_pdf(context: QuotePreviewContext) -> bytes:
@@ -68,5 +114,6 @@ def render_quote_pdf(context: QuotePreviewContext) -> bytes:
         raise QuotePreviewValidationError("Le prix unitaire doit être supérieur à 0")
     if any(float(line["tax_rate"]) < 0 or float(line["tax_rate"]) > 1.0 for line in context.lines):
         raise QuotePreviewValidationError("Le taux de taxe doit être compris entre 0 et 100")
+
     html = render_quote_html(context)
     return html_to_pdf_bytes(html)

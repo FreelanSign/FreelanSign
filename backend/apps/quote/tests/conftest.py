@@ -7,6 +7,7 @@ from django.apps import apps as django_apps
 from django.contrib.auth import get_user_model
 from django.core.exceptions import FieldDoesNotExist
 from django.db import IntegrityError
+from datetime import date
 
 
 # ---------- client_model resolver (robust) -----------
@@ -114,6 +115,21 @@ def user_factory(db):
 
     return _create
 
+# ---------- user_factory fixture (robust) -------------------------------------
+@pytest.fixture
+def authenticated_user(db):
+    User = get_user_model()
+    user = User.objects.create_user(
+        email="tester@example.com",     # <-- garde l'email, ton USERNAME_FIELD est l'email
+        password="pass1234",
+        is_active=True,
+    )
+    return user
+
+@pytest.fixture
+def auth_client(db, client, authenticated_user):
+    client.force_login(authenticated_user)
+    return client
 
 # ---------- client_factory fixture (fixed: ensures owner) -----------------------
 @pytest.fixture
@@ -213,3 +229,54 @@ def client_factory(db, client_model, user_factory):
                 pass
 
         return instance
+
+@pytest.fixture
+def quote_factory(db):
+    from apps.quote.models import Quote, QuoteLineItem
+    from apps.client.models import Client
+
+    def _make(**overrides):
+        User = get_user_model()
+        owner = overrides.pop("owner", None) or User.objects.create_user(
+            email="owner@example.com",
+            password="pass1234",
+            is_active=True,
+        )
+        client = overrides.pop("client", None) or Client.objects.create(
+            owner=owner,
+            name="ACME",
+            email="client@example.com",
+        )
+        quote = Quote.objects.create(
+            owner=owner,
+            client=client,
+            title=overrides.pop("title", "Test Quote"),
+            reference=overrides.pop("reference", "REF-TEST"),
+            currency=overrides.pop("currency", "EUR"),
+            language=overrides.pop("language", "fr"),
+            status=overrides.pop("status", Quote.Status.DRAFT),
+            issue_date=overrides.pop("issue_date", date.today()),
+            valid_until=overrides.pop("valid_until", None),
+            subtotal=Decimal("0.00"),
+            tax_total=Decimal("0.00"),
+            discount_total=Decimal("0.00"),
+            total=Decimal("0.00"),
+            metadata=overrides.pop("metadata", {}),
+        )
+        # 1 ligne simple
+        QuoteLineItem.objects.create(
+            quote=quote,
+            description="Ligne",
+            qty=Decimal("1.00"),
+            unit_price=Decimal("10.00"),
+            tax_rate=Decimal("20.00"),
+            discount=Decimal("0.00"),
+            line_total=Decimal("10.00"),
+            order=0,
+            metadata={},
+        )
+        # recalcule les totaux
+        quote.recalculate_totals(save=True)
+        return quote
+
+    return _make
