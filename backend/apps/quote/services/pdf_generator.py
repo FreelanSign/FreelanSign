@@ -3,12 +3,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
 
-from django.conf import settings
 from django.template.loader import render_to_string
-import pdfkit
-import os
+from playwright.sync_api import sync_playwright
 
 from apps.quote.models import Quote
 
@@ -73,38 +70,29 @@ def render_quote_pdf(quote_id: int | str, *, options: QuotePdfOptions = QuotePdf
     except Exception as e:
         raise QuotePdfError(f"Erreur lors du rendu HTML: {e}") from e
 
-    # 2) Conversion HTML en PDF avec wkhtmltopdf
+    # 2) Conversion HTML en PDF avec Playwright
     try:
-        # Configuration wkhtmltopdf
-        config = None
-        wkhtmltopdf_path = getattr(settings, 'WKHTMLTOPDF_PATH', None)
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
 
-        if wkhtmltopdf_path and os.path.exists(wkhtmltopdf_path):
-            config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
+            # Charger le HTML
+            page.set_content(html, wait_until='networkidle')
 
-        # Options PDF
-        options_pdf = {
-            'encoding': 'UTF-8',
-            'page-size': 'A4',
-            'margin-top': '10mm',
-            'margin-right': '10mm',
-            'margin-bottom': '10mm',
-            'margin-left': '10mm',
-            'no-outline': None,
-            'enable-local-file-access': None,  # Pour charger les CSS/images locales,
-            'print-media-type': None,
-            'load-error-handling': 'ignore',
-        }
+            # Générer le PDF
+            pdf_bytes = page.pdf(
+                format='A4',
+                margin={
+                    'top': '10mm',
+                    'right': '10mm',
+                    'bottom': '10mm',
+                    'left': '10mm'
+                },
+                print_background=True  # Important pour les couleurs de fond et images
+            )
 
-        pdf_bytes = pdfkit.from_string(html, False, options=options_pdf, configuration=config)
+            browser.close()
 
-    except OSError as e:
-        if 'No wkhtmltopdf executable found' in str(e):
-            raise QuotePdfError(
-                f"wkhtmltopdf n'est pas trouvé. Chemin configuré: {getattr(settings, 'WKHTMLTOPDF_PATH', 'Non défini')}. "
-                "Vérifiez l'installation ou la variable WKHTMLTOPDF_PATH."
-            ) from e
-        raise QuotePdfError(f"Erreur système lors de la génération du PDF: {e}") from e
     except Exception as e:
         raise QuotePdfError(f"Erreur lors de la conversion HTML en PDF: {e}") from e
 

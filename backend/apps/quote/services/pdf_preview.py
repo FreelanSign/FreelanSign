@@ -1,20 +1,14 @@
 # apps/quote/services/pdf_preview.py
 from dataclasses import dataclass
 from typing import Any, Dict
-import os
-from pathlib import Path
-import shutil
-import subprocess
 
-from django.conf import settings
 from django.template.exceptions import TemplateDoesNotExist
 from django.template.loader import render_to_string
-import pdfkit
+from playwright.sync_api import sync_playwright
 
 from apps.quote.domain.errors import (
     QuotePreviewEngineError,
     QuotePreviewError,
-    QuotePreviewSecurityError,
     QuotePreviewTemplateError,
     QuotePreviewValidationError,
 )
@@ -53,51 +47,31 @@ def render_quote_html(context: QuotePreviewContext) -> str:
 
 
 def html_to_pdf_bytes(html: str) -> bytes:
-    """Convertir le HTML en PDF bytes avec wkhtmltopdf."""
+    """Convertir le HTML en PDF bytes avec Playwright."""
     try:
-        # Configuration wkhtmltopdf
-        config = None
-        wkhtmltopdf_cfg = getattr(settings, "WKHTMLTOPDF_PATH", None)
+        with sync_playwright() as p:
+            # Lancer le navigateur en mode headless
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
 
-        if wkhtmltopdf_cfg:
-            wk_path = str(wkhtmltopdf_cfg)
-            if not Path(wk_path).exists():
-                raise QuotePreviewEngineError(
-                    f"wkhtmltopdf n'est pas trouvé au chemin: {wk_path}. "
-                    "Vérifiez l'installation ou la variable WKHTMLTOPDF_PATH."
-                )
-            config = pdfkit.configuration(wkhtmltopdf=wk_path)
-        else:
-            found = shutil.which("wkhtmltopdf")
-            if found:
-                config = pdfkit.configuration(wkhtmltopdf=found)
-            else:
-                raise QuotePreviewEngineError(
-                    "wkhtmltopdf n'est pas trouvé dans le PATH. "
-                    "Vérifiez l'installation ou la variable WKHTMLTOPDF_PATH."
-                )
-        # Options PDF
-        options = {
-            'encoding': 'UTF-8',
-            'page-size': 'A4',
-            'margin-top': '10mm',
-            'margin-right': '10mm',
-            'margin-bottom': '10mm',
-            'margin-left': '10mm',
-            'no-outline': None,
-            'enable-local-file-access': None,
-            'print-media-type': None,
-            'load-error-handling': 'ignore',
-        }
+            # Charger le HTML (wait_until='networkidle' attend que toutes les ressources soient chargées)
+            page.set_content(html, wait_until='networkidle')
 
-        return pdfkit.from_string(html, False, options=options, configuration=config)
-    except OSError as e:
-        if 'No wkhtmltopdf executable found' in str(e):
-            raise QuotePreviewEngineError(
-                f"wkhtmltopdf n'est pas trouvé au chemin: {getattr(settings, 'WKHTMLTOPDF_PATH', 'Non défini')}."
-                "Vérifiez l'installation ou la variable WKHTMLTOPDF_PATH."
-            ) from e
-        raise QuotePreviewEngineError(f"Erreur système: {e}") from e
+            # Générer le PDF
+            pdf_bytes = page.pdf(
+                format='A4',
+                margin={
+                    'top': '10mm',
+                    'right': '10mm',
+                    'bottom': '10mm',
+                    'left': '10mm'
+                },
+                print_background=True  # Important pour les couleurs de fond et images
+            )
+
+            browser.close()
+            return pdf_bytes
+
     except Exception as e:
         raise QuotePreviewEngineError(
             f"Erreur lors de la conversion HTML en PDF: {e.__class__.__name__}: {e}"

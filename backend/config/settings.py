@@ -328,10 +328,3 @@ LOGGING = {
         # "apps.catalog": {"handlers": ["console","file"], "level": "DEBUG", "propagate": False},
     },
 }
-
-WKHTMLTOPDF_PATH = os.getenv("WKHTMLTOPDF_PATH")
-if not WKHTMLTOPDF_PATH:
-    # chemin dans le projet
-    WKHTMLTOPDF_PATH = REPO_ROOT / "workspace" / "wkhtmltopdf" / "bin" / "wkhtmltopdf.exe"
-    if not WKHTMLTOPDF_PATH.exists():
-        raise ValueError("WKHTMLTOPDF_PATH not found")

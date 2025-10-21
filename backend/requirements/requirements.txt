@@ -11,6 +11,7 @@ djangorestframework==3.16.0
 djangorestframework_simplejwt==5.5.1
 drf-spectacular==0.28.0
 fonttools==4.60.1
+greenlet==3.2.4
 html5lib==1.1
 inflection==0.5.1
 iniconfig==2.1.0
@@ -19,10 +20,12 @@ jsonschema==4.25.0
 jsonschema-specifications==2025.4.1
 packaging==25.0
 pillow==12.0.0
+playwright==1.55.0
 pluggy==1.6.0
 psycopg2-binary==2.9.10
 pycparser==2.23
 pydyf==0.10.0
+pyee==13.0.0
 Pygments==2.19.2
 PyJWT==2.10.1
 pyphen==0.17.2
@@ -39,7 +42,6 @@ tinycss2==1.4.0
 typing_extensions==4.14.1
 tzdata==2025.2
 uritemplate==4.2.0
-weasyprint==61.2
 webencodings==0.5.1
 wheel==0.45.1
 zopfli==0.2.3.post1

@@ -476,13 +476,18 @@ class QuoteViewSet(viewsets.ModelViewSet):
         logger.info("quote.update.response", extra={"status": 200})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["get"], url_path="download-pdf", renderer_classes=[PDFRenderer, JSONRenderer, BrowsableAPIRenderer])
+    @action(
+        detail=True,
+        methods=["get"],
+        url_path="pdf",
+        url_name="download-pdf",  # Force le nom à "quote-download-pdf"
+        renderer_classes=[PDFRenderer, JSONRenderer, BrowsableAPIRenderer]
+    )
     def download_pdf(self, request, pk=None):
         """Download the quote PDF."""
         try:
             pdf_bytes, filename = render_quote_document_pdf(pk)
         except QuotePdfError as e:
-            # 422 pour signaler une erreur métier de génération
             return HttpResponse(str(e), status=422, content_type="text/plain; charset=utf-8")
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
@@ -607,14 +612,13 @@ class QuotePreviewPdfView(APIView):
         try:
             pdf_bytes = render_quote_preview_pdf(context)
         except QuotePreviewValidationError as e:
-            return Response({"code": "validation_error", "detail": str(e)}, status=422)
+            return Response({"code": "QUOTE_PREVIEW_VALIDATION", "detail": str(e)}, status=422)
         except QuotePreviewEngineError as e:
-            return Response({"code": "engine_error", "detail": str(e)}, status=503)
+            return Response({"code": "QUOTE_PREVIEW_ENGINE", "detail": str(e)}, status=503)
         except QuotePreviewTemplateError as e:
-            return Response({"code": "template_error", "detail": str(e)}, status=500)
+            return Response({"code": "QUOTE_PREVIEW_TEMPLATE", "detail": str(e)}, status=500)
         except QuotePreviewError as e:
-            return Response({"code": "preview_error", "detail": str(e)}, status=500)
-
+            return Response({"code": "QUOTE_PREVIEW_ERROR", "detail": str(e)}, status=500)
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = 'inline; filename="quote-preview.pdf"'
         return response
