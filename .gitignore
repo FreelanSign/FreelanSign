@@ -225,3 +225,5 @@ node_modules/
 *.sql
 
 workspace/
+
+backend/logs/
