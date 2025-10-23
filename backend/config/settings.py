@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     "apps.catalog.apps.CatalogConfig",
     "apps.quote.apps.QuoteConfig",
     "apps.client.apps.ClientConfig",
+    "django_extensions",
 ]
 
 MIDDLEWARE = [

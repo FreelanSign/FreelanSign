@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 from decimal import ROUND_HALF_UP, Decimal, getcontext
+from re import L
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from django.db import transaction
@@ -20,7 +21,6 @@ from apps.quote.domain.policies.tax_policy import (
     validate_client_vat_rule,
     TaxPolicyError,
 )
-from apps.quote.domain.services.totals import compute_totals
 
 getcontext().prec = 28
 
@@ -605,9 +605,10 @@ class QuoteSerializer(serializers.ModelSerializer):
 class QuotePreviewLineSerializer(serializers.Serializer):
     designation = serializers.CharField(required=False)
     description = serializers.CharField(allow_null=True, allow_blank=True, required=False)
-    quantity = serializers.FloatField()
-    unit_price = serializers.FloatField()
+    quantity = serializers.FloatField(min_value=0.000001)
+    unit_price = serializers.FloatField(min_value=0.0)
     tax_rate = serializers.FloatField(required=False, allow_null=True)  # 0.2 => 20% (fraction UI)
+    discount = serializers.FloatField(required=False, min_value=0.0)
 
 
 class QuotePreviewPayloadSerializer(serializers.Serializer):
@@ -618,42 +619,40 @@ class QuotePreviewPayloadSerializer(serializers.Serializer):
     branding = serializers.DictField(required=False)
 
     def validate(self, data):
-        # normalise "designation" & "tax_rate"
+        """ Only normalize the data, do not validate the data. """
         normalized_lines = []
-        for line in data["lines"]:
-            if not line.get("designation") and line.get("name"):
-                line["designation"] = line["name"]
+        for raw in data["lines"]:
+            line = dict(raw)
+
+            # designation fallback
+            if not line.get("designation"):
+                alt = line.get("name")
+                if alt:
+                    line["designation"] = str(alt)
             if not line.get("designation"):
                 raise serializers.ValidationError("Designation/name is required for each line.")
-            tr = line.get("tax_rate")
+
+            # tax_rate fallback
+            tr = line.get("tax_rate", None)
             if tr is not None:
                 tr = float(tr)
+                if tr < 0:
+                    tr = 0.0
                 if tr > 1.0:
                     tr = tr / 100.0
                 line["tax_rate"] = tr
-            # discount
-            discount = float(line.get("discount") or 0.0)
-            if discount < 0:
-                discount = 0.0
-            # totaux lines
-            qty = float(line["quantity"])
-            unit = float(line["unit_price"])
-            base = qty * unit
-            after_discount = base * (1 - discount / 100.0)
-            line["total_ht"] = round(after_discount, 2)
-            line["tax_rate_display"] = round((line.get("tax_rate") or 0.0) * 100.0, 2)
+            else:
+                line["tax_rate"] = None
+
+            # discount fallback
+            if "discount" in line and line["discount"] is not None:
+                line["discount"] = float(line["discount"])
+                if line["discount"] < 0:
+                    line["discount"] = 0.0
+
+            line["quantity"] = float(line["quantity"])
+            line["unit_price"] = float(line["unit_price"])
+
             normalized_lines.append(line)
         data["lines"] = normalized_lines
-        # calcule le total ici pour centraliser (pas d'effet DB)
-        subtotal = sum(line["total_ht"] for line in data["lines"])
-        tax = 0.0
-        for line in data["lines"]:
-            tr = float(line.get("tax_rate") or 0.0)
-            tax += line["total_ht"] * tr
-        totals = {
-            "subtotal": round(subtotal, 2),
-            "tax": round(tax, 2),
-            "grand_total": round(subtotal + tax, 2),
-        }
-        data["totals"] = totals
         return data

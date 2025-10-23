@@ -5,9 +5,7 @@
   <title>Devis — Prévisualisation</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* Forcer le rendu des couleurs en mode "print" */
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-
     /* Palette FreelanSign (sans var()) */
     /* brand   */ .c-brand { color: #2456c2; }
     /* success */ .c-success { color: #3ccf91; }
@@ -29,7 +27,7 @@
     h3 { font-size: 13px; }
 
     .muted { color: #666666; }
-    .brand { font-weight: 800; font-size: 22px; color: #2456c2; letter-spacing: .2px; }
+    .brand { font-weight: 800; font-size: 22px; color: #2456c2 !important; letter-spacing: .2px; }
 
     .mt-6 { margin-top: 12px; }
     .mb-6 { margin-bottom: 12px; }
@@ -37,13 +35,13 @@
 
     .pill {
       display:inline-block; padding:2px 6px; border-radius:999px;
-      background:#f5f7fa; border:1px solid #e5e7eb; font-size:10px; color:#444;
+      background:#f5f7fa !important; border:1px solid #e5e7eb !important; font-size:10px; color:#444 !important;
     }
 
     .box {
-      padding:10px; border:1px solid #e5e7eb; border-radius:6px; background:#ffffff;
+      padding:10px; border:1px solid #e5e7eb !important; border-radius:6px; background:#ffffff !important;
     }
-    .box--tinted { background:#f5f7fa; }
+    .box--tinted { background:#f5f7fa !important; }
 
     .grid-2 { width:100%; border-collapse:collapse; table-layout:fixed; }
     .grid-2 td { vertical-align:top; padding:0; }
@@ -53,21 +51,21 @@
     .table { margin-top:12px; }
     th, td { padding:8px; border-bottom:1px solid #eeeeee; text-align:left; vertical-align:top; }
     th {
-      background:#f5f7fa; font-weight:600; color:#0d0d0d;
+      background:#f5f7fa !important; font-weight:600; color:#0d0d0d;
       border-top:1px solid #e9eef5; border-bottom:1px solid #e9eef5;
     }
 
     .totals {
       margin-top:12px; width:50%; margin-left:auto; border-collapse:collapse;
-      background:#ffffff; border:1px solid #e9eef5; border-radius:6px;
+      background:#ffffff !important; border:1px solid #e9eef5 !important; border-radius:6px;
     }
-    .totals td { padding:8px 10px; border-bottom:1px solid #eef2f7; }
+    .totals td { padding:8px 10px; border-bottom:1px solid #eef2f7 !important; }
     .totals tr:last-child td { border-bottom:0; }
     .totals .label { color:#444444; }
-    .totals .grand { font-weight:700; color:#0d0d0d; }
-    .totals .grand .amount { color:#2456c2; }
+    .totals .grand { font-weight:700; color:#0d0d0d !important; }
+    .totals .grand .amount { color:#2456c2 !important; }
 
-    .divider { height:3px; width:60px; background:#2456c2; border-radius:3px; margin:6px 0 0; }
+    .divider { height:3px; width:60px; background:#2456c2 !important; border-radius:3px; margin:6px 0 0; }
 
     .avoid-break { page-break-inside: avoid; }
   </style>
