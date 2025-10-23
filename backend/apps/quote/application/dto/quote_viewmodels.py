@@ -1,6 +1,8 @@
 # apps/quote/application/dto/quote_viewmodels.py
 from __future__ import annotations
+
 from dataclasses import dataclass
+
 
 @dataclass(frozen=True)
 class LineVM:
@@ -14,6 +16,7 @@ class LineVM:
         tax_rate_display: The tax rate of the line item (as percentage).
         total_ht: The total HT of the line item.
     """
+
     designation: str
     description: str | None
     quantity: float
@@ -31,9 +34,11 @@ class TotalsVM:
         tax: The tax total of the quote.
         grand_total: The grand total of the quote.
     """
+
     subtotal: float
     tax: float
     grand_total: float
+
 
 @dataclass(frozen=True)
 class QuoteViewModel:
@@ -47,6 +52,7 @@ class QuoteViewModel:
         totals: The totals of the quote.
         branding: The branding of the quote.
     """
+
     seller: dict
     client: dict
     meta: dict

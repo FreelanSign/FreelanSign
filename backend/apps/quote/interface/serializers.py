@@ -13,14 +13,13 @@ from rest_framework.exceptions import ValidationError
 from apps.client.interface.serializers import ClientReadSerializer
 from apps.client.models import Client
 from apps.core.logging import get_logger
-from apps.quote.models import Quote, QuoteLineItem
-
 from apps.quote.domain.policies.tax_policy import (
-    normalize_rate_percent,
-    effective_rate_for_line,
-    validate_client_vat_rule,
     TaxPolicyError,
+    effective_rate_for_line,
+    normalize_rate_percent,
+    validate_client_vat_rule,
 )
+from apps.quote.models import Quote, QuoteLineItem
 
 getcontext().prec = 28
 
@@ -140,11 +139,7 @@ def _owner_vat_config(owner) -> Tuple[bool, Decimal]:
     return vat_exempt, owner_default
 
 
-def _collect_item_tax_rates(
-    items: Iterable[dict],
-    vat_exempt: bool,
-    owner_default_tax: Decimal
-) -> List[Decimal]:
+def _collect_item_tax_rates(items: Iterable[dict], vat_exempt: bool, owner_default_tax: Decimal) -> List[Decimal]:
     """Collect the tax rates for the items.
 
     Args:
@@ -159,11 +154,7 @@ def _collect_item_tax_rates(
     for item in items:
         raw = item.get("tax_rate", None)
         raw_dec = Decimal(str(raw)) if raw is not None else None
-        eff = effective_rate_for_line(
-            raw_dec,
-            owner_vat_exempt=vat_exempt,
-            owner_default_rate_pct=owner_default_tax
-        )
+        eff = effective_rate_for_line(raw_dec, owner_vat_exempt=vat_exempt, owner_default_rate_pct=owner_default_tax)
         rates.append(eff)
     return rates
 
@@ -232,11 +223,7 @@ def _create_items_and_compute_totals(
         _validate_item_basics(item, order)
         raw = item.get("tax_rate", None)
         raw_dec = Decimal(str(raw)) if raw is not None else None
-        tax_rate = effective_rate_for_line(
-            raw_dec,
-            owner_vat_exempt=vat_exempt,
-            owner_default_rate_pct=owner_default
-        )
+        tax_rate = effective_rate_for_line(raw_dec, owner_vat_exempt=vat_exempt, owner_default_rate_pct=owner_default)
         pt, ta = _create_and_accumulate_line(serializer, quote, item, order, owner, tax_rate)
         subtotal += pt
         tax_total += ta
@@ -619,7 +606,7 @@ class QuotePreviewPayloadSerializer(serializers.Serializer):
     branding = serializers.DictField(required=False)
 
     def validate(self, data):
-        """ Only normalize the data, do not validate the data. """
+        """Only normalize the data, do not validate the data."""
         normalized_lines = []
         for raw in data["lines"]:
             line = dict(raw)

@@ -1,6 +1,8 @@
 # apps/quote/application/ports/reference_gen.py
 from __future__ import annotations
+
 from typing import Protocol
+
 
 class ReferenceGenerator(Protocol):
     """

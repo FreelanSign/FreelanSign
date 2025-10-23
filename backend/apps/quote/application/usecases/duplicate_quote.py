@@ -1,10 +1,15 @@
 from __future__ import annotations
+
 from decimal import Decimal
+
 from django.utils import timezone
+
 from apps.quote.application.ports.quote_repository import QuoteRepository
+
 
 class DuplicateQuote:
     """Duplicate a quote."""
+
     def __init__(self, repo: QuoteRepository, reference_gen):
         self.repo = repo
         self.reference_gen = reference_gen
@@ -14,7 +19,8 @@ class DuplicateQuote:
         orig = self.repo.get(quote_id, include_lines=True)
         ref = self.reference_gen.new(actor.id)
         # construct header clone
-        from apps.quote.models import Quote, QuoteLineItem, QuoteHistory
+        from apps.quote.models import Quote, QuoteHistory, QuoteLineItem
+
         new_q = Quote.objects.create(
             owner=orig.owner,
             client=orig.client,

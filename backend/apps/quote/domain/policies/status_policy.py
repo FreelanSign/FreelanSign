@@ -15,6 +15,7 @@ ALLOWED_TRANSITIONS = {
     "EXPIRED": set(),
 }
 
+
 def can_transition(current: str, new: str) -> bool:
     """
     Check if a transition from current status to new status is allowed.

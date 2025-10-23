@@ -1,8 +1,10 @@
 # apps/quote/domain/policies/tax_policy.py
 from __future__ import annotations
+
 from decimal import Decimal
 
 ZERO = Decimal("0.00")
+
 
 class TaxPolicyError(ValueError):
     """
@@ -11,7 +13,9 @@ class TaxPolicyError(ValueError):
     Args:
         message: The error message.
     """
+
     pass
+
 
 def normalize_rate_percent(rate: Decimal | None) -> Decimal:
     """Rate as percentage (0..100). - None => None (callers decide)
@@ -26,18 +30,19 @@ def normalize_rate_percent(rate: Decimal | None) -> Decimal:
         The normalized tax rate (as percentage).
     """
     if rate is None:
-        return None # type: ignore
+        return None  # type: ignore
     r = Decimal(str(rate))
     if r < ZERO or r > Decimal("100.00"):
         raise TaxPolicyError("Tax rate must be between 0 and 100 (percentage).")
     return r.quantize(Decimal("0.01"))
+
 
 def effective_rate_for_line(
     explicit_rate_pct: Decimal | None,
     *,
     owner_vat_exempt: bool,
     owner_default_rate_pct: Decimal,
-    ) -> Decimal:
+) -> Decimal:
     """Compute the effective % tax rate for a line.
 
     Args:
@@ -52,13 +57,14 @@ def effective_rate_for_line(
         return ZERO
     if explicit_rate_pct is not None:
         return normalize_rate_percent(explicit_rate_pct)
-    return normalize_rate_percent(owner_default_rate_pct) # fallback
+    return normalize_rate_percent(owner_default_rate_pct)  # fallback
+
 
 def validate_client_vat_rule(
     client_country: str | None,
     owner_vat_exempt: bool,
     line_rates_pct: list[Decimal],
-    ):
+):
     """FR simple rule : if client is French, and owner is not VAT-exempt, then all lines must have a tax rate.
 
     Args:
@@ -74,4 +80,6 @@ def validate_client_vat_rule(
     if client_country and client_country.upper() in {"FR", "FRA", "FRANCE"}:
         any_zero = any((Decimal(str(r)).quantize(Decimal("0.01")) == ZERO for r in line_rates_pct))
         if any_zero:
-            raise TaxPolicyError("VAT missing for French client on lines with zero tax rate. Owner must apply VAT or be VAT-exempt.")
+            raise TaxPolicyError(
+                "VAT missing for French client on lines with zero tax rate. Owner must apply VAT or be VAT-exempt."
+            )

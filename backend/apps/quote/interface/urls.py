@@ -11,7 +11,6 @@ router.register(r"", QuoteViewSet, basename="quote")
 urlpatterns = [
     # endpoint pour la prévisualisation PDF
     path("preview-pdf/", QuotePreviewPdfView.as_view(), name="quote-preview-pdf"),
-
     # routes par défaut via router (inclut automatiquement l'action download_pdf)
     path("", include(router.urls)),
 ]

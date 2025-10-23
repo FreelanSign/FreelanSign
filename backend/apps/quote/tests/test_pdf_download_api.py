@@ -1,7 +1,9 @@
 # apps/quote/tests/test_download_pdf_api.py
+from decimal import Decimal
+
 import pytest
 from django.urls import reverse
-from decimal import Decimal
+
 
 @pytest.mark.django_db
 def test_download_pdf_ok(api_client, django_user_model, mock_pdf_and_email):
@@ -14,16 +16,27 @@ def test_download_pdf_ok(api_client, django_user_model, mock_pdf_and_email):
 
     cli = ClientModel.objects.create(owner=user, name="ACME", email="a@a.test")  # adapte si owner requis différemment
     q = Quote.objects.create(
-        owner=user, client=cli,
-        title="T", reference="REF-TEST",
-        currency="EUR", language="fr",
+        owner=user,
+        client=cli,
+        title="T",
+        reference="REF-TEST",
+        currency="EUR",
+        language="fr",
         status=Quote.Status.DRAFT,
         issue_date="2025-01-01",
-        subtotal=Decimal("0.00"), tax_total=Decimal("0.00"), discount_total=Decimal("0.00"), total=Decimal("0.00"),
+        subtotal=Decimal("0.00"),
+        tax_total=Decimal("0.00"),
+        discount_total=Decimal("0.00"),
+        total=Decimal("0.00"),
     )
     QuoteLineItem.objects.create(
-        quote=q, description="L1", qty=Decimal("1.00"), unit_price=Decimal("100.00"),
-        tax_rate=Decimal("20.00"), discount=Decimal("0.00"), order=0
+        quote=q,
+        description="L1",
+        qty=Decimal("1.00"),
+        unit_price=Decimal("100.00"),
+        tax_rate=Decimal("20.00"),
+        discount=Decimal("0.00"),
+        order=0,
     )
     q.recalculate_totals(save=True)
 

@@ -1,6 +1,8 @@
 # apps/quote/application/ports/email_sender.py
 from __future__ import annotations
+
 from typing import Protocol
+
 
 class EmailSender(Protocol):
     """

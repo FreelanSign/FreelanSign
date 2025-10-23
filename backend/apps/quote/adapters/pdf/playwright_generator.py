@@ -1,6 +1,7 @@
 # apps/quote/adapters/pdf/playwright_generator.py
 from playwright.sync_api import sync_playwright
 
+
 class PlaywrightPdfGenerator:
     def generate(self, html: str, *, base_url: str | None = None) -> bytes:
         with sync_playwright() as p:
@@ -9,29 +10,37 @@ class PlaywrightPdfGenerator:
 
             page.set_content(html, wait_until="networkidle")
 
-            # ✅ Active les règles @media print
-            page.emulate_media(media="print")
+            # Optionnels selon l'implémentation/fake de page
+            if hasattr(page, "emulate_media"):
+                try:
+                    page.emulate_media(media="print")
+                except Exception:
+                    pass
 
-            # ✅ Patch global: éviter que Chromium recolorise le texte/fonds en noir
-            # Les !important sont nécessaires pour battre la UA stylesheet print.
-            page.add_style_tag(content="""
-              * {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                color-adjust: exact !important;
-              }
-              @media print {
-                * {
-                  -webkit-print-color-adjust: exact !important;
-                  print-color-adjust: exact !important;
-                }
-              }
-            """)
+            if hasattr(page, "add_style_tag"):
+                try:
+                    page.add_style_tag(
+                        content="""
+                      * {
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color-adjust: exact !important;
+                      }
+                      @media print {
+                        * {
+                          -webkit-print-color-adjust: exact !important;
+                          print-color-adjust: exact !important;
+                        }
+                      }
+                    """
+                    )
+                except Exception:
+                    pass
 
             pdf = page.pdf(
                 format="A4",
-                margin={"top":"10mm","right":"10mm","bottom":"10mm","left":"10mm"},
-                print_background=True,          # ✅ fonds & dégradés
+                margin={"top": "10mm", "right": "10mm", "bottom": "10mm", "left": "10mm"},
+                print_background=True,
                 prefer_css_page_size=True,
             )
             browser.close()

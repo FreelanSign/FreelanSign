@@ -1,10 +1,14 @@
 # apps/quote/adapters/rendering/django_template_renderer.py
 
 from __future__ import annotations
+
 from types import SimpleNamespace
+
 from django.template.loader import render_to_string
-from apps.quote.application.ports.template_renderer import TemplateRenderer
+
 from apps.quote.application.dto.quote_viewmodels import QuoteViewModel
+from apps.quote.application.ports.template_renderer import TemplateRenderer
+
 
 class DjangoTemplateRenderer(TemplateRenderer):
     def render(self, template_key: str, vm: QuoteViewModel) -> str:
@@ -20,23 +24,25 @@ class DjangoTemplateRenderer(TemplateRenderer):
             "payment_terms_text": vm.meta.get("payment_terms_text"),
         }
 
-        lines = [{
-            # “nouveau” jeu de clés
-            "designation": l.designation,
-            "description": l.description,
-            "quantity": l.quantity,
-            "unit_price": l.unit_price,
-            "tax_rate": l.tax_rate_display / 100.0,   # 0..1 pour le template
-            "tax_rate_display": l.tax_rate_display,   # % pour affichage
-            "total_ht": l.total_ht,
-            "discount": 0.0,
-
-            # alias legacy
-            "qty": l.quantity,
-            "unit": l.unit_price,
-            "tva": l.tax_rate_display,      # %
-            "tax_rate_pct": l.tax_rate_display,
-        } for l in vm.lines]
+        lines = [
+            {
+                # “nouveau” jeu de clés
+                "designation": l.designation,
+                "description": l.description,
+                "quantity": l.quantity,
+                "unit_price": l.unit_price,
+                "tax_rate": l.tax_rate_display / 100.0,  # 0..1 pour le template
+                "tax_rate_display": l.tax_rate_display,  # % pour affichage
+                "total_ht": l.total_ht,
+                "discount": 0.0,
+                # alias legacy
+                "qty": l.quantity,
+                "unit": l.unit_price,
+                "tva": l.tax_rate_display,  # %
+                "tax_rate_pct": l.tax_rate_display,
+            }
+            for l in vm.lines
+        ]
 
         totals_raw = {
             "subtotal": float(vm.totals.subtotal or 0.0),
@@ -59,8 +65,8 @@ class DjangoTemplateRenderer(TemplateRenderer):
             "client": vm.client,
             "meta": vm.meta,
             "lines": lines,
-            "totals": totals_fmt,     # ⬅️ le template lit `totals.*` => prêt à afficher
-            "totals_raw": totals_raw, # ⬅️ dispo si besoin de calculs ailleurs
+            "totals": totals_fmt,  # ⬅️ le template lit `totals.*` => prêt à afficher
+            "totals_raw": totals_raw,  # ⬅️ dispo si besoin de calculs ailleurs
             "branding": vm.branding or {},
             "is_download": False,
         }

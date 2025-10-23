@@ -1,13 +1,17 @@
 # apps/quote/adapters/rendering/pdf_context_presenter.py
 from __future__ import annotations
-from typing import Any, Mapping, Sequence
+
 from types import SimpleNamespace
+from typing import Any, Mapping, Sequence
+
 from apps.quote.application.dto.quote_viewmodels import QuoteViewModel
+
 
 def _get(obj: Any, key: str, default=None):
     if isinstance(obj, Mapping):
         return obj.get(key, default)
     return getattr(obj, key, default)
+
 
 def _line_to_dict(line: Any) -> dict:
     if isinstance(line, Mapping):
@@ -34,6 +38,7 @@ def _line_to_dict(line: Any) -> dict:
         "tax_rate_display": tr_disp,
         "total_ht": getattr(line, "total_ht"),
     }
+
 
 def preview_context(vm: QuoteViewModel | dict, *, is_download: bool = False) -> dict:
     seller = _get(vm, "seller") or {}

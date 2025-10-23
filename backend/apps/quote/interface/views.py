@@ -2,15 +2,12 @@
 from __future__ import annotations
 
 import logging
-from textwrap import dedent
 import uuid
 from datetime import datetime
 from decimal import Decimal
+from textwrap import dedent
 from typing import Any, List, Optional
 
-from apps.quote.adapters.persistence.django_prestation_repository import DjangoPrestationRepository
-from apps.quote.application.usecases.add_prestation_line import AddPrestationLineToQuote, AddPrestationLineInput
-from apps.quote.adapters.rendering.pdf_context_presenter import preview_context
 from django.db import transaction
 from django.db.models import Prefetch
 from django.http import Http404, HttpResponse
@@ -29,6 +26,20 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.core.logging import get_logger
+from apps.quote.adapters.pdf.playwright_generator import PlaywrightPdfGenerator  # type: ignore
+from apps.quote.adapters.persistence.django_prestation_repository import DjangoPrestationRepository
+
+# --- NEW: Clean Arch imports (use cases + adapters) -----------------------------------
+from apps.quote.adapters.persistence.django_quote_repository import DjangoQuoteRepository  # type: ignore
+from apps.quote.adapters.rendering.django_template_renderer import DjangoTemplateRenderer  # type: ignore
+from apps.quote.adapters.rendering.pdf_context_presenter import preview_context
+from apps.quote.application.dto.quote_inputs import LineItemInputDTO, PreviewPayloadDTO
+from apps.quote.application.usecases.add_prestation_line import AddPrestationLineInput, AddPrestationLineToQuote
+from apps.quote.application.usecases.change_status import ChangeStatus  # type: ignore
+from apps.quote.application.usecases.download_pdf import DownloadPdf  # type: ignore
+from apps.quote.application.usecases.duplicate_quote import DuplicateQuote  # type: ignore
+from apps.quote.application.usecases.generate_preview import generate_preview
+from apps.quote.application.usecases.send_quote import SendQuote  # type: ignore
 from apps.quote.interface.permissions import IsOwnerOrAdmin
 from apps.quote.interface.renderers import PDFRenderer
 from apps.quote.interface.serializers import (
@@ -38,39 +49,31 @@ from apps.quote.interface.serializers import (
 )
 from apps.quote.models import Quote, QuoteHistory, QuoteLineItem
 
-# --- NEW: Clean Arch imports (use cases + adapters) -----------------------------------
-from apps.quote.adapters.persistence.django_quote_repository import DjangoQuoteRepository  # type: ignore
-from apps.quote.adapters.rendering.django_template_renderer import DjangoTemplateRenderer  # type: ignore
-from apps.quote.adapters.pdf.playwright_generator import PlaywrightPdfGenerator  # type: ignore
-
-from apps.quote.application.usecases.generate_preview import generate_preview
-from apps.quote.application.usecases.send_quote import SendQuote  # type: ignore
-from apps.quote.application.usecases.duplicate_quote import DuplicateQuote  # type: ignore
-from apps.quote.application.usecases.change_status import ChangeStatus  # type: ignore
-from apps.quote.application.usecases.download_pdf import DownloadPdf  # type: ignore
-
-from apps.quote.application.dto.quote_inputs import PreviewPayloadDTO, LineItemInputDTO
-
 logger = logging.getLogger(__name__)
 
 # --- NEW: optional adapters (fallback stubs if not yet implemented) -------------------
 try:
     from apps.quote.adapters.email.django_email_sender import DjangoEmailSender  # type: ignore
 except Exception:
+
     class DjangoEmailSender:  # minimal stub
         def send_quote(self, *, recipients: list[str], subject: str, body_html: str, attachments: list[tuple[str, bytes]]):
             return None
 
+
 try:
     from apps.quote.adapters.reference.django_reference_gen import DjangoReferenceGenerator  # type: ignore
 except Exception:
+
     class DjangoReferenceGenerator:
         def new(self, owner_id) -> str:
             short = uuid.uuid4().hex[:8].upper()
             ts = datetime.utcnow().strftime("%y%m%d%H%M%S")
             return f"REF-{short}-{ts}"
 
+
 # --------------------------------------------------------------------------------------
+
 
 # Small serializer to document change_status payload in the schema
 class ChangeStatusSerializer(serializers.Serializer):
@@ -216,17 +219,22 @@ class QuoteViewSet(viewsets.ModelViewSet):
         vat_exempt, default_rate = self._owner_vat_config_from_user(request.user)
 
         uc = AddPrestationLineToQuote(quotes=self._repo(), prestations=self._prestations())
-        q, li = uc.execute(AddPrestationLineInput(
-            quote_id=str(quote.pk),
-            prestation_id=str(body["prestation_id"]),
-            qty=(Decimal(str(body.get("qty", None))) if body.get("qty", None) is not None else None),
-            tax_rate_pct=(Decimal(str(body.get("tax_rate_pct", None))) if body.get("tax_rate_pct", None) is not None else None),
-            discount=(Decimal(str(body.get("discount", None))) if body.get("discount", None) is not None else None),
-            order=body.get("order", 0),
-            owner_vat_exempt=vat_exempt,
-            owner_default_rate_pct=default_rate,
-        ))
+        q, li = uc.execute(
+            AddPrestationLineInput(
+                quote_id=str(quote.pk),
+                prestation_id=str(body["prestation_id"]),
+                qty=(Decimal(str(body.get("qty", None))) if body.get("qty", None) is not None else None),
+                tax_rate_pct=(
+                    Decimal(str(body.get("tax_rate_pct", None))) if body.get("tax_rate_pct", None) is not None else None
+                ),
+                discount=(Decimal(str(body.get("discount", None))) if body.get("discount", None) is not None else None),
+                order=body.get("order", 0),
+                owner_vat_exempt=vat_exempt,
+                owner_default_rate_pct=default_rate,
+            )
+        )
         from apps.quote.interface.serializers import QuoteSerializer
+
         return Response(QuoteSerializer(q, context={"request": request}).data, status=200)
 
     # ----------------------
@@ -380,7 +388,11 @@ class QuoteViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         logger.info(
             "quote.partial_update.request",
-            extra={"quote_id": str(getattr(instance, "id", None)), "user_id": getattr(request.user, "id", None), "data": request.data},
+            extra={
+                "quote_id": str(getattr(instance, "id", None)),
+                "user_id": getattr(request.user, "id", None),
+                "data": request.data,
+            },
         )
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         if not serializer.is_valid():
@@ -395,7 +407,11 @@ class QuoteViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         logger.info(
             "quote.update.request",
-            extra={"quote_id": str(getattr(instance, "id", None)), "user_id": getattr(request.user, "id", None), "data": request.data},
+            extra={
+                "quote_id": str(getattr(instance, "id", None)),
+                "user_id": getattr(request.user, "id", None),
+                "data": request.data,
+            },
         )
         serializer = self.get_serializer(instance, data=request.data)
         if not serializer.is_valid():
@@ -424,6 +440,7 @@ class QuotePreviewPdfView(APIView):
 
         # Mapper payload -> DTO (tax_rate en %)
         from decimal import Decimal as D
+
         lines_dto: list[LineItemInputDTO] = []
         for line in data["lines"]:
             raw_tr = line.get("tax_rate")

@@ -1,13 +1,16 @@
 from __future__ import annotations
-from apps.quote.application.usecases.generate_preview import generate_preview
-from apps.quote.application.dto.quote_inputs import PreviewPayloadDTO, LineItemInputDTO
-from apps.quote.application.ports.template_renderer import TemplateRenderer
+
+from apps.quote.application.dto.quote_inputs import LineItemInputDTO, PreviewPayloadDTO
+from apps.quote.application.ports.email_sender import EmailSender
 from apps.quote.application.ports.pdf_generator import PdfGenerator
 from apps.quote.application.ports.quote_repository import QuoteRepository
-from apps.quote.application.ports.email_sender import EmailSender
+from apps.quote.application.ports.template_renderer import TemplateRenderer
+from apps.quote.application.usecases.generate_preview import generate_preview
+
 
 class SendQuote:
     """Send a quote."""
+
     def __init__(self, repo: QuoteRepository, renderer: TemplateRenderer, pdf: PdfGenerator, mailer: EmailSender):
         self.repo, self.renderer, self.pdf, self.mailer = repo, renderer, pdf, mailer
 
@@ -21,8 +24,9 @@ class SendQuote:
                 qty=li.qty,
                 unit_price=li.unit_price,
                 discount=li.discount,
-                tax_rate_pct=li.tax_rate,   # already in %
-            ) for li in quote.items.all()
+                tax_rate_pct=li.tax_rate,  # already in %
+            )
+            for li in quote.items.all()
         ]
         dto = PreviewPayloadDTO(
             seller={"name": getattr(actor, "display_name", "Owner")},
@@ -41,13 +45,17 @@ class SendQuote:
         # persist attachment if you have a helper; otherwise leave as email-only
         try:
             from apps.quote.models import QuoteHistory
+
             # attach to model filefield if needed
             # quote.pdf_file.save(filename, ContentFile(pdf_bytes))  # optional
             quote.status = "SENT"
             from django.utils import timezone
+
             quote.sent_at = timezone.now()
-            quote.save(update_fields=["status","sent_at","updated_at"])
-            QuoteHistory.objects.create(quote=quote, payload_snapshot={"status":"SENT"}, action=QuoteHistory.Action.SENT, actor=actor)
+            quote.save(update_fields=["status", "sent_at", "updated_at"])
+            QuoteHistory.objects.create(
+                quote=quote, payload_snapshot={"status": "SENT"}, action=QuoteHistory.Action.SENT, actor=actor
+            )
         except Exception:
             pass
 

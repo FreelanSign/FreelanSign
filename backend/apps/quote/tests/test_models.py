@@ -1,5 +1,6 @@
 # apps/quote/tests/test_models.py
 from decimal import Decimal
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.utils import timezone
