@@ -55,7 +55,7 @@ export default function ProfileEditPage() {
         const prof = await userRepository.getProfessionalMe();
         if (!mounted) return;
         setProfessional(prof ?? null);
-        setSelectedServiceIds(prof?.service_types ?? []);
+        setSelectedServiceIds(prof?.service_type_ids ?? []);
         // init draft from backend values
         setProDraft({
           name: prof?.name ?? null,
@@ -107,7 +107,7 @@ export default function ProfileEditPage() {
     status_juridique?: string | null;
     domaine?: number | null;
     number_pro?: string | null;
-    service_types?: number[];
+    service_type_ids?: number[];
     tjm_cents?: number | null;
   };
 
@@ -148,7 +148,7 @@ export default function ProfileEditPage() {
         status_juridique: proDraft.status_juridique ?? null,
         domaine: proDraft.domaine ?? null,
         number_pro: proDraft.number_pro ?? null,
-        service_types: selectedServiceIds ?? [],
+        service_type_ids: selectedServiceIds ?? [],
         tjm_cents: null,
       };
 
@@ -167,7 +167,7 @@ export default function ProfileEditPage() {
       // re-fetch professional
       const prof = await userRepository.getProfessionalMe();
       setProfessional(prof ?? null);
-      setSelectedServiceIds(prof?.service_types ?? []);
+      setSelectedServiceIds(prof?.service_type_ids ?? []);
       // update draft with persisted values
       setProDraft({
         name: prof?.name ?? null,
@@ -257,7 +257,7 @@ export default function ProfileEditPage() {
                 await userRepository.updateProfessionalMe(payload);
                 const prof = await userRepository.getProfessionalMe();
                 setProfessional(prof ?? null);
-                setSelectedServiceIds(prof?.service_types ?? []);
+                setSelectedServiceIds(prof?.service_type_ids ?? []);
               }}
               onDomaineChange={handleDomaineChange}
               onValuesChange={(vals) => handleProValuesChange(vals)}
@@ -268,16 +268,15 @@ export default function ProfileEditPage() {
               <PrestationsSelector
                 professionalId={professional.id}
                 domaine={proDraft.domaine ?? professional.domaine ?? null}
-                initialSelected={selectedServiceIds}
-                onChange={(ids) => setSelectedServiceIds(ids)}
+                selected={selectedServiceIds}
+                onChange={setSelectedServiceIds}
                 onSave={async (ids) => {
-                  // optionally allow saving uniquement les prestations depuis le composant
                   await userRepository.updateProfessionalMe({
-                    service_types: ids,
+                    service_type_ids: ids,
                   });
                   const prof = await userRepository.getProfessionalMe();
                   setProfessional(prof ?? null);
-                  setSelectedServiceIds(prof?.service_types ?? []);
+                  setSelectedServiceIds(prof?.service_type_ids ?? []);
                   alert('Prestations mises à jour');
                 }}
               />
