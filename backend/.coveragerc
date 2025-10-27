@@ -1,0 +1,25 @@
+[run]
+branch = True
+source =
+    apps
+    config
+omit =
+    */migrations/*
+    */tests/*
+    */venv/*
+    .venv/*
+    manage.py
+    config/asgi.py
+    config/wsgi.py
+
+[report]
+show_missing = True
+skip_covered = True
+precision = 2
+fail_under = 85
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml

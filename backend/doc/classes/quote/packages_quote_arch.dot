@@ -1,0 +1,46 @@
+digraph "packages_quote_arch" {
+rankdir=BT
+charset="utf-8"
+"apps.quote" [color="black", label=<apps.quote>, shape="box", style="solid"];
+"apps.quote.admin" [color="black", label=<apps.quote.admin>, shape="box", style="solid"];
+"apps.quote.apps" [color="black", label=<apps.quote.apps>, shape="box", style="solid"];
+"apps.quote.interface" [color="black", label=<apps.quote.interface>, shape="box", style="solid"];
+"apps.quote.interface.permissions" [color="black", label=<apps.quote.interface.permissions>, shape="box", style="solid"];
+"apps.quote.interface.renderers" [color="black", label=<apps.quote.interface.renderers>, shape="box", style="solid"];
+"apps.quote.interface.serializers" [color="black", label=<apps.quote.interface.serializers>, shape="box", style="solid"];
+"apps.quote.interface.urls" [color="black", label=<apps.quote.interface.urls>, shape="box", style="solid"];
+"apps.quote.interface.views" [color="black", label=<apps.quote.interface.views>, shape="box", style="solid"];
+"apps.quote.migrations" [color="black", label=<apps.quote.migrations>, shape="box", style="solid"];
+"apps.quote.migrations.0001_initial" [color="black", label=<apps.quote.migrations.0001_initial>, shape="box", style="solid"];
+"apps.quote.migrations.0002_alter_quotelineitem_options_and_more" [color="black", label=<apps.quote.migrations.0002_alter_quotelineitem_options_and_more>, shape="box", style="solid"];
+"apps.quote.migrations.0003_alter_paymentterms_owner_and_more" [color="black", label=<apps.quote.migrations.0003_alter_paymentterms_owner_and_more>, shape="box", style="solid"];
+"apps.quote.models" [color="black", label=<apps.quote.models>, shape="box", style="solid"];
+"apps.quote.signals" [color="black", label=<apps.quote.signals>, shape="box", style="solid"];
+"apps.quote.tests" [color="black", label=<apps.quote.tests>, shape="box", style="solid"];
+"apps.quote.tests.conftest" [color="black", label=<apps.quote.tests.conftest>, shape="box", style="solid"];
+"apps.quote.tests.test_add_prestation_line_api" [color="black", label=<apps.quote.tests.test_add_prestation_line_api>, shape="box", style="solid"];
+"apps.quote.tests.test_mock_verification" [color="black", label=<apps.quote.tests.test_mock_verification>, shape="box", style="solid"];
+"apps.quote.tests.test_models" [color="black", label=<apps.quote.tests.test_models>, shape="box", style="solid"];
+"apps.quote.tests.test_pdf_download_api" [color="black", label=<apps.quote.tests.test_pdf_download_api>, shape="box", style="solid"];
+"apps.quote.tests.test_permissions" [color="black", label=<apps.quote.tests.test_permissions>, shape="box", style="solid"];
+"apps.quote.tests.test_preview" [color="black", label=<apps.quote.tests.test_preview>, shape="box", style="solid"];
+"apps.quote.tests.test_quote_actions_api" [color="black", label=<apps.quote.tests.test_quote_actions_api>, shape="box", style="solid"];
+"apps.quote.tests.test_serializers" [color="black", label=<apps.quote.tests.test_serializers>, shape="box", style="solid"];
+"apps.quote.views" [color="black", label=<apps.quote.views>, shape="box", style="solid"];
+"apps.quote.admin" -> "apps.quote.models" [arrowhead="open", arrowtail="none"];
+"apps.quote.interface.serializers" -> "apps.quote.models" [arrowhead="open", arrowtail="none"];
+"apps.quote.interface.urls" -> "apps.quote.interface.views" [arrowhead="open", arrowtail="none"];
+"apps.quote.interface.views" -> "apps.quote.interface.permissions" [arrowhead="open", arrowtail="none"];
+"apps.quote.interface.views" -> "apps.quote.interface.renderers" [arrowhead="open", arrowtail="none"];
+"apps.quote.interface.views" -> "apps.quote.interface.serializers" [arrowhead="open", arrowtail="none"];
+"apps.quote.interface.views" -> "apps.quote.models" [arrowhead="open", arrowtail="none"];
+"apps.quote.signals" -> "apps.quote.models" [arrowhead="open", arrowtail="none"];
+"apps.quote.tests.test_add_prestation_line_api" -> "apps.quote.models" [arrowhead="open", arrowtail="none"];
+"apps.quote.tests.test_mock_verification" -> "apps.quote.interface.views" [arrowhead="open", arrowtail="none"];
+"apps.quote.tests.test_models" -> "apps.quote.models" [arrowhead="open", arrowtail="none"];
+"apps.quote.tests.test_pdf_download_api" -> "apps.quote.models" [arrowhead="open", arrowtail="none"];
+"apps.quote.tests.test_permissions" -> "apps.quote.models" [arrowhead="open", arrowtail="none"];
+"apps.quote.tests.test_quote_actions_api" -> "apps.quote.models" [arrowhead="open", arrowtail="none"];
+"apps.quote.tests.test_serializers" -> "apps.quote.interface.serializers" [arrowhead="open", arrowtail="none"];
+"apps.quote.tests.test_serializers" -> "apps.quote.models" [arrowhead="open", arrowtail="none"];
+}

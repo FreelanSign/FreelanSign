@@ -56,7 +56,7 @@ export default function ProfilePage() {
         if (prof) {
           setPrestations('loading');
 
-          const ids = prof.service_types ?? [];
+          const ids = prof.service_type_ids ?? [];
           try {
             const prestationsResult =
               await catalogRepository.getPrestationsByIds(ids);

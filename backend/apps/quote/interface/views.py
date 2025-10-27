@@ -5,7 +5,7 @@ import logging
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from turtle import pd
+from textwrap import dedent
 from typing import Any, List, Optional
 
 from django.db import transaction
@@ -26,42 +26,53 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.core.logging import get_logger
+from apps.quote.adapters.pdf.playwright_generator import PlaywrightPdfGenerator  # type: ignore
+from apps.quote.adapters.persistence.django_prestation_repository import DjangoPrestationRepository
+
+# --- NEW: Clean Arch imports (use cases + adapters) -----------------------------------
+from apps.quote.adapters.persistence.django_quote_repository import DjangoQuoteRepository  # type: ignore
+from apps.quote.adapters.rendering.django_template_renderer import DjangoTemplateRenderer  # type: ignore
+from apps.quote.adapters.rendering.pdf_context_presenter import preview_context
+from apps.quote.application.dto.quote_inputs import LineItemInputDTO, PreviewPayloadDTO
+from apps.quote.application.usecases.add_prestation_line import AddPrestationLineInput, AddPrestationLineToQuote
+from apps.quote.application.usecases.change_status import ChangeStatus  # type: ignore
+from apps.quote.application.usecases.download_pdf import DownloadPdf  # type: ignore
+from apps.quote.application.usecases.duplicate_quote import DuplicateQuote  # type: ignore
+from apps.quote.application.usecases.generate_preview import generate_preview
+from apps.quote.application.usecases.send_quote import SendQuote  # type: ignore
 from apps.quote.interface.permissions import IsOwnerOrAdmin
 from apps.quote.interface.renderers import PDFRenderer
 from apps.quote.interface.serializers import (
-    ClientReadSerializer,
     QuoteCreateUpdateSerializer,
     QuotePreviewPayloadSerializer,
     QuoteSerializer,
 )
 from apps.quote.models import Quote, QuoteHistory, QuoteLineItem
-from apps.quote.services.pdf_generator import (
-    QuotePdfError,
-)
-from apps.quote.services.pdf_generator import render_quote_pdf as render_quote_document_pdf
-from apps.quote.services.pdf_preview import (
-    QuotePreviewContext,
-)
-from apps.quote.services.pdf_preview import render_quote_pdf as render_quote_preview_pdf
 
 logger = logging.getLogger(__name__)
 
-# Try to import real services; provide safe no-op fallbacks when not present.
+# --- NEW: optional adapters (fallback stubs if not yet implemented) -------------------
 try:
-    from apps.quote.services.email_pdf import attach_pdf_to_quote, generate_pdf_for_quote, send_quote_email  # type: ignore
+    from apps.quote.adapters.email.django_email_sender import DjangoEmailSender  # type: ignore
 except Exception:
 
-    def generate_pdf_for_quote(quote: Quote) -> Optional[bytes]:
-        """Stub: return None in test environment if service not implemented."""
-        return None
+    class DjangoEmailSender:  # minimal stub
+        def send_quote(self, *, recipients: list[str], subject: str, body_html: str, attachments: list[tuple[str, bytes]]):
+            return None
 
-    def attach_pdf_to_quote(quote: Quote, pdf_content: Any) -> None:
-        """Stub: no-op attach."""
-        return None
 
-    def send_quote_email(quote: Quote, recipients: List[str]) -> None:
-        """Stub: no-op send."""
-        return None
+try:
+    from apps.quote.adapters.reference.django_reference_gen import DjangoReferenceGenerator  # type: ignore
+except Exception:
+
+    class DjangoReferenceGenerator:
+        def new(self, owner_id) -> str:
+            short = uuid.uuid4().hex[:8].upper()
+            ts = datetime.utcnow().strftime("%y%m%d%H%M%S")
+            return f"REF-{short}-{ts}"
+
+
+# --------------------------------------------------------------------------------------
 
 
 # Small serializer to document change_status payload in the schema
@@ -74,26 +85,6 @@ class StandardResultsSetPagination(PageNumberPagination):
     page_size = 20
     page_size_query_param = "page_size"
     max_page_size = 200
-
-
-# Allowed status transitions (simple example)
-ALLOWED_TRANSITIONS = {
-    "DRAFT": {"SENT", "CANCELLED"},
-    "SENT": {"ACCEPTED", "REJECTED", "CANCELLED"},
-    "ACCEPTED": {"PAID", "CANCELLED"},
-    "REJECTED": {"DRAFT"},
-    # PAID/CANCELLED/EXPIRED considered terminal in this simplified graph
-}
-
-
-def _generate_reference_for_owner(owner) -> str:
-    """
-    Small unique-ish reference generator for duplicated quotes.
-    Replace with your domain-specific generator if needed.
-    """
-    short = uuid.uuid4().hex[:8].upper()
-    ts = datetime.utcnow().strftime("%y%m%d%H%M%S")
-    return f"REF-{short}-{ts}"
 
 
 @extend_schema_view(
@@ -118,19 +109,14 @@ def _generate_reference_for_owner(owner) -> str:
     change_status=extend_schema(
         tags=["Quote"],
         summary="Change quote status",
-        description="Change the status of the quote with validation of allowed transitions.",
+        description="Change the status of the quote with policy validation.",
         request=ChangeStatusSerializer,
         responses=QuoteSerializer,
     ),
 )
 class QuoteViewSet(viewsets.ModelViewSet):
     """
-    Quote ModelViewSet exposing CRUD and custom actions:
-      - send: mark quote as SENT, generate & attach PDF, send email, create history entry
-      - duplicate: clone a quote into a new DRAFT
-      - change_status: change with allowed-transition validation
-      - partial_delete: convenience to cancel (soft delete)
-    Access rules: controlled by IsOwnerOrAdmin permission class and by get_queryset/get_object logic.
+    Views minces : délèguent au coeur applicatif (use cases).
     """
 
     queryset = Quote.objects.all().select_related("client").prefetch_related("items")
@@ -142,8 +128,52 @@ class QuoteViewSet(viewsets.ModelViewSet):
     ordering_fields = ["issue_date", "total"]
     search_fields = ["reference", "title", "metadata"]
 
+    # --- helpers clean ----------------------------------------------------------------
+    def _repo(self) -> DjangoQuoteRepository:
+        return DjangoQuoteRepository()
+
+    def _renderer(self) -> DjangoTemplateRenderer:
+        return DjangoTemplateRenderer()
+
+    def _pdf(self) -> PlaywrightPdfGenerator:
+        return PlaywrightPdfGenerator()
+
+    def _mailer(self) -> DjangoEmailSender:
+        return DjangoEmailSender()
+
+    def _reference_gen(self) -> DjangoReferenceGenerator:
+        return DjangoReferenceGenerator()
+
+    def _prestations(self) -> DjangoPrestationRepository:
+        return DjangoPrestationRepository()
+
+    def _owner_vat_config_from_user(self, user) -> tuple[bool, Decimal]:
+        profile = getattr(user, "profile", None)
+        vat_exempt = bool(getattr(profile, "vat_exempt", False))
+        default_rate = getattr(profile, "default_tax_rate", None)
+        if default_rate is None:
+            default_rate = Decimal("20.00")
+        else:
+            default_rate = Decimal(str(default_rate)).quantize(Decimal("0.01"))
+        return vat_exempt, default_rate
+
+    def _client_country_from_model(self, client) -> str | None:
+        if not client:
+            return None
+        for key in ("country", "country_code", "billing_country"):
+            val = getattr(client, key, None)
+            if val:
+                return str(val).upper()
+        meta = getattr(client, "metadata", None)
+        if isinstance(meta, dict):
+            for key in ("country", "country_code", "billing_country"):
+                if meta.get(key):
+                    return str(meta[key]).upper()
+        return None
+
+    # ----------------------------------------------------------------------------------
+
     def get_serializer_class(self):
-        """Use write serializer for create/update; read serializer otherwise."""
         if self.action in ("create", "update", "partial_update"):
             return QuoteCreateUpdateSerializer
         return QuoteSerializer
@@ -153,50 +183,62 @@ class QuoteViewSet(viewsets.ModelViewSet):
             Prefetch("items", queryset=QuoteLineItem.objects.select_related().order_by("order"))
         )
         user = getattr(self.request, "user", None)
-        # Non admin ne voient que leurs propres devis, admins voient tous les devis
         if user and (user.is_staff or user.is_superuser):
             return queryset
         return queryset.filter(owner=user)
 
-    # ----------------------
-    # Helper: robust detail lookup
-    # ----------------------
     def _get_detail_obj(self, pk: str) -> Quote:
-        """
-        Resolve a Quote instance for detail actions:
-          1) try scoped lookup using filter_queryset(self.get_queryset()) (owner-scoped)
-          2) if not found and request.user is staff/superuser, attempt unrestricted lookup via model manager
-          3) otherwise raise Http404
-        This central helper avoids 404 surprises for admins while keeping list scoping strict.
-        """
         filter_kwargs = {"pk": pk}
         try:
             return get_object_or_404(self.filter_queryset(self.get_queryset()), **filter_kwargs)
         except Http404:
             user = getattr(self.request, "user", None)
             if user and (user.is_staff or user.is_superuser):
-                # Unrestricted lookup for admins
                 return get_object_or_404(Quote.objects.select_related("owner", "client"), **filter_kwargs)
-            # Non-admins get the 404
             raise
 
-    # Override default get_object so DRF internals and other mixins use the same logic
     def get_object(self):
-        """
-        Use the helper-based lookup, then check object permissions.
-        """
         lookup_field = self.lookup_field or "pk"
         lookup_value = self.kwargs.get(lookup_field) or self.kwargs.get("pk")
         if not lookup_value:
             raise Http404
-
         obj = self._get_detail_obj(lookup_value)
-        # perform object-level permission checks (raises if not allowed)
         self.check_object_permissions(self.request, obj)
         return obj
 
+    @action(detail=True, methods=["post"], url_path="add-prestation-line")
+    def add_prestation_line(self, request, pk=None):
+        """Add a prestation line to a quote."""
+        quote = self._get_detail_obj(pk)
+        self.check_object_permissions(request, quote)
+
+        body = request.data or {}
+        if "prestation_id" not in body:
+            return Response({"detail": "Missing 'prestation_id' in payload."}, status=400)
+
+        vat_exempt, default_rate = self._owner_vat_config_from_user(request.user)
+
+        uc = AddPrestationLineToQuote(quotes=self._repo(), prestations=self._prestations())
+        q, li = uc.execute(
+            AddPrestationLineInput(
+                quote_id=str(quote.pk),
+                prestation_id=str(body["prestation_id"]),
+                qty=(Decimal(str(body.get("qty", None))) if body.get("qty", None) is not None else None),
+                tax_rate_pct=(
+                    Decimal(str(body.get("tax_rate_pct", None))) if body.get("tax_rate_pct", None) is not None else None
+                ),
+                discount=(Decimal(str(body.get("discount", None))) if body.get("discount", None) is not None else None),
+                order=body.get("order", 0),
+                owner_vat_exempt=vat_exempt,
+                owner_default_rate_pct=default_rate,
+            )
+        )
+        from apps.quote.interface.serializers import QuoteSerializer
+
+        return Response(QuoteSerializer(q, context={"request": request}).data, status=200)
+
     # ----------------------
-    # Standard handlers (keep audit behavior on destroy)
+    # Standard handlers
     # ----------------------
     def retrieve(self, request, *args, **kwargs):
         logger = get_logger(__name__, request)
@@ -214,222 +256,133 @@ class QuoteViewSet(viewsets.ModelViewSet):
                 },
             )
             return resp
-        except Exception as e:
+        except Exception:
             logger.exception(
                 "quote.retrieve.error",
-                extra={
-                    "req": getattr(request, "req_id", None),
-                    "quote_id": kwargs.get("pk"),
-                },
+                extra={"req": getattr(request, "req_id", None), "quote_id": kwargs.get("pk")},
             )
             raise
 
     def perform_destroy(self, instance: Quote):
-        """
-        Soft-cancel the quote and create a history entry.
-        This is used both internally and by the destroy handler below.
-        """
         instance.status = Quote.Status.CANCELLED
         instance.save(update_fields=["status", "updated_at"])
         QuoteHistory.objects.create(
             quote=instance,
             payload_snapshot={"action": "partial_delete"},
-            action=QuoteHistory.Action.UPDATED if hasattr(QuoteHistory, "Action") else "updated",
+            action=QuoteHistory.Action.UPDATED,
             actor=getattr(self.request, "user", None),
         )
 
     def destroy(self, request, *args, **kwargs):
-        """Destroy endpoint mapped to soft-cancel logic using consistent lookup."""
-        # get_object() already performs object-permission checks, so we don't re-check incorrectly.
         obj = self.get_object()
         self.perform_destroy(obj)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     # ----------------------
-    # Custom actions
+    # Custom actions (CLEAN ARCH)
     # ----------------------
     @action(detail=True, methods=["post"])
     def send(self, request, pk=None):
         """
-        Mark quote as SENT, generate and attach PDF, trigger email send and create history entry.
-        Only owner should be allowed by permission class (IsOwnerOrAdmin implements that rule).
+        Orchestration métier via use case SendQuote (PDF + mail + statut SENT + history).
         """
+        # scope + permission
         quote = self._get_detail_obj(pk)
-        # perform object-level permission check (will raise 403 if not allowed)
         self.check_object_permissions(request, quote)
-        # --- Defensive check: ensure only the owner can send the quote ---
-        # This is redundant if the permission class already enforces it,
-        # but provides a clearer error message and explicit guard.
         if getattr(quote, "owner", None) != getattr(request, "user", None):
-            return Response(
-                {"detail": "Only the owner of the quote is allowed to send it."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        quote.status = Quote.Status.SENT
-        quote.sent_at = timezone.now()
-        quote.save(update_fields=["status", "sent_at", "updated_at"])
+            return Response({"detail": "Only the owner of the quote is allowed to send it."}, status=403)
 
-        QuoteHistory.objects.create(
-            quote=quote,
-            payload_snapshot={"status": "SENT"},
-            action=QuoteHistory.Action.SENT if hasattr(QuoteHistory, "Action") else "sent",
-            actor=getattr(request, "user", None),
+        # policies context
+        vat_exempt, default_rate = self._owner_vat_config_from_user(request.user)
+        client_country = self._client_country_from_model(quote.client)
+
+        # use case + adapters
+        uc = SendQuote(
+            repo=self._repo(),
+            renderer=self._renderer(),
+            pdf=self._pdf(),
+            mailer=self._mailer(),
         )
-
-        # Generate PDF and attach (best-effort)
-        pdf_content = generate_pdf_for_quote(quote)
-        if pdf_content is not None:
-            try:
-                attach_pdf_to_quote(quote, pdf_content)
-            except Exception:
-                # in production log this; do not fail the API call
-                pass
-
-        # Send email (best-effort)
-        try:
-            recipients: List[str] = []
-            if getattr(quote.client, "email", None):
-                recipients.append(quote.client.email)
-            if request.user and getattr(request.user, "email", None):
-                recipients.append(request.user.email)
-            if recipients:
-                send_quote_email(quote, recipients)
-        except Exception:
-            # swallow to avoid 500 in absence of real service
-            pass
-
-        serializer = QuoteSerializer(quote, context={"request": request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        out_quote, _pdf_bytes = uc.execute(
+            quote_id=str(quote.pk),
+            owner_vat_exempt=vat_exempt,
+            owner_default_rate_pct=default_rate,
+            client_country=client_country,
+            actor=request.user,
+        )
+        return Response(QuoteSerializer(out_quote, context={"request": request}).data, status=200)
 
     @action(detail=True, methods=["post"])
     def duplicate(self, request, pk=None):
         """
-        Duplicate a quote into a new DRAFT quote; duplicate lines and metadata.
-        Returns 201 with the new quote.
+        Clone un devis en DRAFT via use case DuplicateQuote.
         """
         original = self._get_detail_obj(pk)
-        # perform object-level permission check (will raise 403 if not allowed)
         self.check_object_permissions(request, original)
 
-        owner = request.user
-        cloned_fields = {
-            "owner": original.owner,  # keep same owner
-            "client": original.client,
-            "title": f"{original.title} (copy)",
-            "reference": _generate_reference_for_owner(owner),
-            "currency": original.currency,
-            "language": original.language,
-            "status": Quote.Status.DRAFT,
-            "issue_date": timezone.now().date(),
-            "valid_until": original.valid_until,
-            "payment_terms": original.payment_terms,
-            "payment_terms_text": original.payment_terms_text,
-            "note": original.note,
-            "metadata": original.metadata or {},
-            "subtotal": Decimal("0.00"),
-            "tax_total": Decimal("0.00"),
-            "discount_total": original.discount_total or Decimal("0.00"),
-            "total": Decimal("0.00"),
-        }
-
+        uc = DuplicateQuote(repo=self._repo(), reference_gen=self._reference_gen())
         with transaction.atomic():
-            new_quote = Quote.objects.create(**cloned_fields)
-            # duplicate line items
-            for li in original.items.all():
-                QuoteLineItem.objects.create(
-                    quote=new_quote,
-                    description=li.description,
-                    qty=li.qty,
-                    unit_price=li.unit_price,
-                    tax_rate=li.tax_rate,
-                    discount=li.discount,
-                    order=li.order,
-                    metadata=li.metadata or {},
-                )
+            new_quote = uc.execute(quote_id=str(original.pk), actor=request.user)
 
-            # attempt to recalc totals via model helper if present, fallback otherwise
-            try:
-                # models may implement recalculate_totals(save=True)
-                new_quote.recalculate_totals(save=True)
-            except Exception:
-                subtotal = sum((l.pre_tax_total() for l in new_quote.items.all()), Decimal("0.00"))
-                tax_total = sum((l.tax_amount() for l in new_quote.items.all()), Decimal("0.00"))
-                total = subtotal + tax_total - (new_quote.discount_total or Decimal("0.00"))
-                Quote.objects.filter(pk=new_quote.pk).update(subtotal=subtotal, tax_total=tax_total, total=total)
+        return Response(QuoteSerializer(new_quote, context={"request": request}).data, status=201)
 
-            QuoteHistory.objects.create(
-                quote=new_quote,
-                payload_snapshot={"duplicated_from": str(original.pk)},
-                action=QuoteHistory.Action.CREATED if hasattr(QuoteHistory, "Action") else "created",
-                actor=getattr(request, "user", None),
-            )
-
-        serializer = QuoteSerializer(new_quote, context={"request": request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+    # TODO: Exception handler centralisé pour remplacer les try/catch et les gérer avec un decorator
     @action(detail=True, methods=["post"])
     def change_status(self, request, pk=None):
         """
-        Change the quote status with validation against ALLOWED_TRANSITIONS.
-        Payload: {"status": "ACCEPTED"}.
+        Change le statut via policy (ChangeStatus use case).
+        Payload: {"status": "..."}.
         """
+        if "status" not in request.data:
+            return Response({"detail": "Missing 'status' in payload."}, status=400)
+
         quote = self._get_detail_obj(pk)
-        # perform object-level permission check (will raise 403 if not allowed)
         self.check_object_permissions(request, quote)
 
-        new_status = request.data.get("status")
-        if not new_status:
-            return Response({"detail": "Missing 'status' in payload."}, status=status.HTTP_400_BAD_REQUEST)
+        uc = ChangeStatus(repo=self._repo())
+        try:
+            updated = uc.execute(quote_id=str(quote.pk), new_status=str(request.data["status"]), actor=request.user)
+        except ValueError as e:  # transitions illégales
+            return Response({"detail": str(e)}, status=400)
 
-        current = quote.status
-        allowed = ALLOWED_TRANSITIONS.get(current, set())
-        if new_status not in allowed:
-            return Response(
-                {"detail": f"Transition from {current} to {new_status} is not allowed."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        return Response(QuoteSerializer(updated, context={"request": request}).data, status=200)
 
-        # perform transition and persist
-        quote.status = new_status
-        if new_status == Quote.Status.ACCEPTED:
-            quote.accepted_at = timezone.now()
-        quote.save(update_fields=["status", "accepted_at", "updated_at"])
-
-        QuoteHistory.objects.create(
-            quote=quote,
-            payload_snapshot={"from": current, "to": new_status},
-            action=QuoteHistory.Action.STATUS_CHANGED if hasattr(QuoteHistory, "Action") else "status_changed",
-            actor=getattr(request, "user", None),
-        )
-
-        return Response(QuoteSerializer(quote, context={"request": request}).data, status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=["post"])
-    def partial_delete(self, request, pk=None):
+    @action(
+        detail=True,
+        methods=["get"],
+        url_path="pdf",
+        url_name="download-pdf",
+        renderer_classes=[PDFRenderer, JSONRenderer, BrowsableAPIRenderer],
+    )
+    def download_pdf(self, request, pk=None):
         """
-        Convenience endpoint to soft-cancel a quote (maps to perform_destroy behaviour).
+        Génère et renvoie le PDF (sans changer le statut) via use case DownloadPdf.
         """
+        # scope + permission
         quote = self._get_detail_obj(pk)
-        # perform object-level permission check (will raise 403 if not allowed)
         self.check_object_permissions(request, quote)
-        self.perform_destroy(quote)
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def _log_request(self, request, action_name: str, pk=None):
-        logger = get_logger(__name__, request)
-        logger.info(
-            f"quote.{action_name}.request",
-            extra={
-                "quote_id": pk,
-                "user_id": getattr(request.user, "id", None),
-                "is_auth": bool(getattr(request.user, "is_authenticated", False)),
-                "data": request.data,
-                "headers_auth": (
-                    request.headers.get("Authorization", "")[:24] + "…" if request.headers.get("Authorization") else None
-                ),
-            },
+        # policy context
+        vat_exempt, default_rate = self._owner_vat_config_from_user(request.user)
+        client_country = self._client_country_from_model(quote.client)
+
+        uc = DownloadPdf(repo=self._repo(), renderer=self._renderer(), pdf=self._pdf())
+        pdf_bytes = uc.execute(
+            quote_id=str(quote.pk),
+            owner_vat_exempt=vat_exempt,
+            owner_default_rate_pct=default_rate,
+            client_country=client_country,
+            actor=request.user,
         )
+        filename = f"Devis-{quote.reference}-{timezone.now().date()}.pdf".replace(" ", "-")
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        response["Cache-Control"] = "no-store"
+        return response
 
+    # ----------------------
+    # Update handlers
+    # ----------------------
     def partial_update(self, request, *args, **kwargs):
         logger = get_logger(__name__, request)
         instance = self.get_object()
@@ -447,7 +400,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
             raise ValidationError(serializer.errors)
         self.perform_update(serializer)
         logger.info("quote.partial_update.response", extra={"status": 200})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=200)
 
     def update(self, request, *args, **kwargs):
         logger = get_logger(__name__, request)
@@ -462,24 +415,11 @@ class QuoteViewSet(viewsets.ModelViewSet):
         )
         serializer = self.get_serializer(instance, data=request.data)
         if not serializer.is_valid():
-            logger.warning("quote.partial_update.validation_error errors=%s", serializer.errors)
+            logger.warning("quote.update.validation_error errors=%s", serializer.errors)
             raise ValidationError(serializer.errors)
         self.perform_update(serializer)
         logger.info("quote.update.response", extra={"status": 200})
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=["get"], url_path="pdf", renderer_classes=[PDFRenderer, JSONRenderer, BrowsableAPIRenderer])
-    def download_pdf(self, request, pk=None):
-        """Download the quote PDF."""
-        try:
-            pdf_bytes, filename = render_quote_document_pdf(pk)
-        except QuotePdfError as e:
-            # 422 pour signaler une erreur métier de génération
-            return HttpResponse(str(e), status=422, content_type="text/plain; charset=utf-8")
-        response = HttpResponse(pdf_bytes, content_type="application/pdf")
-        response["Content-Disposition"] = f'attachment; filename="{filename}"'
-        response["Cache-Control"] = "no-store"
-        return response
+        return Response(serializer.data, status=200)
 
 
 class QuotePreviewPdfView(APIView):
@@ -487,23 +427,74 @@ class QuotePreviewPdfView(APIView):
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
 
     def post(self, request):
+        # Validation of the payload
         serializer = QuotePreviewPayloadSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        context = QuotePreviewContext(
+        # Context Policies
+        # REFACTOR: @Bertrand2808: Créer un objet PolicyContext pour éviter la duplication de code
+
+        vat_exempt, default_rate = QuoteViewSet._owner_vat_config_from_user(self, request.user)
+        client_country = _client_country_from_payload(data.get("client"))
+
+        # Mapper payload -> DTO (tax_rate en %)
+        from decimal import Decimal as D
+
+        lines_dto: list[LineItemInputDTO] = []
+        for line in data["lines"]:
+            raw_tr = line.get("tax_rate")
+            tax_rate_pct = None
+            if raw_tr is not None:
+                raw = float(raw_tr)
+                tax_rate_pct = D(str(raw * 100.0)) if raw <= 1.0 else D(str(raw))
+            discount_val = line.get("discount")
+            discount_dec = D(str(discount_val)) if discount_val is not None else None
+            lines_dto.append(
+                LineItemInputDTO(
+                    description=str(line.get("designation") or line.get("name") or ""),
+                    qty=D(str(line["quantity"])),
+                    unit_price=D(str(line["unit_price"])),
+                    discount=discount_dec,
+                    tax_rate_pct=tax_rate_pct,
+                )
+            )
+
+        dto = PreviewPayloadDTO(
             seller=data["seller"],
             client=data["client"],
             meta=data["meta"],
-            lines=data["lines"],
-            totals=data["totals"],
+            lines=lines_dto,
             branding=data.get("branding"),
+            owner_vat_exempt=vat_exempt,
+            owner_default_rate_pct=default_rate,
+            client_country=client_country,
         )
         try:
-            pdf_bytes = render_quote_preview_pdf(context)
-        except Exception:
-            logger.exception("Unexpected error in quote preview PDF generation")
-            raise
+            vm = generate_preview(dto)
+        except Exception as e:
+            return Response({"code": "QUOTE_PREVIEW_VALIDATION", "detail": str(e)}, status=422)
+
+        # Adapters: PDF Preview Renderer
+        renderer = DjangoTemplateRenderer()
+        pdfgen = PlaywrightPdfGenerator()
+        try:
+            html = renderer.render("quote/pdf/preview.html", vm)
+            pdf_bytes = pdfgen.generate(html)
+        except Exception as e:
+            return Response({"code": "QUOTE_PREVIEW_RENDERING", "detail": str(e)}, status=503)
+
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = 'inline; filename="quote-preview.pdf"'
         return response
+
+
+# --- little helper kept for preview payload -------------------------------------------
+def _client_country_from_payload(client_dict: dict | None) -> str | None:
+    if not client_dict:
+        return None
+    for key in ("country", "country_code", "billing_country"):
+        val = client_dict.get(key)
+        if val:
+            return str(val).upper()
+    return None

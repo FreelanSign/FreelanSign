@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 from decimal import ROUND_HALF_UP, Decimal, getcontext
+from re import L
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from django.db import transaction
@@ -11,7 +12,13 @@ from rest_framework.exceptions import ValidationError
 
 from apps.client.interface.serializers import ClientReadSerializer
 from apps.client.models import Client
-from apps.core.logging import get_logger  # ✅ même helper que dans PrestationSerializer
+from apps.core.logging import get_logger
+from apps.quote.domain.policies.tax_policy import (
+    TaxPolicyError,
+    effective_rate_for_line,
+    normalize_rate_percent,
+    validate_client_vat_rule,
+)
 from apps.quote.models import Quote, QuoteLineItem
 
 getcontext().prec = 28
@@ -78,11 +85,23 @@ class QuoteLineItemSerializer(serializers.ModelSerializer):
         return quantize_money(value)
 
     def validate_tax_rate(self, value: Decimal) -> Decimal:
+        """Validate the tax rate as a percentage (0..100).
+
+        Args:
+            value: The tax rate to validate (as percentage).
+
+        Returns:
+            The validated tax rate (as percentage).
+
+        Raises:
+            ValidationError: If the tax rate is not between 0 and 100 (percentage).
+        """
         if value is None:
             return value
-        if value < ZERO or value > Decimal("100.00"):
-            raise ValidationError("Tax rate must be between 0 and 100 (percentage).")
-        return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        try:
+            return normalize_rate_percent(value)
+        except TaxPolicyError as e:
+            raise ValidationError(str(e))
 
     def to_representation(self, instance: QuoteLineItem) -> Dict[str, Any]:
         rep = super().to_representation(instance)
@@ -121,14 +140,22 @@ def _owner_vat_config(owner) -> Tuple[bool, Decimal]:
 
 
 def _collect_item_tax_rates(items: Iterable[dict], vat_exempt: bool, owner_default_tax: Decimal) -> List[Decimal]:
+    """Collect the tax rates for the items.
+
+    Args:
+        items: The items to collect the tax rates for.
+        vat_exempt: Whether the owner is VAT-exempt.
+        owner_default_tax: The default tax rate for the owner.
+
+    Returns:
+        The tax rates for the items.
+    """
     rates: List[Decimal] = []
     for item in items:
-        tax = item.get("tax_rate", None)
-        if tax is None:
-            assumed = ZERO if vat_exempt else owner_default_tax
-            rates.append(assumed)
-        else:
-            rates.append(Decimal(str(tax)))
+        raw = item.get("tax_rate", None)
+        raw_dec = Decimal(str(raw)) if raw is not None else None
+        eff = effective_rate_for_line(raw_dec, owner_vat_exempt=vat_exempt, owner_default_rate_pct=owner_default_tax)
+        rates.append(eff)
     return rates
 
 
@@ -189,18 +216,14 @@ def _create_items_and_compute_totals(
         quote_id=str(getattr(quote, "id", None)),
         count=len(items),
         vat_exempt=vat_exempt,
-        owner_default_tax=str(owner_default),
+        owner_default_rate_pct=str(owner_default),
     )
 
     for order, item in enumerate(items):
         _validate_item_basics(item, order)
-        if vat_exempt:
-            tax_rate = ZERO
-        else:
-            if "tax_rate" in item and item.get("tax_rate") is not None:
-                tax_rate = Decimal(str(item.get("tax_rate"))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-            else:
-                tax_rate = owner_default
+        raw = item.get("tax_rate", None)
+        raw_dec = Decimal(str(raw)) if raw is not None else None
+        tax_rate = effective_rate_for_line(raw_dec, owner_vat_exempt=vat_exempt, owner_default_rate_pct=owner_default)
         pt, ta = _create_and_accumulate_line(serializer, quote, item, order, owner, tax_rate)
         subtotal += pt
         tax_total += ta
@@ -251,6 +274,17 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
     def validate(self, data: dict) -> dict:
+        """Validate the quote data.
+
+        Args:
+            data: The quote data to validate.
+
+        Returns:
+            The validated quote data.
+
+        Raises:
+            ValidationError: If the quote data is invalid.
+        """
         items = data.get("items", None)
         if not self.partial:
             if not items or len(items) < 1:
@@ -284,19 +318,10 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
             has_client_update=bool(self.initial_data.get("client_update")),
         )
 
-        if vat_exempt:
-            non_zero = [t for t in item_tax_rates if quantize_money(t) != ZERO]
-            if non_zero:
-                raise ValidationError({"items": "Owner is VAT-exempt; line tax rates must be 0."})
-
-        if client_country and client_country in {"FR", "FRA", "FRANCE"} and not vat_exempt:
-            zero_rates_idx = [i for i, t in enumerate(item_tax_rates) if quantize_money(t) == ZERO]
-            if zero_rates_idx:
-                raise ValidationError(
-                    {
-                        "items": f"VAT missing for French client on lines: {zero_rates_idx}. Owner must apply VAT or be VAT-exempt."
-                    }
-                )
+        try:
+            validate_client_vat_rule(client_country, vat_exempt, item_tax_rates)
+        except TaxPolicyError as e:
+            raise ValidationError({"items": str(e)})
 
         return data
 
@@ -567,9 +592,10 @@ class QuoteSerializer(serializers.ModelSerializer):
 class QuotePreviewLineSerializer(serializers.Serializer):
     designation = serializers.CharField(required=False)
     description = serializers.CharField(allow_null=True, allow_blank=True, required=False)
-    quantity = serializers.FloatField()
-    unit_price = serializers.FloatField()
+    quantity = serializers.FloatField(min_value=0.000001)
+    unit_price = serializers.FloatField(min_value=0.0)
     tax_rate = serializers.FloatField(required=False, allow_null=True)  # 0.2 => 20% (fraction UI)
+    discount = serializers.FloatField(required=False, min_value=0.0)
 
 
 class QuotePreviewPayloadSerializer(serializers.Serializer):
@@ -580,42 +606,40 @@ class QuotePreviewPayloadSerializer(serializers.Serializer):
     branding = serializers.DictField(required=False)
 
     def validate(self, data):
-        # normalise "designation" & "tax_rate"
+        """Only normalize the data, do not validate the data."""
         normalized_lines = []
-        for line in data["lines"]:
-            if not line.get("designation") and line.get("name"):
-                line["designation"] = line["name"]
+        for raw in data["lines"]:
+            line = dict(raw)
+
+            # designation fallback
+            if not line.get("designation"):
+                alt = line.get("name")
+                if alt:
+                    line["designation"] = str(alt)
             if not line.get("designation"):
                 raise serializers.ValidationError("Designation/name is required for each line.")
-            tr = line.get("tax_rate")
+
+            # tax_rate fallback
+            tr = line.get("tax_rate", None)
             if tr is not None:
                 tr = float(tr)
+                if tr < 0:
+                    tr = 0.0
                 if tr > 1.0:
                     tr = tr / 100.0
                 line["tax_rate"] = tr
-            # discount
-            discount = float(line.get("discount") or 0.0)
-            if discount < 0:
-                discount = 0.0
-            # totaux lines
-            qty = float(line["quantity"])
-            unit = float(line["unit_price"])
-            base = qty * unit
-            after_discount = base * (1 - discount / 100.0)
-            line["total_ht"] = round(after_discount, 2)
-            line["tax_rate_display"] = round((line.get("tax_rate") or 0.0) * 100.0, 2)
+            else:
+                line["tax_rate"] = None
+
+            # discount fallback
+            if "discount" in line and line["discount"] is not None:
+                line["discount"] = float(line["discount"])
+                if line["discount"] < 0:
+                    line["discount"] = 0.0
+
+            line["quantity"] = float(line["quantity"])
+            line["unit_price"] = float(line["unit_price"])
+
             normalized_lines.append(line)
         data["lines"] = normalized_lines
-        # calcule le total ici pour centraliser (pas d'effet DB)
-        subtotal = sum(line["total_ht"] for line in data["lines"])
-        tax = 0.0
-        for line in data["lines"]:
-            tr = float(line.get("tax_rate") or 0.0)
-            tax += line["total_ht"] * tr
-        totals = {
-            "subtotal": round(subtotal, 2),
-            "tax": round(tax, 2),
-            "grand_total": round(subtotal + tax, 2),
-        }
-        data["totals"] = totals
         return data

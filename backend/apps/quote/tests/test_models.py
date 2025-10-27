@@ -5,16 +5,17 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-from apps.quote.models import PaymentTerms, Quote, QuoteLineItem
+from apps.client.models import Client  # ← Import direct
+from apps.quote.models import Quote, QuoteLineItem
 
 User = get_user_model()
 
 
 @pytest.mark.django_db
-def test_reference_unique_per_owner(client_model):
+def test_reference_unique_per_owner():  # ← Retire le paramètre client_model
     """Ensure (owner, reference) uniqueness is enforced."""
     owner = User.objects.create_user(email="a@x.io", password="x")
-    c = client_model.objects.create(owner=owner, name="ACME")  # adapte à ton Client
+    c = Client.objects.create(owner=owner, name="ACME")  # ← Utilise Client directement
 
     q1 = Quote.objects.create(
         owner=owner,
@@ -36,7 +37,7 @@ def test_reference_unique_per_owner(client_model):
             owner=owner,
             client=c,
             title="Q2",
-            reference="REF-001",
+            reference="REF-001",  # ← Doublon
             currency="EUR",
             language="fr",
             status=Quote.Status.DRAFT,
@@ -49,10 +50,10 @@ def test_reference_unique_per_owner(client_model):
 
 
 @pytest.mark.django_db
-def test_totals_verification(client_model):
+def test_totals_verification():  # ← Retire le paramètre client_model
     """Protect decimals and arithmetic: subtotal + tax_total - discount_total == total."""
     owner = User.objects.create_user(email="b@x.io", password="x")
-    c = client_model.objects.create(owner=owner, name="Client B")
+    c = Client.objects.create(owner=owner, name="Client B")  # ← Utilise Client directement
 
     q = Quote.objects.create(
         owner=owner,
@@ -69,7 +70,6 @@ def test_totals_verification(client_model):
         total=Decimal("0.00"),
     )
 
-    # 2 lignes
     QuoteLineItem.objects.create(
         quote=q,
         description="Dev",
@@ -91,13 +91,11 @@ def test_totals_verification(client_model):
         line_total=Decimal("0.00"),
     )
 
-    # Recalcule logiquement (ici on simule une logique d'update des montants)
-    subtotal = q.compute_subtotal()  # (10*100-50) + (5*80-0) = 950 + 400 = 1350.00
-    tax_total = q.compute_tax_total()  # 950*0.20 + 400*0.10 = 190 + 40 = 230.00
-    discount_total = Decimal("100.00")  # remise globale supplémentaire
+    subtotal = q.compute_subtotal()
+    tax_total = q.compute_tax_total()
+    discount_total = Decimal("100.00")
     total = subtotal + tax_total - discount_total
 
-    # Stocke, puis vérifie la contrainte
     q.subtotal = subtotal
     q.tax_total = tax_total
     q.discount_total = discount_total

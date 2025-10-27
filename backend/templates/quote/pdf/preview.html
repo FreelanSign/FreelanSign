@@ -3,94 +3,178 @@
 <head>
   <meta charset="utf-8" />
   <title>Devis — Prévisualisation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    @page { size: A4; margin: 18mm 16mm; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif; font-size: 12px; color: #111; }
-    h1,h2,h3 { margin: 0 0 6px; }
-    .header { display:flex; justify-content: space-between; align-items:flex-start; margin-bottom: 18px; }
-    .brand { font-weight: 700; font-size: 20px; }
-    .muted { color: #666; }
-    .box { padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; }
-    table { width:100%; border-collapse: collapse; margin-top: 12px; }
-    th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: left; vertical-align: top; }
-    th { background: #f9fafb; font-weight: 600; }
-    .totals { margin-top: 12px; width: 50%; margin-left: auto; }
-    .totals td { padding: 6px 8px; }
-    .right { text-align: right; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    /* Palette FreelanSign (sans var()) */
+    /* brand   */ .c-brand { color: #2456c2; }
+    /* success */ .c-success { color: #3ccf91; }
+    /* accent  */ .c-accent { color: #ff8a3d; }
+    /* dark    */ .c-dark { color: #0d0d0d; }
+    /* text    */ .c-text { color: #222222; }
+
+    /* backgrounds équivalents */
+    .bg-paper { background: #f5f7fa; }
+    .bg-white { background: #ffffff; }
+
+    html, body { margin:0; padding:0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      font-size: 12px; color: #222222; background: #ffffff;
+    }
+    h1,h2,h3 { margin: 0 0 6px; color: #0d0d0d; }
+    h1 { font-size: 20px; }
+    h3 { font-size: 13px; }
+
+    .muted { color: #666666; }
+    .brand { font-weight: 800; font-size: 22px; color: #2456c2 !important; letter-spacing: .2px; }
+
+    .mt-6 { margin-top: 12px; }
+    .mb-6 { margin-bottom: 12px; }
+    .right { text-align: right; white-space: nowrap; }
+
+    .pill {
+      display:inline-block; padding:2px 6px; border-radius:999px;
+      background:#f5f7fa !important; border:1px solid #e5e7eb !important; font-size:10px; color:#444 !important;
+    }
+
+    .box {
+      padding:10px; border:1px solid #e5e7eb !important; border-radius:6px; background:#ffffff !important;
+    }
+    .box--tinted { background:#f5f7fa !important; }
+
+    .grid-2 { width:100%; border-collapse:collapse; table-layout:fixed; }
+    .grid-2 td { vertical-align:top; padding:0; }
+    .col { padding:0; }
+
+    table { width:100%; border-collapse:collapse; }
+    .table { margin-top:12px; }
+    th, td { padding:8px; border-bottom:1px solid #eeeeee; text-align:left; vertical-align:top; }
+    th {
+      background:#f5f7fa !important; font-weight:600; color:#0d0d0d;
+      border-top:1px solid #e9eef5; border-bottom:1px solid #e9eef5;
+    }
+
+    .totals {
+      margin-top:12px; width:50%; margin-left:auto; border-collapse:collapse;
+      background:#ffffff !important; border:1px solid #e9eef5 !important; border-radius:6px;
+    }
+    .totals td { padding:8px 10px; border-bottom:1px solid #eef2f7 !important; }
+    .totals tr:last-child td { border-bottom:0; }
+    .totals .label { color:#444444; }
+    .totals .grand { font-weight:700; color:#0d0d0d !important; }
+    .totals .grand .amount { color:#2456c2 !important; }
+
+    .divider { height:3px; width:60px; background:#2456c2 !important; border-radius:3px; margin:6px 0 0; }
+
+    .avoid-break { page-break-inside: avoid; }
   </style>
+
 </head>
 <body>
-  <div class="header">
-    <div>
-      <div class="brand">{{ branding.name|default:"FreelanSign" }}</div>
-      {% if branding.logo_url %}
-        <img src="{{ branding.logo_url }}" alt="Logo" style="height:40px;margin-top:6px">
-      {% endif %}
-    </div>
-    <div class="muted">
-      <div>{{ seller.name }}</div>
-      {% if seller.siret %}<div>SIRET : {{ seller.siret }}</div>{% endif %}
-      {% if seller.vat_number %}<div>TVA : {{ seller.vat_number }}</div>{% endif %}
-      {% if seller.address %}<div>{{ seller.address }}</div>{% endif %}
-      {% if seller.email %}<div>{{ seller.email }}</div>{% endif %}
-    </div>
+  <!-- Header -->
+  <table class="grid-2 mb-6 avoid-break">
+    <tr>
+      <td class="col" style="width: 55%; padding-right: 6px;">
+        <div class="brand">{{ branding.name|default:"FreelanSign" }}</div>
+        <div class="divider"></div>
+        {% if branding.logo_url %}
+          <!-- Astuce: URL absolue (https://...) ou file:///C:/... + option enable-local-file-access -->
+          <img src="{{ branding.logo_url }}" alt="Logo" style="height:40px; margin-top:8px" />
+        {% endif %}
+      </td>
+      <td class="col" style="width: 45%; text-align: right; padding-left: 6px;">
+        <div style="font-weight:600">{{ seller.name }}</div>
+        {% if seller.siret %}<div class="muted">SIRET : {{ seller.siret }}</div>{% endif %}
+        {% if seller.vat_number %}<div class="muted">TVA : {{ seller.vat_number }}</div>{% endif %}
+        {% if seller.address %}<div class="muted">{{ seller.address }}</div>{% endif %}
+        {% if seller.email %}<div class="muted">{{ seller.email }}</div>{% endif %}
+      </td>
+    </tr>
+  </table>
+
+  <!-- Title + meta -->
+  <div class="avoid-break">
+    <h1>Devis <span class="pill">Prévisualisation</span></h1>
+    <div class="muted">Réf : {{ meta.number|default:"—" }} • Date : {{ meta.date|default:"—" }}</div>
   </div>
 
-  <h1>Devis</h1>
-  <div class="muted">Réf : {{ meta.number|default:"—" }} • Date : {{ meta.date|default:"—" }}</div>
+  <!-- Client / Conditions -->
+  <table class="grid-2 mt-6 avoid-break">
+    <tr>
+      <td class="col" style="padding-right: 6px;">
+        <div class="box">
+          <h3>Client</h3>
+          <div style="margin-top:4px">{{ client.name }}</div>
+          {% if client.company %}<div class="muted">{{ client.company }}</div>{% endif %}
+          {% if client.address_line1 %}<div>{{ client.address_line1 }}</div>{% endif %}
+          {% if client.postal_code or client.city %}
+            <div>{{ client.postal_code|default_if_none:"" }} {{ client.city|default_if_none:"" }}</div>
+          {% endif %}
+          {% if client.email %}<div class="muted">{{ client.email }}</div>{% endif %}
+        </div>
+      </td>
+      <td class="col" style="padding-left: 6px;">
+        <div class="box box--tinted">
+          <h3>Conditions</h3>
+          <div class="muted" style="margin-top:4px">
+            {{ meta.terms|default:"Conditions générales sur demande." }}
+          </div>
+          {% if meta.valid_until %}<div>Validité : {{ meta.valid_until }}</div>{% endif %}
+          {% if meta.payment_terms %}<div>Règlement : {{ meta.payment_terms }}</div>{% endif %}
+        </div>
+      </td>
+    </tr>
+  </table>
 
-  <div style="display:flex; gap:12px; margin-top:12px">
-    <div class="box" style="flex:1">
-      <h3>Client</h3>
-      <div>{{ client.name }}</div>
-      {% if client.company %}<div>{{ client.company }}</div>{% endif %}
-      {% if client.address_line1 %}<div>{{ client.address_line1 }}</div>{% endif %}
-      {% if client.postal_code or client.city %}
-        <div>{{ client.postal_code }} {{ client.city }}</div>
-      {% endif %}
-      {% if client.email %}<div>{{ client.email }}</div>{% endif %}
-    </div>
-    <div class="box" style="flex:1">
-      <h3>Conditions</h3>
-      <div class="muted">{{ meta.terms|default:"Conditions générales sur demande." }}</div>
-      {% if meta.valid_until %}<div>Validité : {{ meta.valid_until }}</div>{% endif %}
-      {% if meta.payment_terms %}<div>Règlement : {{ meta.payment_terms }}</div>{% endif %}
-    </div>
-  </div>
-
-  <table>
+  <!-- Lines -->
+  <table class="table mt-6">
     <thead>
       <tr>
-        <th style="width:42%">Désignation</th>
+        <th style="width:40%">Désignation</th>
         <th style="width:28%">Description</th>
-        <th class="right">Qté</th>
-        <th class="right">PU HT</th>
-        <th class="right">TVA</th>
-        <th class="right">Total HT</th>
+        <th class="right" style="width:8%">Qté</th>
+        <th class="right" style="width:12%">PU&nbsp;HT</th>
+        <th class="right" style="width:6%">TVA</th>
+        <th class="right" style="width:12%">Total&nbsp;HT</th>
       </tr>
     </thead>
     <tbody>
       {% for l in lines %}
       <tr>
         <td>{{ l.designation }}</td>
-        <td class="muted">{{ l.description }}</td>
-        <td class="right">{{ l.quantity|floatformat:2 }}</td>
-        <td class="right">{{ l.unit_price|floatformat:2 }}</td>
+        <td class="muted">{% if l.description %}{{ l.description }}{% else %}&nbsp;{% endif %}</td>
+        <td class="right">{% if l.quantity is not None %}{{ l.quantity|floatformat:2 }}{% else %}—{% endif %}</td>
+        <td class="right">{% if l.unit_price is not None %}{{ l.unit_price|floatformat:2 }}{% else %}—{% endif %}</td>
         <td class="right">
           {% if l.tax_rate is not None %}
-            {{ l.tax_rate_display|floatformat:0 }}%
+            {% if l.tax_rate_display is not None %}
+              {{ l.tax_rate_display|floatformat:0 }}%
+            {% else %}
+              {{ l.tax_rate|floatformat:0 }}%
+            {% endif %}
           {% else %}—{% endif %}
         </td>
-        <td class="right">{{ l.total_ht|floatformat:2 }}</td>
+        <td class="right">{% if l.total_ht is not None %}{{ l.total_ht|floatformat:2 }}{% else %}—{% endif %}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 
-  <table class="totals">
-    <tr><td>Sous-total HT</td><td class="right">{{ totals.subtotal }}</td></tr>
-    <tr><td>TVA</td><td class="right">{{ totals.tax }}</td></tr>
-    <tr><td><strong>Total TTC</strong></td><td class="right"><strong>{{ totals.grand_total }}</strong></td></tr>
+  <!-- Totals -->
+  <table class="totals avoid-break">
+    <tr>
+      <td class="label">Sous-total HT</td>
+      <td class="right">{{ totals.subtotal|default_if_none:"0.00" }}</td>
+    </tr>
+    <tr>
+      <td class="label">TVA</td>
+      <td class="right">{{ totals.tax|default_if_none:"0.00" }}</td>
+    </tr>
+    <tr>
+      <td class="grand">Total TTC</td>
+      <td class="right grand"><span class="amount">{{ totals.grand_total|default_if_none:"0.00" }}</span></td>
+    </tr>
   </table>
 </body>
 </html>
