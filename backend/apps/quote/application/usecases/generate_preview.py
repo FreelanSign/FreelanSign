@@ -68,6 +68,6 @@ def generate_preview(dto: PreviewPayloadDTO) -> QuoteViewModel:
             tax=float(totals["tax_total"]),
             grand_total=float(totals["grand_total"]),
         ),
-        branding=dto.branding or None,
+        branding=dto.branding or None,  # ✅ Reste compatible, mais sera enrichi par les views
     )
     return vm

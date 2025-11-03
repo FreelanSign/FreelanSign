@@ -31,4 +31,6 @@ urlpatterns = [
     path("api/quotes/", include("apps.quote.interface.urls", namespace="quote")),
     # Clients
     path("api/clients/", include("apps.client.interface.urls", namespace="client")),
+    # Branding
+    path("api/branding/", include("apps.branding.interface.urls", namespace="branding")),
 ]
