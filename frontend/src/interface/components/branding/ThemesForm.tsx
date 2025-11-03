@@ -1,7 +1,7 @@
 // components/branding/ThemeForm.tsx
 import { type FormEvent, useState } from 'react';
 import { ChromePicker, type ColorResult } from 'react-color';
-import styles from '../../pages/branding/themes.module.css';
+import styles from '../../pages/Branding/themes.module.css';
 
 const COLOR_LABELS: Record<string, string> = {
   primary: 'Primaire',
