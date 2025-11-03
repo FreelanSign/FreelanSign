@@ -14,6 +14,9 @@ import QuoteCreatePage from '../interface/pages/Quote/QuoteCreatePage';
 import QuotesListPage from '../interface/pages/Quote/QuoteListPage';
 import QuoteDetailPage from '../interface/pages/Quote/QuoteDetailPage';
 import QuoteEditPage from '../interface/pages/Quote/QuoteEditPage';
+import ThemesListPage from '../interface/pages/Branding/ThemesListPage';
+import ThemesCreatePage from '../interface/pages/Branding/ThemesCreatePage';
+import ThemesEditPage from '../interface/pages/Branding/ThemesEditPage';
 
 /** Route protégée très simple */
 function Protected({ children }: { children: React.ReactNode }) {
@@ -74,6 +77,30 @@ const router = createBrowserRouter([
   {
     path: '/quotes/:id/edit/',
     element: <QuoteEditPage />,
+  },
+  {
+    path: '/branding/themes',
+    element: (
+      <Protected>
+        <ThemesListPage />
+      </Protected>
+    ),
+  },
+  {
+    path: '/branding/themes/new',
+    element: (
+      <Protected>
+        <ThemesCreatePage />
+      </Protected>
+    ),
+  },
+  {
+    path: '/branding/themes/:id/edit',
+    element: (
+      <Protected>
+        <ThemesEditPage />
+      </Protected>
+    ),
   },
 ]);
 

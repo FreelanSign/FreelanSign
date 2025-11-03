@@ -2,74 +2,152 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Devis — Prévisualisation</title>
+  <title>Devis — Document</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    /* Palette FreelanSign (sans var()) */
-    /* brand   */ .c-brand { color: #2456c2; }
-    /* success */ .c-success { color: #3ccf91; }
-    /* accent  */ .c-accent { color: #ff8a3d; }
-    /* dark    */ .c-dark { color: #0d0d0d; }
-    /* text    */ .c-text { color: #222222; }
 
-    /* backgrounds équivalents */
-    .bg-paper { background: #f5f7fa; }
-    .bg-white { background: #ffffff; }
+    /* ✅ Dynamic colors from branding */
+    :root {
+      --color-primary: {{ branding.colors.primary|default:"#2456c2" }};
+      --color-secondary: {{ branding.colors.secondary|default:"#7c3aed" }};
+      --color-background: {{ branding.colors.background|default:"#ffffff" }};
+      --color-text-primary: {{ branding.colors.text_primary|default:"#222222" }};
+      --color-text-secondary: {{ branding.colors.text_secondary|default:"#666666" }};
+      --color-border: {{ branding.colors.border|default:"#e5e7eb" }};
+      --color-highlight: {{ branding.colors.highlight|default:"#ff8a3d" }};
 
-    html, body { margin:0; padding:0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-      font-size: 12px; color: #222222; background: #ffffff;
+      /* ✅ Dynamic typography */
+      --font-heading: "{{ branding.typography.heading_font|default:"Inter" }}", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-body: "{{ branding.typography.body_font|default:"Inter" }}", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-size-h1: {{ branding.typography.font_sizes.h1|default:20 }}px;
+      --font-size-h2: {{ branding.typography.font_sizes.h2|default:16 }}px;
+      --font-size-h3: {{ branding.typography.font_sizes.h3|default:13 }}px;
+      --font-size-body: {{ branding.typography.font_sizes.body|default:12 }}px;
+      --font-size-small: {{ branding.typography.font_sizes.small|default:10 }}px;
+      --line-height-heading: {{ branding.typography.line_heights.heading|default:1.2 }};
+      --line-height-body: {{ branding.typography.line_heights.body|default:1.5 }};
+
+      /* ✅ Dynamic spacing */
+      --spacing-page-margin: {{ branding.spacing.page_margin|default:40 }}px;
+      --spacing-section: {{ branding.spacing.section_spacing|default:12 }}px;
+      --spacing-element: {{ branding.spacing.element_padding|default:8 }}px;
     }
-    h1,h2,h3 { margin: 0 0 6px; color: #0d0d0d; }
-    h1 { font-size: 20px; }
-    h3 { font-size: 13px; }
 
-    .muted { color: #666666; }
-    .brand { font-weight: 800; font-size: 22px; color: #2456c2 !important; letter-spacing: .2px; }
+    /* Apply dynamic styles */
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
 
-    .mt-6 { margin-top: 12px; }
-    .mb-6 { margin-bottom: 12px; }
+    body {
+      font-family: var(--font-body);
+      font-size: var(--font-size-body);
+      color: var(--color-text-primary);
+      background: var(--color-background);
+      line-height: var(--line-height-body);
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 6px;
+      color: var(--color-text-primary);
+      font-family: var(--font-heading);
+      line-height: var(--line-height-heading);
+    }
+
+    h1 { font-size: var(--font-size-h1); }
+    h2 { font-size: var(--font-size-h2); }
+    h3 { font-size: var(--font-size-h3); }
+
+    .muted { color: var(--color-text-secondary); }
+    .brand {
+      font-weight: 800;
+      font-size: 22px;
+      color: var(--color-primary) !important;
+      letter-spacing: .2px;
+      font-family: var(--font-heading);
+    }
+
+    .mt-6 { margin-top: var(--spacing-section); }
+    .mb-6 { margin-bottom: var(--spacing-section); }
     .right { text-align: right; white-space: nowrap; }
 
     .pill {
-      display:inline-block; padding:2px 6px; border-radius:999px;
-      background:#f5f7fa !important; border:1px solid #e5e7eb !important; font-size:10px; color:#444 !important;
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: var(--color-background) !important;
+      border: 1px solid var(--color-border) !important;
+      font-size: var(--font-size-small);
+      color: var(--color-text-secondary) !important;
     }
 
     .box {
-      padding:10px; border:1px solid #e5e7eb !important; border-radius:6px; background:#ffffff !important;
+      padding: var(--spacing-element);
+      border: 1px solid var(--color-border) !important;
+      border-radius: 6px;
+      background: var(--color-background) !important;
     }
-    .box--tinted { background:#f5f7fa !important; }
 
-    .grid-2 { width:100%; border-collapse:collapse; table-layout:fixed; }
-    .grid-2 td { vertical-align:top; padding:0; }
-    .col { padding:0; }
+    .box--tinted {
+      background: #f5f7fa !important;
+    }
 
-    table { width:100%; border-collapse:collapse; }
-    .table { margin-top:12px; }
-    th, td { padding:8px; border-bottom:1px solid #eeeeee; text-align:left; vertical-align:top; }
+    .grid-2 { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .grid-2 td { vertical-align: top; padding: 0; }
+    .col { padding: 0; }
+
+    table { width: 100%; border-collapse: collapse; }
+    .table { margin-top: var(--spacing-section); }
+
+    th, td {
+      padding: var(--spacing-element);
+      border-bottom: 1px solid var(--color-border);
+      text-align: left;
+      vertical-align: top;
+    }
+
     th {
-      background:#f5f7fa !important; font-weight:600; color:#0d0d0d;
-      border-top:1px solid #e9eef5; border-bottom:1px solid #e9eef5;
+      background: #f5f7fa !important;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      border-top: 1px solid var(--color-border);
+      border-bottom: 1px solid var(--color-border);
     }
 
     .totals {
-      margin-top:12px; width:50%; margin-left:auto; border-collapse:collapse;
-      background:#ffffff !important; border:1px solid #e9eef5 !important; border-radius:6px;
+      margin-top: var(--spacing-section);
+      width: 50%;
+      margin-left: auto;
+      border-collapse: collapse;
+      background: var(--color-background) !important;
+      border: 1px solid var(--color-border) !important;
+      border-radius: 6px;
     }
-    .totals td { padding:8px 10px; border-bottom:1px solid #eef2f7 !important; }
-    .totals tr:last-child td { border-bottom:0; }
-    .totals .label { color:#444444; }
-    .totals .grand { font-weight:700; color:#0d0d0d !important; }
-    .totals .grand .amount { color:#2456c2 !important; }
 
-    .divider { height:3px; width:60px; background:#2456c2 !important; border-radius:3px; margin:6px 0 0; }
+    .totals td {
+      padding: var(--spacing-element);
+      border-bottom: 1px solid var(--color-border) !important;
+    }
+
+    .totals tr:last-child td { border-bottom: 0; }
+    .totals .label { color: var(--color-text-secondary); }
+    .totals .grand { font-weight: 700; color: var(--color-text-primary) !important; }
+    .totals .grand .amount { color: var(--color-primary) !important; }
+
+    .divider {
+      height: 3px;
+      width: 60px;
+      background: var(--color-primary) !important;
+      border-radius: 3px;
+      margin: 6px 0 0;
+    }
 
     .avoid-break { page-break-inside: avoid; }
-  </style>
 
+    /* ✅ Import Google Fonts dynamically */
+    @import url('https://fonts.googleapis.com/css2?family={{ branding.typography.heading_font|default:"Inter"|urlencode }}:wght@400;600;700;800&family={{ branding.typography.body_font|default:"Inter"|urlencode }}:wght@400;500;600&display=swap');
+  </style>
 </head>
 <body>
   <!-- Header -->
@@ -79,7 +157,6 @@
         <div class="brand">{{ branding.name|default:"FreelanSign" }}</div>
         <div class="divider"></div>
         {% if branding.logo_url %}
-          <!-- Astuce: URL absolue (https://...) ou file:///C:/... + option enable-local-file-access -->
           <img src="{{ branding.logo_url }}" alt="Logo" style="height:40px; margin-top:8px" />
         {% endif %}
       </td>
@@ -95,7 +172,7 @@
 
   <!-- Title + meta -->
   <div class="avoid-break">
-    <h1>Devis <span class="pill">Prévisualisation</span></h1>
+    <h1>Devis <span class="pill">Preview</span></h1>
     <div class="muted">Réf : {{ meta.number|default:"—" }} • Date : {{ meta.date|default:"—" }}</div>
   </div>
 

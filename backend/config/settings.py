@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     "apps.catalog.apps.CatalogConfig",
     "apps.quote.apps.QuoteConfig",
     "apps.client.apps.ClientConfig",
+    "apps.branding.apps.BrandingConfig",
     "django_extensions",
 ]
 
@@ -286,7 +287,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 LOG_DIR = BASE_DIR / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 
 LOGGING = {
     "version": 1,

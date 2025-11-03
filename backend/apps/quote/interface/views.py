@@ -171,6 +171,33 @@ class QuoteViewSet(viewsets.ModelViewSet):
                     return str(meta[key]).upper()
         return None
 
+    def _load_theme(self, professional_id) -> dict | None:
+        """
+        Load active theme for a professional.
+        Returns None if branding module is not available or no active theme is found.
+        """
+        log = get_logger(__name__)
+        log.debug("quote.load_theme.start professional_id=%s", professional_id)
+        try:
+            from apps.branding.adapters.persistence.django_theme_repository import DjangoThemeRepository
+            from apps.branding.application.usecases.get_theme_for_rendering import GetThemeForRenderingUseCase
+
+            repository = DjangoThemeRepository()
+            use_case = GetThemeForRenderingUseCase(theme_repository=repository)
+            theme = use_case.execute(professional_id=professional_id)
+            if theme:
+                log.debug("quote.load_theme.done theme_name=%s", theme.get("name", None))
+                log.debug("quote.load_theme theme data=%s", theme)
+            else:
+                log.error("quote.load_theme.failure professional_id=%s", professional_id)
+            return theme
+        except ImportError:
+            log.error("quote.load_theme.skipped_no_branding_module professional_id=%s", professional_id)
+            return None
+        except Exception:
+            log.exception("quote.load_theme.skipped_unexpected_error professional_id=%s", professional_id)
+            return None
+
     # ----------------------------------------------------------------------------------
 
     def get_serializer_class(self):
@@ -358,15 +385,22 @@ class QuoteViewSet(viewsets.ModelViewSet):
         """
         Génère et renvoie le PDF (sans changer le statut) via use case DownloadPdf.
         """
+        log = get_logger(__name__, request)
+        log.info("quote.download_pdf.start")
         # scope + permission
         quote = self._get_detail_obj(pk)
+        log.info("quote.download_pdf.quote_loaded quote_id=%s", quote.id)
         self.check_object_permissions(request, quote)
 
         # policy context
         vat_exempt, default_rate = self._owner_vat_config_from_user(request.user)
         client_country = self._client_country_from_model(quote.client)
 
-        uc = DownloadPdf(repo=self._repo(), renderer=self._renderer(), pdf=self._pdf())
+        theme = self._load_theme(request.user.id)
+        if theme:
+            logger.debug("quote.download_pdf.theme_loaded theme_name=%s", theme.get("name", None))
+
+        uc = DownloadPdf(repo=self._repo(), renderer=self._renderer(), pdf=self._pdf(), theme_loader=self._load_theme)
         pdf_bytes = uc.execute(
             quote_id=str(quote.pk),
             owner_vat_exempt=vat_exempt,
@@ -436,7 +470,18 @@ class QuotePreviewPdfView(APIView):
         # REFACTOR: @Bertrand2808: Créer un objet PolicyContext pour éviter la duplication de code
 
         vat_exempt, default_rate = QuoteViewSet._owner_vat_config_from_user(self, request.user)
-        client_country = _client_country_from_payload(data.get("client"))
+        client_country = self._client_country_from_payload(data.get("client"))
+
+        branding = self._load_theme(request.user.id)
+        if branding:
+            log = get_logger(__name__)
+            log.debug(
+                "quote.preview.branding_loaded professional_id=%s, has_theme=%s, theme_id=%s, theme_name=%s",
+                request.user.id,
+                bool(branding),
+                branding.get("id") if isinstance(branding, dict) else None,
+                branding.get("name") if isinstance(branding, dict) else None,
+            )
 
         # Mapper payload -> DTO (tax_rate en %)
         from decimal import Decimal as D
@@ -465,7 +510,7 @@ class QuotePreviewPdfView(APIView):
             client=data["client"],
             meta=data["meta"],
             lines=lines_dto,
-            branding=data.get("branding"),
+            branding=branding,
             owner_vat_exempt=vat_exempt,
             owner_default_rate_pct=default_rate,
             client_country=client_country,
@@ -488,13 +533,43 @@ class QuotePreviewPdfView(APIView):
         response["Content-Disposition"] = 'inline; filename="quote-preview.pdf"'
         return response
 
-
-# --- little helper kept for preview payload -------------------------------------------
-def _client_country_from_payload(client_dict: dict | None) -> str | None:
-    if not client_dict:
+    # --- little helper kept for preview payload -------------------------------------------
+    def _client_country_from_payload(self, client_dict: dict | None) -> str | None:
+        if not client_dict:
+            return None
+        for key in ("country", "country_code", "billing_country"):
+            val = client_dict.get(key)
+            if val:
+                return str(val).upper()
         return None
-    for key in ("country", "country_code", "billing_country"):
-        val = client_dict.get(key)
-        if val:
-            return str(val).upper()
-    return None
+
+    def _load_theme(self, professional_id) -> dict | None:
+        """
+        Load active theme for a professional.
+        Returns None if branding module is not available or no active theme is found.
+        """
+        log = get_logger(__name__)
+        log.debug("quote.preview.load_theme.start professional_id=%s", professional_id)
+        try:
+            from apps.branding.adapters.persistence.django_theme_repository import DjangoThemeRepository
+            from apps.branding.application.usecases.get_theme_for_rendering import GetThemeForRenderingUseCase
+
+            repository = DjangoThemeRepository()
+            use_case = GetThemeForRenderingUseCase(theme_repository=repository)
+            theme = use_case.execute(professional_id=professional_id)
+            if theme:
+                log.debug(
+                    "quote.theme.load.success professional_id=%s, theme_id=%s, theme_name=%s",
+                    professional_id,
+                    theme.get("id") if isinstance(theme, dict) else None,
+                    theme.get("name") if isinstance(theme, dict) else None,
+                )
+            else:
+                log.debug("quote.theme.load.failure professional_id=%s", professional_id)
+            return theme
+        except ImportError:
+            log.debug("quote.theme.load.skipped_no_branding_module professional_id=%s", professional_id)
+            return None
+        except Exception as e:
+            log.debug("quote.theme.load.skipped_unexpected_error professional_id=%s, error=%s", professional_id, str(e))
+            return None
