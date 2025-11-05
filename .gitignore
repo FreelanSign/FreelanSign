@@ -227,3 +227,6 @@ node_modules/
 workspace/
 
 backend/logs/
+.DS_Store
+backend/.DS_Store
+backend/tools/.DS_Store
