@@ -1,447 +1,1010 @@
-# FreelanSign Knowledge Base
+# Project Specification - Knowledge Base
 
-## General
+---
 
-### Architecture
+This project specification will help you understand the project architecture and features.
 
-#### Backend
+> Important : Some specifications are in french, and might not be implemented yet.
 
-- Architecture Générale du backend
+## Description du projet
 
-```bash
-total 888
-drwxr-xr-x@ 22 bertrandrenaudin  staff   704B Nov  3 21:42 .
-drwxr-xr-x@ 23 bertrandrenaudin  staff   736B Nov  4 22:37 ..
--rw-r--r--@  1 bertrandrenaudin  staff   224K Oct 27 09:48 .coverage
--rw-r--r--@  1 bertrandrenaudin  staff   303B Oct 27 11:07 .coveragerc
--rw-r--r--@  1 bertrandrenaudin  staff   6.0K Nov  4 16:09 .DS_Store
-drwxr-xr-x@  6 bertrandrenaudin  staff   192B Oct 14 21:46 .pytest_cache
-drwxr-xr-x@ 10 bertrandrenaudin  staff   320B Nov  3 21:38 apps
-drwxr-xr-x@ 10 bertrandrenaudin  staff   320B Nov  3 21:40 config
--rw-r--r--@  1 bertrandrenaudin  staff   173K Oct 27 09:48 coverage.xml
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Oct 27 11:07 doc
--rw-r--r--@  1 bertrandrenaudin  staff   682B Oct 12 18:14 Dockerfile
-drwxr-xr-x@ 85 bertrandrenaudin  staff   2.7K Oct 27 09:48 htmlcov
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Oct 23 15:14 logs
--rw-r--r--@  1 bertrandrenaudin  staff   662B Oct 12 18:14 manage.py
--rw-r--r--@  1 bertrandrenaudin  staff   231B Oct 12 21:17 pyproject.toml
--rw-r--r--@  1 bertrandrenaudin  staff   306B Oct 27 11:07 pytest.ini
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Oct 27 11:07 requirements
--rw-r--r--@  1 bertrandrenaudin  staff   567B Oct 12 21:17 setup.cfg
--rw-r--r--@  1 bertrandrenaudin  staff    12K Oct 12 18:14 swagger.yaml
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Oct 18 11:06 templates
-drwxr-xr-x@  9 bertrandrenaudin  staff   288B Nov  4 16:09 tools
-drwxr-xr-x@  8 bertrandrenaudin  staff   256B Oct 15 22:11 venv
+Le projet consiste à développer une SaaS de génération de devis personnalisable automatique.
+
+Le but est de se démarquer du marcher en proposant un outil simple d'utilisation qui propose : la génération de devis, la personnalisation de son devis, l'inclusion des aspects juridiques (CGV, CGU, Factures électroniques, etc)
+
+### Objectifs
+
+1. **Génération d'un devis :** une génération simple et intuitive pour gagner du temps dans l'aspect administratif de l'auto entreprenariat.
+2. **Gain de temps significatif :** économiser du temps à chaque nouveau client, c'est gagner du temps pour ce qui compte vraiment.
+3. **Expérience utilisateur "Wow" :** dès l'inscription, le freelance ou l'auto entrepreneur doit tout de suite facilement configurer son profil, ses prestations, sa charte graphique et générer ses premiers devis. Interface simple et efficace.
+4. **Ciblage initial sur les domaines de l'IT :** point de départ stratégique puisque cela regroupe le plus d'auto-entrepreneur.
+
+## Features principales
+
+### Utilisateurs de l'application
+
+1. **Utilisateur** :
+    - Authentification par mail ou via Google OAuth 2.0
+    - Création et modification rapide d'un profil
+    - Accès à un dashboard pour suivre ses devis
+    - Création rapide de thème de devis pour inclure sa charte graphique
+    - Menu utilisateur avec déconnexion
+2. **Administrateur** :
+    - Accès à un tableau de bord pour gérer les utilisateurs
+    - Suppression des utilisateurs et leurs données
+
+### User-Stories principales
+
+#### Utilisateurs finaux
+
+1. **Authentification** :
+    - En tant qu'utilisateur, je veux m'inscrire rapidement via Google Authentification pour commencer à utiliser l'application sans effort.
+    - En tant qu'utilisateur, je veux m'inscrire rapidement par mail pour commencer à utiliser l'application sans effort.
+    - En tant qu'utilisateur, je veux pouvoir me déconnecter rapidement.
+    - En tant qu'utilisateur, je veux pouvoir supprimer mon compte et toutes mes données en conformité avec le RGPD.
+
+2. **Onboarding & configuration du profil** :
+    - En tant qu’utilisateur, je veux être guidé lors de ma première connexion pour configurer mon profil professionnel (nom, activité, coordonnées, logo, etc.), afin que mes devis soient personnalisés à mon image.
+    - En tant qu’utilisateur, je veux pouvoir modifier facilement mon profil ultérieurement pour garder mes informations à jour.
+    - En tant qu’utilisateur, je veux pouvoir importer mon logo et définir ma charte graphique pour que mes devis soient cohérents avec mon identité visuelle.
+    - En tant qu’utilisateur, je veux que le système me propose des couleurs et polices cohérentes avec mon logo pour accélérer la configuration de ma charte graphique.
+
+3. **Gestion des prestations** :
+    - En tant qu’utilisateur, je veux pouvoir créer, modifier et supprimer des prestations que je propose, afin de pouvoir les réutiliser dans mes devis.
+    - En tant qu’utilisateur, je veux pouvoir définir pour chaque prestation : un intitulé, une description, un tarif journalier (ou horaire), et un poids en jours pour estimer rapidement la durée du projet.
+    - En tant qu’utilisateur, je veux pouvoir classer mes prestations par catégorie (développement web, design, rédaction, etc.) pour les retrouver facilement.
+    - En tant qu’utilisateur, je veux que le système me suggère des prestations standards selon mon domaine d’activité pour accélérer la configuration initiale.
+
+4. **Création de devis** :
+    - En tant qu’utilisateur, je veux pouvoir créer un nouveau devis à partir d’une interface simple et claire.
+    - En tant qu’utilisateur, je veux pouvoir sélectionner un client existant ou en créer un nouveau directement depuis la page de création du devis.
+    - En tant qu’utilisateur, je veux pouvoir ajouter plusieurs lignes de prestations à mon devis avec des quantités, taux, et descriptions personnalisables.
+    - En tant qu’utilisateur, je veux que le total (HT, TVA, TTC) soit calculé automatiquement selon mes paramètres.
+    - En tant qu’utilisateur, je veux pouvoir appliquer une remise (en % ou en €) sur le devis.
+    - En tant qu’utilisateur, je veux pouvoir enregistrer mon devis comme brouillon avant de le finaliser.
+    - En tant qu’utilisateur, je veux pouvoir visualiser un aperçu PDF du devis avant sa génération finale.
+
+5. **Personnalisation du devis (branding & template)** :
+    - En tant qu’utilisateur, je veux pouvoir choisir un modèle de mise en page pour mes devis (layout, typographie, couleurs).
+    - En tant qu’utilisateur, je veux que la prévisualisation du devis reflète en temps réel mes choix de couleurs et de polices.
+    - En tant qu’utilisateur, je veux pouvoir sauvegarder plusieurs thèmes de devis pour alterner selon le type de client ou de projet.
+    - En tant qu’utilisateur, je veux que mon thème par défaut soit automatiquement appliqué aux nouveaux devis.
+
+6. **Gestion des clients** :
+    - En tant qu’utilisateur, je veux pouvoir créer une fiche client complète (nom, entreprise, e-mail, téléphone, adresse) pour chaque nouveau client.
+    - En tant qu’utilisateur, je veux pouvoir associer plusieurs devis à un même client pour centraliser son historique.
+    - En tant qu’utilisateur, je veux pouvoir rechercher un client par nom ou e-mail afin de le retrouver rapidement.
+    - En tant qu’utilisateur, je veux pouvoir modifier ou supprimer un client si ses informations changent ou s’il n’est plus actif.
+    - En tant qu’utilisateur, je veux que le système m’empêche de supprimer un client ayant des devis actifs ou signés sans confirmation explicite.
+    - En tant qu’utilisateur, je veux voir un aperçu de tous les devis liés à un client directement depuis sa fiche.
+    - En tant qu’utilisateur, je veux pouvoir importer ma liste de clients depuis un fichier CSV pour gagner du temps lors de la configuration initiale.
+
+7. **Envoi, signature et suivi des devis** :
+    - En tant qu’utilisateur, je veux pouvoir générer un lien public unique vers mon devis pour le partager facilement avec mon client.
+    - En tant qu’utilisateur, je veux pouvoir envoyer le devis directement par e-mail depuis l’application (avec un message personnalisé et mon branding).
+    - En tant qu’utilisateur, je veux que mon client puisse visualiser le devis en ligne sur une page responsive et propre.
+    - En tant qu’utilisateur, je veux que le client puisse signer le devis électroniquement (signature simple ou validation via code OTP).
+    - En tant qu’utilisateur, je veux recevoir une notification (e-mail et dans le dashboard) dès que le client ouvre, commente ou signe un devis.
+    - En tant qu’utilisateur, je veux pouvoir marquer manuellement un devis comme “Accepté” ou “Refusé” si la signature électronique n’est pas utilisée.
+    - En tant qu’utilisateur, je veux voir l’état de chaque devis (Brouillon, Envoyé, Consulté, Signé, Refusé, Expiré) dans mon dashboard.
+    - En tant qu’utilisateur, je veux pouvoir télécharger à tout moment le devis signé au format PDF.
+
+---
+### Initial Scope
+
+#### Version 0 (MVP)
+
+**Fonctionnalités**
+
+1. **Inscription & Onboarding**:
+    - [x] Authentification via e-mail
+    - [ ] Authentification via Google Authentification
+    - [ ] Création d'un compte avec vérification e-mail
+    - [x] Modification du profil
+    - [x] Sélection d'un domaine & des prestations
+2. **Dashboard** :
+    - [x] Dashboard minimal listant les devis
+    - [ ] Filtrage par status
+    - [ ] Statistiques de bases (nombre de devis créés / signés)
+    - [x] Création d'un devis, preview d'un devis, génération du pdf
+3. **Gestion des clients** :
+    - [ ] CRUD complet des clients (backend + frontend)
+    - [ ] Liaison devis <-> client
+    - [ ] Création d'une fiche client (via menu ou à la volée dans la création d'un devis)
+4. **Gestion des prestations** :
+    - [ ] CRUD complet des prestations (backend + frontend)
+    - [ ] Liaison prestations <-> utilisateur
+    - [ ] Catégorisation des prestations
+    - [ ] Création de prestations par l'utilisateur
+    - [x] Import csv
+5. **Gestion & Génération des devis** :
+    - [x] Aperçu & génération PDF
+    - [ ] Endpoint sendDocument (génération token + envoi e-mail)
+    - [ ] Génération PDF côté serveur + stockage S3
+    - [x] Choix du thème / charte graphique appliqué au devis
+    - [x] Calcul automatique HT / TVA / TTC
+
+### Choix initial des technologies
+
+#### Main Technologies
+
+- Django
+- React, Typescript
+
+#### Paradigms
+
+- **Clean Architecture** : All business logic is isolated from external concerns (frameworks, databases, APIs). The application is structured into Domain / Application / Adapters / Interface layers. This ensures: Independence from frameworks, High testability, Easy replacement of infrastructure components (database, UI, etc.)
+
+- **Clean Code**: Every module must be : Readable — names clearly reflect intent,Maintainable — single responsibility per file/class, Consistent — strict linting and formatting rules enforced, Self-documented — code should explain itself, comments only where logic isn’t obvious. The principle: “Code should read like well-written prose.”
+- **TDD** : Each feature follows the Red → Green → Refactor cycle: 1- Write a failing test (specifying expected behavior), 2- Implement minimal code to make it pass, 3- Refactor for clarity and maintainability. This keeps logic testable, modular, and avoids regression. Unit tests (pytest, Jest) are mandatory on domain and application layers.
+- **DDD** : Business logic drives the codebase structure.The Domain layer expresses the core rules and concepts of the business (quotes, clients, documents, templates). Ubiquitous language is shared between developers, domain experts, and documentation to avoid ambiguity. Bounded contexts are separated (e.g., User, Quote, Document, Branding) to maintain clear ownership and reduce coupling.
+
+
+#### Secondary Technologies
+
+##### Database
+
+- **PostgreSQL**
+- **Redis?** : caching and async task acceleration (sessions, notifications, rate limiting).
+
+##### Backend
+
+- **Django REST Framework (DRF)** : API layer, serializers, permissions
+- **Celery + Redis** : async background jobs (email sending, PDF generation)
+- **Swagger / drf-spectacular** : auto-generated API documentation
+- **Pytest** : testing framework (unit + integration tests)
+
+
+##### Authentication
+
+- **Django Allauth + dj-rest-auth** — JWT authentication and social login (Google OAuth 2.0)
+- **Custom User Model with profile completion tracking**
+- **Secure password storage (PBKDF2 / Argon2)**
+##### Security
+- **Environment variables** for all secrets (API keys, DB credentials)
+- **Rate limiting + CSRF protection on critical endpoints**
+##### Others
+- **S3 (MinIO / AWS)** for file storage (logos, generated PDFs)
+- **Stripe (planned)** for payment and invoicing integration
+- **Docker + Docker Compose** for reproducible environments
+- **Pre-commit** hooks for linting and test checks
+- **GitHub Actions CI/CD** for automatic testing and deployment
+
+#### Monorepo
+- One repo `FreelanSign` with /backend & /frontend packages.
+
+---
+### Conventional Commit Guide
+
+https://github.com/BryanLomerio/conventional-commit-cheatsheet
+
+#### Commit Message Format
+
+Each commit message should follow this structure:
+
+```
+<type>(<scope>): <short description>
+
+[optional body]
+
+[optional footer(s)]
 ```
 
-- Architecture de `apps` :
+- **type**: a noun that describes the kind of change (see list below)
+- **scope**: optional, a noun describing the section of the codebase impacted (e.g, auth, api, frontend)
+- **short description**: imperative, present tense, no trailing period
+- **body**: optional detailed explanation (if needed)
+- **footer**: optional metadata (e.g., BREAKING CHANGE: or issue tracker references)
 
-```bash
--rw-r--r--@ 1 bertrandrenaudin  staff   169B Oct 12 18:48 apps/__pycache__/__init__.cpython-313.pyc
--rw-r--r--@ 1 bertrandrenaudin  staff     0B Nov  3 21:40 apps/branding/__init__.py
--rw-r--r--@ 1 bertrandrenaudin  staff   626B Nov  3 21:40 apps/branding/admin.py
--rw-r--r--@ 1 bertrandrenaudin  staff   408B Nov  3 21:40 apps/branding/apps.py
--rw-r--r--@ 1 bertrandrenaudin  staff   4.0K Nov  3 21:40 apps/branding/models.py
--rw-r--r--@ 1 bertrandrenaudin  staff     0B Oct 12 18:14 apps/catalog/__init__.py
--rw-r--r--@ 1 bertrandrenaudin  staff   1.1K Oct 12 18:14 apps/catalog/admin.py
--rw-r--r--@ 1 bertrandrenaudin  staff   151B Oct 12 18:14 apps/catalog/apps.py
--rw-r--r--@ 1 bertrandrenaudin  staff   3.6K Oct 27 11:07 apps/catalog/models.py
--rw-r--r--@ 1 bertrandrenaudin  staff    63B Oct 12 18:14 apps/catalog/views.py
--rw-r--r--@ 1 bertrandrenaudin  staff     0B Oct 12 18:14 apps/client/__init__.py
--rw-r--r--@ 1 bertrandrenaudin  staff   299B Oct 12 18:14 apps/client/admin.py
--rw-r--r--@ 1 bertrandrenaudin  staff   170B Oct 12 18:14 apps/client/apps.py
--rw-r--r--@ 1 bertrandrenaudin  staff   1.2K Oct 12 18:14 apps/client/models.py
--rw-r--r--@ 1 bertrandrenaudin  staff    63B Oct 12 18:14 apps/client/views.py
--rw-r--r--@ 1 bertrandrenaudin  staff     0B Oct 12 18:14 apps/core/__init__.py
--rw-r--r--@ 1 bertrandrenaudin  staff    63B Oct 12 18:14 apps/core/admin.py
--rw-r--r--@ 1 bertrandrenaudin  staff   145B Oct 12 18:14 apps/core/apps.py
--rw-r--r--@ 1 bertrandrenaudin  staff   553B Oct 12 18:14 apps/core/enums.py
--rw-r--r--@ 1 bertrandrenaudin  staff   1.9K Oct 12 18:14 apps/core/exceptions.py
--rw-r--r--@ 1 bertrandrenaudin  staff   1.1K Oct 12 18:14 apps/core/logging.py
--rw-r--r--@ 1 bertrandrenaudin  staff   1.1K Oct 12 18:14 apps/core/managers.py
--rw-r--r--@ 1 bertrandrenaudin  staff    22B Nov  4 22:53 apps/core/models.py
--rw-r--r--@ 1 bertrandrenaudin  staff   368B Oct 12 18:14 apps/core/permissions.py
--rw-r--r--@ 1 bertrandrenaudin  staff    63B Oct 12 18:14 apps/core/views.py
--rw-r--r--@ 1 bertrandrenaudin  staff     0B Oct 12 18:14 apps/quote/__init__.py
--rw-r--r--@ 1 bertrandrenaudin  staff   839B Oct 12 18:14 apps/quote/admin.py
--rw-r--r--@ 1 bertrandrenaudin  staff   241B Oct 12 18:14 apps/quote/apps.py
--rw-r--r--@ 1 bertrandrenaudin  staff    14K Nov  4 22:55 apps/quote/models.py
--rw-r--r--@ 1 bertrandrenaudin  staff   661B Oct 12 18:14 apps/quote/signals.py
--rw-r--r--@ 1 bertrandrenaudin  staff    63B Oct 12 18:14 apps/quote/views.py
--rw-r--r--@ 1 bertrandrenaudin  staff     0B Oct 12 18:14 apps/user/__init__.py
--rw-r--r--@ 1 bertrandrenaudin  staff   2.0K Oct 12 18:14 apps/user/admin.py
--rw-r--r--@ 1 bertrandrenaudin  staff   257B Oct 12 18:14 apps/user/apps.py
--rw-r--r--@ 1 bertrandrenaudin  staff   619B Oct 12 18:14 apps/user/signals.py
--rw-r--r--@ 1 bertrandrenaudin  staff   703B Oct 27 11:07 apps/user/urls.py
+**Notes**:
+- Use the imperative mood (“fix”, “add”, “remove”), as if giving an order.
+- Keep the subject line under ~50 characters if possible.
+- Use the body to explain why the change was made, not what was changed.
+- Footer is used for major changes, breaking changes, or referencing issues.
 
-apps/branding/adapters:
-total 0
--rw-r--r--@  1 bertrandrenaudin  staff     0B Nov  3 21:40 __init__.py
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Nov  3 21:40 __pycache__
-drwxr-xr-x@  6 bertrandrenaudin  staff   192B Nov  3 21:40 .
-drwxr-xr-x@ 13 bertrandrenaudin  staff   416B Nov  3 21:40 ..
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:40 persistence
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:40 storage
+⸻
 
-apps/branding/application:
-total 8
--rw-r--r--@  1 bertrandrenaudin  staff     0B Nov  3 21:40 __init__.py
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:40 __pycache__
-drwxr-xr-x@  8 bertrandrenaudin  staff   256B Nov  3 21:40 .
-drwxr-xr-x@ 13 bertrandrenaudin  staff   416B Nov  3 21:40 ..
-drwxr-xr-x@  6 bertrandrenaudin  staff   192B Nov  3 21:40 dto
--rw-r--r--@  1 bertrandrenaudin  staff   601B Nov  3 21:40 errors.py
-drwxr-xr-x@  6 bertrandrenaudin  staff   192B Nov  3 21:40 ports
-drwxr-xr-x@ 12 bertrandrenaudin  staff   384B Nov  3 21:40 usecases
+#### Commit Types
 
-apps/branding/domain:
-total 0
--rw-r--r--@  1 bertrandrenaudin  staff     0B Nov  3 21:40 __init__.py
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Nov  3 21:40 __pycache__
-drwxr-xr-x@  8 bertrandrenaudin  staff   256B Nov  3 21:40 .
-drwxr-xr-x@ 13 bertrandrenaudin  staff   416B Nov  3 21:40 ..
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:40 entities
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:40 policies
-drwxr-xr-x@  6 bertrandrenaudin  staff   192B Nov  3 21:40 services
-drwxr-xr-x@  7 bertrandrenaudin  staff   224B Nov  3 21:40 value_objects
-
-apps/branding/interface:
-total 64
--rw-r--r--@  1 bertrandrenaudin  staff     0B Nov  3 21:40 __init__.py
-drwxr-xr-x@  7 bertrandrenaudin  staff   224B Nov  3 21:40 __pycache__
-drwxr-xr-x@  8 bertrandrenaudin  staff   256B Nov  3 21:40 .
-drwxr-xr-x@ 13 bertrandrenaudin  staff   416B Nov  3 21:40 ..
--rw-r--r--@  1 bertrandrenaudin  staff   1.0K Nov  3 21:40 permissions.py
--rw-r--r--@  1 bertrandrenaudin  staff   5.1K Nov  3 21:40 serializers.py
--rw-r--r--@  1 bertrandrenaudin  staff   825B Nov  3 21:40 urls.py
--rw-r--r--@  1 bertrandrenaudin  staff    13K Nov  3 21:40 views.py
-
-apps/branding/migrations:
-total 8
--rw-r--r--@  1 bertrandrenaudin  staff     0B Nov  3 21:40 __init__.py
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:40 __pycache__
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:40 .
-drwxr-xr-x@ 13 bertrandrenaudin  staff   416B Nov  3 21:40 ..
--rw-r--r--@  1 bertrandrenaudin  staff   3.2K Nov  3 21:40 0001_initial.py
-
-apps/branding/tests:
-total 0
--rw-r--r--@  1 bertrandrenaudin  staff     0B Nov  3 21:40 __init__.py
-drwxr-xr-x@  7 bertrandrenaudin  staff   224B Nov  3 21:40 .
-drwxr-xr-x@ 13 bertrandrenaudin  staff   416B Nov  3 21:40 ..
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Nov  3 21:40 adapters
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Nov  3 21:40 application
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Nov  3 21:40 domain
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Nov  3 21:40 interface
-
-apps/catalog/adapters:
-total 0
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Oct 23 15:11 .
-drwxr-xr-x@ 14 bertrandrenaudin  staff   448B Nov  3 21:38 ..
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:38 persistence
-
-apps/catalog/application:
-total 8
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Oct 29 16:22 __pycache__
-drwxr-xr-x@  7 bertrandrenaudin  staff   224B Nov  3 21:38 .
-drwxr-xr-x@ 14 bertrandrenaudin  staff   448B Nov  3 21:38 ..
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:38 dto
--rw-r--r--@  1 bertrandrenaudin  staff   1.1K Oct 27 11:07 errors.py
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:38 ports
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:38 usecases
-
-apps/catalog/domain:
-total 8
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Oct 29 16:22 __pycache__
-drwxr-xr-x@  6 bertrandrenaudin  staff   192B Nov  3 21:38 .
-drwxr-xr-x@ 14 bertrandrenaudin  staff   448B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   1.9K Oct 27 11:07 errors.py
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:38 policies
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:38 services
-
-apps/catalog/interface:
-total 48
-drwxr-xr-x@  7 bertrandrenaudin  staff   224B Oct 29 16:22 __pycache__
-drwxr-xr-x@  8 bertrandrenaudin  staff   256B Nov  3 21:38 .
-drwxr-xr-x@ 14 bertrandrenaudin  staff   448B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   3.7K Oct 27 11:07 error_handler.py
--rw-r--r--@  1 bertrandrenaudin  staff   500B Oct 12 18:14 filters.py
--rw-r--r--@  1 bertrandrenaudin  staff   3.5K Oct 27 11:07 serializers.py
--rw-r--r--@  1 bertrandrenaudin  staff   441B Oct 12 18:14 urls.py
--rw-r--r--@  1 bertrandrenaudin  staff   6.8K Oct 27 11:07 views.py
-
-apps/catalog/migrations:
-total 16
--rw-r--r--@  1 bertrandrenaudin  staff     0B Oct 12 18:14 __init__.py
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Oct 12 18:48 __pycache__
-drwxr-xr-x@  6 bertrandrenaudin  staff   192B Oct 12 18:48 .
-drwxr-xr-x@ 14 bertrandrenaudin  staff   448B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   3.6K Oct 12 18:14 0001_initial.py
--rw-r--r--@  1 bertrandrenaudin  staff   2.1K Oct 12 18:14 0002_remove_prestation_unique_area_prestation_name_and_more.py
-
-apps/catalog/tests:
-total 24
--rw-r--r--@  1 bertrandrenaudin  staff     0B Oct 12 18:14 __init__.py
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Oct 23 15:14 __pycache__
-drwxr-xr-x@  7 bertrandrenaudin  staff   224B Nov  3 21:38 .
-drwxr-xr-x@ 14 bertrandrenaudin  staff   448B Nov  3 21:38 ..
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:38 domain
--rw-r--r--@  1 bertrandrenaudin  staff   5.0K Oct 12 18:14 test_api_catalog.py
--rw-r--r--@  1 bertrandrenaudin  staff   1.1K Oct 12 18:14 test_models.py
-
-apps/client/adapters:
-total 0
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Oct 23 16:00 .
-drwxr-xr-x@ 14 bertrandrenaudin  staff   448B Nov  3 21:38 ..
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:38 persistence
-
-apps/client/application:
-total 8
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Oct 29 16:22 __pycache__
-drwxr-xr-x@  7 bertrandrenaudin  staff   224B Nov  3 21:38 .
-drwxr-xr-x@ 14 bertrandrenaudin  staff   448B Nov  3 21:38 ..
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:38 dto
--rw-r--r--@  1 bertrandrenaudin  staff   335B Oct 27 11:07 errors.py
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:38 ports
-drwxr-xr-x@  8 bertrandrenaudin  staff   256B Nov  3 21:38 usecases
-
-apps/client/domain:
-total 8
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Oct 29 16:22 __pycache__
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:38 .
-drwxr-xr-x@ 14 bertrandrenaudin  staff   448B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   1.0K Oct 27 11:07 errors.py
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:38 policies
-
-apps/client/interface:
-total 40
--rw-r--r--@  1 bertrandrenaudin  staff     0B Oct 12 18:14 __init__.py
-drwxr-xr-x@  6 bertrandrenaudin  staff   192B Oct 29 16:22 __pycache__
-drwxr-xr-x@  7 bertrandrenaudin  staff   224B Nov  3 21:38 .
-drwxr-xr-x@ 14 bertrandrenaudin  staff   448B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   5.8K Oct 27 11:07 serializers.py
--rw-r--r--@  1 bertrandrenaudin  staff   259B Oct 12 18:14 urls.py
--rw-r--r--@  1 bertrandrenaudin  staff   5.5K Oct 27 11:07 views.py
-
-apps/client/migrations:
-total 8
--rw-r--r--@  1 bertrandrenaudin  staff     0B Oct 12 18:14 __init__.py
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Oct 12 18:48 __pycache__
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Oct 12 18:48 .
-drwxr-xr-x@ 14 bertrandrenaudin  staff   448B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   1.7K Oct 12 18:14 0001_initial.py
-
-apps/client/tests:
-total 0
--rw-r--r--@  1 bertrandrenaudin  staff     0B Oct 12 18:14 __init__.py
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Oct 23 16:14 __pycache__
-drwxr-xr-x@  8 bertrandrenaudin  staff   256B Nov  3 21:38 .
-drwxr-xr-x@ 14 bertrandrenaudin  staff   448B Nov  3 21:38 ..
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:38 adapters
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:38 application
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:38 domain
--rw-r--r--@  1 bertrandrenaudin  staff     0B Oct 27 11:07 test_api_client_endpoint.py
-
-
-apps/core/middleware:
-total 8
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Oct 12 18:48 __pycache__
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:38 .
-drwxr-xr-x@ 18 bertrandrenaudin  staff   576B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   1.5K Oct 12 18:14 request_logging.py
-
-apps/core/migrations:
-total 8
--rw-r--r--@  1 bertrandrenaudin  staff     0B Oct 12 18:14 __init__.py
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  4 22:55 __pycache__
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  4 22:55 .
-drwxr-xr-x@ 18 bertrandrenaudin  staff   576B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   1.2K Nov  4 22:55 0001_initial.py
-
-apps/core/models:
-total 16
--rw-r--r--@  1 bertrandrenaudin  staff   143B Oct 12 18:14 __init__.py
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  4 22:55 __pycache__
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:38 .
-drwxr-xr-x@ 18 bertrandrenaudin  staff   576B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   3.0K Nov  4 22:53 mixins.py
-
-apps/core/tests:
-total 24
--rw-r--r--@  1 bertrandrenaudin  staff     0B Oct 12 18:14 __init__.py
-drwxr-xr-x@  6 bertrandrenaudin  staff   192B Oct 27 09:48 __pycache__
-drwxr-xr-x@  7 bertrandrenaudin  staff   224B Nov  3 21:38 .
-drwxr-xr-x@ 18 bertrandrenaudin  staff   576B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   687B Oct 12 18:14 test_enums.py
--rw-r--r--@  1 bertrandrenaudin  staff   2.9K Oct 12 18:14 test_mixins.py
--rw-r--r--@  1 bertrandrenaudin  staff   1.2K Oct 12 18:14 test_money.py
-
-apps/core/utils:
-total 16
--rw-r--r--@  1 bertrandrenaudin  staff   257B Oct 12 18:14 __init__.py
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Oct 12 18:48 __pycache__
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:38 .
-drwxr-xr-x@ 18 bertrandrenaudin  staff   576B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   2.1K Oct 12 18:14 money.py
-
-apps/quote/adapters:
-total 0
--rw-r--r--@  1 bertrandrenaudin  staff     0B Nov  3 21:40 __init__.py
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Nov  3 21:40 __pycache__
-drwxr-xr-x@  9 bertrandrenaudin  staff   288B Nov  3 22:04 .
-drwxr-xr-x@ 15 bertrandrenaudin  staff   480B Nov  3 21:38 ..
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:40 email
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:40 pdf
-drwxr-xr-x@  6 bertrandrenaudin  staff   192B Nov  3 21:40 persistence
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  4 22:51 reference
-drwxr-xr-x@  6 bertrandrenaudin  staff   192B Nov  3 21:40 rendering
-
-apps/quote/application:
-total 8
--rw-r--r--@  1 bertrandrenaudin  staff     0B Nov  3 21:40 __init__.py
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:40 __pycache__
-drwxr-xr-x@  8 bertrandrenaudin  staff   256B Nov  3 21:40 .
-drwxr-xr-x@ 15 bertrandrenaudin  staff   480B Nov  3 21:38 ..
-drwxr-xr-x@  6 bertrandrenaudin  staff   192B Nov  3 21:40 dto
--rw-r--r--@  1 bertrandrenaudin  staff   424B Oct 27 11:07 errors.py
-drwxr-xr-x@ 12 bertrandrenaudin  staff   384B Nov  3 21:38 ports
-drwxr-xr-x@ 10 bertrandrenaudin  staff   320B Nov  3 21:40 usecases
-
-apps/quote/domain:
-total 0
--rw-r--r--@  1 bertrandrenaudin  staff     0B Nov  3 21:40 __init__.py
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:40 __pycache__
-drwxr-xr-x@  6 bertrandrenaudin  staff   192B Nov  3 21:40 .
-drwxr-xr-x@ 15 bertrandrenaudin  staff   480B Nov  3 21:38 ..
-drwxr-xr-x@  6 bertrandrenaudin  staff   192B Nov  3 21:40 policies
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:40 services
-
-apps/quote/interface:
-total 136
--rw-r--r--@  1 bertrandrenaudin  staff     0B Oct 12 18:14 __init__.py
-drwxr-xr-x@  8 bertrandrenaudin  staff   256B Nov  4 22:51 __pycache__
-drwxr-xr-x@  9 bertrandrenaudin  staff   288B Nov  3 21:40 .
-drwxr-xr-x@ 15 bertrandrenaudin  staff   480B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   1.7K Oct 12 18:14 permissions.py
--rw-r--r--@  1 bertrandrenaudin  staff   825B Oct 19 18:01 renderers.py
--rw-r--r--@  1 bertrandrenaudin  staff    24K Nov  4 22:50 serializers.py
--rw-r--r--@  1 bertrandrenaudin  staff   536B Oct 27 11:07 urls.py
--rw-r--r--@  1 bertrandrenaudin  staff    24K Nov  3 21:40 views.py
-
-apps/quote/migrations:
-total 56
--rw-r--r--@  1 bertrandrenaudin  staff     0B Oct 12 18:14 __init__.py
-drwxr-xr-x@  7 bertrandrenaudin  staff   224B Nov  4 22:55 __pycache__
-drwxr-xr-x@  8 bertrandrenaudin  staff   256B Nov  4 22:55 .
-drwxr-xr-x@ 15 bertrandrenaudin  staff   480B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff    12K Oct 12 18:14 0001_initial.py
--rw-r--r--@  1 bertrandrenaudin  staff   4.4K Oct 12 18:14 0002_alter_quotelineitem_options_and_more.py
--rw-r--r--@  1 bertrandrenaudin  staff   1.1K Oct 12 18:14 0003_alter_paymentterms_owner_and_more.py
--rw-r--r--@  1 bertrandrenaudin  staff   473B Nov  4 22:55 0004_alter_quote_reference.py
-
-apps/quote/tests:
-total 72
--rw-r--r--@  1 bertrandrenaudin  staff     0B Oct 12 18:14 __init__.py
-drwxr-xr-x@ 14 bertrandrenaudin  staff   448B Oct 27 09:48 __pycache__
-drwxr-xr-x@ 16 bertrandrenaudin  staff   512B Nov  3 21:38 .
-drwxr-xr-x@ 15 bertrandrenaudin  staff   480B Nov  3 21:38 ..
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:38 adapters
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:38 application
--rw-r--r--@  1 bertrandrenaudin  staff   1.1K Oct 27 11:07 conftest.py
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:38 domain
--rw-r--r--@  1 bertrandrenaudin  staff   1.3K Oct 27 11:07 test_add_prestation_line_api.py
--rw-r--r--@  1 bertrandrenaudin  staff   527B Oct 27 11:07 test_mock_verification.py
--rw-r--r--@  1 bertrandrenaudin  staff   3.0K Oct 27 11:07 test_models.py
--rw-r--r--@  1 bertrandrenaudin  staff   1.5K Oct 27 11:07 test_pdf_download_api.py
--rw-r--r--@  1 bertrandrenaudin  staff   2.9K Oct 12 18:14 test_permissions.py
--rw-r--r--@  1 bertrandrenaudin  staff   823B Oct 27 11:07 test_preview.py
--rw-r--r--@  1 bertrandrenaudin  staff   3.4K Oct 27 11:07 test_quote_actions_api.py
--rw-r--r--@  1 bertrandrenaudin  staff   3.6K Oct 12 18:14 test_serializers.py
-
-apps/user/adapters:
-total 0
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Oct 24 15:31 .
-drwxr-xr-x@ 17 bertrandrenaudin  staff   544B Nov  3 21:38 ..
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:38 persistence
-
-apps/user/application:
-total 8
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Oct 29 16:22 __pycache__
-drwxr-xr-x@  7 bertrandrenaudin  staff   224B Nov  3 21:38 .
-drwxr-xr-x@ 17 bertrandrenaudin  staff   544B Nov  3 21:38 ..
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:38 dto
--rw-r--r--@  1 bertrandrenaudin  staff   2.8K Oct 27 11:07 errors.py
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:38 ports
-drwxr-xr-x@  9 bertrandrenaudin  staff   288B Nov  3 21:38 usecases
-
-apps/user/backend:
-total 0
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Oct 14 21:45 .
-drwxr-xr-x@ 17 bertrandrenaudin  staff   544B Nov  3 21:38 ..
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Oct 14 21:45 apps
-
-apps/user/domain:
-total 8
-drwxr-xr-x@  3 bertrandrenaudin  staff    96B Oct 29 16:22 __pycache__
-drwxr-xr-x@  6 bertrandrenaudin  staff   192B Nov  3 21:38 .
-drwxr-xr-x@ 17 bertrandrenaudin  staff   544B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   2.9K Oct 27 11:07 errors.py
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:38 policies
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Nov  3 21:38 services
-
-apps/user/interface:
-total 88
--rw-r--r--@  1 bertrandrenaudin  staff     0B Oct 12 18:14 __init__.py
-drwxr-xr-x@  7 bertrandrenaudin  staff   224B Oct 29 16:22 __pycache__
-drwxr-xr-x@  9 bertrandrenaudin  staff   288B Nov  3 21:38 .
-drwxr-xr-x@ 17 bertrandrenaudin  staff   544B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   6.3K Oct 24 16:19 auth_views.py
--rw-r--r--@  1 bertrandrenaudin  staff   4.0K Oct 27 11:07 errors_handler.py
--rw-r--r--@  1 bertrandrenaudin  staff   9.6K Oct 27 11:07 serializers.py
--rw-r--r--@  1 bertrandrenaudin  staff   212B Oct 12 18:14 urls.py
--rw-r--r--@  1 bertrandrenaudin  staff    14K Oct 27 11:07 views.py
-
-apps/user/migrations:
-total 72
--rw-r--r--@  1 bertrandrenaudin  staff     0B Oct 12 18:14 __init__.py
-drwxr-xr-x@ 11 bertrandrenaudin  staff   352B Oct 12 18:48 __pycache__
-drwxr-xr-x@ 12 bertrandrenaudin  staff   384B Oct 12 18:48 .
-drwxr-xr-x@ 17 bertrandrenaudin  staff   544B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   4.9K Oct 12 18:14 0001_initial.py
--rw-r--r--@  1 bertrandrenaudin  staff   546B Oct 12 18:14 0002_remove_user_username_alter_user_email.py
--rw-r--r--@  1 bertrandrenaudin  staff   1.7K Oct 12 18:14 0003_alter_user_managers_profile.py
--rw-r--r--@  1 bertrandrenaudin  staff   1.1K Oct 12 18:14 0004_migrate_profile_data.py
--rw-r--r--@  1 bertrandrenaudin  staff   626B Oct 12 18:14 0005_alter_user_options_user_uniq_user_email_ci.py
--rw-r--r--@  1 bertrandrenaudin  staff   2.7K Oct 12 18:14 0006_professionaluser.py
--rw-r--r--@  1 bertrandrenaudin  staff   679B Oct 12 18:14 0007_professionaluser_allowed_areas.py
--rw-r--r--@  1 bertrandrenaudin  staff   354B Oct 12 18:14 0008_remove_professionaluser_allowed_areas.py
-
-apps/user/models:
-total 24
--rw-r--r--@  1 bertrandrenaudin  staff    34B Oct 12 18:14 __init__.py
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Oct 12 18:48 __pycache__
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:38 .
-drwxr-xr-x@ 17 bertrandrenaudin  staff   544B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   4.9K Oct 12 18:14 models.py
-
-apps/user/services:
-total 8
--rw-r--r--@  1 bertrandrenaudin  staff     0B Oct 12 18:14 __init__.py
-drwxr-xr-x@  4 bertrandrenaudin  staff   128B Oct 12 18:48 __pycache__
-drwxr-xr-x@  5 bertrandrenaudin  staff   160B Nov  3 21:38 .
-drwxr-xr-x@ 17 bertrandrenaudin  staff   544B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   637B Oct 12 18:14 email_change.py
-
-apps/user/tests:
-total 64
--rw-r--r--@  1 bertrandrenaudin  staff     0B Oct 12 18:14 __init__.py
-drwxr-xr-x@ 10 bertrandrenaudin  staff   320B Oct 27 09:43 __pycache__
-drwxr-xr-x@ 10 bertrandrenaudin  staff   320B Nov  3 21:38 .
-drwxr-xr-x@ 17 bertrandrenaudin  staff   544B Nov  3 21:38 ..
--rw-r--r--@  1 bertrandrenaudin  staff   1.4K Oct 12 18:14 test_auth_api.py
--rw-r--r--@  1 bertrandrenaudin  staff   1.4K Oct 12 18:14 test_auth_logout.py
--rw-r--r--@  1 bertrandrenaudin  staff   1.3K Oct 27 11:07 test_professional_api.py
--rw-r--r--@  1 bertrandrenaudin  staff   1.2K Oct 27 11:07 test_professional_serializer_minimal.py
--rw-r--r--@  1 bertrandrenaudin  staff   4.1K Oct 12 18:14 test_refresh_rotation.py
--rw-r--r--@  1 bertrandrenaudin  staff   6.6K Oct 27 11:07 test_user_api.py
+Here are the standard types you should use:
 ```
+feat: A new feature for the user or system.
+```
+> Example: feat(auth): add Google login feature
+```
+fix: A bug fix for the user or system.
+```
+> Example: fix(button): resolve issue with button hover state
+```
+docs: Documentation only changes.
+```
+> Example: docs(readme): update installation instructions
+```
+style: Changes that do not affect meaning of the code (white-space, formatting,
+missing semi-colons, etc.).
+```
+> Example: style(button): fix button alignment in CSS
+```
+refactor: Code change neither adds a feature nor fixes a bug.
+```
+> Example: refactor(auth): simplify login form validation logic
+```
+test: Adding missing tests or correcting existing tests.
+```
+> Example: test(auth): add unit tests for login function
+```
+build: Changes that affect the build system or external dependencies (example:
+gulp, Webpack, npm).
+
+```
+> Example: build(webpack): add webpack config for production build
+```
+ci: Changes to our CI configuration files and scripts (example: GitHub Actions,
+GitLab CI).
+```
+> Example: ci(gitlab): update CI config for deployment pipeline
+```
+perf: A code change that improves performance.
+```
+> Example: perf(api): optimize database queries for faster responses
+```
+env: Changes relating to environment setup or configuration.
+```
+> Example: env(docker): update Dockerfile for staging environment
+```
+sec: A commit that addresses a security issue.
+```
+> Example: sec(auth): add encryption for user passwords
+```
+config: Changes to configuration files (could overlap with build/ci but
+dedicated for config).
+```
+> Example: config: update .eslint rules for stricter code checks
+```
+api: Updates to API contracts or integrations.
+```
+
+> Example: api(user): add new endpoint for user profile updates
+---
+
+Additional types you may occasionally use:
+
+```
+revert: Reverts a previous commit.
+```
+> Example: revert(auth): rollback Google login feature
+```
+merge: Indicates a merge commit.
+```
+> Example: merge: branch 'feature/auth' into 'main'
+```
+deps: Dependency-specific updates (e.g., bumping a library).
+```
+> Example: deps: bump axios from 0.21.1 to 0.24.0
+```
+design: UI/UX or design improvements.
+```
+> Example: design(button): update hover effect
+
+---
+
+#### Semantic Versioning & Commit Impact
+- Use semantic versioning: MAJOR.MINOR.PATCH
+- PATCH: backward-compatible bug fixes (fix:).
+- MINOR: backward-compatible new features (feat:).
+- MAJOR: incompatible API changes or breaking changes.
+- When your commit introduces a breaking change, add ! after type or include BREAKING CHANGE: in the footer.
+Example: feat!: drop support for Node 10 / or add BREAKING CHANGE: ….
+- The version bump should be inferred from the commit types and notes rather than manually picked.
+
+---
+
+#### Development Workflow
+1. Create a branch from main (or your stable branch). Branch names should reflect what you’re working on (see branch section below).
+2.	Make your changes locally.
+3.	Stage and commit changes using the Conventional Commit format.
+4.	Push your branch to remote and open a pull request.
+5.	Code review happens, changes may be requested — update accordingly with new commits still following conventions.
+6.	Once approved, merge (preferably via Squash + Merge or Rebase + Merge) so the commit history remains clean and follows conventions.
+7.	Upon merging, the version bump is applied (automatically or manually) depending on your release process.
+8.	Tag the release in Git with the new version.
+
+---
+#### Pull Request Checklist
+
+Before you request a merge or complete a PR, ensure:
+- Commit messages follow the Conventional Commit format.
+- Scope (if applicable) is correctly specified.
+- Description clearly states why the changes were made.
+- No large or irrelevant unrelated changes are bundled.
+- Tests were added/updated for new behavior or bug fix.
+- CI builds pass without errors.
+- Documentation (if needed) has been updated.
+- Branch name follows naming rules (see next section).
+- If the change introduces a breaking change, BREAKING CHANGE: footer is present and version bump to MAJOR is planned.
+- No sensitive data (passwords, keys) committed.
+
+---
+
+#### Branch Naming Conventions
+- **main or master**: production-ready branch.
+- **dev**: integration branch for completed PRs.
+- **Feature branches**: `feature/<ticket-id>-<short-description>`.
+Example: feature/ABC-123-add-google-login
+- **Bugfix branches**: `bugfix/<ticket-id>-<short-description>`
+- **Hotfix branches**: `hotfix/<ticket-id>-<short-description>`
+- **Release branches**: `release/<version>`.
+
+Avoid long or vague names; use kebab-case and reference issue/ticket IDs if relevant.
+
+---
+
+#### Important Notes for Commit Messages
+- One commit = one logical change. Don’t combine unrelated fixes/features in a single commit.
+- Write messages that explain why the change was made, not just what was done.
+- Use imperative mood: “add”, “fix”, “update”, not “added” or “fixes”.
+- Use scopes wisely to convey area impacted (helpful for tooling and readability).
+- Keep the subject line short and clear; if details are needed, add a body.
+- Use ! after type (e.g., feat!:) or BREAKING CHANGE: in the footer for breaking changes.
+- Use multi-line commits only when needed.
+- Avoid generic messages like “update” or “changes”. Be specific: e.g., chore(deps): update Django to 4.2.1.
+
+---
+
+#### Version Control & Release Strategy
+- Use tags in Git to mark releases: v1.0.0, v1.1.0, etc.
+- Automate changelog generation if possible (tools like conventional-changelog).
+- Review the commit history for the release branch to determine version bump (PATCH/MINOR/MAJOR).
+- Post-release, merge back hotfix or release branch into develop (if branching model uses it).
+- Ensure that after a release, main always reflects the production version and develop (if any) includes ongoing work.
+- Protect main (and develop) branches: require pull request, code review, passing CI, and correct commit messages before merging.
+
+---
+
+In summary: Adopting the Conventional Commit standard promotes clarity, quality and traceability. For a collaborative project like Freelansign, following these rules will make your commit history meaningful, your releases predictable, and your codebase easier to maintain.
+
+## Project structure
+<!-- BEGIN AUTO: PROJECT_STRUCTURE -->
+```text
+.
+├── .env
+├── .github
+│   ├── CODEOWNERS
+│   ├── hooks
+│   ├── test
+│   └── workflows
+│       ├── ci.yml
+│       └── enforce-dev-to-main.yml
+├── .gitignore
+├── .pre-commit-config.yaml
+├── .sonarcloud.properties
+├── .sonarignore
+├── backend
+│   ├── .coverage
+│   ├── .coveragerc
+│   ├── apps
+│   │   ├── __init__.py
+│   │   ├── branding
+│   │   │   ├── __init__.py
+│   │   │   ├── adapters
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── persistence
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── django_theme_repository.py
+│   │   │   │   └── storage
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── django_logo_storage.py
+│   │   │   ├── admin.py
+│   │   │   ├── application
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── theme_inputs.py
+│   │   │   │   │   └── theme_viewmodels.py
+│   │   │   │   ├── errors.py
+│   │   │   │   ├── ports
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── logo_storage.py
+│   │   │   │   │   └── theme_repository.py
+│   │   │   │   └── usecases
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── activate_theme.py
+│   │   │   │       ├── create_theme.py
+│   │   │   │       ├── deactivate_theme.py
+│   │   │   │       ├── delete_theme.py
+│   │   │   │       ├── get_active_theme.py
+│   │   │   │       ├── get_theme_for_rendering.py
+│   │   │   │       ├── list_themes.py
+│   │   │   │       └── update_theme.py
+│   │   │   ├── apps.py
+│   │   │   ├── domain
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── entities
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── brand_theme.py
+│   │   │   │   ├── policies
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── theme_policy.py
+│   │   │   │   ├── services
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── theme_normalizer.py
+│   │   │   │   │   └── theme_validator.py
+│   │   │   │   └── value_objects
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── color_palette.py
+│   │   │   │       ├── spacing_config.py
+│   │   │   │       └── typography_config.py
+│   │   │   ├── interface
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── permissions.py
+│   │   │   │   ├── serializers.py
+│   │   │   │   ├── urls.py
+│   │   │   │   └── views.py
+│   │   │   ├── migrations
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── 0001_initial.py
+│   │   │   ├── models.py
+│   │   │   └── tests
+│   │   │       ├── __init__.py
+│   │   │       ├── adapters
+│   │   │       │   └── __init__.py
+│   │   │       ├── application
+│   │   │       │   └── __init__.py
+│   │   │       ├── domain
+│   │   │       │   └── __init__.py
+│   │   │       └── interface
+│   │   │           └── __init__.py
+│   │   ├── catalog
+│   │   │   ├── __init__.py
+│   │   │   ├── adapters
+│   │   │   │   └── persistence
+│   │   │   │       └── django_prestation_repository.py
+│   │   │   ├── admin.py
+│   │   │   ├── application
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── prestation_inputs.py
+│   │   │   │   │   └── prestation_viewmodels.py
+│   │   │   │   ├── errors.py
+│   │   │   │   ├── ports
+│   │   │   │   │   └── prestation_repository.py
+│   │   │   │   └── usecases
+│   │   │   │       ├── get_prestation.py
+│   │   │   │       └── list_prestations.py
+│   │   │   ├── apps.py
+│   │   │   ├── domain
+│   │   │   │   ├── errors.py
+│   │   │   │   ├── policies
+│   │   │   │   │   └── prestation_policy.py
+│   │   │   │   └── services
+│   │   │   │       └── prestation_calculator.py
+│   │   │   ├── interface
+│   │   │   │   ├── error_handler.py
+│   │   │   │   ├── filters.py
+│   │   │   │   ├── serializers.py
+│   │   │   │   ├── urls.py
+│   │   │   │   └── views.py
+│   │   │   ├── migrations
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   └── 0002_remove_prestation_unique_area_prestation_name_and_more.py
+│   │   │   ├── models.py
+│   │   │   ├── tests
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── domain
+│   │   │   │   │   ├── test_prestation_calculator.py
+│   │   │   │   │   └── test_prestation_policy.py
+│   │   │   │   ├── test_api_catalog.py
+│   │   │   │   └── test_models.py
+│   │   │   └── views.py
+│   │   ├── client
+│   │   │   ├── __init__.py
+│   │   │   ├── adapters
+│   │   │   │   └── persistence
+│   │   │   │       └── django_client_repository.py
+│   │   │   ├── admin.py
+│   │   │   ├── application
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── client_inputs.py
+│   │   │   │   │   └── client_viewmodels.py
+│   │   │   │   ├── errors.py
+│   │   │   │   ├── ports
+│   │   │   │   │   ├── client_repository.py
+│   │   │   │   │   └── clock.py
+│   │   │   │   └── usecases
+│   │   │   │       ├── create_client.py
+│   │   │   │       ├── delete_client.py
+│   │   │   │       ├── get_client.py
+│   │   │   │       ├── list_clients.py
+│   │   │   │       └── update_client.py
+│   │   │   ├── apps.py
+│   │   │   ├── domain
+│   │   │   │   ├── errors.py
+│   │   │   │   └── policies
+│   │   │   │       └── client_policies.py
+│   │   │   ├── interface
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── serializers.py
+│   │   │   │   ├── urls.py
+│   │   │   │   └── views.py
+│   │   │   ├── migrations
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── 0001_initial.py
+│   │   │   ├── models.py
+│   │   │   ├── tests
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── adapters
+│   │   │   │   │   └── test_django_client_repository.py
+│   │   │   │   ├── application
+│   │   │   │   │   └── test_create_client.py
+│   │   │   │   ├── domain
+│   │   │   │   │   └── test_name_policy.py
+│   │   │   │   └── test_api_client_endpoint.py
+│   │   │   └── views.py
+│   │   ├── core
+│   │   │   ├── __init__.py
+│   │   │   ├── admin.py
+│   │   │   ├── apps.py
+│   │   │   ├── enums.py
+│   │   │   ├── exceptions.py
+│   │   │   ├── logging.py
+│   │   │   ├── managers.py
+│   │   │   ├── middleware
+│   │   │   │   └── request_logging.py
+│   │   │   ├── migrations
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── 0001_initial.py
+│   │   │   ├── models
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── mixins.py
+│   │   │   ├── models.py
+│   │   │   ├── permissions.py
+│   │   │   ├── tests
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── test_enums.py
+│   │   │   │   ├── test_mixins.py
+│   │   │   │   └── test_money.py
+│   │   │   ├── utils
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── money.py
+│   │   │   └── views.py
+│   │   ├── quote
+│   │   │   ├── __init__.py
+│   │   │   ├── adapters
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── email
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── django_email_sender.py
+│   │   │   │   ├── pdf
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── playwright_generator.py
+│   │   │   │   ├── persistence
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── django_prestation_repository.py
+│   │   │   │   │   └── django_quote_repository.py
+│   │   │   │   ├── reference
+│   │   │   │   │   └── django_quote_reference_generator.py
+│   │   │   │   └── rendering
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── django_template_renderer.py
+│   │   │   │       └── pdf_context_presenter.py
+│   │   │   ├── admin.py
+│   │   │   ├── application
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── quote_inputs.py
+│   │   │   │   │   └── quote_viewmodels.py
+│   │   │   │   ├── errors.py
+│   │   │   │   ├── ports
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── client_repository.py
+│   │   │   │   │   ├── clock.py
+│   │   │   │   │   ├── email_sender.py
+│   │   │   │   │   ├── pdf_generator.py
+│   │   │   │   │   ├── prestation_repository.py
+│   │   │   │   │   ├── quote_repository.py
+│   │   │   │   │   ├── reference_gen.py
+│   │   │   │   │   └── template_renderer.py
+│   │   │   │   └── usecases
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── add_prestation_line.py
+│   │   │   │       ├── change_status.py
+│   │   │   │       ├── download_pdf.py
+│   │   │   │       ├── duplicate_quote.py
+│   │   │   │       ├── generate_preview.py
+│   │   │   │       └── send_quote.py
+│   │   │   ├── apps.py
+│   │   │   ├── domain
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── policies
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── status_policy.py
+│   │   │   │   │   └── tax_policy.py
+│   │   │   │   └── services
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── totals.py
+│   │   │   ├── interface
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── permissions.py
+│   │   │   │   ├── renderers.py
+│   │   │   │   ├── serializers.py
+│   │   │   │   ├── urls.py
+│   │   │   │   └── views.py
+│   │   │   ├── migrations
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_alter_quotelineitem_options_and_more.py
+│   │   │   │   ├── 0003_alter_paymentterms_owner_and_more.py
+│   │   │   │   └── 0004_alter_quote_reference.py
+│   │   │   ├── models.py
+│   │   │   ├── signals.py
+│   │   │   ├── tests
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── adapters
+│   │   │   │   │   └── test_playwright_pdf.py
+│   │   │   │   ├── application
+│   │   │   │   │   ├── test_add_prestation_line.py
+│   │   │   │   │   └── test_generate_preview.py
+│   │   │   │   ├── conftest.py
+│   │   │   │   ├── domain
+│   │   │   │   │   ├── test_tax_policy.py
+│   │   │   │   │   └── test_totals.py
+│   │   │   │   ├── test_add_prestation_line_api.py
+│   │   │   │   ├── test_mock_verification.py
+│   │   │   │   ├── test_models.py
+│   │   │   │   ├── test_pdf_download_api.py
+│   │   │   │   ├── test_permissions.py
+│   │   │   │   ├── test_preview.py
+│   │   │   │   ├── test_quote_actions_api.py
+│   │   │   │   └── test_serializers.py
+│   │   │   └── views.py
+│   │   └── user
+│   │       ├── __init__.py
+│   │       ├── adapters
+│   │       │   └── persistence
+│   │       │       └── django_user_repository.py
+│   │       ├── admin.py
+│   │       ├── application
+│   │       │   ├── dto
+│   │       │   │   ├── user_inputs.py
+│   │       │   │   └── user_viewmodels.py
+│   │       │   ├── errors.py
+│   │       │   ├── ports
+│   │       │   │   └── user_repository.py
+│   │       │   └── usecases
+│   │       │       ├── change_password.py
+│   │       │       ├── create_professional.py
+│   │       │       ├── list_users.py
+│   │       │       ├── register_user.py
+│   │       │       ├── update_professional.py
+│   │       │       └── update_profile.py
+│   │       ├── apps.py
+│   │       ├── backend
+│   │       │   └── apps
+│   │       │       └── user
+│   │       │           └── logs
+│   │       ├── domain
+│   │       │   ├── errors.py
+│   │       │   ├── policies
+│   │       │   │   └── user_policy.py
+│   │       │   └── services
+│   │       │       └── user_calculator.py
+│   │       ├── interface
+│   │       │   ├── __init__.py
+│   │       │   ├── auth_views.py
+│   │       │   ├── errors_handler.py
+│   │       │   ├── serializers.py
+│   │       │   ├── urls.py
+│   │       │   └── views.py
+│   │       ├── migrations
+│   │       │   ├── __init__.py
+│   │       │   ├── 0001_initial.py
+│   │       │   ├── 0002_remove_user_username_alter_user_email.py
+│   │       │   ├── 0003_alter_user_managers_profile.py
+│   │       │   ├── 0004_migrate_profile_data.py
+│   │       │   ├── 0005_alter_user_options_user_uniq_user_email_ci.py
+│   │       │   ├── 0006_professionaluser.py
+│   │       │   ├── 0007_professionaluser_allowed_areas.py
+│   │       │   └── 0008_remove_professionaluser_allowed_areas.py
+│   │       ├── models
+│   │       │   ├── __init__.py
+│   │       │   └── models.py
+│   │       ├── services
+│   │       │   ├── __init__.py
+│   │       │   └── email_change.py
+│   │       ├── signals.py
+│   │       ├── tests
+│   │       │   ├── __init__.py
+│   │       │   ├── test_auth_api.py
+│   │       │   ├── test_auth_logout.py
+│   │       │   ├── test_professional_api.py
+│   │       │   ├── test_professional_serializer_minimal.py
+│   │       │   ├── test_refresh_rotation.py
+│   │       │   └── test_user_api.py
+│   │       └── urls.py
+│   ├── config
+│   │   ├── __init__.py
+│   │   ├── api_errors.py
+│   │   ├── asgi.py
+│   │   ├── exceptions.py
+│   │   ├── settings.py
+│   │   ├── urls.py
+│   │   └── wsgi.py
+│   ├── coverage.xml
+│   ├── doc
+│   │   └── classes
+│   │       └── quote
+│   │           ├── classes_quote_arch_lr.png
+│   │           ├── classes_quote_arch_packages.png
+│   │           ├── classes_quote_arch.dot
+│   │           ├── packages_quote_arch_packages.png
+│   │           ├── packages_quote_arch.dot
+│   │           └── packages_quote_arch.png
+│   ├── Dockerfile
+│   ├── logs
+│   │   └── app.log
+│   ├── manage.py
+│   ├── pyproject.toml
+│   ├── pytest.ini
+│   ├── requirements
+│   │   ├── dev-requirements.txt
+│   │   └── requirements.txt
+│   ├── setup.cfg
+│   ├── swagger.yaml
+│   ├── templates
+│   │   └── quote
+│   │       └── pdf
+│   │           ├── document.html
+│   │           └── preview.html
+│   └── tools
+│       ├── areas.csv
+│       ├── freelansign_prestations_france_standard_2025.csv
+│       ├── generate_csv.py
+│       ├── import_catalog.py
+│       ├── jsons
+│       │   ├── areas.json
+│       │   └── prestations.json
+│       └── prestations.csv
+├── CHANGELOG.md
+├── docker-compose.yml
+├── docs
+│   ├── backup.md
+│   ├── knowledge.md
+│   ├── knowledge.sh
+│   ├── RELEASE_PLAN_v0.1.0.md
+│   └── RELEASE_PLAN_v0.2.0.md
+├── FreelanSign.code-workspace
+├── frontend
+│   ├── .env.development.local
+│   ├── .env.prod
+│   ├── .eslintrc.cjs
+│   ├── .gitignore
+│   ├── components.json
+│   ├── Dockerfile
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── pnpm-lock.yaml
+│   ├── prettier.config.cjs
+│   ├── public
+│   │   ├── img
+│   │   │   ├── default-avatar.jpeg
+│   │   │   └── logo.png
+│   │   └── vite.svg
+│   ├── README.md
+│   ├── src
+│   │   ├── app
+│   │   │   ├── providers
+│   │   │   │   └── AuthProvider.tsx
+│   │   │   └── router.tsx
+│   │   ├── App.css
+│   │   ├── assets
+│   │   │   ├── fonts
+│   │   │   │   ├── FiraCode-Bold.ttf
+│   │   │   │   ├── FiraCode-Regular.ttf
+│   │   │   │   ├── PlayfairDisplay-Bold.ttf
+│   │   │   │   ├── PlayfairDisplay-Regular.ttf
+│   │   │   │   └── PlayfairDisplay-SemiBold.ttf
+│   │   │   ├── icons
+│   │   │   │   └── pen-nib-line.svg
+│   │   │   └── react.svg
+│   │   ├── domain
+│   │   │   ├── auth
+│   │   │   │   └── usecases.ts
+│   │   │   ├── catalog
+│   │   │   │   └── types.ts
+│   │   │   ├── client
+│   │   │   │   └── types.ts
+│   │   │   ├── common
+│   │   │   │   └── pagination.ts
+│   │   │   ├── quote
+│   │   │   │   ├── mappers.ts
+│   │   │   │   └── types.ts
+│   │   │   ├── types.ts
+│   │   │   └── user
+│   │   │       └── types.ts
+│   │   ├── infrastructure
+│   │   │   ├── api.ts
+│   │   │   ├── auth
+│   │   │   │   └── authRepository.ts
+│   │   │   ├── branding
+│   │   │   │   └── themeRepository.ts
+│   │   │   ├── catalog
+│   │   │   │   └── catalogRepository.ts
+│   │   │   ├── client
+│   │   │   │   └── clientRepository.ts
+│   │   │   ├── http
+│   │   │   │   └── apiClient.ts
+│   │   │   ├── quote
+│   │   │   │   └── quoteRepository.ts
+│   │   │   ├── storage
+│   │   │   │   └── tokenStorage.ts
+│   │   │   └── user
+│   │   │       └── userRepository.ts
+│   │   ├── interface
+│   │   │   ├── components
+│   │   │   │   ├── AppToBar.tsx
+│   │   │   │   ├── branding
+│   │   │   │   │   └── ThemesForm.tsx
+│   │   │   │   ├── common
+│   │   │   │   │   ├── Modal.css
+│   │   │   │   │   └── Modal.tsx
+│   │   │   │   ├── login
+│   │   │   │   │   ├── login-form.module.css
+│   │   │   │   │   └── LoginForm.tsx
+│   │   │   │   ├── navbar
+│   │   │   │   │   ├── Navbar.module.css
+│   │   │   │   │   └── Navbar.tsx
+│   │   │   │   ├── profile
+│   │   │   │   │   ├── PersonalInfoBox.tsx
+│   │   │   │   │   ├── PersonalUserDataForm.tsx
+│   │   │   │   │   ├── PrestationList.tsx
+│   │   │   │   │   ├── PrestationSelector.tsx
+│   │   │   │   │   ├── ProfessionalInfoBox.tsx
+│   │   │   │   │   ├── ProfessionalInfoForm.tsx
+│   │   │   │   │   └── ProfessionalUserDataForm.tsx
+│   │   │   │   ├── quote
+│   │   │   │   │   ├── PdfPreviewPane.tsx
+│   │   │   │   │   └── QuotesTable.tsx
+│   │   │   │   ├── register
+│   │   │   │   │   ├── register-form.module.css
+│   │   │   │   │   └── RegisterForm.tsx
+│   │   │   │   └── sidebar
+│   │   │   │       ├── sidebar.module.css
+│   │   │   │       └── Sidebar.tsx
+│   │   │   ├── hooks
+│   │   │   │   ├── useDebouncedValue.ts
+│   │   │   │   ├── usePdfPreview.ts
+│   │   │   │   └── useThemes.ts
+│   │   │   ├── layout
+│   │   │   │   └── RootSeo.tsx
+│   │   │   ├── pages
+│   │   │   │   ├── Branding
+│   │   │   │   │   ├── themes.module.css
+│   │   │   │   │   ├── ThemesCreatePage.tsx
+│   │   │   │   │   ├── ThemesEditPage.tsx
+│   │   │   │   │   └── ThemesListPage.tsx
+│   │   │   │   ├── dashboard.module.css
+│   │   │   │   ├── DashboardPage.tsx
+│   │   │   │   ├── Login
+│   │   │   │   │   ├── LoginPage.module.css
+│   │   │   │   │   └── LoginPage.tsx
+│   │   │   │   ├── Profile
+│   │   │   │   │   ├── ProfileEditPage.tsx
+│   │   │   │   │   └── ProfilePage.tsx
+│   │   │   │   ├── Quote
+│   │   │   │   │   ├── quote-detail.module.css
+│   │   │   │   │   ├── quote-edit-create.module.css
+│   │   │   │   │   ├── QuoteCreatePage.tsx
+│   │   │   │   │   ├── QuoteDetailPage.tsx
+│   │   │   │   │   ├── QuoteEditPage.tsx
+│   │   │   │   │   ├── QuoteListPage.tsx
+│   │   │   │   │   └── quotes-list.module.css
+│   │   │   │   └── Register
+│   │   │   │       ├── RegisterPage.module.css
+│   │   │   │       └── RegisterPage.tsx
+│   │   │   └── utils
+│   │   │       ├── branding.ts
+│   │   │       └── saveFile.ts
+│   │   ├── lib
+│   │   │   ├── constants
+│   │   │   │   └── site.config.ts
+│   │   │   └── utils.ts
+│   │   ├── main.tsx
+│   │   ├── shared
+│   │   │   ├── apiErrors.ts
+│   │   │   ├── endpoints.ts
+│   │   │   ├── env.ts
+│   │   │   └── utils
+│   │   │       └── obj.ts
+│   │   ├── styles
+│   │   │   └── index.css
+│   │   └── vite-env.d.ts
+│   ├── tsconfig.app.json
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   ├── vite.config.ts
+│   └── vitest.config.ts
+├── LICENSE
+├── logo.png
+├── Makefile
+├── package.json
+├── pnpm-lock.yaml
+├── scripts
+│   ├── load-env.sh
+│   └── precommit.sh
+└── sonar-project.properties
+
+162 directories, 407 files
+```
+<!-- END AUTO: PROJECT_STRUCTURE -->
+
+## Frontend package.json
+<!-- BEGIN AUTO: FRONTEND_PACKAGE_JSON -->
+Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
+**name**: `frontend`  •  **version**: `0.1.0`
+**scripts**: 10  •  **dependencies**: 15  •  **devDependencies**: 27
+
+<details><summary>Top dependencies</summary>
+
+- @hookform/resolvers: ^5.2.2
+- @tailwindcss/vite: ^4.1.13
+- axios: ^1.12.2
+- class-variance-authority: ^0.7.1
+- clsx: ^2.1.1
+- lucide-react: ^0.544.0
+- react: ^19.1.0
+- react-color: ^2.19.3
+- react-dom: ^19.1.0
+- react-helmet-async: ^2.0.5
+- react-hook-form: ^7.62.0
+- react-router-dom: ^7.9.1
+- tailwind-merge: ^3.3.1
+- tailwindcss: ^4.1.13
+- zod: ^4.1.9
+
+</details>
+
+<details><summary>Scripts</summary>
+
+- dev: vite
+- build: tsc -b && vite build
+- preview: vite preview
+- lint: eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix
+- lint:check: eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts
+- format: prettier --write src/
+- format:check: prettier --check src/
+- type-check: vue-tsc --noEmit
+- test:coverage: vitest run --coverage
+- test: vitest
+
+</details>
+<!-- END AUTO: FRONTEND_PACKAGE_JSON -->
+
+## Backend package.json
+<!-- BEGIN AUTO: BACKEND_PACKAGE_JSON -->
+Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backend/package.json`
+_No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backend/package.json_
+<!-- END AUTO: BACKEND_PACKAGE_JSON -->
+
+## Django models (scan)
+<!-- BEGIN AUTO: DJANGO_MODELS -->
+| Model | File |
+|---|---|
+| `BrandTheme` | `apps/branding/models.py` |
+| `Client` | `apps/client/models.py` |
+| `PaymentTerms` | `apps/quote/models.py` |
+| `Quote` | `apps/quote/models.py` |
+| `QuoteLineItem` | `apps/quote/models.py` |
+| `QuoteHistory` | `apps/quote/models.py` |
+| `Profile` | `apps/user/models/models.py` |
+| `ProfessionalUser` | `apps/user/models/models.py` |
+<!-- END AUTO: DJANGO_MODELS -->
+
+---
+
+_Last updated_
+<!-- BEGIN AUTO: LAST_UPDATED -->
+_Updated_: **2025-11-06 10:28:48 CET**
+<!-- END AUTO: LAST_UPDATED -->
