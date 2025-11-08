@@ -3,6 +3,7 @@ astroid==3.3.11
 attrs==25.3.0
 Brotli==1.1.0
 cffi==2.0.0
+click==8.3.0
 coverage==7.11.0
 cssselect2==0.8.0
 dill==0.4.0
@@ -43,6 +44,7 @@ pyphen==0.17.2
 pytest==8.4.2
 pytest-cov==7.0.0
 pytest-django==4.11.1
+pytest-mock==3.15.1
 python-decouple==3.8
 PyYAML==6.0.2
 referencing==0.36.2
@@ -52,6 +54,7 @@ setuptools==80.9.0
 six==1.17.0
 sqlparse==0.5.3
 stdlib-list==0.11.1
+svgwrite==1.4.3
 tinycss2==1.4.0
 tomlkit==0.13.3
 typing_extensions==4.14.1

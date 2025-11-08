@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 
-# Noms attendus par les tests: *DTO* (pas *Dto*)
 @dataclass(frozen=True)
 class LineItemInputDTO:
     """

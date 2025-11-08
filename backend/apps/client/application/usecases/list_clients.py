@@ -24,4 +24,4 @@ class ListClients:
             )
             for o in qs
         ]
-        return ClientListViewModel(clients=items, total_count=len(items))
+        return ClientListViewModel(items=items, total_count=len(items))

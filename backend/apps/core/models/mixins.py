@@ -72,3 +72,22 @@ class OwnedByUserMixin(models.Model):
         if user is None or getattr(user, "is_anonymous", False):
             return cls.objects.none()
         return cls.objects.filter(owner=user)
+
+
+class DocumentCounter(models.Model):
+    """
+    Compteur séquentiel par propriétaire, type de document et période.
+    Ex: (owner=42, doc_type='QUOTE', period='2025-11) --> last_value: 7
+    """
+
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+")
+    doc_type = models.CharField(max_length=16)  # 'QUOTE'
+    period = models.CharField(max_length=8)
+    last_value = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        db_table = "core_document_counter"
+        constraints = [models.UniqueConstraint(fields=["owner", "doc_type", "period"], name="uq_counter_owner_type_period")]
+
+    def __str__(self) -> str:
+        return f"{self.doc_type} {self.owner} {self.period} -> {self.last_value}"
