@@ -42,11 +42,7 @@ from apps.quote.application.usecases.generate_preview import generate_preview
 from apps.quote.application.usecases.send_quote import SendQuote  # type: ignore
 from apps.quote.interface.permissions import IsOwnerOrAdmin
 from apps.quote.interface.renderers import PDFRenderer
-from apps.quote.interface.serializers import (
-    QuoteCreateUpdateSerializer,
-    QuotePreviewPayloadSerializer,
-    QuoteSerializer,
-)
+from apps.quote.interface.serializers import QuoteCreateUpdateSerializer, QuotePreviewPayloadSerializer, QuoteSerializer
 from apps.quote.models import Quote, QuoteHistory, QuoteLineItem
 
 logger = logging.getLogger(__name__)
@@ -201,6 +197,9 @@ class QuoteViewSet(viewsets.ModelViewSet):
     # ----------------------------------------------------------------------------------
 
     def get_serializer_class(self):
+        import logging
+
+        logging.getLogger(__name__).info(f"[DEBUG] serializer_class – action: {self.action}")
         if self.action in ("create", "update", "partial_update"):
             return QuoteCreateUpdateSerializer
         return QuoteSerializer

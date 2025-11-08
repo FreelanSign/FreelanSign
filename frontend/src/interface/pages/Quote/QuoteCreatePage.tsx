@@ -1,29 +1,30 @@
 // src/interface/pages/QuoteCreatePage.tsx
-import { useEffect, useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import {
-  useForm,
-  useFieldArray,
-  type SubmitHandler,
-  type Resolver,
-  useWatch,
-} from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { clientRepository } from '../../../infrastructure/client/clientRepository';
-import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  useFieldArray,
+  useForm,
+  useWatch,
+  type Resolver,
+  type SubmitHandler,
+} from 'react-hook-form';
+import { Link, useNavigate } from 'react-router-dom';
+import { z } from 'zod';
 import type { PrestationDto } from '../../../domain/catalog/types';
-import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 import type { ClientDto } from '../../../domain/client/types';
+import type { ProfessionalUserDto } from '../../../domain/user/types';
+import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
+import { clientRepository } from '../../../infrastructure/client/clientRepository';
 import { apiClient } from '../../../infrastructure/http/apiClient';
+import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
+import Modal from '../../components/common/Modal';
 import NavBar from '../../components/navbar/Navbar';
+import { PdfPreviewPane } from '../../components/quote/PdfPreviewPane';
 import Sidebar from '../../components/sidebar/Sidebar';
-import styles from './quote-edit-create.module.css';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { usePdfPreview } from '../../hooks/usePdfPreview';
-import { PdfPreviewPane } from '../../components/quote/PdfPreviewPane';
-import Modal from '../../components/common/Modal';
 import { openBlobUrlInNewTab, saveBlobUrlAs } from '../../utils/saveFile';
+import styles from './quote-edit-create.module.css';
 
 /* ---------- zod schema ---------- */
 const ItemSchema = z.object({
@@ -38,7 +39,6 @@ const ItemSchema = z.object({
 const Schema = z.object({
   client: z.string().min(1, 'Choisis un client'),
   title: z.string().min(1, 'Titre requis'),
-  reference: z.string().min(1, 'Référence requise'),
   currency: z.string().length(3).default('EUR'),
   language: z.string().min(2).max(8).default('fr'),
   issue_date: z.string().min(8, 'Date requise (YYYY-MM-DD)'),
@@ -63,7 +63,7 @@ type QuoteItemPayload = {
 type QuotePayload = {
   client: string;
   title: string;
-  reference: string;
+  //reference: string;
   currency: string;
   language: string;
   issue_date: string;
@@ -72,14 +72,15 @@ type QuotePayload = {
   items: QuoteItemPayload[];
 };
 
-type ProfessionalMeDto = {
-  id: number;
-  name?: string;
-  email?: string;
-  siret?: string;
-  tjm_cents?: number | null;
-  service_types: number[];
-};
+// deprecated:
+// type ProfessionalMeDto = {
+//   id: number;
+//   name?: string;
+//   email?: string;
+//   siret?: string;
+//   tjm_cents?: number | null;
+//   service_types: number[];
+// };
 
 /* ---------- small utility helpers ---------- */
 
@@ -136,7 +137,7 @@ export default function QuoteCreatePage() {
   const [prestations, setPrestations] = useState<
     PrestationDto[] | 'loading' | null
   >('loading');
-  const [me, setMe] = useState<ProfessionalMeDto | null>(null);
+  const [me, setMe] = useState<ProfessionalUserDto | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Remarque: on force le type Resolver<FormData> pour que zodResolver soit compatible
@@ -178,9 +179,10 @@ export default function QuoteCreatePage() {
   const watchedTitle = useWatch({ control, name: 'title' }) as
     | string
     | undefined;
-  const watchedReference = useWatch({ control, name: 'reference' }) as
-    | string
-    | undefined;
+  // deprecated:
+  // const watchedReference = useWatch({ control, name: 'reference' }) as
+  //   | string
+  //   | undefined;
   const watchedLanguage = useWatch({ control, name: 'language' }) as
     | string
     | undefined;
@@ -227,7 +229,7 @@ export default function QuoteCreatePage() {
       currency: watchedCurrency || 'EUR',
       language: watchedLanguage || 'fr',
       title: watchedTitle || 'Undefined Devis',
-      reference: watchedReference || 'Undefined PREVIEW',
+      //reference: watchedReference || 'Undefined PREVIEW',
     };
 
     const lines =
@@ -257,7 +259,7 @@ export default function QuoteCreatePage() {
     watchedCurrency,
     watchedLanguage,
     watchedTitle,
-    watchedReference,
+    //watchedReference,
   ]);
 
   // On évite de spammer l'API : debounce 500ms
@@ -319,11 +321,13 @@ export default function QuoteCreatePage() {
     (async () => {
       try {
         // 1) qui suis-je ?
-        const meResp = await apiClient.get<ProfessionalMeDto>(
+        const meResp = await apiClient.get<ProfessionalUserDto>(
           '/api/user/professional/me/',
         );
-        const ids = meResp.data?.service_types ?? [];
+        // BUG: fix prestation fetch
+        const ids = meResp.data?.service_type_ids ?? [];
         setMe(meResp.data ?? null);
+        console.log('meResp.data', meResp.data);
 
         // s’il n’y a rien de lié -> vide explicite (et un message UI sympa)
         if (!ids.length) {
@@ -428,7 +432,7 @@ export default function QuoteCreatePage() {
       const payload: QuotePayload = {
         client: values.client,
         title: values.title,
-        reference: values.reference,
+        //reference: values.reference,
         currency: values.currency,
         language: values.language,
         issue_date: values.issue_date,
@@ -517,13 +521,14 @@ export default function QuoteCreatePage() {
       </header>
 
       {/* Erreurs globales */}
-      {(errors.client || errors.title || errors.reference || errors.items) && (
+      {/*{(errors.client || errors.title || errors.reference || errors.items) && (*/}
+      {(errors.client || errors.title || errors.items) && (
         <div className={styles.errorBox}>
           ⚠️{' '}
           {[
             extractErrorMessage(errors.client),
             extractErrorMessage(errors.title),
-            extractErrorMessage(errors.reference),
+            //extractErrorMessage(errors.reference),
             extractErrorMessage(errors.items),
           ]
             .filter(Boolean)
@@ -575,20 +580,6 @@ export default function QuoteCreatePage() {
               {errors.title && (
                 <small className={styles.errorBox}>
                   {extractErrorMessage(errors.title)}
-                </small>
-              )}
-            </label>
-
-            <label className={styles.label}>
-              <span>Référence *</span>
-              <input
-                {...register('reference')}
-                className={styles.input}
-                placeholder="FS-2025-001"
-              />
-              {errors.reference && (
-                <small className={styles.errorBox}>
-                  {extractErrorMessage(errors.reference)}
                 </small>
               )}
             </label>
@@ -981,7 +972,7 @@ export default function QuoteCreatePage() {
                   onClick={() =>
                     saveBlobUrlAs(
                       pdfUrl,
-                      `devis-${(watchedReference || 'preview').replace(/\s+/g, '_')}.pdf`,
+                      `devis-${'preview'.replace(/\s+/g, '_')}.pdf`,
                     )
                   }
                 >

@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from abc import abstractmethod
 from decimal import Decimal
 from typing import Any, Iterable, Protocol
+
+from apps.quote.models import Quote
 
 
 class QuoteRepository(Protocol):
@@ -10,8 +13,17 @@ class QuoteRepository(Protocol):
     The DTO/structures returned can be simple objects (e.g. dicts / dataclasses) according to your choice.
     """
 
-    def get(self, *, quote_id, requester_id) -> Any:
+    def get(self, quote_id, *, requester_id: str, include_lines: bool = True) -> Quote:
         """Get a quote by id."""
+        ...
+
+    def create(
+        self,
+        *,
+        owner_id: str,
+        fields: dict,
+    ) -> str:
+        """Create a quote"""
         ...
 
     def save_header(
@@ -51,4 +63,9 @@ class QuoteRepository(Protocol):
         metadata: dict,
     ) -> None:
         """Add a line item to a quote."""
+        ...
+
+    @abstractmethod
+    def recalc_totals(self, *, quote_id: str) -> dict:
+        """Recalculate and return updated totals for a given quote."""
         ...

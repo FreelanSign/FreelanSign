@@ -6,7 +6,7 @@ info:
 paths:
   /api/auth/login/:
     post:
-      operationId: api_auth_login_create
+      operationId: auth_login_create
       description: Obtain JWT tokens using email and password.
       summary: Login with email and password
       tags:
@@ -15,13 +15,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TokenObtainPair'
+              $ref: '#/components/schemas/TokenObtainPairRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/TokenObtainPair'
+              $ref: '#/components/schemas/TokenObtainPairRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/TokenObtainPair'
+              $ref: '#/components/schemas/TokenObtainPairRequest'
         required: true
       security:
       - {}
@@ -34,7 +34,7 @@ paths:
           description: ''
   /api/auth/logout/:
     post:
-      operationId: api_auth_logout_create
+      operationId: auth_logout_create
       summary: Logout (invalidate refresh token)
       tags:
       - Auth
@@ -42,13 +42,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Logout'
+              $ref: '#/components/schemas/LogoutRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Logout'
+              $ref: '#/components/schemas/LogoutRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Logout'
+              $ref: '#/components/schemas/LogoutRequest'
         required: true
       security:
       - jwtAuth: []
@@ -68,7 +68,7 @@ paths:
           description: ''
   /api/auth/refresh/:
     post:
-      operationId: api_auth_refresh_create
+      operationId: auth_refresh_create
       summary: Refresh access token (with rotation and reuse detection)
       tags:
       - Auth
@@ -76,13 +76,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TokenRefresh'
+              $ref: '#/components/schemas/TokenRefreshRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/TokenRefresh'
+              $ref: '#/components/schemas/TokenRefreshRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/TokenRefresh'
+              $ref: '#/components/schemas/TokenRefreshRequest'
         required: true
       security:
       - jwtAuth: []
@@ -107,14 +107,821 @@ paths:
                 refresh:
                 - This field is required.
           description: ''
-  /api/schema/:
+  /api/branding/themes/:
     get:
-      operationId: api_schema_retrieve
+      operationId: branding_themes_list
+      description: List all themes for the authenticated user.
+      summary: List all themes for the authenticated user
+      tags:
+      - Branding
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ThemeListItem'
+          description: ''
+    post:
+      operationId: branding_themes_create
+      description: Create a new theme.
+      summary: Create a new theme
+      tags:
+      - Branding
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateThemeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateThemeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateThemeRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Theme'
+          description: ''
+  /api/branding/themes/{theme_id}/:
+    get:
+      operationId: branding_themes_retrieve
+      description: Retrieve a specific theme.
+      summary: Retrieve a specific theme
+      parameters:
+      - in: path
+        name: theme_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Branding
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Theme'
+          description: ''
+    patch:
+      operationId: branding_themes_partial_update
+      description: Update a specific theme (partial update).
+      summary: Update a specific theme
+      parameters:
+      - in: path
+        name: theme_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Branding
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateThemeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateThemeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateThemeRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Theme'
+          description: ''
+    delete:
+      operationId: branding_themes_destroy
+      description: Delete a specific theme.
+      summary: Delete a specific theme
+      parameters:
+      - in: path
+        name: theme_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Branding
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/branding/themes/{theme_id}/activate/:
+    post:
+      operationId: branding_themes_activate_create
+      description: Activate a specific theme.
+      summary: Activate a specific theme
+      parameters:
+      - in: path
+        name: theme_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Branding
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Theme'
+          description: ''
+  /api/branding/themes/{theme_id}/deactivate/:
+    post:
+      operationId: branding_themes_deactivate_create
+      description: Deactivate a specific theme.
+      summary: Deactivate a specific theme
+      parameters:
+      - in: path
+        name: theme_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Branding
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Theme'
+          description: ''
+  /api/branding/themes/active/:
+    get:
+      operationId: branding_themes_active_retrieve
+      description: Get the active theme for the authenticated user.
+      summary: Get the active theme for the authenticated user
+      tags:
+      - Branding
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Theme'
+          description: ''
+  /api/catalog/areas/:
+    get:
+      operationId: catalog_areas_list
       description: |-
-        OpenApi3 schema for this API. Format can be selected via content negotiation.
-
-        - YAML: application/vnd.oai.openapi
-        - JSON: application/vnd.oai.openapi+json
+        ViewSet pour les domaines d'activité (areas).
+        Implémentation classique (pas de use case pour ce cas simple).
+      summary: Lister les domaines d'activité (areas)
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Recherche par nom
+      tags:
+      - Catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAreaList'
+          description: ''
+  /api/catalog/areas/{id}/:
+    get:
+      operationId: catalog_areas_retrieve
+      description: |-
+        ViewSet pour les domaines d'activité (areas).
+        Implémentation classique (pas de use case pour ce cas simple).
+      summary: Lister les domaines d'activité (areas)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Area.
+        required: true
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Recherche par nom
+      tags:
+      - Catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Area'
+          description: ''
+  /api/catalog/prestations/:
+    get:
+      operationId: catalog_prestations_list
+      description: Liste les prestations via le use case.
+      summary: Lister les prestations
+      parameters:
+      - in: query
+        name: area
+        schema:
+          type: integer
+        description: Filtrer par ID d'Area
+      - in: query
+        name: ids
+        schema:
+          type: string
+        description: Filtrer par liste d'IDs (comma-separated)
+      - in: query
+        name: ordering
+        schema:
+          type: string
+        description: 'Tri: name, -name, area, status, weight_days, default_rate_cents'
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Recherche sur nom/description
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: Filtrer par statut (DRAFT, ACTIVE, ARCHIVED)
+      tags:
+      - Catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPrestationList'
+          description: ''
+  /api/catalog/prestations/{id}/:
+    get:
+      operationId: catalog_prestations_retrieve
+      description: Récupère une prestation via le use case.
+      summary: Lister les prestations
+      parameters:
+      - in: query
+        name: area
+        schema:
+          type: integer
+        description: Filtrer par ID d'Area
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Prestation.
+        required: true
+      - in: query
+        name: ids
+        schema:
+          type: string
+        description: Filtrer par liste d'IDs (comma-separated)
+      - in: query
+        name: ordering
+        schema:
+          type: string
+        description: 'Tri: name, -name, area, status, weight_days, default_rate_cents'
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Recherche sur nom/description
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: Filtrer par statut (DRAFT, ACTIVE, ARCHIVED)
+      tags:
+      - Catalog
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prestation'
+          description: ''
+  /api/clients/:
+    get:
+      operationId: clients_list
+      description: 'ViewSet CRUD fin : délègue aux use cases.'
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: owner
+        schema:
+          type: integer
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - clients
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedClientOutputList'
+          description: ''
+    post:
+      operationId: clients_create
+      description: 'ViewSet CRUD fin : délègue aux use cases.'
+      tags:
+      - clients
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientOutputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ClientOutputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ClientOutputRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientOutput'
+          description: ''
+  /api/clients/{id}/:
+    get:
+      operationId: clients_retrieve
+      description: 'ViewSet CRUD fin : délègue aux use cases.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Client.
+        required: true
+      tags:
+      - clients
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientOutput'
+          description: ''
+    put:
+      operationId: clients_update
+      description: 'ViewSet CRUD fin : délègue aux use cases.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Client.
+        required: true
+      tags:
+      - clients
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientOutputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ClientOutputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ClientOutputRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientOutput'
+          description: ''
+    patch:
+      operationId: clients_partial_update
+      description: 'ViewSet CRUD fin : délègue aux use cases.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Client.
+        required: true
+      tags:
+      - clients
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedClientOutputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedClientOutputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedClientOutputRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientOutput'
+          description: ''
+    delete:
+      operationId: clients_destroy
+      description: 'ViewSet CRUD fin : délègue aux use cases.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Client.
+        required: true
+      tags:
+      - clients
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/quotes/:
+    get:
+      operationId: quotes_list
+      description: 'Views minces : délèguent au coeur applicatif (use cases).'
+      summary: List quotes
+      parameters:
+      - in: query
+        name: client
+        schema:
+          type: string
+          format: uuid
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: owner
+        schema:
+          type: integer
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - ACCEPTED
+          - CANCELLED
+          - DRAFT
+          - EXPIRED
+          - PAID
+          - REJECTED
+          - SENT
+        description: |-
+          * `DRAFT` - Draft
+          * `SENT` - Sent
+          * `ACCEPTED` - Accepted
+          * `REJECTED` - Rejected
+          * `PAID` - Paid
+          * `CANCELLED` - Cancelled
+          * `EXPIRED` - Expired
+      tags:
+      - Quote
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedQuoteList'
+          description: ''
+    post:
+      operationId: quotes_create
+      description: 'Views minces : délèguent au coeur applicatif (use cases).'
+      summary: Create a quote
+      tags:
+      - Quote
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteCreateUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/QuoteCreateUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/QuoteCreateUpdateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuoteCreateUpdate'
+          description: ''
+  /api/quotes/{id}/:
+    get:
+      operationId: quotes_retrieve
+      description: 'Views minces : délèguent au coeur applicatif (use cases).'
+      summary: Retrieve a quote
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Quote.
+        required: true
+      tags:
+      - Quote
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+          description: ''
+    put:
+      operationId: quotes_update
+      description: 'Views minces : délèguent au coeur applicatif (use cases).'
+      summary: Update a quote
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Quote.
+        required: true
+      tags:
+      - Quote
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteCreateUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/QuoteCreateUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/QuoteCreateUpdateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuoteCreateUpdate'
+          description: ''
+    patch:
+      operationId: quotes_partial_update
+      description: 'Views minces : délèguent au coeur applicatif (use cases).'
+      summary: Partial update a quote
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Quote.
+        required: true
+      tags:
+      - Quote
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedQuoteCreateUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedQuoteCreateUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedQuoteCreateUpdateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuoteCreateUpdate'
+          description: ''
+    delete:
+      operationId: quotes_destroy
+      description: 'Views minces : délèguent au coeur applicatif (use cases).'
+      summary: Delete / Cancel a quote
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Quote.
+        required: true
+      tags:
+      - Quote
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/quotes/{id}/add-prestation-line/:
+    post:
+      operationId: quotes_add_prestation_line_create
+      description: Add a prestation line to a quote.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Quote.
+        required: true
+      tags:
+      - quotes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+          description: ''
+  /api/quotes/{id}/change_status/:
+    post:
+      operationId: quotes_change_status_create
+      description: Change the status of the quote with policy validation.
+      summary: Change quote status
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Quote.
+        required: true
+      tags:
+      - Quote
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeStatusRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangeStatusRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangeStatusRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+          description: ''
+  /api/quotes/{id}/duplicate/:
+    post:
+      operationId: quotes_duplicate_create
+      description: Duplicate the given quote into a new DRAFT quote, copying line
+        items & metadata.
+      summary: Duplicate quote
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Quote.
+        required: true
+      tags:
+      - Quote
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+          description: ''
+  /api/quotes/{id}/pdf/:
+    get:
+      operationId: quotes_pdf_retrieve
+      description: Génère et renvoie le PDF (sans changer le statut) via use case
+        DownloadPdf.
       parameters:
       - in: query
         name: format
@@ -122,138 +929,67 @@ paths:
           type: string
           enum:
           - json
-          - yaml
-      - in: query
-        name: lang
+          - pdf
+      - in: path
+        name: id
         schema:
           type: string
-          enum:
-          - af
-          - ar
-          - ar-dz
-          - ast
-          - az
-          - be
-          - bg
-          - bn
-          - br
-          - bs
-          - ca
-          - ckb
-          - cs
-          - cy
-          - da
-          - de
-          - dsb
-          - el
-          - en
-          - en-au
-          - en-gb
-          - eo
-          - es
-          - es-ar
-          - es-co
-          - es-mx
-          - es-ni
-          - es-ve
-          - et
-          - eu
-          - fa
-          - fi
-          - fr
-          - fy
-          - ga
-          - gd
-          - gl
-          - he
-          - hi
-          - hr
-          - hsb
-          - hu
-          - hy
-          - ia
-          - id
-          - ig
-          - io
-          - is
-          - it
-          - ja
-          - ka
-          - kab
-          - kk
-          - km
-          - kn
-          - ko
-          - ky
-          - lb
-          - lt
-          - lv
-          - mk
-          - ml
-          - mn
-          - mr
-          - ms
-          - my
-          - nb
-          - ne
-          - nl
-          - nn
-          - os
-          - pa
-          - pl
-          - pt
-          - pt-br
-          - ro
-          - ru
-          - sk
-          - sl
-          - sq
-          - sr
-          - sr-latn
-          - sv
-          - sw
-          - ta
-          - te
-          - tg
-          - th
-          - tk
-          - tr
-          - tt
-          - udm
-          - ug
-          - uk
-          - ur
-          - uz
-          - vi
-          - zh-hans
-          - zh-hant
+          format: uuid
+        description: A UUID string identifying this Quote.
+        required: true
       tags:
-      - api
+      - quotes
       security:
-      - {}
+      - jwtAuth: []
       responses:
         '200':
           content:
-            application/vnd.oai.openapi:
+            application/pdf:
               schema:
-                type: object
-                additionalProperties: {}
-            application/yaml:
-              schema:
-                type: object
-                additionalProperties: {}
-            application/vnd.oai.openapi+json:
-              schema:
-                type: object
-                additionalProperties: {}
+                $ref: '#/components/schemas/Quote'
             application/json:
               schema:
-                type: object
-                additionalProperties: {}
+                $ref: '#/components/schemas/Quote'
           description: ''
+  /api/quotes/{id}/send/:
+    post:
+      operationId: quotes_send_create
+      description: Mark quote as SENT, generate and attach PDF, trigger email send
+        and create history.
+      summary: Send quote (generate PDF & email)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Quote.
+        required: true
+      tags:
+      - Quote
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+          description: ''
+  /api/quotes/preview-pdf/:
+    post:
+      operationId: quotes_preview_pdf_create
+      tags:
+      - quotes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/user/:
     get:
-      operationId: api_user_list
+      operationId: user_list
+      description: HTTP <-> Use cases boundary for Users.
       summary: List all users
       tags:
       - Users
@@ -267,10 +1003,11 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/User'
+                  $ref: '#/components/schemas/UserListOutput'
           description: ''
     post:
-      operationId: api_user_create
+      operationId: user_create
+      description: HTTP <-> Use cases boundary for Users.
       summary: Register a new user
       tags:
       - Users
@@ -278,13 +1015,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserRegistration'
+              $ref: '#/components/schemas/UserRegistrationInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/UserRegistration'
+              $ref: '#/components/schemas/UserRegistrationInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/UserRegistration'
+              $ref: '#/components/schemas/UserRegistrationInputRequest'
         required: true
       security:
       - jwtAuth: []
@@ -294,12 +1031,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/UserOutput'
           description: ''
   /api/user/me/:
     get:
-      operationId: api_user_me_retrieve
-      summary: Get current authenticated user
+      operationId: user_me_retrieve
+      description: |-
+        GET  -> current user
+        PATCH -> partial profile update
+      summary: Get or patch current authenticated user
       tags:
       - Users
       security:
@@ -309,11 +1049,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/UserOutput'
+          description: ''
+    patch:
+      operationId: user_me_partial_update
+      description: |-
+        GET  -> current user
+        PATCH -> partial profile update
+      summary: Get or patch current authenticated user
+      tags:
+      - Users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOutput'
           description: ''
   /api/user/me/change-password/:
     post:
-      operationId: api_user_me_change_password_create
+      operationId: user_me_change_password_create
+      description: HTTP <-> Use cases boundary for Users.
       summary: Change password for current user
       tags:
       - Users
@@ -321,13 +1079,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ChangePassword'
+              $ref: '#/components/schemas/ChangePasswordInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/ChangePassword'
+              $ref: '#/components/schemas/ChangePasswordInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ChangePassword'
+              $ref: '#/components/schemas/ChangePasswordInputRequest'
         required: true
       security:
       - jwtAuth: []
@@ -340,7 +1098,8 @@ paths:
           description: ''
   /api/user/me/profile/:
     patch:
-      operationId: api_user_me_profile_partial_update
+      operationId: user_me_profile_partial_update
+      description: HTTP <-> Use cases boundary for Users.
       summary: Update profile of current user
       tags:
       - Users
@@ -348,13 +1107,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedProfileUpdate'
+              $ref: '#/components/schemas/PatchedProfilePatchInputRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedProfileUpdate'
+              $ref: '#/components/schemas/PatchedProfilePatchInputRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedProfileUpdate'
+              $ref: '#/components/schemas/PatchedProfilePatchInputRequest'
       security:
       - jwtAuth: []
       responses:
@@ -362,38 +1121,875 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/UserOutput'
+          description: ''
+  /api/user/onboarding-professional/:
+    post:
+      operationId: user_onboarding_professional_create
+      description: |-
+        POST pour créer/mettre à jour le profil pro durant l'onboarding.
+        (Même logique que PATCH /professional/me mais en POST pour flows front.)
+      summary: Create or update professional entity during onboarding
+      tags:
+      - Professional Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfessionalUpsertInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProfessionalUpsertInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProfessionalUpsertInputRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfessionalOutput'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfessionalOutput'
+          description: ''
+  /api/user/professional/me/:
+    get:
+      operationId: user_professional_me_retrieve
+      summary: Get professional profile for current authenticated user
+      tags:
+      - Professional Users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfessionalOutput'
+          description: ''
+        '404':
+          description: Professional profile not found.
+    patch:
+      operationId: user_professional_me_partial_update
+      summary: Patch (create if missing) professional profile for current user
+      tags:
+      - Professional Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProfessionalUpsertInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProfessionalUpsertInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProfessionalUpsertInputRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfessionalOutput'
           description: ''
 components:
   schemas:
-    ChangePassword:
+    Area:
       type: object
+      description: Serializer pour Area (classique).
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Nom de l'area
+          maxLength: 120
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - updated_at
+    ChangePasswordInputRequest:
+      type: object
+      description: Shape validator for password change. Converts to ChangePasswordInput
+        DTO.
       properties:
         current_password:
           type: string
+          minLength: 1
         new_password:
           type: string
+          minLength: 1
       required:
       - current_password
       - new_password
-    Logout:
+    ChangeStatusRequest:
       type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+      required:
+      - status
+    ClientOutput:
+      type: object
+      description: |-
+        Serializer de sortie mappé sur ClientViewModel (pas un modèle Django).
+        Garde le contrat actuel : champ 'owner' = id (via owner_id).
+      properties:
+        id:
+          type: string
+          format: uuid
+        owner:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        vat_number:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: {}
+        created_at:
+          type: string
+        updated_at:
+          type: string
+      required:
+      - address
+      - created_at
+      - email
+      - id
+      - metadata
+      - name
+      - owner
+      - phone
+      - updated_at
+      - vat_number
+    ClientOutputRequest:
+      type: object
+      description: |-
+        Serializer de sortie mappé sur ClientViewModel (pas un modèle Django).
+        Garde le contrat actuel : champ 'owner' = id (via owner_id).
+      properties:
+        id:
+          type: string
+          format: uuid
+        owner:
+          type: integer
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        vat_number:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: {}
+        created_at:
+          type: string
+          minLength: 1
+        updated_at:
+          type: string
+          minLength: 1
+      required:
+      - address
+      - created_at
+      - email
+      - id
+      - metadata
+      - name
+      - owner
+      - phone
+      - updated_at
+      - vat_number
+    ClientRead:
+      type: object
+      description: |-
+        Ancienne variante "read" mais version VM-based.
+        (id, name, email, phone, address, vat_number, metadata)
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        vat_number:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: {}
+      required:
+      - address
+      - email
+      - id
+      - metadata
+      - name
+      - phone
+      - vat_number
+    ClientReadRequest:
+      type: object
+      description: |-
+        Ancienne variante "read" mais version VM-based.
+        (id, name, email, phone, address, vat_number, metadata)
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        vat_number:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: {}
+      required:
+      - address
+      - email
+      - id
+      - metadata
+      - name
+      - phone
+      - vat_number
+    ColorPalette:
+      type: object
+      description: Serializer for color palette.
+      properties:
+        primary:
+          type: string
+          pattern: ^#[0-9A-Fa-f]{6}$
+        secondary:
+          type: string
+          pattern: ^#[0-9A-Fa-f]{6}$
+        background:
+          type: string
+          pattern: ^#[0-9A-Fa-f]{6}$
+        text_primary:
+          type: string
+          pattern: ^#[0-9A-Fa-f]{6}$
+        text_secondary:
+          type: string
+          pattern: ^#[0-9A-Fa-f]{6}$
+        border:
+          type: string
+          pattern: ^#[0-9A-Fa-f]{6}$
+        highlight:
+          type: string
+          pattern: ^#[0-9A-Fa-f]{6}$
+      required:
+      - background
+      - border
+      - highlight
+      - primary
+      - secondary
+      - text_primary
+      - text_secondary
+    ColorPaletteRequest:
+      type: object
+      description: Serializer for color palette.
+      properties:
+        primary:
+          type: string
+          minLength: 1
+          pattern: ^#[0-9A-Fa-f]{6}$
+        secondary:
+          type: string
+          minLength: 1
+          pattern: ^#[0-9A-Fa-f]{6}$
+        background:
+          type: string
+          minLength: 1
+          pattern: ^#[0-9A-Fa-f]{6}$
+        text_primary:
+          type: string
+          minLength: 1
+          pattern: ^#[0-9A-Fa-f]{6}$
+        text_secondary:
+          type: string
+          minLength: 1
+          pattern: ^#[0-9A-Fa-f]{6}$
+        border:
+          type: string
+          minLength: 1
+          pattern: ^#[0-9A-Fa-f]{6}$
+        highlight:
+          type: string
+          minLength: 1
+          pattern: ^#[0-9A-Fa-f]{6}$
+      required:
+      - background
+      - border
+      - highlight
+      - primary
+      - secondary
+      - text_primary
+      - text_secondary
+    CreateThemeRequest:
+      type: object
+      description: Serializer for creating a theme.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        is_active:
+          type: boolean
+          default: false
+        colors:
+          $ref: '#/components/schemas/ColorPaletteRequest'
+        typography:
+          $ref: '#/components/schemas/TypographyConfigRequest'
+        spacing:
+          $ref: '#/components/schemas/SpacingConfigRequest'
+        logo:
+          type: string
+          format: binary
+          nullable: true
+      required:
+      - colors
+      - name
+      - spacing
+      - typography
+    FontSizes:
+      type: object
+      description: Serializer for font sizes.
+      properties:
+        h1:
+          type: integer
+          maximum: 72
+          minimum: 8
+        h2:
+          type: integer
+          maximum: 72
+          minimum: 8
+        h3:
+          type: integer
+          maximum: 72
+          minimum: 8
+        body:
+          type: integer
+          maximum: 72
+          minimum: 8
+        small:
+          type: integer
+          maximum: 72
+          minimum: 8
+      required:
+      - body
+      - h1
+      - h2
+      - h3
+      - small
+    FontSizesRequest:
+      type: object
+      description: Serializer for font sizes.
+      properties:
+        h1:
+          type: integer
+          maximum: 72
+          minimum: 8
+        h2:
+          type: integer
+          maximum: 72
+          minimum: 8
+        h3:
+          type: integer
+          maximum: 72
+          minimum: 8
+        body:
+          type: integer
+          maximum: 72
+          minimum: 8
+        small:
+          type: integer
+          maximum: 72
+          minimum: 8
+      required:
+      - body
+      - h1
+      - h2
+      - h3
+      - small
+    LineHeights:
+      type: object
+      description: Serializer for line heights.
+      properties:
+        heading:
+          type: number
+          format: double
+          maximum: 2.5
+          minimum: 1.0
+        body:
+          type: number
+          format: double
+          maximum: 2.5
+          minimum: 1.0
+      required:
+      - body
+      - heading
+    LineHeightsRequest:
+      type: object
+      description: Serializer for line heights.
+      properties:
+        heading:
+          type: number
+          format: double
+          maximum: 2.5
+          minimum: 1.0
+        body:
+          type: number
+          format: double
+          maximum: 2.5
+          minimum: 1.0
+      required:
+      - body
+      - heading
+    LogoutRequest:
+      type: object
+      description: Minimal shape for logout endpoint (refresh token blacklisting).
       properties:
         refresh:
           type: string
+          minLength: 1
       required:
       - refresh
-    PatchedProfileUpdate:
+    PaginatedAreaList:
       type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Area'
+    PaginatedClientOutputList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClientOutput'
+    PaginatedPrestationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prestation'
+    PaginatedQuoteList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Quote'
+    PatchedClientOutputRequest:
+      type: object
+      description: |-
+        Serializer de sortie mappé sur ClientViewModel (pas un modèle Django).
+        Garde le contrat actuel : champ 'owner' = id (via owner_id).
+      properties:
+        id:
+          type: string
+          format: uuid
+        owner:
+          type: integer
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        vat_number:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: {}
+        created_at:
+          type: string
+          minLength: 1
+        updated_at:
+          type: string
+          minLength: 1
+    PatchedProfessionalUpsertInputRequest:
+      type: object
+      description: |-
+        Shape validator for creating/updating a professional profile.
+        Converts to CreateProfessionalInput or UpdateProfessionalInput DTO.
+      properties:
+        name:
+          type: string
+        status_juridique:
+          type: string
+        domaine_id:
+          type: integer
+          nullable: true
+        tjm_cents:
+          type: integer
+        number_pro:
+          type: string
+        service_type_ids:
+          type: array
+          items:
+            type: integer
+    PatchedProfilePatchInputRequest:
+      type: object
+      description: |-
+        Shape validator for partial profile updates (PATCH).
+        Converts to UpdateProfileInput DTO using context (user_id, is_staff).
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone:
+          type: string
+        birthday:
+          type: string
+          format: date
+          nullable: true
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+    PatchedQuoteCreateUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        currency:
+          type: string
+          minLength: 1
+          description: ISO currency code, e.g. 'EUR'.
+          maxLength: 3
+        language:
+          type: string
+          minLength: 1
+          description: IETF language tag, e.g. 'fr', 'en'.
+          maxLength: 8
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        issue_date:
+          type: string
+          format: date
+        valid_until:
+          type: string
+          format: date
+          nullable: true
+        payment_terms:
+          type: string
+          format: uuid
+          nullable: true
+          description: Optional reference to predefined payment terms.
+        payment_terms_text:
+          type: string
+          description: Optional free-text payment terms if not using a template.
+          maxLength: 255
+        note:
+          type: string
+        metadata: {}
+        client:
+          type: string
+          format: uuid
+        client_update:
+          type: object
+          additionalProperties: {}
+          writeOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuoteLineItemRequest'
+    PatchedUpdateThemeRequest:
+      type: object
+      description: Serializer for updating a theme.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        is_active:
+          type: boolean
+        colors:
+          $ref: '#/components/schemas/ColorPaletteRequest'
+        typography:
+          $ref: '#/components/schemas/TypographyConfigRequest'
+        spacing:
+          $ref: '#/components/schemas/SpacingConfigRequest'
+        logo:
+          type: string
+          format: binary
+          nullable: true
+    Prestation:
+      type: object
+      description: |-
+        Serializer pour Prestation.
+        Peut sérialiser soit un modèle Prestation, soit un PrestationViewModel.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        area:
+          type: integer
+          readOnly: true
+        area_name:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          maxLength: 120
+        description:
+          type: string
+        weight_days:
+          type: integer
+          minimum: 1
+        default_rate_cents:
+          type: integer
+          minimum: 0
+        default_rate_eur:
+          type: string
+          description: |-
+            Retourne le tarif en euros formaté.
+            Gère à la fois les modèles Prestation et les ViewModels.
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+        custom:
+          type: boolean
+          readOnly: true
+        professional_user:
+          type: integer
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - area
+      - area_name
+      - created_at
+      - custom
+      - default_rate_cents
+      - default_rate_eur
+      - id
+      - name
+      - professional_user
+      - status
+      - updated_at
+      - weight_days
+    ProfessionalOutput:
+      type: object
+      description: Renders ProfessionalViewModel to API payload.
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        name:
+          type: string
+          nullable: true
+        status_juridique:
+          type: string
+          nullable: true
+        domaine_id:
+          type: integer
+          nullable: true
+        domaine_name:
+          type: string
+          nullable: true
+        tjm_cents:
+          type: integer
+        tjm_display:
+          type: string
+        number_pro:
+          type: string
+          nullable: true
+        service_type_ids:
+          type: array
+          items:
+            type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - created_at
+      - domaine_id
+      - domaine_name
+      - id
+      - name
+      - number_pro
+      - service_type_ids
+      - status_juridique
+      - tjm_cents
+      - tjm_display
+      - updated_at
+      - user_id
+    ProfessionalUpsertInputRequest:
+      type: object
+      description: |-
+        Shape validator for creating/updating a professional profile.
+        Converts to CreateProfessionalInput or UpdateProfessionalInput DTO.
+      properties:
+        name:
+          type: string
+        status_juridique:
+          type: string
+        domaine_id:
+          type: integer
+          nullable: true
+        tjm_cents:
+          type: integer
+        number_pro:
+          type: string
+        service_type_ids:
+          type: array
+          items:
+            type: integer
+    ProfileOutput:
+      type: object
+      description: Renders ProfileViewModel to API payload.
       properties:
         first_name:
           type: string
           nullable: true
-          maxLength: 255
         last_name:
           type: string
           nullable: true
-          maxLength: 255
         birthday:
           type: string
           format: date
@@ -401,40 +1997,349 @@ components:
         phone:
           type: string
           nullable: true
-          maxLength: 20
         avatar_url:
           type: string
-          format: uri
           nullable: true
-          maxLength: 200
         role:
-          $ref: '#/components/schemas/RoleEnum'
-    Profile:
+          type: string
+        full_name_display:
+          type: string
+      required:
+      - avatar_url
+      - birthday
+      - first_name
+      - full_name_display
+      - last_name
+      - phone
+      - role
+    Quote:
       type: object
       properties:
-        first_name:
+        id:
           type: string
-          nullable: true
-          maxLength: 255
-        last_name:
+          format: uuid
+          readOnly: true
+        reference:
           type: string
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        currency:
+          type: string
+          readOnly: true
+          description: ISO currency code, e.g. 'EUR'.
+        language:
+          type: string
+          readOnly: true
+          description: IETF language tag, e.g. 'fr', 'en'.
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+        issue_date:
+          type: string
+          format: date
+          readOnly: true
+        valid_until:
+          type: string
+          format: date
+          readOnly: true
           nullable: true
+        payment_terms:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+          description: Optional reference to predefined payment terms.
+        payment_terms_text:
+          type: string
+          readOnly: true
+          description: Optional free-text payment terms if not using a template.
+        client:
+          allOf:
+          - $ref: '#/components/schemas/ClientRead'
+          readOnly: true
+        subtotal:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+          description: Sum of line pre-tax totals.
+        tax_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+          description: Sum of taxes for the quote.
+        discount_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+          description: Global discount applied to the quote.
+        total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+          description: 'Expected: subtotal + tax_total - discount_total.'
+        note:
+          type: string
+          readOnly: true
+        metadata:
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        sent_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        accepted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuoteLineItem'
+          readOnly: true
+        pdf_url:
+          type: string
+          readOnly: true
+      required:
+      - accepted_at
+      - client
+      - created_at
+      - currency
+      - discount_total
+      - id
+      - issue_date
+      - items
+      - language
+      - metadata
+      - note
+      - payment_terms
+      - payment_terms_text
+      - pdf_url
+      - reference
+      - sent_at
+      - status
+      - subtotal
+      - tax_total
+      - title
+      - total
+      - updated_at
+      - valid_until
+    QuoteCreateUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
           maxLength: 255
-        birthday:
+        reference:
+          type: string
+          readOnly: true
+          description: Human-readable reference unique per owner.
+        currency:
+          type: string
+          description: ISO currency code, e.g. 'EUR'.
+          maxLength: 3
+        language:
+          type: string
+          description: IETF language tag, e.g. 'fr', 'en'.
+          maxLength: 8
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        issue_date:
+          type: string
+          format: date
+        valid_until:
           type: string
           format: date
           nullable: true
-        phone:
+        payment_terms:
           type: string
+          format: uuid
           nullable: true
-          maxLength: 20
-        avatar_url:
+          description: Optional reference to predefined payment terms.
+        payment_terms_text:
           type: string
-          format: uri
+          description: Optional free-text payment terms if not using a template.
+          maxLength: 255
+        note:
+          type: string
+        metadata: {}
+        client:
+          type: string
+          format: uuid
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuoteLineItem'
+      required:
+      - client
+      - currency
+      - id
+      - issue_date
+      - items
+      - reference
+      - title
+    QuoteCreateUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        currency:
+          type: string
+          minLength: 1
+          description: ISO currency code, e.g. 'EUR'.
+          maxLength: 3
+        language:
+          type: string
+          minLength: 1
+          description: IETF language tag, e.g. 'fr', 'en'.
+          maxLength: 8
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        issue_date:
+          type: string
+          format: date
+        valid_until:
+          type: string
+          format: date
           nullable: true
-          maxLength: 200
-        role:
-          $ref: '#/components/schemas/RoleEnum'
+        payment_terms:
+          type: string
+          format: uuid
+          nullable: true
+          description: Optional reference to predefined payment terms.
+        payment_terms_text:
+          type: string
+          description: Optional free-text payment terms if not using a template.
+          maxLength: 255
+        note:
+          type: string
+        metadata: {}
+        client:
+          type: string
+          format: uuid
+        client_update:
+          type: object
+          additionalProperties: {}
+          writeOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuoteLineItemRequest'
+      required:
+      - client
+      - currency
+      - issue_date
+      - items
+      - title
+    QuoteLineItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        description:
+          type: string
+          maxLength: 255
+        qty:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          description: Quantity (can be fractional).
+        unit_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          description: Unit price (in EUR). Use Decimal, not float.
+        tax_rate:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          description: Tax rate as percentage (e.g. 20.00 for 20%).
+        discount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          description: Line-level discount as absolute amount (EUR).
+        pre_tax_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        tax_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          description: Display order within the quote.
+        metadata:
+          description: Origin metadata (catalog reference).
+      required:
+      - description
+      - id
+      - pre_tax_total
+      - tax_amount
+    QuoteLineItemRequest:
+      type: object
+      properties:
+        description:
+          type: string
+          minLength: 1
+          maxLength: 255
+        qty:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          description: Quantity (can be fractional).
+        unit_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          description: Unit price (in EUR). Use Decimal, not float.
+        tax_rate:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          description: Tax rate as percentage (e.g. 20.00 for 20%).
+        discount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          description: Line-level discount as absolute amount (EUR).
+        order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          description: Display order within the quote.
+        metadata:
+          description: Origin metadata (catalog reference).
+      required:
+      - description
     RoleEnum:
       enum:
       - freelance
@@ -443,15 +2348,136 @@ components:
       description: |-
         * `freelance` - Freelance
         * `admin` - Admin
+    SpacingConfig:
+      type: object
+      description: Serializer for spacing configuration.
+      properties:
+        page_margin:
+          type: integer
+          maximum: 100
+          minimum: 0
+        section_spacing:
+          type: integer
+          maximum: 100
+          minimum: 0
+        element_padding:
+          type: integer
+          maximum: 100
+          minimum: 0
+      required:
+      - element_padding
+      - page_margin
+      - section_spacing
+    SpacingConfigRequest:
+      type: object
+      description: Serializer for spacing configuration.
+      properties:
+        page_margin:
+          type: integer
+          maximum: 100
+          minimum: 0
+        section_spacing:
+          type: integer
+          maximum: 100
+          minimum: 0
+        element_padding:
+          type: integer
+          maximum: 100
+          minimum: 0
+      required:
+      - element_padding
+      - page_margin
+      - section_spacing
+    StatusEnum:
+      enum:
+      - DRAFT
+      - SENT
+      - ACCEPTED
+      - REJECTED
+      - PAID
+      - CANCELLED
+      - EXPIRED
+      type: string
+      description: |-
+        * `DRAFT` - Draft
+        * `SENT` - Sent
+        * `ACCEPTED` - Accepted
+        * `REJECTED` - Rejected
+        * `PAID` - Paid
+        * `CANCELLED` - Cancelled
+        * `EXPIRED` - Expired
+    Theme:
+      type: object
+      description: Serializer for theme response.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        professional_id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+        is_active:
+          type: boolean
+        colors:
+          $ref: '#/components/schemas/ColorPalette'
+        typography:
+          $ref: '#/components/schemas/TypographyConfig'
+        spacing:
+          $ref: '#/components/schemas/SpacingConfig'
+        logo_url:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - colors
+      - created_at
+      - id
+      - is_active
+      - logo_url
+      - name
+      - professional_id
+      - spacing
+      - typography
+      - updated_at
+    ThemeListItem:
+      type: object
+      description: Serializer for theme list item response.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+        is_active:
+          type: boolean
+        logo_url:
+          type: string
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - is_active
+      - logo_url
+      - name
+      - updated_at
     TokenObtainPair:
       type: object
       properties:
-        email:
-          type: string
-          writeOnly: true
-        password:
-          type: string
-          writeOnly: true
         access:
           type: string
           readOnly: true
@@ -460,9 +2486,21 @@ components:
           readOnly: true
       required:
       - access
+      - refresh
+    TokenObtainPairRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
       - email
       - password
-      - refresh
     TokenRefresh:
       type: object
       properties:
@@ -474,40 +2512,123 @@ components:
       required:
       - access
       - refresh
-    User:
+    TokenRefreshRequest:
       type: object
+      properties:
+        refresh:
+          type: string
+          minLength: 1
+      required:
+      - refresh
+    TypographyConfig:
+      type: object
+      description: Serializer for typography configuration.
+      properties:
+        heading_font:
+          type: string
+          maxLength: 128
+        body_font:
+          type: string
+          maxLength: 128
+        font_sizes:
+          $ref: '#/components/schemas/FontSizes'
+        line_heights:
+          $ref: '#/components/schemas/LineHeights'
+      required:
+      - body_font
+      - font_sizes
+      - heading_font
+      - line_heights
+    TypographyConfigRequest:
+      type: object
+      description: Serializer for typography configuration.
+      properties:
+        heading_font:
+          type: string
+          minLength: 1
+          maxLength: 128
+        body_font:
+          type: string
+          minLength: 1
+          maxLength: 128
+        font_sizes:
+          $ref: '#/components/schemas/FontSizesRequest'
+        line_heights:
+          $ref: '#/components/schemas/LineHeightsRequest'
+      required:
+      - body_font
+      - font_sizes
+      - heading_font
+      - line_heights
+    UserListOutput:
+      type: object
+      description: Renders UserListViewModel to paginated-like payload.
+      properties:
+        count:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserOutput'
+      required:
+      - count
+      - results
+    UserOutput:
+      type: object
+      description: Renders UserViewModel to API payload.
       properties:
         id:
           type: integer
-          readOnly: true
         email:
           type: string
           format: email
-          readOnly: true
-          title: Email address
         profile:
-          allOf:
-          - $ref: '#/components/schemas/Profile'
-          readOnly: true
+          $ref: '#/components/schemas/ProfileOutput'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
       required:
+      - created_at
       - email
       - id
       - profile
-    UserRegistration:
+      - updated_at
+    UserRegistrationInputRequest:
       type: object
+      description: |-
+        Shape validator for user registration. Converts to RegisterUserInput DTO.
+        Supports both legacy nested `profile` and flat fields.
       properties:
         email:
           type: string
           format: email
+          minLength: 1
         password:
           type: string
           writeOnly: true
-        profile:
-          $ref: '#/components/schemas/Profile'
+          minLength: 1
         full_name:
+          type: string
+        first_name:
+          type: string
+        last_name:
           type: string
         phone:
           type: string
+        birthday:
+          type: string
+          format: date
+        avatar_url:
+          type: string
+          format: uri
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        profile:
+          type: object
+          additionalProperties: {}
       required:
       - email
       - password
@@ -521,3 +2642,5 @@ tags:
   description: JWT Authentication & session endpoints
 - name: Users
   description: User & profile management
+- name: Catalog
+  description: Areas & Prestations

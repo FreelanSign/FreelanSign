@@ -582,6 +582,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── django_prestation_repository.py
 │   │   │   │   │   └── django_quote_repository.py
 │   │   │   │   ├── reference
+│   │   │   │   │   ├── __init__.py
 │   │   │   │   │   └── django_quote_reference_generator.py
 │   │   │   │   └── rendering
 │   │   │   │       ├── __init__.py
@@ -609,10 +610,12 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │       ├── __init__.py
 │   │   │   │       ├── add_prestation_line.py
 │   │   │   │       ├── change_status.py
+│   │   │   │       ├── create_quote.py
 │   │   │   │       ├── download_pdf.py
 │   │   │   │       ├── duplicate_quote.py
 │   │   │   │       ├── generate_preview.py
-│   │   │   │       └── send_quote.py
+│   │   │   │       ├── send_quote.py
+│   │   │   │       └── update_quote.py
 │   │   │   ├── apps.py
 │   │   │   ├── domain
 │   │   │   │   ├── __init__.py
@@ -641,12 +644,21 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── tests
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── adapters
-│   │   │   │   │   └── test_playwright_pdf.py
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── test_django_quote_repository.py
+│   │   │   │   │   ├── test_playwright_pdf.py
+│   │   │   │   │   ├── test_reference_generator_concurrency.py
+│   │   │   │   │   └── test_reference_generator.py
 │   │   │   │   ├── application
+│   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── test_add_prestation_line.py
-│   │   │   │   │   └── test_generate_preview.py
+│   │   │   │   │   ├── test_generate_preview.py
+│   │   │   │   │   └── usecases
+│   │   │   │   │       ├── test_create_quote.py
+│   │   │   │   │       └── test_update_quote.py
 │   │   │   │   ├── conftest.py
 │   │   │   │   ├── domain
+│   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── test_tax_policy.py
 │   │   │   │   │   └── test_totals.py
 │   │   │   │   ├── test_add_prestation_line_api.py
@@ -931,12 +943,13 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── Makefile
 ├── package.json
 ├── pnpm-lock.yaml
+├── release.md
 ├── scripts
 │   ├── load-env.sh
 │   └── precommit.sh
 └── sonar-project.properties
 
-162 directories, 407 files
+163 directories, 419 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1006,5 +1019,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-06 10:28:48 CET**
+_Updated_: **2025-11-08 19:44:20 CET**
 <!-- END AUTO: LAST_UPDATED -->

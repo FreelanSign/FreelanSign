@@ -1,19 +1,19 @@
 // src/interface/pages/QuoteEditPage.tsx
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
-import styles from './quote-edit-create.module.css';
-import Modal from '../../components/common/Modal';
-import { PdfPreviewPane } from '../../components/quote/PdfPreviewPane';
-import { usePdfPreview, type PreviewPayload } from '../../hooks/usePdfPreview';
-import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { apiToUiQuote } from '../../../domain/quote/mappers';
 import type {
   ApiQuoteResponse,
   ApiQuoteUpdatePayload,
 } from '../../../domain/quote/types';
-import { apiToUiQuote } from '../../../domain/quote/mappers';
+import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 import { userRepository } from '../../../infrastructure/user/userRepository';
+import Modal from '../../components/common/Modal';
+import { PdfPreviewPane } from '../../components/quote/PdfPreviewPane';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { usePdfPreview, type PreviewPayload } from '../../hooks/usePdfPreview';
 import { openBlobUrlInNewTab, saveBlobUrlAs } from '../../utils/saveFile';
+import styles from './quote-edit-create.module.css';
 
 type QuoteLine = {
   id?: string | number;
@@ -377,6 +377,7 @@ export default function QuoteEditPage() {
     setError(null);
     try {
       const payload = toApiPayload(quote);
+      console.log('Payload PATCH envoyé', payload);
       await quoteRepository.update(id, payload);
       navigate(`/quotes/${id}`);
     } catch (err) {
@@ -445,7 +446,7 @@ export default function QuoteEditPage() {
               <input
                 className={styles.input}
                 value={quote.reference}
-                onChange={(e) => setField('reference', e.target.value)}
+                disabled
                 placeholder="FS-2025-001"
               />
             </label>

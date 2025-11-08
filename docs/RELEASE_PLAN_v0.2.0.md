@@ -1,4 +1,4 @@
-# FreelanSign — Release v0.2.0 (prévue : 2025-10-28)
+# FreelanSign — Release v0.2.0 (prévue : 2025-11-09)
 
 ## Objectifs
 

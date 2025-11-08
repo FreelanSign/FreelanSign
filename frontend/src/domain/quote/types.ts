@@ -8,7 +8,6 @@ import type { ApiClient, UiClient } from '../client/types';
 export type QuoteCreatePayload = {
   client: string; // Client UUID (FK)
   title: string;
-  reference: string; // unique par owner
   currency?: string; // 'EUR' par défaut
   language?: string; // 'fr' par défaut
   issue_date: string; // 'YYYY-MM-DD'

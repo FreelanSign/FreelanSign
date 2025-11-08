@@ -9,33 +9,59 @@ from apps.quote.models import Quote, QuoteLineItem
 
 
 class DjangoQuoteRepository(QuoteRepository):
-    """Quote repository using Django ORM."""
+    """
+    DjangoQuoteRepository – Django ORM implementation of the @QuoteRepository port.
 
-    def get(self, quote_id, *, include_lines=True):
+    This adapter encapsulates all persistence logic related to quotes, isolating
+    Django-specific operations from the application and domain layers.
+
+    Conforms to Clean Architecture principles:
+    - Keeps domain pure by preventing ORM leakage
+    - Implements the QuoteRepository interface defined in the application layer
+    - Encourages inversion of control and testability via mocking
+
+    All mutation methods are atomic where necessary. Business logic such as
+    reference generation or totals computation belongs to the application layer.
+    """
+
+    def get(self, quote_id, *, requester_id: str, include_lines=True) -> Quote:
         """Get a quote by id."""
+        # REFACTOR (Bertrand - 2025-11-07): Envisager d'ajouter `requester_id` dans QuoteRepository.get()
+        # pour vérifier la propriété de la quote avant retour (vérification de sécurité).
+        # Attention : nécessite adaptation de toutes les implémentations du repo.
+
         qs = Quote.objects.select_related("client")
         if include_lines:
             qs = qs.prefetch_related("items")
         return qs.get(pk=quote_id)
 
-    def save_header(self, quote: Quote, *, update_totals=False):
-        """Save a quote header."""
-        if update_totals:
-            quote.recalculate_totals(save=True)
-        else:
-            quote.save(update_fields=[...])  # or quote.save() per your need
+    def create(self, *, owner_id: str, fields: dict) -> str:
+        """Create a new quote header with initial totals set to zero."""
+        quote = Quote.objects.create(
+            owner_id=owner_id,
+            **fields,
+            subtotal=Decimal(0.00),
+            tax_total=Decimal(0.00),
+            discount_total=Decimal(0.00),
+            total=Decimal(0.00),
+        )
+        return quote.id
 
-    @transaction.atomic
-    def replace_lines(self, quote: Quote, items: list[dict]):
-        """Replace the lines of a quote."""
+    def save_header(self, *, quote_id, fields: dict):
+        """Save a quote header."""
+        Quote.objects.filter(pk=quote_id).update(**fields)
+
+    def replace_lines(self, *, quote_id, lines: list[dict]):
+        """Replace all line items for a quote by its ID."""
+        quote = Quote.objects.get(pk=quote_id)
         quote.items.all().delete()
-        for i, it in enumerate(items):
+        for i, it in enumerate(lines):
             QuoteLineItem.objects.create(
                 quote=quote,
                 description=it["description"][:255],
                 qty=it["qty"],
                 unit_price=it["unit_price"],
-                tax_rate=it["tax_rate_pct"],  # already normalized to %
+                tax_rate=it["tax_rate"],
                 discount=it.get("discount", Decimal("0.00")),
                 order=i,
                 metadata=it.get("metadata", {}),
@@ -70,3 +96,15 @@ class DjangoQuoteRepository(QuoteRepository):
             quote.recalculate_totals(save=True)
             quote.refresh_from_db()
         return quote, line
+
+    def recalc_totals(self, *, quote_id: str) -> dict:
+        """Recalculate and return totals for a quote by ID."""
+        quote = Quote.objects.get(pk=quote_id)
+        quote.recalculate_totals(save=True)
+        quote.refresh_from_db()
+        return {
+            "subtotal": quote.subtotal,
+            "tax_total": quote.tax_total,
+            "discount_total": quote.discount_total,
+            "total": quote.total,
+        }
