@@ -943,12 +943,13 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── Makefile
 ├── package.json
 ├── pnpm-lock.yaml
+├── release.md
 ├── scripts
 │   ├── load-env.sh
 │   └── precommit.sh
 └── sonar-project.properties
 
-163 directories, 418 files
+163 directories, 419 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1018,5 +1019,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-08 19:31:39 CET**
+_Updated_: **2025-11-08 19:44:20 CET**
 <!-- END AUTO: LAST_UPDATED -->
