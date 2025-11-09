@@ -55,8 +55,14 @@ def _validate_area_key(p: Dict, index: int, area_keys: set) -> None:
 
 
 def _validate_weight_days(p: Dict, index: int) -> None:
-    if not isinstance(p["weight_days"], int) or p["weight_days"] <= 0:
-        raise ValueError(f"[prestations] Ligne {index}: weight_days doit être un entier > 0.")
+    try:
+        print(f"Ligne {index} - weight_days brut: {repr(p['weight_days'])} (type={type(p['weight_days'])})")
+        weight = float(p["weight_days"])
+        if weight <= 0:
+            raise ValueError
+        p["weight_days"] = int(weight)
+    except (ValueError, TypeError):
+        raise ValueError(f"[prestation] Ligne {index}: weight_days doit être un entier > 0.")
 
 
 def _validate_default_rate(p: Dict, index: int) -> None:
