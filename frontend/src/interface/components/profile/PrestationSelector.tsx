@@ -166,18 +166,22 @@ export default function PrestationsSelector({
   const displayedWithWarnings = useMemo((): PrestationWithWarning[] => {
     if (!prestations) return [];
 
-    return prestations.map((p) => {
-      const areaId =
-        getNumberField(p, 'area', 'area_id') ?? getPrestationAreaId(p);
-
-      const isOutOfDomain = domaine != null && areaId !== domaine;
-
-      return {
-        ...p,
-        areaId,
-        isOutOfDomain,
-      };
-    });
+    return prestations
+      .filter((p) => {
+        // Filtrer uniquement les prestations actives en base
+        const status = getStringField(p, 'status');
+        return status === 'ACTIVE';
+      })
+      .map((p) => {
+        const areaId =
+          getNumberField(p, 'area', 'area_id') ?? getPrestationAreaId(p);
+        const isOutOfDomain = domaine != null && areaId !== domaine;
+        return {
+          ...p,
+          areaId,
+          isOutOfDomain,
+        };
+      });
   }, [prestations, domaine]);
 
   // Compter les prestations sélectionnées hors domaine
