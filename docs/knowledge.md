@@ -170,6 +170,7 @@ Le but est de se démarquer du marcher en proposant un outil simple d'utilisatio
 - **Pre-commit** hooks for linting and test checks
 - **GitHub Actions CI/CD** for automatic testing and deployment
 
+## Git Gestion
 #### Monorepo
 - One repo `FreelanSign` with /backend & /frontend packages.
 
@@ -351,13 +352,101 @@ Avoid long or vague names; use kebab-case and reference issue/ticket IDs if rele
 
 ---
 
-#### Version Control & Release Strategy
+#### Version Control
 - Use tags in Git to mark releases: v1.0.0, v1.1.0, etc.
 - Automate changelog generation if possible (tools like conventional-changelog).
 - Review the commit history for the release branch to determine version bump (PATCH/MINOR/MAJOR).
 - Post-release, merge back hotfix or release branch into develop (if branching model uses it).
 - Ensure that after a release, main always reflects the production version and develop (if any) includes ongoing work.
 - Protect main (and develop) branches: require pull request, code review, passing CI, and correct commit messages before merging.
+
+### Release Strategy
+
+> La documentation interne pour la gestion des versions et des releases est également stockée dans `release.md`.
+
+---
+
+#### 🧩 Pré-requis
+
+* Utiliser des **conventional commits** indiqués dans ce chapitre (`feat:`, `fix:`, `chore:`, etc.)
+* Toutes les branches fonctionnelles doivent être mergées dans `dev`
+* Le fichier `/docs/release-plan-vX.Y.Z.md` doit exister et être à jour
+
+---
+
+#### 🚀 Étapes de release
+
+##### 1. ✅ Créer une branche de release
+
+```bash
+git checkout dev
+git pull
+git checkout -b release/vX.Y.Z
+```
+
+##### 2. 🛠 Générer changelog + bump version
+
+```bash
+pnpm run release --release-as X.Y.Z
+```
+
+Cela :
+
+* Met à jour `package.json`
+* Génère/complète `CHANGELOG.md`
+* Commit automatique : `chore(release): X.Y.Z`
+
+##### 3. 📤 Push + PR vers `main`
+
+```bash
+git push origin release/vX.Y.Z
+```
+
+→ Ouvre une PR vers `main`
+
+##### 4. 🏷 Tag + GitHub Release
+
+```bash
+git checkout main
+git pull
+git tag freelansign/vX.Y.Z
+git push origin main --tags
+```
+
+→ Puis créer une release GitHub :
+
+* Tag : `freelansign/vX.Y.Z`
+* Titre : `vX.Y.Z – Nom de version ou résumé`
+* Body : copier le contenu du `/docs/release-plan-vX.Y.Z.md`
+
+##### 5. 🔄 Back-merge dans `dev`
+
+```bash
+git checkout dev
+git merge main
+git push origin dev
+```
+
+---
+
+#### 📎 Conseils
+
+* Ne jamais éditer `CHANGELOG.md` à la main
+* Toujours utiliser `--release-as` pour contrôler la version
+* Garder une convention stricte dans les messages de commit
+
+---
+
+#### 👨‍💻 Exemples
+
+```bash
+pnpm run release --release-as 0.2.0
+```
+
+```bash
+git checkout -b release/v0.2.0
+git push origin release/v0.2.0
+```
 
 ---
 
@@ -770,7 +859,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │           └── preview.html
 │   └── tools
 │       ├── areas.csv
-│       ├── freelansign_prestations_france_standard_2025.csv
 │       ├── generate_csv.py
 │       ├── import_catalog.py
 │       ├── jsons
@@ -949,7 +1037,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   └── precommit.sh
 └── sonar-project.properties
 
-163 directories, 419 files
+163 directories, 418 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1019,5 +1107,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-08 19:44:20 CET**
+_Updated_: **2025-11-09 11:22:34 CET**
 <!-- END AUTO: LAST_UPDATED -->
