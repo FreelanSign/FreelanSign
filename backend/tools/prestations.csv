@@ -1,40 +1,78 @@
 ﻿area_key,name,description,weight_days,default_rate_eur,status
-web_dev,Site vitrine,Création d’un site vitrine responsive (3–5 pages) avec CMS.,6,45000,ACTIVE
-web_dev,Portfolio développeur,"Portfolio moderne avec section projets, blog et contact.",4,42000,ACTIVE
-web_dev,Refonte performance,Audit + optimisation Core Web Vitals et temps de chargement.,3,50000,ACTIVE
-e_commerce,Boutique e‑commerce,"Mise en place d’une boutique (catalogue, paiement, livraison).",8,55000,ACTIVE
-mobile_dev,App mobile MVP,Prototype fonctionnel (iOS/Android) avec 3 écrans clés.,10,65000,ACTIVE
-no_code,App no‑code,Application interne via outils no‑code (Airtable/Glide/Notion).,3,35000,ACTIVE
-ui_ux,Audit UX,Audit heuristique + rapport priorisé avec quick wins.,2,48000,ACTIVE
-ui_ux,Maquettes haute fidélité,Maquettes Figma de 5 écrans clés + prototype cliquable.,4,50000,ACTIVE
-brand_design,Identité visuelle,"Logo, couleurs, typographies et mini charte (10 pages).",5,45000,ACTIVE
-graphic_design,Design system,Bibliothèque de composants (UI kit) documentée.,6,52000,ACTIVE
-data_science,Dashboard BI,Création d’un tableau de bord (Power BI/Looker) connecté.,4,60000,ACTIVE
-data_engineering,Pipeline de données,Ingestion + transformation + stockage (ETL) prêt à l’emploi.,7,70000,ACTIVE
-ai_ml,PoC IA Générative,Prototype assisté IA pour un cas d’usage métier ciblé.,5,75000,ACTIVE
-cloud_devops,Infra as Code,Provisionnement cloud via Terraform + CI/CD de base.,5,65000,ACTIVE
-cybersecurity,Pentest applicatif,Test d’intrusion boîte grise + rapport de remédiation.,6,90000,ACTIVE
-marketing,Stratégie marketing,"Plan d’acquisition 90 jours, personas & parcours clients.",3,40000,ACTIVE
-seo,Audit SEO complet,Technique + contenu + netlinking avec backlog d’actions.,3,42000,ACTIVE
-social_media_ads,Campagne Meta Ads,Création et gestion d’une campagne publicitaire 30 jours.,2,38000,ACTIVE
-crm,Automatisation CRM,Scénarios d’emailing et scoring leads (HubSpot/Make).,4,50000,ACTIVE
-content_writing,Pack articles SEO (x4),4 articles optimisés (1200–1500 mots) avec brief & méta.,5,30000,ACTIVE
-copywriting,Landing page copy,"Copy conversion (USP, preuves, CTA) pour une landing.",2,35000,ACTIVE
+web_dev,Site vitrine,Landing page optimisée (1 section + formulaire).,2,1150,ACTIVE
+web_dev,Site vitrine 5 pages,"Arborescence standard (Accueil, Services, À propos, Blog, Contact), mise en place SEO de base, 2 allers-retours.",7,3500,ACTIVE
+web_dev,Site vitrine 10-15 pages,"Arborescence standard (Accueil, Services, À propos, Blog, Contact), mise en place SEO de base, 2 allers-retours.",10,7500,ACTIVE
+web_dev,Site vitrine premium,"Arborescence standard (Accueil, Services, À propos, Blog, Contact), mise en place SEO de base, design très poussé, animations.",15,12500,ACTIVE
+web_dev,Refonte légère,Audit rapide + mise à jour thème/plug-ins + rafraîchissement design léger sans migration de contenu massif.,4,2300,ACTIVE
+web_dev,Intégration composant React isolé,"ACréation d’un composant UI réutilisable (states + tests unitaires), doc d’intégration incluse.",2,1150,ACTIVE
+e_commerce,Boutique e‑commerce,"Thème, moyens de paiement, shipping, legal pages, 1 itération.",7,2900,ACTIVE
+e_commerce,WooCommerce – ajout catalogue (100 produits),"Import CSV + fiches produits, taxes, livraison, tests.",5,2880,ACTIVE
+mobile_dev,MVP App cross‑platform (Expo/React Native) – 3 écrans,"Onboarding + écran liste/détail + formulaire. Authentification email, stockage local, déploiement TestFlight.",10,5510,ACTIVE
+no_code,App no‑code,Application interne via outils no‑code (Airtable/Glide/Notion).,5,2400,ACTIVE
+ui_ux,Audit UX,Audit heuristique + rapport priorisé avec quick wins.,2,1000,ACTIVE
+ui_ux,Maquettes basse fidélité,Maquettes Figma de 5 écrans clés + prototype cliquable.,4,2000,ACTIVE
+ui_ux,Design System starter (10 composants),"Tokens typographie/couleurs/espace + 10 composants clés (boutons, inputs, cards, modales).",6,3000,ACTIVE
+brand_design,Identité visuelle,"Logo final + mini‑charte (typographies, couleurs, usages) + 5 gabarits social.",4,1800,ACTIVE
+brand_design,Logo pack essential,"3 pistes, 1 logo final, déclinaisons couleur/NB, fichiers vectoriels.",2,900,ACTIVE
+graphic_design,Pack visuels réseaux (12 formats),"Déclinaisons pour 2 réseaux, base charte existante.",2,800,ACTIVE
+data_science,Audit Data & Roadmap IA,"Cartographie sources, qualité, objectifs ML, quick wins et risques. Restitution + plan d’itération.",4,2700,ACTIVE
+data_science,PoC ML classification (sklearn),"Nettoyage dataset, features de base, modèle + métriques, notebook reproductible.",7,4730,ACTIVE
+data_engineering,Pipeline de données,Ingestion + transform + load vers DWH (BigQuery/Redshift) avec 3 tables cibles et tests.,8,5340,ACTIVE
+ai_ml,Intégration RAG sur base documentaire,"Indexation (10–20 docs), retrieval, prompt‑guardrails, évaluation simple, démo web.",6,4060,ACTIVE
+ai_ml,Fine‑tuning léger (LoRA) – texte court,"Préparation dataset, entraînement expérimental, comparaison baseline, export modèle.",7,4730,ACTIVE
+ai_ml,Générateur d’insights (LLM) sur CSV,"Exploration, prompts analytiques, gabarits d’analyses réutilisables.",3,2030,ACTIVE
+cloud_devops,Infra as Code,Provisionnement cloud via Terraform + CI/CD de base.,6,3820,ACTIVE
+cloud_devops,CI/CD GitHub Actions pour monorepo,"Lint + tests + build + release semver + artefacts. Secrets/ENV sécurisés, cache, doc.",4,2550,ACTIVE
+cloud_devops,Observabilité (logs/metrics/traces) starter,Stack Prometheus/Grafana/ELK ou équivalent managé avec dashboards.,3,1910,ACTIVE
+cybersecurity,Pentest web (OWASP Top 10) – scope restreint,3 jours test + 1 jour rapport & débrief (VM/webapp simple).,4,2900,ACTIVE
+cybersecurity,Audit configuration Cloud (CIS benchmark),"Revue IAM, réseau, stockage, alerting, recommandations priorisées.",3,2180,ACTIVE
+cybersecurity,Mise en place MFA/SSO (Keycloak/IdP),Configuration SSO/MFA pour 1 app + guide d’exploitation.,2,1450,ACTIVE
+marketing,Stratégie éditoriale trimestrielle,"Calendrier éditorial 3 mois (blog/newsletters/social), personas, thèmes, KPI.",3,1580,ACTIVE
+marketing,Bundle contenus social (12 posts),"12 visuels + captions optimisés, planifiés, 1 itération.",2,1050,ACTIVE
+seo,Audit SEO technique (site < 200 pages),"Crawl, perf, indexation, structure, priorisation des correctifs.",3,1500,ACTIVE
+seo,Optimisation on‑page (10 pages clés),"Balises, maillage, contenus courts, schémas, 1 itération.",3,1500,ACTIVE
+social_media_ads,Setup Google Ads (1 campagne Search),"Recherche mots‑clés, structure, annonces RSA, extensions, conversions, doc.",1,800,ACTIVE
+social_media_ads,Audit Google Ads existant,"Analyse compte, structure, QS, recommandations priorisées.",1,600,ACTIVE
+social_media_ads,"Setup Meta Ads (1 objectif, 2 audiences)","Business Manager, pixel, 2 créas, A/B basique, conversions.",1,700,ACTIVE
+crm,Implémentation CRM Starter (HubSpot/Close),"Pipelines, propriétés, formulaires, vues, 2 automatisations clés.",3,1650,ACTIVE
+crm,Automatisation e‑mail Nurture (3 scénarios),"Segmentation, 3 workflows, scoring simple, reporting.",4,2200,ACTIVE
+content_writing,Article de blog 1000 mots (SEO),"Brief, recherche mots‑clés, rédaction optimisée, 1 aller‑retour.",1,300,ACTIVE
+content_writing,Livre blanc 8–10 pages (mise en forme simple),"Interviews (à distance), rédaction, relecture, export PDF.",5,1800,ACTIVE
+copywriting,Landing page conversion (jusqu’à 1500 mots),"Recherche promesse/preuves, structure AIDA, 2 itérations.",2,900,ACTIVE
+copywriting,Séquence e‑mail 5 messages,"Objectif unique, copy hooks, sujets, 1 itération.",2,800,ACTIVE
 communication,Pitch deck,Deck 12–16 slides pour levée de fonds ou vente B2B.,3,45000,ACTIVE
-community_management,Gestion réseaux (30j),Calendrier éditorial + 12 posts + modération de base.,4,32000,ACTIVE
-photographie,Shooting produit,Prises de vue packshot (jusqu’à 15 produits) + retouches.,2,40000,ACTIVE
-video,Vidéo courte (reel),Tournage + montage d’une vidéo 30–60 sec format vertical.,2,42000,ACTIVE
-audio_podcast,Montage podcast (x4),Montage + habillage sonore pour 4 épisodes (20–30 min).,3,30000,ACTIVE
-product_management,Atelier discovery,"Atelier cadrage (problèmes, hypothèses, métriques).",1,60000,ACTIVE
-project_management,PM à temps partiel (mois),Pilotage projet 8 jours / mois avec cérémonies agiles.,8,55000,ACTIVE
-hr_recrutement,Sprint recrutement,Sourcing + entretiens + short‑list pour un poste tech.,5,40000,ACTIVE
-legal,Pack CGV + Mentions,"Rédaction CGV, mentions légales, politique de confidentialité.",3,65000,ACTIVE
-finance_compta,Prévisionnel financier,"Budget, trésorerie, seuil de rentabilité sur 12 mois.",3,50000,ACTIVE
-evenementiel,Organisation d’événement,Conception + logistique pour un événement B2B (50–100 pers.).,7,45000,ACTIVE
-immobilier,Visite virtuelle 3D,Capture et création d’une visite virtuelle d’un bien.,2,42000,ACTIVE
-artisanat_batiment,Plan 3D d’aménagement,Conception 3D d’un aménagement intérieur (une pièce).,2,38000,ACTIVE
-sante_bien_etre,Programme bien‑être 4 semaines,Plan d’entraînement + mobilité + habitudes.,2,25000,ACTIVE
-traduction,Traduction FR↔EN (10k mots),Traduction professionnnelle et relecture contextualisée.,5,28000,ACTIVE
-web3,Smart contract simple,Contrat ERC‑20 basique avec tests.,3,80000,DRAFT
-game_dev,Prototype jeu 2D,Prototype jouable (Godot/Unity) avec 1 niveau.,7,60000,DRAFT
-marketing,Refonte branding complète,Rebranding global multi‑canal.,15,70000,ARCHIVED
+communication,Kit RP express (liste médias + angle + 1 CP),Rédaction 1 communiqué + ciblage médias + kit assets.,3,1600,ACTIVE
+community_management,Kit de démarrage social (calendrier + templates),"Calendrier 1 mois, 12 post templates, guidelines ton & visuels.",2,810,ACTIVE
+community_management,Social media playbook,"Positionnement, piliers de contenu, guidelines modération & crise.",2,810,ACTIVE
+graphic_design,Pack visuels réseaux (12 formats),"Déclinaisons pour 2 réseaux, base charte existante.",2,800,ACTIVE
+illustration,Illustration éditoriale unique,"1 scène simple, style cohérent avec marque, fichiers source.",1,390,ACTIVE
+motion_design,Vidéo motion 60s – pack simple,"Storyboard simple, voix‑off fournie, musique libre, export Full HD.",6,2600,ACTIVE
+motion_design,Logo reveal 5–10s,Animation courte du logo pour intro/outro vidéo.,1,500,ACTIVE
+photographie,Shooting corporate 1 journée (entreprise),"Portraits + ambiance, sélection & retouches de base (30–50 photos).",1,520,ACTIVE
+photographie,Pack immobilier (1 bien),Shooting + retouches (20 photos) + export web/HD.,1,520,ACTIVE
+video,Captation interview + montage court,1/2 journée tournage + 1/2 journée montage (format 60–90s).,1,470,ACTIVE
+audio_podcast,Montage & mix podcast (épisode 30–45 min),"Nettoyage, coupe, générique, normalisation, export WAV/MP3.",1,350,ACTIVE
+product_management,Atelier cadrage produit (1 journée),"Vision, KPI, cartographie parties prenantes, backlog initial.",1,690,ACTIVE
+product_management,Discovery sprint (1 semaine),"Entretiens, mapping opportunités, prototypes low‑fi, priorisation.",5,3440,ACTIVE
+project_management,PMO setup projet digital,"Rituels, outils, matrice RACI, risques, baseline planning.",3,2000,ACTIVE
+hr_recrutement,Process de recrutement starter,"Scorecards, grille d’entretien, sourcing pilote, ATS basique.",3,1500,ACTIVE
+hr_recrutement,Sourcing 10 profils (IT/non‑IT),"Rédaction annonce, recherche, 10 candidats qualifiés (shortlist).",2,1000,ACTIVE
+finance_compta,Mise en place compta simple pour indépendant,"Plan comptable, outils, workflow facturation/notes de frais, template TVA.",2,1000,ACTIVE
+finance_compta,Prévisionnel financier 3 ans (SaaS/TPE),"Hypothèses, P&L, cash‑flow, scénarios, fichier prêt à l’emploi.",4,2200,ACTIVE
+legal,Audit contrats standards (3 modèles),"CGV + contrat de prestation + NDA, revue & recommandations.",3,1800,ACTIVE
+legal,Pack RGPD starter,"Registre traitements, mentions, politique confidentialité, plan correctifs.",3,1800,ACTIVE
+formation_coaching,Journée de formation intra – sur mesure,"Pédagogie ACTIVE, support PDF, quiz, attestation.",1,600,ACTIVE
+formation_coaching,Coaching professionnel (forfait 1 journée),"Objectifs, plan d’action, séances courtes réparties, suivi écrit.",1,600,ACTIVE
+evenementiel,Kit événement pro (planning + checklists),"Rétro‑planning, fournisseurs, budget, risques, templates.",2,1000,ACTIVE
+immobilier,Visite virtuelle 360° – 1 bien,"Prise de vues 360°, assemblage, export web.",1,520,ACTIVE
+immobilier,Home‑staging digital (3 visuels),Retouches & aménagement virtuel de 3 pièces (avant/après).,1,520,ACTIVE
+artisanat_batiment,Site vitrine artisan (WordPress),"Thème pro, 5 pages, formulaire devis, GMB intégré.",6,2200,ACTIVE
+sante_bien_etre,Atelier bien‑être en entreprise (1 journée),"Programme respiration/mobilité/posture, fiche mémo salariés.",1,500,ACTIVE
+traduction,Traduction FR<>EN — 1000 mots (général),"Traduction & relecture humaine, glossaire fourni par le client.",0,150,ACTIVE
+traduction,Traduction FR<>EN — 1000 mots (technique),"Sujet technique/juridique : terminologie stricte, QA renforcée.",0,180,ACTIVE
+traduction,Localisation site/app — 1500 mots,"Traduction + adaptation UX (placeholders, longueur), export fichiers.",1,260,ACTIVE
+web3,Intégration wallet + login (Web3Auth/WalletConnect),"Connexion, signature, gestion session, doc sécurité basique.",3,1800,ACTIVE
+game_dev,Prototype 2D jouable (Godot/Unity) – core loop,"Boucle de jeu basique (mouvement, collisions, scoring), 2 niveaux, export desktop/web.",8,3860,ACTIVE
+game_dev,Pixel‑art pack UI/menus simple,"Écran titre, menu pause, HUD minimaliste, sprites UI.",3,1450,ACTIVE
+game_dev,Portage contrôles manette + mapping,Ajout support manette + rebind basique + doc.,2,970,ACTIVE
+marketing,Refonte branding complète,Rebranding global multi‑canal.,15,4000,ARCHIVED
