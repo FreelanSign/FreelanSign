@@ -762,8 +762,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   └── user
 │   │       ├── __init__.py
 │   │       ├── adapters
-│   │       │   └── persistence
-│   │       │       └── django_user_repository.py
+│   │       │   ├── persistence
+│   │       │   │   └── django_user_repository.py
+│   │       │   └── providers
+│   │       │       ├── logging_token_sender.py
+│   │       │       └── smtp_token_provider.py
 │   │       ├── admin.py
 │   │       ├── application
 │   │       │   ├── dto
@@ -771,12 +774,15 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   │   └── user_viewmodels.py
 │   │       │   ├── errors.py
 │   │       │   ├── ports
+│   │       │   │   ├── token_sender.py
 │   │       │   │   └── user_repository.py
 │   │       │   └── usecases
 │   │       │       ├── change_password.py
 │   │       │       ├── create_professional.py
 │   │       │       ├── list_users.py
 │   │       │       ├── register_user.py
+│   │       │       ├── request_password_reset.py
+│   │       │       ├── reset_password.py
 │   │       │       ├── update_professional.py
 │   │       │       └── update_profile.py
 │   │       ├── apps.py
@@ -792,10 +798,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │       └── user_calculator.py
 │   │       ├── interface
 │   │       │   ├── __init__.py
+│   │       │   ├── auth_urls.py
 │   │       │   ├── auth_views.py
 │   │       │   ├── errors_handler.py
 │   │       │   ├── serializers.py
-│   │       │   ├── urls.py
 │   │       │   └── views.py
 │   │       ├── migrations
 │   │       │   ├── __init__.py
@@ -816,6 +822,13 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       ├── signals.py
 │   │       ├── tests
 │   │       │   ├── __init__.py
+│   │       │   ├── application
+│   │       │   │   └── usecases
+│   │       │   │       ├── test_request_password_reset.py
+│   │       │   │       └── test_reset_password.py
+│   │       │   ├── interface
+│   │       │   │   └── serializers
+│   │       │   │       └── test_reset_password_serializer.py
 │   │       │   ├── test_auth_api.py
 │   │       │   ├── test_auth_logout.py
 │   │       │   ├── test_professional_api.py
@@ -1037,7 +1050,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   └── precommit.sh
 └── sonar-project.properties
 
-163 directories, 418 files
+168 directories, 426 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1107,5 +1120,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-09 11:28:25 CET**
+_Updated_: **2025-11-10 10:07:37 CET**
 <!-- END AUTO: LAST_UPDATED -->
