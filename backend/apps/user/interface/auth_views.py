@@ -1,4 +1,5 @@
 # apps/user/interface/auth_views.py
+import logging
 from datetime import datetime, timezone
 
 from django.contrib.auth import get_user_model
@@ -14,7 +15,18 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, Ou
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import LogoutSerializer
+from apps.user.adapters.persistence.django_user_repository import DjangoUserRepository
+from apps.user.adapters.providers.logging_token_sender import LoggingTokenSender
+from apps.user.adapters.providers.smtp_token_provider import SmtpTokenSender
+from apps.user.application.dto.user_inputs import ResetPasswordInput
+from apps.user.application.usecases.request_password_reset import RequestPasswordReset
+from apps.user.application.usecases.reset_password import ResetPassword
+from apps.user.interface.errors_handler import UserErrorHandler
+from config import settings
+
+from .serializers import LogoutSerializer, RequestPasswordResetSerializer, ResetPasswordSerializer
+
+logger = logging.getLogger(__name__)
 
 
 @extend_schema(
@@ -167,3 +179,134 @@ class SecureAuthRefreshView(APIView):
                 pass
 
         return Response(data, status=status.HTTP_200_OK)
+
+
+@extend_schema(
+    tags=["Auth"],
+    summary="Request password reset",
+    description="Sends a reset link to the user if the email exists. The token is valid for 30 minutes.",
+    responses={
+        200: OpenApiResponse({"detail": "If the email exists, a reset link was sent."}),
+        400: OpenApiResponse({"email": ["This field is required."]}),
+    },
+)
+class RequestPasswordResetView(APIView):
+    """
+    RequestPasswordResetView handles password reset token generation.
+
+    Public endpoint (no auth). If the email matches a user, a reset link
+    is sent via the configured TokenSender.
+    """
+
+    permission_classes = [AllowAny]
+    throttle_classes = {
+        ScopedRateThrottle,
+    }
+    throttle_scope = "auth"
+
+    def post(self, request):
+        """
+        Accepts an email and triggers the password reset process.
+
+        Returns:
+            200 OK - Always, even if the email is unknown (for security).
+            400 Bad Request - If the email field is missing or invalid.
+        """
+        logger.info("RAW BODY: %s", request.body)
+        logger.info("REQUEST DATA: %s", request.data)
+
+        ser = RequestPasswordResetSerializer(data=request.data)
+        if not ser.is_valid():
+            logger.warning("Invalid password reset request: %s", ser.errors)
+            return Response(
+                {
+                    "error": "INVALID_INPUT",
+                    "message": "Invalid request payload",
+                    "detail": ser.errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        logger.info("Validated input: %s", ser.validated_data)
+
+        try:
+            use_case = RequestPasswordReset(
+                user_repository=DjangoUserRepository(),
+                token_sender=SmtpTokenSender(
+                    reset_base_url=settings.RESET_PASSWORD_URL,
+                    from_email=settings.EMAIL_FROM,
+                ),
+            )
+            use_case.execute(email=ser.validated_data["email"])
+
+            return Response(
+                {"detail": "If the email exists, a reset link was sent."},
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as e:
+            return UserErrorHandler.handle_error(e)
+
+
+from drf_spectacular.utils import OpenApiResponse, extend_schema
+
+
+@extend_schema(
+    tags=["Auth"],
+    summary="Reset password using token",
+    description=(
+        "Accepts a signed token (from the password reset email) and a new password. "
+        "If the token is valid and not expired (2 hours), the user's password is updated. "
+        "This endpoint does not require authentication."
+    ),
+    request=ResetPasswordSerializer,
+    responses={
+        200: OpenApiResponse({"detail": "Password has been reset."}),
+        400: OpenApiResponse({"token": ["This field is required."], "new_password": ["This field is required."]}),
+        404: OpenApiResponse({"error": "USER_NOT_FOUND", "message": "User not found", "detail": "..."}),
+        422: OpenApiResponse({"error": "INVALID_PASSWORD", "message": "Password too weak", "detail": "..."}),
+    },
+)
+class ResetPasswordView(APIView):
+    """
+    ResetPasswordView handles password reset via signed token.
+
+    This public endpoint accepts a reset token and a new password.
+    If the token is valid and not expired, the password is updated.
+    No authentication is required to use this endpoint.
+    """
+
+    permission_classes = [AllowAny]
+    throttle_classes = (ScopedRateThrottle,)
+    throttle_scope = "auth"
+
+    def post(self, request):
+        """
+        Validates the signed token and updates the user's password.
+
+        Returns:
+            200 OK - Password has been successfully reset.
+            400 Bad Request - Missing or invalid fields.
+            404 Not Found - Invalid or expired token.
+            422 Unprocessable Entity - Password does not meet complexity rules.
+        """
+        ser = ResetPasswordSerializer(data=request.data)
+        if not ser.is_valid():
+            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            input_dto = ResetPasswordInput(
+                token=ser.validated_data["token"],
+                new_password=ser.validated_data["new_password"],
+            )
+
+            use_case = ResetPassword(
+                user_repository=DjangoUserRepository(),
+                token_max_age_sec=2 * 3600,  # 🔐 2 hours validity
+            )
+            use_case.execute(input_dto)
+
+            return Response({"detail": "Password has been reset."}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return UserErrorHandler.handle_error(e)
