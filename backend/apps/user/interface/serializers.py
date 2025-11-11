@@ -8,6 +8,7 @@ No business rules here (kept in domain). No DB access here.
 from __future__ import annotations
 
 from typing import Optional
+from urllib.parse import unquote
 
 from rest_framework import serializers
 
@@ -18,12 +19,7 @@ from apps.user.application.dto.user_inputs import (
     UpdateProfessionalInput,
     UpdateProfileInput,
 )
-from apps.user.application.dto.user_viewmodels import (
-    ProfessionalViewModel,
-    ProfileViewModel,
-    UserListViewModel,
-    UserViewModel,
-)
+from apps.user.application.dto.user_viewmodels import ProfessionalViewModel, ProfileViewModel, UserListViewModel, UserViewModel
 
 # Only imported for enum/choices exposure at the boundary (not for persistence)
 from apps.user.models.models import Profile
@@ -266,3 +262,27 @@ __all__ = [
     "UserListOutputSerializer",
     "ProfessionalOutputSerializer",
 ]
+
+
+class RequestPasswordResetSerializer(serializers.Serializer):
+    """
+    Input shape for requesting a password reset
+    """
+
+    email = serializers.EmailField()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    """
+    Input shape for resetting a password from a signed token.
+    """
+
+    token = serializers.CharField()
+    new_password = serializers.CharField()
+
+    # appelé automatiquement par .is_valid()
+    def validate_token(self, value: str) -> str:
+        """
+        Decode the token from URL-encoded format.
+        """
+        return unquote(value)

@@ -1,8 +1,8 @@
 // src/infrastructure/user/userRepository.ts
 import axios from 'axios';
+import type { ProfessionalUserDto, UserDto } from '../../domain/user/types';
 import { apiClient } from '../../infrastructure/http/apiClient';
 import { API_ENDPOINTS } from '../../shared/endpoints';
-import type { ProfessionalUserDto, UserDto } from '../../domain/user/types';
 
 type ProfilePayload = Partial<UserDto['profile']>;
 type UpdateMeArg = ProfilePayload | { profile: ProfilePayload };
@@ -125,4 +125,6 @@ export const userRepository = {
     console.log('[userRepository] updateProfessionalMe response:', data);
     return normalizeProfessionalDto(data);
   },
+
+  // TODO: Add routes for reset password here instead of frontend/src/lib/api/auth.ts
 };

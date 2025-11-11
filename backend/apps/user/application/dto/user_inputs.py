@@ -88,3 +88,11 @@ class GetProfessionalInput:
 
     user_id: Optional[int] = None
     professional_id: Optional[int] = None
+
+
+@dataclass(frozen=True)
+class ResetPasswordInput:
+    """Paramètres pour mettre à jour un mot de passe."""
+
+    token: str
+    new_password: str

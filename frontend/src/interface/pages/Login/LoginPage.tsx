@@ -1,11 +1,11 @@
-import { Link, useNavigate } from 'react-router-dom';
-import LoginForm from '../../components/login/LoginForm';
-import Navbar from '../../../interface/components/navbar/Navbar';
 import { useEffect } from 'react';
-import { useAuth } from '../../../app/providers/AuthProvider';
-import styles from './LoginPage.module.css';
 import { Helmet } from 'react-helmet-async';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../app/providers/AuthProvider';
+import Navbar from '../../../interface/components/navbar/Navbar';
 import { SITE } from '../../../lib/constants/site.config';
+import LoginForm from '../../components/login/LoginForm';
+import styles from './LoginPage.module.css';
 
 export default function LoginPage() {
   const { user } = useAuth();
@@ -34,6 +34,11 @@ export default function LoginPage() {
             <Link to="/register" className={styles.link}>
               Créer un compte
             </Link>
+          </p>
+          <p className={styles.help}>
+            <a href="/auth/request-password-reset" className={styles.link}>
+              Mot de passe oublié ?
+            </a>
           </p>
         </section>
       </main>

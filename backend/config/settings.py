@@ -33,6 +33,21 @@ DEBUG = env("DEBUG", default=False)
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 # --------------------------------------------------------------------------------------
+# Email settings
+# --------------------------------------------------------------------------------------
+# Looking to send emails in production? Check out our Email API/SMTP product!
+# Pour le développement avec Mailtrap uniquement
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "sandbox.smtp.mailtrap.io"
+EMAIL_HOST_USER = "54e99456c8cc20"
+EMAIL_HOST_PASSWORD = "04ef95b11a8fce"
+EMAIL_PORT = 2525  # Port non-sécurisé de Mailtrap
+EMAIL_USE_TLS = False  # Pas de TLS en dev
+EMAIL_USE_SSL = False  # Pas de SSL en dev
+EMAIL_FROM = "noreply@example.com"
+RESET_PASSWORD_URL = "https://frontend/reset-password"
+
+# --------------------------------------------------------------------------------------
 # Database
 # - Priorité à DATABASE_URL
 # - Sinon, variables séparées

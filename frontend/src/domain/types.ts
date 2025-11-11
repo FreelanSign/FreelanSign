@@ -44,4 +44,5 @@ export interface AuthPort {
   refresh(refreshToken: string): Promise<TokenPair>;
   logout(refreshToken: string): Promise<void>;
   getMe(): Promise<AuthUser>;
+  requestPasswordReset(email: string): Promise<void>;
 }
