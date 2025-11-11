@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import ResetPasswordForm from '../../components/auth/ResetPasswordForm';
 
 export default function ResetPasswordPage() {
-  const searchParams = useSearchParams();
+  const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
 
   if (!token) {
