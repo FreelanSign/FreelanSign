@@ -958,6 +958,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── interface
 │   │   │   ├── components
 │   │   │   │   ├── AppToBar.tsx
+│   │   │   │   ├── auth
+│   │   │   │   │   ├── request-password-reset-form.module.css
+│   │   │   │   │   ├── RequestPasswordResetForm.tsx
+│   │   │   │   │   ├── reset-password-form.module.css
+│   │   │   │   │   └── ResetPasswordForm.tsx
 │   │   │   │   ├── branding
 │   │   │   │   │   └── ThemesForm.tsx
 │   │   │   │   ├── common
@@ -993,6 +998,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── layout
 │   │   │   │   └── RootSeo.tsx
 │   │   │   ├── pages
+│   │   │   │   ├── Auth
+│   │   │   │   │   ├── request-password-reset.module.css
+│   │   │   │   │   ├── request-password-reset.tsx
+│   │   │   │   │   └── reset-password.tsx
 │   │   │   │   ├── Branding
 │   │   │   │   │   ├── themes.module.css
 │   │   │   │   │   ├── ThemesCreatePage.tsx
@@ -1021,6 +1030,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       ├── branding.ts
 │   │   │       └── saveFile.ts
 │   │   ├── lib
+│   │   │   ├── api
+│   │   │   │   └── auth.ts
 │   │   │   ├── constants
 │   │   │   │   └── site.config.ts
 │   │   │   └── utils.ts
@@ -1050,7 +1061,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   └── precommit.sh
 └── sonar-project.properties
 
-168 directories, 426 files
+171 directories, 434 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1120,5 +1131,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-10 10:09:36 CET**
+_Updated_: **2025-11-11 09:14:54 CET**
 <!-- END AUTO: LAST_UPDATED -->
