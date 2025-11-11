@@ -99,3 +99,8 @@
   opacity: 0.9;
   transform: translateY(-1px);
 }
+
+.help {
+  margin-top: 0.5rem;
+  text-align: center;
+}
