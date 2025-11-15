@@ -8,7 +8,7 @@ class ClientDomainError(Exception):
 
 class ClientPolicyError(ClientDomainError):
     def __init__(self, message: str, code: str = "CLIENT_POLICY_ERROR"):
-        super().__init__(message, code="CLIENT_POLICY_ERROR")
+        super().__init__(message, code=code)
 
 
 class ClientNotFoundError(ClientDomainError):
@@ -17,7 +17,7 @@ class ClientNotFoundError(ClientDomainError):
 
 
 class ClientAlreadyExistsError(ClientPolicyError):
-    def __init__(self, name: str, code: str = "CLIENT_ALREADY_EXISTS"):
+    def __init__(self, name: str):
         super().__init__(f"Client already exists: {name}", code="CLIENT_ALREADY_EXISTS")
 
 
