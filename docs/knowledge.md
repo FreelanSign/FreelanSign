@@ -456,6 +456,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 <!-- BEGIN AUTO: PROJECT_STRUCTURE -->
 ```text
 .
+├── .claude
+│   ├── settings.json
+│   └── settings.local.json
 ├── .env
 ├── .github
 │   ├── CODEOWNERS
@@ -465,6 +468,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │       ├── ci.yml
 │       └── enforce-dev-to-main.yml
 ├── .gitignore
+├── .mcp.json
 ├── .pre-commit-config.yaml
 ├── .sonarcloud.properties
 ├── .sonarignore
@@ -656,6 +660,68 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── __init__.py
 │   │   │   │   └── money.py
 │   │   │   └── views.py
+│   │   ├── email
+│   │   │   ├── __init__.py
+│   │   │   ├── adapters
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── rendering
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── django_quote_email_renderer.py
+│   │   │   ├── admin.py
+│   │   │   ├── application
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── prepared_email_data.py
+│   │   │   │   ├── errors.py
+│   │   │   │   ├── ports
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── email_template_renderer.py
+│   │   │   │   │   └── quote_repository.py
+│   │   │   │   └── usecases
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── prepare_quote_email.py
+│   │   │   ├── apps.py
+│   │   │   ├── domain
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── entities
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── prepared_email.py
+│   │   │   │   ├── policies
+│   │   │   │   │   └── __init__.py
+│   │   │   │   ├── services
+│   │   │   │   │   └── __init__.py
+│   │   │   │   └── value_objects
+│   │   │   │       └── __init__.py
+│   │   │   ├── interface
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── permissions.py
+│   │   │   │   ├── serializers.py
+│   │   │   │   ├── urls.py
+│   │   │   │   └── views.py
+│   │   │   ├── models.py
+│   │   │   ├── templates
+│   │   │   │   └── emails
+│   │   │   │       ├── quote_fr.html
+│   │   │   │       └── quote_fr.txt
+│   │   │   └── tests
+│   │   │       ├── __init__.py
+│   │   │       ├── adapters
+│   │   │       │   └── rendering
+│   │   │       │       └── test_django_quote_email_renderer.py
+│   │   │       ├── application
+│   │   │       │   ├── ports
+│   │   │       │   │   └── test_email_template_renderer_contract.py
+│   │   │       │   └── usecases
+│   │   │       │       └── test_prepare_quote_email.py
+│   │   │       ├── bdd
+│   │   │       │   ├── features
+│   │   │       │   │   └── get_prepared_email.feature
+│   │   │       │   ├── steps
+│   │   │       │   │   └── email_steps.py
+│   │   │       │   └── test_prepared_email.py
+│   │   │       └── interface
+│   │   │           └── test_prepared_email_view.py
 │   │   ├── quote
 │   │   │   ├── __init__.py
 │   │   │   ├── adapters
@@ -844,6 +910,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── settings.py
 │   │   ├── urls.py
 │   │   └── wsgi.py
+│   ├── conftest.py
 │   ├── coverage.xml
 │   ├── doc
 │   │   └── classes
@@ -879,11 +946,16 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │       │   └── prestations.json
 │       └── prestations.csv
 ├── CHANGELOG.md
+├── CLAUDE.md
 ├── docker-compose.yml
 ├── docs
 │   ├── backup.md
+│   ├── development.md
+│   ├── git-workflow.md
 │   ├── knowledge.md
 │   ├── knowledge.sh
+│   ├── perso
+│   │   └── claud-good-habits.md
 │   ├── RELEASE_PLAN_v0.1.0.md
 │   └── RELEASE_PLAN_v0.2.0.md
 ├── FreelanSign.code-workspace
@@ -922,6 +994,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── icons
 │   │   │   │   └── pen-nib-line.svg
 │   │   │   └── react.svg
+│   │   ├── components
+│   │   │   └── ui
+│   │   │       ├── button.tsx
+│   │   │       ├── dialog.tsx
+│   │   │       └── textarea.tsx
 │   │   ├── domain
 │   │   │   ├── auth
 │   │   │   │   └── usecases.ts
@@ -947,6 +1024,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── catalogRepository.ts
 │   │   │   ├── client
 │   │   │   │   └── clientRepository.ts
+│   │   │   ├── email
+│   │   │   │   └── emailRepository.ts
 │   │   │   ├── http
 │   │   │   │   └── apiClient.ts
 │   │   │   ├── quote
@@ -968,6 +1047,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── common
 │   │   │   │   │   ├── Modal.css
 │   │   │   │   │   └── Modal.tsx
+│   │   │   │   ├── email
+│   │   │   │   │   ├── quote-email-preview-dialog.module.css
+│   │   │   │   │   └── QuoteEmailPreviewDialog.tsx
 │   │   │   │   ├── login
 │   │   │   │   │   ├── login-form.module.css
 │   │   │   │   │   └── LoginForm.tsx
@@ -1059,9 +1141,16 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── scripts
 │   ├── load-env.sh
 │   └── precommit.sh
-└── sonar-project.properties
+├── sonar-project.properties
+└── typings
+    └── rest_framework
+        ├── __init__.pyi
+        ├── compat.pyi
+        ├── settings.pyi
+        ├── test
+        └── test.pyi
 
-171 directories, 434 files
+205 directories, 489 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1069,11 +1158,14 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 <!-- BEGIN AUTO: FRONTEND_PACKAGE_JSON -->
 Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
 **name**: `frontend`  •  **version**: `0.1.0`
-**scripts**: 10  •  **dependencies**: 15  •  **devDependencies**: 27
+**scripts**: 10  •  **dependencies**: 18  •  **devDependencies**: 27
 
 <details><summary>Top dependencies</summary>
 
+- @headlessui/react: ^2.2.9
 - @hookform/resolvers: ^5.2.2
+- @radix-ui/react-dialog: ^1.1.15
+- @radix-ui/react-slot: ^1.2.4
 - @tailwindcss/vite: ^4.1.13
 - axios: ^1.12.2
 - class-variance-authority: ^0.7.1
@@ -1131,5 +1223,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-11 10:28:54 CET**
+_Updated_: **2025-11-15 09:14:52 CET**
 <!-- END AUTO: LAST_UPDATED -->
