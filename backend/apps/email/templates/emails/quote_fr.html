@@ -1,0 +1,17 @@
+<p>Bonjour {{ data.client_name }},</p>
+
+<p>
+  Vous trouverez ci-joint votre devis
+  <strong>{{ data.quote_title }}</strong>
+  (réf. <strong>{{ data.quote_reference }}</strong>), émis le
+  <strong>{{ data.quote_date|date:"d/m/Y" }}</strong>.
+</p>
+
+<p>
+  Ce devis est valable jusqu’au
+  <strong>{{ data.expiration_date|date:"d/m/Y" }}</strong>.
+</p>
+
+<p>N’hésitez pas à me contacter si vous avez des questions.</p>
+
+<p>Bien cordialement,<br>L’équipe FreelanSign</p>

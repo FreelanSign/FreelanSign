@@ -1,16 +1,16 @@
-// src/interface/pages/Quote/QuoteDetailPage.tsx
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
-import styles from './quote-detail.module.css';
+import QuoteEmailPreviewDialog from '../../components/email/QuoteEmailPreviewDialog';
 import Navbar from '../../components/navbar/Navbar';
 import Sidebar from '../../components/sidebar/Sidebar';
+import styles from './quote-detail.module.css';
 
+import { apiToUiQuoteDetail } from '../../../domain/quote/mappers';
 import type {
   ApiQuoteResponse,
   UiQuoteDetail,
 } from '../../../domain/quote/types';
-import { apiToUiQuoteDetail } from '../../../domain/quote/mappers';
 
 function useIntlFormatters(currency: string | null | undefined) {
   const money = useMemo(
@@ -58,6 +58,7 @@ export default function QuoteDetailPage() {
   const [quote, setQuote] = useState<UiQuoteDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
 
   async function handleDownload() {
     try {
@@ -162,7 +163,6 @@ export default function QuoteDetailPage() {
     );
   }
 
-  const canDownload = !!quote.pdf_url;
   const addressLines = (quote.client?.address || '')
     .split(/\r?\n/)
     .map((l) => l.trim())
@@ -201,22 +201,20 @@ export default function QuoteDetailPage() {
             >
               Éditer
             </Link>
-            {canDownload ? (
-              <a
-                href={quote.pdf_url!}
-                className={styles.buttonAccent}
-                rel="noopener noreferrer"
-              >
-                Télécharger (PDF)
-              </a>
-            ) : (
-              <button
-                className={styles.buttonAccent}
-                onClick={() => window.print()}
-              >
-                Imprimer
-              </button>
-            )}
+            <button
+              onClick={handleDownload}
+              disabled={downloading}
+              className={styles.buttonAccent}
+              title="Télécharger le devis (PDF)"
+            >
+              {downloading ? 'Téléchargement en cours...' : 'Télécharger (PDF)'}
+            </button>
+            <button
+              className={styles.buttonSuccess}
+              onClick={() => setShowEmailDialog(true)}
+            >
+              Préparer email
+            </button>
           </div>
         </div>
       </header>
@@ -356,14 +354,6 @@ export default function QuoteDetailPage() {
             </table>
           </div>
         )}
-        <button
-          onClick={handleDownload}
-          disabled={downloading}
-          className={styles.buttonAccent}
-          title="Télécharger le devis (PDF)"
-        >
-          {downloading ? 'Téléchargement en cours...' : 'Télécharger (PDF)'}
-        </button>
       </section>
 
       {!!quote.note && (
@@ -372,6 +362,12 @@ export default function QuoteDetailPage() {
           <p className={styles.prose}>{quote.note}</p>
         </section>
       )}
+
+      <QuoteEmailPreviewDialog
+        open={showEmailDialog}
+        onClose={() => setShowEmailDialog(false)}
+        quoteId={quote.id}
+      />
     </Shell>
   );
 }

@@ -29,4 +29,5 @@ urlpatterns = [
     path("api/clients/", include("apps.client.interface.urls", namespace="client")),
     # Branding
     path("api/branding/", include("apps.branding.interface.urls", namespace="branding")),
+    path("api/", include("apps.email.interface.urls", namespace="email")),
 ]
