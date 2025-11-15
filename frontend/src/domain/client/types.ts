@@ -9,12 +9,14 @@ export type ClientCreateDto = {
   name: string;
   email?: string;
   phone?: string;
+  address?: string;
 };
 
 export type ClientValidationError = {
   name?: string;
   email?: string;
   phone?: string;
+  address?: string;
 };
 
 // Types côté API (ce que renvoie/attend le backend)
