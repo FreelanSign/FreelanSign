@@ -1,12 +1,12 @@
 // frontend/src/interface/components/email/QuoteEmailPreviewDialog.tsx
+import { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogOverlay,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { useEffect, useState } from 'react';
+} from '../../../components/ui/dialog';
 import { emailRepository } from '../../../infrastructure/email/emailRepository';
 import styles from './quote-email-preview-dialog.module.css';
 
@@ -27,7 +27,7 @@ export default function QuoteEmailPreviewDialog({
     to: string;
     subject: string;
     body: string;
-    attachment_link: string;
+    attachment_link?: string;
     template_version: string;
   } | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -140,7 +140,7 @@ export default function QuoteEmailPreviewDialog({
                     <button
                       className={`${styles.buttonCopy} ${copiedField === 'attachment' ? styles.buttonCopied : ''}`}
                       onClick={() =>
-                        copyToClipboard(data.attachment_link, 'attachment')
+                        copyToClipboard(data.attachment_link!, 'attachment')
                       }
                     >
                       {copiedField === 'attachment' ? '✓ Copié' : 'Copier'}

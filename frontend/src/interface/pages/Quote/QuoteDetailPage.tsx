@@ -163,7 +163,6 @@ export default function QuoteDetailPage() {
     );
   }
 
-  const canDownload = !!quote.pdf_url;
   const addressLines = (quote.client?.address || '')
     .split(/\r?\n/)
     .map((l) => l.trim())
