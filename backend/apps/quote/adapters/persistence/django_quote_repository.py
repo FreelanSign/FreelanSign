@@ -1,9 +1,11 @@
+# apps/quote/adapters/persistence/django_quote_repository.py
 from __future__ import annotations
 
 from decimal import Decimal
 
 from django.db import transaction
 
+from apps.quote.application.errors import QuoteNotFoundError
 from apps.quote.application.ports.quote_repository import QuoteRepository
 from apps.quote.models import Quote, QuoteLineItem
 
@@ -33,7 +35,10 @@ class DjangoQuoteRepository(QuoteRepository):
         qs = Quote.objects.select_related("client")
         if include_lines:
             qs = qs.prefetch_related("items")
-        return qs.get(pk=quote_id)
+        try:
+            return qs.get(pk=quote_id)
+        except Quote.DoesNotExist:
+            raise QuoteNotFoundError()
 
     def create(self, *, owner_id: str, fields: dict) -> str:
         """Create a new quote header with initial totals set to zero."""
