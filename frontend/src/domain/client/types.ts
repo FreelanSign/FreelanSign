@@ -5,6 +5,18 @@ export type ClientDto = {
   phone?: string | null;
 };
 
+export type ClientCreateDto = {
+  name: string;
+  email?: string;
+  phone?: string;
+};
+
+export type ClientValidationError = {
+  name?: string;
+  email?: string;
+  phone?: string;
+};
+
 // Types côté API (ce que renvoie/attend le backend)
 export type ApiClient = {
   id?: string;
