@@ -1,27 +1,73 @@
 /* frontend/src/interface/components/client/client-create-drawer.module.css */
 
 .drawerContent {
-  position: fixed;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  left: auto;
-  max-width: 480px;
-  width: 100%;
-  height: 100vh;
-  transform: translateX(0) translateY(0) !important;
-  border-radius: 0;
-  padding: 0;
+  /* Force le positionnement fixe en haut à droite */
+  position: fixed !important;
+  inset: 0 0 0 auto !important; /* top right bottom left */
+
+  /* Dimensions */
+  height: 100vh !important;
+  width: 100% !important;
+  max-width: 480px !important;
+
+  /* Reset des transforms Radix */
+  transform: none !important;
+  translate: none !important;
+
+  /* Style */
+  margin: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+
   display: flex;
   flex-direction: column;
+  background: white;
+  box-shadow: -4px 0 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Animation à l'ouverture */
+.drawerContent[data-state='open'] {
+  animation: slideInFromRight 200ms ease-out;
+}
+
+.drawerContent[data-state='closed'] {
+  animation: slideOutToRight 200ms ease-in;
+}
+
+@keyframes slideInFromRight {
+  from {
+    translate: 100% 0;
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+@keyframes slideOutToRight {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 100% 0;
+  }
+}
+
+/* Reset du header DialogHeader de shadcn */
+.header {
+  padding: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0; /* Empêche le header de se compresser */
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
   padding: 1.5rem;
-  padding-top: 0;
+  padding-top: 1rem;
+  overflow: hidden;
 }
 
 .formBody {

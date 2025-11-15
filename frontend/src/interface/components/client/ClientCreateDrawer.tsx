@@ -92,7 +92,7 @@ export default function ClientCreateDrawer({
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className={styles.drawerContent}>
-        <DialogHeader>
+        <DialogHeader className={styles.header}>
           <DialogTitle>Nouveau client</DialogTitle>
           <DialogDescription>
             Créez un nouveau client pour cette facture.
