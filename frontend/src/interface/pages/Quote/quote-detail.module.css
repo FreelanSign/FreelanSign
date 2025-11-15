@@ -184,7 +184,7 @@
 
 .buttonSuccess {
   background: var(--success);
-  color: #082;
+  color: rgb(255, 255, 255);
 }
 .buttonSuccess:disabled {
   opacity: 0.55;

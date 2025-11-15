@@ -1,0 +1,195 @@
+/* quote-email-preview-dialog.module.css */
+
+.overlay {
+  background: rgba(13, 13, 13, 0.6);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+.content {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.25);
+  max-width: 640px;
+  width: 90vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  animation: scaleIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 4px 0;
+  padding: 20px 24px 0 24px;
+}
+
+.description {
+  font-size: 0.875rem;
+  color: #555;
+  margin: 0;
+  padding: 0 24px 16px 24px;
+  border-bottom: 1px solid rgba(13, 13, 13, 0.08);
+}
+
+.body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.field {
+  margin-bottom: 20px;
+}
+
+.label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.inputGroup {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.textarea {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid rgba(13, 13, 13, 0.12);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  resize: none;
+  background: #fff;
+  color: var(--text);
+  transition: border-color 0.15s ease;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(36, 86, 194, 0.1);
+}
+
+.textareaBody {
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.buttonCopy {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  background: var(--paper);
+  color: var(--text);
+  border: 1px solid rgba(13, 13, 13, 0.12);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.buttonCopy:hover {
+  background: #fff;
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.buttonCopied {
+  background: var(--success) !important;
+  color: #fff !important;
+  border-color: var(--success) !important;
+  animation: pulse 0.3s ease;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.footer {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(13, 13, 13, 0.08);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  background: var(--paper);
+  border-radius: 0 0 16px 16px;
+}
+
+.buttonClose {
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  background: #fff;
+  color: var(--text);
+  border: 1px solid rgba(13, 13, 13, 0.12);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.buttonClose:hover {
+  background: var(--paper);
+}
+
+.loading,
+.error {
+  padding: 24px;
+  text-align: center;
+}
+
+.error {
+  color: #e53935;
+  background: #ffebee;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+@media (max-width: 640px) {
+  .content {
+    width: 95vw;
+    max-height: 90vh;
+  }
+
+  .inputGroup {
+    flex-direction: column;
+  }
+
+  .buttonCopy {
+    width: 100%;
+  }
+}
