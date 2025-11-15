@@ -17,6 +17,7 @@ import { catalogRepository } from '../../../infrastructure/catalog/catalogReposi
 import { clientRepository } from '../../../infrastructure/client/clientRepository';
 import { apiClient } from '../../../infrastructure/http/apiClient';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
+import ClientCreateDrawer from '../../components/client/ClientCreateDrawer';
 import Modal from '../../components/common/Modal';
 import NavBar from '../../components/navbar/Navbar';
 import { PdfPreviewPane } from '../../components/quote/PdfPreviewPane';
@@ -130,6 +131,7 @@ function isAxiosLikeError(
 /* ---------- component ---------- */
 export default function QuoteCreatePage() {
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [clientDrawerOpen, setClientDrawerOpen] = useState(false);
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientDto[] | 'loading' | null>(
     'loading',
@@ -419,6 +421,20 @@ export default function QuoteCreatePage() {
     return pickNumber(o, ['tax_rate', 'tax_rate_value', 'default_tax_rate']);
   }
 
+  // Handle new client creation: refresh list + auto-select
+  const handleClientCreated = async (newClient: ClientDto) => {
+    try {
+      const list = await clientRepository.list();
+      setClients(list);
+      setValue('client', String(newClient.id), {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    } catch (e) {
+      console.error('Erreur rafraîchissement clients', e);
+    }
+  };
+
   // Typage correct pour la fonction de submit attendu par react-hook-form
   const onSubmit: SubmitHandler<FormData> = async (values) => {
     setLoading(true);
@@ -539,7 +555,19 @@ export default function QuoteCreatePage() {
       <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6">
         {/* Bloc Client */}
         <section className={styles.card}>
-          <h2 className={styles.h2}>Client</h2>
+          <div
+            className="flex items-center justify-between"
+            style={{ marginBottom: '16px' }}
+          >
+            <h2 className={styles.h2}>Client</h2>
+            <button
+              type="button"
+              onClick={() => setClientDrawerOpen(true)}
+              className={styles.buttonAccent}
+            >
+              + Nouveau client
+            </button>
+          </div>
           <div className={styles.formGrid}>
             <label className={styles.label}>
               <span>Client *</span>
@@ -987,6 +1015,11 @@ export default function QuoteCreatePage() {
           <PdfPreviewPane url={pdfUrl} loading={pdfLoading} error={pdfError} />
         </div>
       </Modal>
+      <ClientCreateDrawer
+        open={clientDrawerOpen}
+        onClose={() => setClientDrawerOpen(false)}
+        onClientCreated={handleClientCreated}
+      />
     </main>
   );
 }

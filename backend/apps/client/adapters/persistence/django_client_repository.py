@@ -60,3 +60,10 @@ class DjangoClientRepository(ClientRepository):
         except Exception as e:
             logger.exception("Erreur delete client %s", client_id)
             raise RepositoryError("Erreur technique lors de la suppression du client", original_error=e)
+
+    def exists_by_owner_name(self, owner_id: int, name: str) -> bool:
+        try:
+            return Client.objects.filter(owner_id=owner_id, name=name).exists()
+        except Exception as e:
+            logger.exception("Erreur exists_by_owner_name owner_id=%s name=%s", owner_id, name)
+            raise RepositoryError("Erreur technique lors de la vérification d'existence du client", original_error=e)

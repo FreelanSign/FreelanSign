@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
@@ -18,6 +19,7 @@ from apps.client.application.usecases.delete_client import DeleteClient
 from apps.client.application.usecases.get_client import GetClient
 from apps.client.application.usecases.list_clients import ListClients
 from apps.client.application.usecases.update_client import UpdateClient
+from apps.client.domain.errors import ClientAlreadyExistsError
 from apps.client.interface.serializers import (
     ClientCreateInputSerializer,
     ClientListQuerySerializer,
@@ -88,7 +90,11 @@ class StandardClientViewSet(viewsets.ModelViewSet):
             vat_number=serializer.validated_data.get("vat_number"),
             metadata=serializer.validated_data.get("metadata", {}),
         )
-        vm = CreateClient(self.repo).execute(inp)
+
+        try:
+            vm = CreateClient(self.repo).execute(inp)
+        except ClientAlreadyExistsError as e:
+            raise ValidationError({"name": f"Un client avec le nom '{inp.name}' existe déjà."})
 
         # Remappe VM → modèle/serializer pour garder la réponse actuelle
         # (option simple: relire l'objet via ORM pour profiter de serializer)

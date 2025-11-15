@@ -459,6 +459,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── .claude
 │   ├── settings.json
 │   └── settings.local.json
+├── .coverage
 ├── .env
 ├── .github
 │   ├── CODEOWNERS
@@ -631,7 +632,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   └── test_create_client.py
 │   │   │   │   ├── domain
 │   │   │   │   │   └── test_name_policy.py
-│   │   │   │   └── test_api_client_endpoint.py
+│   │   │   │   ├── test_api_client_endpoint.py
+│   │   │   │   ├── test_client_policies.py
+│   │   │   │   └── test_create_client.py
 │   │   │   └── views.py
 │   │   ├── core
 │   │   │   ├── __init__.py
@@ -947,6 +950,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │       └── prestations.csv
 ├── CHANGELOG.md
 ├── CLAUDE.md
+├── coverage.xml
 ├── docker-compose.yml
 ├── docs
 │   ├── backup.md
@@ -1044,6 +1048,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   └── ResetPasswordForm.tsx
 │   │   │   │   ├── branding
 │   │   │   │   │   └── ThemesForm.tsx
+│   │   │   │   ├── client
+│   │   │   │   │   ├── client-create-drawer.module.css
+│   │   │   │   │   └── ClientCreateDrawer.tsx
 │   │   │   │   ├── common
 │   │   │   │   │   ├── Modal.css
 │   │   │   │   │   └── Modal.tsx
@@ -1134,6 +1141,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   └── vitest.config.ts
 ├── LICENSE
 ├── logo.png
+├── logs
+│   └── app.log
 ├── Makefile
 ├── package.json
 ├── pnpm-lock.yaml
@@ -1150,7 +1159,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-205 directories, 489 files
+207 directories, 496 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1223,5 +1232,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-15 09:31:43 CET**
+_Updated_: **2025-11-15 15:25:30 CET**
 <!-- END AUTO: LAST_UPDATED -->

@@ -24,6 +24,9 @@ class InMemoryRepo:
         self.saved.append(obj)
         return obj
 
+    def exists_by_owner_name(self, owner_id: int, name: str) -> bool:
+        return any(obj.owner_id == owner_id and obj.name == name for obj in self.saved)
+
 
 def test_create_client_minimal():
     uc = CreateClient(InMemoryRepo())
