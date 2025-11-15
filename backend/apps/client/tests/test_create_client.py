@@ -51,7 +51,13 @@ class TestCreateClientUseCase:
         use_case = CreateClient(repo=repo)
 
         inp = CreateClientInput(
-            owner_id=1, name="New Client", email="client@example.com", phone="123456", address="Paris", vat_number="FR123", metadata={"key": "value"}
+            owner_id=1,
+            name="New Client",
+            email="client@example.com",
+            phone="123456",
+            address="Paris",
+            vat_number="FR123",
+            metadata={"key": "value"},
         )
 
         result = use_case.execute(inp)

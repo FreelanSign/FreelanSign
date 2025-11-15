@@ -12,10 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../../../components/ui/dialog';
-import type {
-  ClientCreateDto,
-  ClientDto,
-} from '../../../domain/client/types';
+import type { ClientCreateDto, ClientDto } from '../../../domain/client/types';
 import { clientRepository } from '../../../infrastructure/client/clientRepository';
 import styles from './client-create-drawer.module.css';
 
