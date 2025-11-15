@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
@@ -26,7 +27,6 @@ from apps.client.interface.serializers import (
     ClientUpdateInputSerializer,
 )
 from apps.client.models import Client
-from rest_framework.exceptions import ValidationError
 
 
 class StandardClientViewSet(viewsets.ModelViewSet):
