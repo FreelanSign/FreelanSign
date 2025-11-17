@@ -457,6 +457,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ```text
 .
 ├── .claude
+│   ├── commands
+│   │   ├── dev-docs-update.md
+│   │   └── dev-docs.md
 │   ├── settings.json
 │   └── settings.local.json
 ├── .coverage
@@ -951,15 +954,23 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── CHANGELOG.md
 ├── CLAUDE.md
 ├── coverage.xml
+├── dev
+│   └── active
+│       └── sidebar-responsive-fix
+│           ├── sidebar-responsive-fix-context.md
+│           ├── sidebar-responsive-fix-plan.md
+│           └── sidebar-responsive-fix-tasks.md
 ├── docker-compose.yml
 ├── docs
 │   ├── backup.md
-│   ├── development.md
-│   ├── git-workflow.md
+│   ├── good-practices
+│   │   ├── claud-good-habits.md
+│   │   ├── dev-docs-pattern.md
+│   │   ├── development.md
+│   │   ├── git-workflow.md
+│   │   └── paradigms.md
 │   ├── knowledge.md
 │   ├── knowledge.sh
-│   ├── perso
-│   │   └── claud-good-habits.md
 │   ├── RELEASE_PLAN_v0.1.0.md
 │   └── RELEASE_PLAN_v0.2.0.md
 ├── FreelanSign.code-workspace
@@ -1159,7 +1170,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-207 directories, 496 files
+211 directories, 503 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1232,5 +1243,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-15 15:25:30 CET**
+_Updated_: **2025-11-17 11:55:32 CET**
 <!-- END AUTO: LAST_UPDATED -->

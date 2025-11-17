@@ -501,7 +501,7 @@ export default function QuoteCreatePage() {
   }
 
   return (
-    <main className={`container mx-auto p-6 grid gap-6 ${styles.page}`}>
+    <main className={`container mx-auto p-6 grid gap-6 ${styles.page} ${styles.withSidebar}`}>
       <Sidebar />
       <NavBar />
       {/* Header */}

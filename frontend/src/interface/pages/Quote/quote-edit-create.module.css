@@ -538,3 +538,11 @@ select {
   color: #888;
   cursor: not-allowed;
 }
+
+/* Sidebar layout compensation */
+@media (min-width: 1025px) {
+  .withSidebar {
+    margin-left: 96px;
+    max-width: calc(100% - 96px);
+  }
+}
