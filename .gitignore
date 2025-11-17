@@ -230,3 +230,7 @@ backend/logs/
 .DS_Store
 backend/.DS_Store
 backend/tools/.DS_Store
+
+
+# Perso
+docs/perso
