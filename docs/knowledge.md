@@ -956,10 +956,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── coverage.xml
 ├── dev
 │   └── active
-│       └── sidebar-responsive-fix
-│           ├── sidebar-responsive-fix-context.md
-│           ├── sidebar-responsive-fix-plan.md
-│           └── sidebar-responsive-fix-tasks.md
 ├── docker-compose.yml
 ├── docs
 │   ├── backup.md
@@ -1075,11 +1071,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── Navbar.module.css
 │   │   │   │   │   └── Navbar.tsx
 │   │   │   │   ├── profile
-│   │   │   │   │   ├── PersonalInfoBox.tsx
 │   │   │   │   │   ├── PersonalUserDataForm.tsx
-│   │   │   │   │   ├── PrestationList.tsx
 │   │   │   │   │   ├── PrestationSelector.tsx
-│   │   │   │   │   ├── ProfessionalInfoBox.tsx
 │   │   │   │   │   ├── ProfessionalInfoForm.tsx
 │   │   │   │   │   └── ProfessionalUserDataForm.tsx
 │   │   │   │   ├── quote
@@ -1113,6 +1106,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── LoginPage.module.css
 │   │   │   │   │   └── LoginPage.tsx
 │   │   │   │   ├── Profile
+│   │   │   │   │   ├── profile-page.module.css
 │   │   │   │   │   ├── ProfileEditPage.tsx
 │   │   │   │   │   └── ProfilePage.tsx
 │   │   │   │   ├── Quote
@@ -1170,7 +1164,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-211 directories, 503 files
+210 directories, 498 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1243,5 +1237,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-17 14:36:21 CET**
+_Updated_: **2025-11-18 22:45:27 CET**
 <!-- END AUTO: LAST_UPDATED -->
