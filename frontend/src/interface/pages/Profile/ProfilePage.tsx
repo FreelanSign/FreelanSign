@@ -1,16 +1,15 @@
 // src/interface/pages/ProfilePage.tsx
 import { useEffect, useState } from 'react';
-import { userRepository } from '../../../infrastructure/user/userRepository';
-import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
-import type { UserDto, ProfessionalUserDto } from '../../../domain/user/types';
-import type { PrestationDto } from '../../../domain/catalog/types';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../app/providers/AuthProvider';
+import type { PrestationDto } from '../../../domain/catalog/types';
+import type { ProfessionalUserDto, UserDto } from '../../../domain/user/types';
+import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
+import { userRepository } from '../../../infrastructure/user/userRepository';
 
-import PersonalInfoBox from '../../components/profile/PersonalInfoBox';
-import ProfessionalInfoBox from '../../components/profile/ProfessionalInfoBox';
-import PrestationsList from '../../components/profile/PrestationList';
+import Sidebar from '../../components/sidebar/Sidebar';
 import Navbar from '../../components/navbar/Navbar';
+import styles from './profile-page.module.css';
 
 /**
  * Page profil: affiche user.profile + professional (si présent)
@@ -96,55 +95,113 @@ export default function ProfilePage() {
   }, [navigate]);
 
   if (loading)
-    return <main className="container p-6">Chargement du profil…</main>;
+    return (
+      <>
+        <Sidebar />
+        <div className={styles.page}>
+          <Navbar />
+          <main className={styles.inner}>Chargement du profil…</main>
+        </div>
+      </>
+    );
+
+  const fullName = user
+    ? `${user.profile?.first_name || ''} ${user.profile?.last_name || ''}`.trim() ||
+      'Utilisateur'
+    : 'Utilisateur';
 
   return (
     <>
-      <Navbar />
-      <main className="container mx-auto p-6 grid gap-6">
-        <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold">Mon profil</h1>
-            <p className="text-sm text-gray-600">
-              {user?.email ?? authUser?.email ?? '—'}
-            </p>
-          </div>
-
-          <div className="flex gap-2">
-            {/* Unique bouton Modifier centralisé */}
+      <Sidebar />
+      <div className={styles.page}>
+        <Navbar />
+        <main className={`${styles.inner} container mx-auto grid gap-6`}>
+          {/* Compact User Header */}
+          <header className={styles.header}>
+            <div className={styles.avatarWrap}>
+              <img
+                src={user?.profile?.avatar_url || '/img/default-avatar.jpeg'}
+                alt="Avatar"
+                className={styles.avatarImg}
+              />
+            </div>
+            <div className={styles.headerContent}>
+              <h1 className={styles.userName}>{fullName}</h1>
+              <div className={styles.meta}>
+                <span className={styles.metaItem}>
+                  {user?.email || authUser?.email || '—'}
+                </span>
+                {user?.profile?.phone && (
+                  <span className={styles.metaItem}>{user.profile.phone}</span>
+                )}
+              </div>
+            </div>
             <button
               onClick={() => navigate('/profile/edit')}
-              className="bg-yellow-500 text-white rounded px-3 py-2"
+              className={`${styles.buttonPrimary} ${styles.editButton}`}
             >
               Modifier
             </button>
+          </header>
 
-            {/* lien secondaire 'Voir mon profil' si tu veux le garder */}
-            <a href="/profile" className="text-sm text-blue-600 self-center">
-              Voir mon profil
-            </a>
-          </div>
-        </header>
+          {/* Professional Info Card */}
+          {professional && professional !== 'loading' && (
+            <section className={styles.card}>
+              <h2 className={styles.h2}>
+                {professional.name || 'Structure professionnelle'}
+                {professional.status_juridique && (
+                  <span className={`${styles.badge} ${styles.badgeInfo}`}>
+                    {professional.status_juridique}
+                  </span>
+                )}
+              </h2>
 
-        <PersonalInfoBox
-          user={user}
-          authEmail={authUser?.email ?? null}
-          /* plus d'onEdit passé ici */
-        />
+              <div className={styles.kv}>
+                <span>Domaine</span>
+                <strong>{areaName || '—'}</strong>
+              </div>
 
-        <div className="grid gap-6">
-          <ProfessionalInfoBox
-            professional={professional}
-            areaName={areaName}
-            /* plus d'onEdit passé ici */
-          />
+              <div className={styles.kv}>
+                <span>TJM</span>
+                <strong>
+                  {professional.tjm_cents
+                    ? `${(professional.tjm_cents / 100).toFixed(2)} €`
+                    : '—'}
+                </strong>
+              </div>
 
-          {/* Prestations list is shown only when professional exists (we still accept 'loading' state) */}
-          {professional === 'loading' ? null : professional ? (
-            <PrestationsList prestations={prestations} />
-          ) : null}
-        </div>
-      </main>
+              <div className={styles.kv}>
+                <span>SIRET</span>
+                <strong>{professional.number_pro || '—'}</strong>
+              </div>
+            </section>
+          )}
+
+          {/* Services Card */}
+          {professional && professional !== 'loading' && (
+            <section className={styles.card}>
+              <h2 className={styles.h2}>Prestations</h2>
+              {prestations === 'loading' ? (
+                <p className={styles.emptyServices}>
+                  Chargement des prestations…
+                </p>
+              ) : prestations && prestations.length > 0 ? (
+                <div className={styles.servicesGrid}>
+                  {prestations.map((p) => (
+                    <span key={p.id} className={styles.chip}>
+                      {p.name || p.title || p.label || 'Service'}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.emptyServices}>
+                  Aucune prestation configurée
+                </p>
+              )}
+            </section>
+          )}
+        </main>
+      </div>
     </>
   );
 }
