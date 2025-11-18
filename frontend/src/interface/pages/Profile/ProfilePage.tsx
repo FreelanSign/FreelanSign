@@ -106,7 +106,8 @@ export default function ProfilePage() {
     );
 
   const fullName = user
-    ? `${user.profile?.first_name || ''} ${user.profile?.last_name || ''}`.trim() || 'Utilisateur'
+    ? `${user.profile?.first_name || ''} ${user.profile?.last_name || ''}`.trim() ||
+      'Utilisateur'
     : 'Utilisateur';
 
   return (
