@@ -2,7 +2,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
-import { useAuth } from '../../../app/providers/AuthProvider';
 import { userRepository } from '../../../infrastructure/user/userRepository';
 import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
 import type { UserDto, ProfessionalUserDto } from '../../../domain/user/types';
@@ -24,7 +23,6 @@ import styles from './profile-edit-page.module.css';
 
 export default function ProfileEditPage() {
   const navigate = useNavigate();
-  const { user: authUser } = useAuth();
 
   const [user, setUser] = useState<UserDto | null>(null);
   const [professional, setProfessional] = useState<
