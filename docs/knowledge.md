@@ -954,8 +954,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── CHANGELOG.md
 ├── CLAUDE.md
 ├── coverage.xml
-├── dev
-│   └── active
 ├── docker-compose.yml
 ├── docs
 │   ├── backup.md
@@ -1169,7 +1167,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-210 directories, 503 files
+208 directories, 503 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1243,5 +1241,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-19 08:45:27 CET**
+_Updated_: **2025-11-19 11:43:38 CET**
 <!-- END AUTO: LAST_UPDATED -->
