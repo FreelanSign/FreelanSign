@@ -1,7 +1,7 @@
 // src/infrastructure/client/clientRepository.ts
 import { apiClient } from '../http/apiClient';
 import { API_ENDPOINTS } from '../../shared/endpoints';
-import type { ClientDto } from '../../domain/client/types';
+import type { ClientDto, ClientCreateDto } from '../../domain/client/types';
 
 /** Paginé DRF minimal */
 type Paginated<T> = {
@@ -62,5 +62,10 @@ export const clientRepository = {
       payload,
     );
     return data;
+  },
+
+  async create(payload: ClientCreateDto): Promise<ClientDto> {
+    const { data } = await apiClient.post(API_ENDPOINTS.clients, payload);
+    return data as ClientDto;
   },
 };

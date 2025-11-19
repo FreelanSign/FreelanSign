@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Devis — {{ meta.number|default:"Document" }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      box-sizing: border-box;
+    }
+
+    :root {
+      /* ✅ Couleurs du thème avec rôles précis */
+      --brand-primary: {{ branding.colors.primary|default:"#2456c2" }};
+      --brand-secondary: {{ branding.colors.secondary|default:"#7c3aed" }};
+      --brand-accent-bg: {{ branding.colors.background|default:"#f5f7fa" }};
+      --text-primary: {{ branding.colors.text_primary|default:"#1f2937" }};
+      --text-secondary: {{ branding.colors.text_secondary|default:"#6b7280" }};
+      --border-color: {{ branding.colors.border|default:"#e5e7eb" }};
+      --highlight-color: {{ branding.colors.highlight|default:"#059669" }};
+
+      /* Couleurs fixes (non customisables) */
+      --paper-white: #ffffff;
+      --page-bg: #f9fafb;
+
+      /* Typographie */
+      --font-heading: "{{ branding.typography.heading_font|default:"Inter" }}", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-body: "{{ branding.typography.body_font|default:"Inter" }}", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --fs-h1: {{ branding.typography.font_sizes.h1|default:24 }}px;
+      --fs-h2: {{ branding.typography.font_sizes.h2|default:18 }}px;
+      --fs-h3: {{ branding.typography.font_sizes.h3|default:14 }}px;
+      --fs-body: {{ branding.typography.font_sizes.body|default:12 }}px;
+      --fs-small: {{ branding.typography.font_sizes.small|default:10 }}px;
+      --lh-heading: {{ branding.typography.line_heights.heading|default:1.2 }};
+      --lh-body: {{ branding.typography.line_heights.body|default:1.5 }};
+
+      /* Espacement */
+      --space-page: {{ branding.spacing.page_margin|default:40 }}px;
+      --space-section: {{ branding.spacing.section_spacing|default:16 }}px;
+      --space-element: {{ branding.spacing.element_padding|default:10 }}px;
+    }
+
+    /* ✅ Import Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family={{ branding.typography.heading_font|default:"Inter"|urlencode }}:wght@400;600;700;800&family={{ branding.typography.body_font|default:"Inter"|urlencode }}:wght@400;500;600&display=swap');
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--page-bg);
+    }
+
+    body {
+      font-family: var(--font-body);
+      font-size: var(--fs-body);
+      color: var(--text-primary);
+      line-height: var(--lh-body);
+    }
+
+    /* ✅ Conteneur page : TOUJOURS fond blanc */
+    .page {
+      background: var(--paper-white);
+      margin: 20px auto;
+      padding: 0;
+      width: 100%;
+      max-width: 800px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    /* ✅ En-tête avec couleur d'accent subtile */
+    .header {
+      background: var(--brand-accent-bg);
+      padding: var(--space-page);
+      padding-bottom: calc(var(--space-page) / 2);
+      border-bottom: 2px solid var(--brand-primary);
+    }
+
+    .header-grid {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    .header-left,
+    .header-right {
+      display: table-cell;
+      vertical-align: top;
+    }
+
+    .header-right {
+      text-align: right;
+    }
+
+    /* ✅ Logo/Nom de l'app en couleur primaire */
+    .brand-name {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--brand-primary);
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .brand-divider {
+      height: 3px;
+      width: 50px;
+      background: var(--brand-primary);
+      border-radius: 2px;
+    }
+
+    .logo-img {
+      height: 40px;
+      margin-top: 12px;
+      display: block;
+    }
+
+    /* Infos vendeur (discret) */
+    .seller-info {
+      font-size: var(--fs-small);
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .seller-info strong {
+      display: block;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    /* ✅ Contenu principal sur fond blanc */
+    .content {
+      padding: var(--space-page);
+      background: var(--paper-white);
+    }
+
+    /* Titres */
+    h1, h2, h3 {
+      margin: 0 0 8px;
+      font-family: var(--font-heading);
+      line-height: var(--lh-heading);
+      color: var(--text-primary);
+    }
+
+    h1 {
+      font-size: var(--fs-h1);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    h2 { font-size: var(--fs-h2); font-weight: 600; }
+    h3 { font-size: var(--fs-h3); font-weight: 600; }
+
+    .muted {
+      color: var(--text-secondary);
+    }
+
+    /* ✅ Badge de statut avec couleur secondaire */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--brand-secondary);
+      color: white;
+      font-size: var(--fs-small);
+      font-weight: 600;
+      vertical-align: middle;
+      margin-left: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Métadonnées du document */
+    .doc-meta {
+      margin-top: 4px;
+      font-size: var(--fs-small);
+      color: var(--text-secondary);
+    }
+
+    /* ✅ Grid 2 colonnes */
+    .two-cols {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+      margin-top: var(--space-section);
+      border-spacing: 12px 0;
+    }
+
+    .col {
+      display: table-cell;
+      vertical-align: top;
+    }
+
+    /* ✅ Cards avec bordures subtiles */
+    .card {
+      background: var(--paper-white);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: var(--space-element);
+    }
+
+    .card h3 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      color: var(--brand-primary);
+      font-size: var(--fs-h3);
+    }
+
+    .card--accent {
+      background: var(--brand-accent-bg);
+      border-color: var(--border-color);
+    }
+
+    /* ✅ Table des lignes */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .lines-table {
+      margin-top: var(--space-section);
+    }
+
+    .lines-table thead th {
+      background: var(--brand-accent-bg);
+      border-top: 1px solid var(--border-color);
+      border-bottom: 2px solid var(--brand-primary);
+      text-align: left;
+      font-weight: 600;
+      padding: 8px 10px;
+      font-size: var(--fs-small);
+      color: var(--text-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .lines-table tbody td {
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px;
+      font-size: var(--fs-body);
+    }
+
+    .lines-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .right {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* ✅ Bloc totaux avec highlight sur le montant final */
+    .totals {
+      width: 280px;
+      margin-left: auto;
+      margin-top: var(--space-section);
+      background: var(--paper-white);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .totals tr td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: var(--fs-body);
+    }
+
+    .totals tr:last-child td {
+      border-bottom: none;
+      background: var(--brand-accent-bg);
+      font-weight: 700;
+      font-size: calc(var(--fs-body) + 1px);
+    }
+
+    .totals .label {
+      color: var(--text-secondary);
+    }
+
+    .totals .grand-label {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    /* ✅ Montant final en couleur highlight */
+    .totals .grand-amount {
+      color: var(--highlight-color);
+      font-weight: 700;
+      font-size: calc(var(--fs-body) + 2px);
+    }
+
+    /* Utilitaires */
+    .mb-section { margin-bottom: var(--space-section); }
+    .mt-section { margin-top: var(--space-section); }
+
+    /* Print optimizations */
+    @media print {
+      .page {
+        margin: 0;
+        box-shadow: none;
+        border-radius: 0;
+      }
+      body {
+        background: white;
+      }
+    }
+
+    /* Page break control */
+    .avoid-break {
+      page-break-inside: avoid;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- ✅ En-tête avec fond d'accent léger -->
+    <header class="header avoid-break">
+      <div class="header-grid">
+        <div class="header-left">
+          <div class="brand-name">{{ branding.name|default:"FreelanSign" }}</div>
+          <div class="brand-divider"></div>
+          {% if branding.logo_url %}
+            <img src="{{ branding.logo_url }}" alt="Logo" class="logo-img" />
+          {% endif %}
+        </div>
+        <div class="header-right">
+          <div class="seller-info">
+            <strong>{{ seller.name|default:"" }}</strong>
+            {% if seller.siret %}<div>SIRET : {{ seller.siret }}</div>{% endif %}
+            {% if seller.vat_number %}<div>TVA : {{ seller.vat_number }}</div>{% endif %}
+            {% if seller.address %}<div>{{ seller.address }}</div>{% endif %}
+            {% if seller.email %}<div>{{ seller.email }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ✅ Contenu sur fond blanc -->
+    <main class="content">
+      <!-- Titre du document -->
+      <div class="mb-section avoid-break">
+        <h1>
+          Devis
+          <span class="badge">Document</span>
+        </h1>
+        <div class="doc-meta">
+          Réf : <strong>{{ meta.number|default:"—" }}</strong> •
+          Date : <strong>{{ meta.date|default:"—" }}</strong>
+        </div>
+      </div>
+
+      <!-- ✅ Section Client / Conditions -->
+      <div class="two-cols avoid-break">
+        <div class="col">
+          <div class="card">
+            <h3>Client</h3>
+            <div><strong>{{ client.name }}</strong></div>
+            {% if client.company %}<div class="muted">{{ client.company }}</div>{% endif %}
+            {% if client.address_line1 %}<div>{{ client.address_line1 }}</div>{% endif %}
+            {% if client.postal_code or client.city %}
+              <div>{{ client.postal_code|default_if_none:"" }} {{ client.city|default_if_none:"" }}</div>
+            {% endif %}
+            {% if client.email %}<div class="muted">{{ client.email }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="col">
+          <div class="card card--accent">
+            <h3>Conditions</h3>
+            <div class="muted">
+              {{ meta.terms|default:"Conditions générales sur demande." }}
+            </div>
+            {% if meta.valid_until %}
+              <div style="margin-top:6px">
+                <strong>Validité :</strong> {{ meta.valid_until }}
+              </div>
+            {% endif %}
+            {% if meta.payment_terms %}
+              <div>
+                <strong>Règlement :</strong> {{ meta.payment_terms }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ Table des prestations -->
+      <table class="lines-table avoid-break">
+        <thead>
+          <tr>
+            <th style="width:35%">Désignation</th>
+            <th style="width:30%">Description</th>
+            <th class="right" style="width:8%">Qté</th>
+            <th class="right" style="width:12%">PU HT</th>
+            <th class="right" style="width:7%">TVA</th>
+            <th class="right" style="width:12%">Total HT</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in lines %}
+          <tr>
+            <td><strong>{{ l.designation }}</strong></td>
+            <td class="muted">
+              {% if l.description %}{{ l.description }}{% else %}—{% endif %}
+            </td>
+            <td class="right">
+              {% if l.quantity is not None %}{{ l.quantity|floatformat:2 }}{% else %}—{% endif %}
+            </td>
+            <td class="right">
+              {% if l.unit_price is not None %}{{ l.unit_price|floatformat:2 }} €{% else %}—{% endif %}
+            </td>
+            <td class="right">
+              {% if l.tax_rate_display is not None %}
+                {{ l.tax_rate_display|floatformat:0 }}%
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td class="right">
+              {% if l.total_ht is not None %}<strong>{{ l.total_ht|floatformat:2 }} €</strong>{% else %}—{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- ✅ Totaux avec highlight sur montant final -->
+      <table class="totals avoid-break">
+        <tr>
+          <td class="label">Sous-total HT</td>
+          <td class="right">{{ totals.subtotal|default_if_none:"0.00" }} €</td>
+        </tr>
+        <tr>
+          <td class="label">TVA</td>
+          <td class="right">{{ totals.tax|default_if_none:"0.00" }} €</td>
+        </tr>
+        <tr>
+          <td class="grand-label">Total TTC</td>
+          <td class="right grand-amount">{{ totals.grand_total|default_if_none:"0.00" }} €</td>
+        </tr>
+      </table>
+
+      <!-- Note optionnelle -->
+      {% if meta.note %}
+      <div class="mt-section">
+        <h3>Notes</h3>
+        <div class="muted">{{ meta.note }}</div>
+      </div>
+      {% endif %}
+    </main>
+  </div>
+</body>
+</html>

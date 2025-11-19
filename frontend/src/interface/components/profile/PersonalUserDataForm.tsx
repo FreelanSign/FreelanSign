@@ -69,12 +69,14 @@ export default function PersonalUserDataForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-3" noValidate>
-      <label>
-        <div className="text-sm">Prénom</div>
+    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4" noValidate>
+      <label className="block">
+        <div className="text-sm font-medium text-gray-700 mb-1">Prénom</div>
         <input
           {...register('first_name')}
-          className={`border p-2 rounded w-full ${errors.first_name ? 'border-red-500' : ''}`}
+          className={`w-full px-3.5 py-2.5 border rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            errors.first_name ? 'border-red-500' : 'border-gray-300'
+          }`}
         />
         {errors.first_name && (
           <p className="text-xs text-red-600 mt-1">
@@ -83,11 +85,13 @@ export default function PersonalUserDataForm({
         )}
       </label>
 
-      <label>
-        <div className="text-sm">Nom</div>
+      <label className="block">
+        <div className="text-sm font-medium text-gray-700 mb-1">Nom</div>
         <input
           {...register('last_name')}
-          className={`border p-2 rounded w-full ${errors.last_name ? 'border-red-500' : ''}`}
+          className={`w-full px-3.5 py-2.5 border rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            errors.last_name ? 'border-red-500' : 'border-gray-300'
+          }`}
         />
         {errors.last_name && (
           <p className="text-xs text-red-600 mt-1">
@@ -96,11 +100,13 @@ export default function PersonalUserDataForm({
         )}
       </label>
 
-      <label>
-        <div className="text-sm">Téléphone</div>
+      <label className="block">
+        <div className="text-sm font-medium text-gray-700 mb-1">Téléphone</div>
         <input
           {...register('phone')}
-          className={`border p-2 rounded w-full ${errors.phone ? 'border-red-500' : ''}`}
+          className={`w-full px-3.5 py-2.5 border rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            errors.phone ? 'border-red-500' : 'border-gray-300'
+          }`}
         />
         {errors.phone && (
           <p className="text-xs text-red-600 mt-1">
@@ -109,12 +115,16 @@ export default function PersonalUserDataForm({
         )}
       </label>
 
-      <label>
-        <div className="text-sm">Date de naissance</div>
+      <label className="block">
+        <div className="text-sm font-medium text-gray-700 mb-1">
+          Date de naissance
+        </div>
         <input
           {...register('birthday')}
           type="date"
-          className={`border p-2 rounded w-full ${errors.birthday ? 'border-red-500' : ''}`}
+          className={`w-full px-3.5 py-2.5 border rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            errors.birthday ? 'border-red-500' : 'border-gray-300'
+          }`}
         />
         {errors.birthday && (
           <p className="text-xs text-red-600 mt-1">
@@ -123,11 +133,15 @@ export default function PersonalUserDataForm({
         )}
       </label>
 
-      <label>
-        <div className="text-sm">Avatar (URL)</div>
+      <label className="block">
+        <div className="text-sm font-medium text-gray-700 mb-1">
+          Avatar (URL)
+        </div>
         <input
           {...register('avatar_url')}
-          className={`border p-2 rounded w-full ${errors.avatar_url ? 'border-red-500' : ''}`}
+          className={`w-full px-3.5 py-2.5 border rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            errors.avatar_url ? 'border-red-500' : 'border-gray-300'
+          }`}
         />
         {errors.avatar_url && (
           <p className="text-xs text-red-600 mt-1">

@@ -121,28 +121,35 @@ export default function ProfessionalInfoForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(internalOnSubmit)} className="grid gap-3">
-      <label>
-        <div className="text-sm">Nom structure</div>
+    <form onSubmit={handleSubmit(internalOnSubmit)} className="grid gap-4">
+      <label className="block">
+        <div className="text-sm font-medium text-gray-700 mb-1">
+          Nom structure
+        </div>
         <input
           {...register('name')}
-          className="border p-2 rounded w-full"
+          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="Nom de votre structure"
         />
       </label>
 
-      <label>
-        <div className="text-sm">Statut juridique</div>
+      <label className="block">
+        <div className="text-sm font-medium text-gray-700 mb-1">
+          Statut juridique
+        </div>
         <input
           {...register('status_juridique')}
-          className="border p-2 rounded w-full"
+          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="Ex: micro, eurl, sasu..."
         />
       </label>
 
-      <label>
-        <div className="text-sm">Domaine</div>
-        <select {...register('domaine')} className="border p-2 rounded w-full">
+      <label className="block">
+        <div className="text-sm font-medium text-gray-700 mb-1">Domaine</div>
+        <select
+          {...register('domaine')}
+          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white cursor-pointer"
+        >
           <option value="">-- Aucune --</option>
           {Array.isArray(areas) && areas.length > 0 ? (
             areas.map((a) => (
@@ -160,22 +167,24 @@ export default function ProfessionalInfoForm({
         </select>
       </label>
 
-      <label>
-        <div className="text-sm">TJM (EUR)</div>
+      <label className="block">
+        <div className="text-sm font-medium text-gray-700 mb-1">TJM (EUR)</div>
         <input
           type="number"
           step="0.01"
           {...register('tjm_eur', { valueAsNumber: true })}
-          className="border p-2 rounded w-full"
+          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="Ex: 450.00"
         />
       </label>
 
-      <label>
-        <div className="text-sm">Numéro pro (SIRET / TVA)</div>
+      <label className="block">
+        <div className="text-sm font-medium text-gray-700 mb-1">
+          Numéro pro (SIRET / TVA)
+        </div>
         <input
           {...register('number_pro')}
-          className="border p-2 rounded w-full"
+          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </label>
     </form>

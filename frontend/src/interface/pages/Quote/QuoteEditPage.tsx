@@ -1,14 +1,19 @@
 // src/interface/pages/QuoteEditPage.tsx
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
-import styles from './quote-edit-create.module.css';
-
+import { apiToUiQuote } from '../../../domain/quote/mappers';
 import type {
   ApiQuoteResponse,
   ApiQuoteUpdatePayload,
 } from '../../../domain/quote/types';
-import { apiToUiQuote } from '../../../domain/quote/mappers';
+import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
+import { userRepository } from '../../../infrastructure/user/userRepository';
+import Modal from '../../components/common/Modal';
+import { PdfPreviewPane } from '../../components/quote/PdfPreviewPane';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { usePdfPreview, type PreviewPayload } from '../../hooks/usePdfPreview';
+import { openBlobUrlInNewTab, saveBlobUrlAs } from '../../utils/saveFile';
+import styles from './quote-edit-create.module.css';
 
 type QuoteLine = {
   id?: string | number;
@@ -58,6 +63,18 @@ function useMoneyFormatter(currency?: string | null) {
   );
 }
 
+const EMPTY_CLIENT_CONST: ClientInfo = {
+  id: undefined,
+  name: '',
+  email: '',
+  company: '',
+  address_line1: '',
+  address_line2: '',
+  city: '',
+  postal_code: '',
+  country: '',
+};
+
 export default function QuoteEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -66,18 +83,35 @@ export default function QuoteEditPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [quote, setQuote] = useState<Quote | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [me, setMe] = useState<{
+    name?: string | null;
+    email?: string | null;
+    siret?: string | null;
+  } | null>(null);
 
-  const EMPTY_CLIENT: ClientInfo = {
-    id: undefined,
-    name: '',
-    email: '',
-    company: '',
-    address_line1: '',
-    address_line2: '',
-    city: '',
-    postal_code: '',
-    country: '',
-  };
+  // --- Load me ---
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const meResp = await userRepository.getProfessionalMe();
+        if (!active) return;
+        setMe(
+          meResp
+            ? { name: meResp.name, email: meResp.email, siret: meResp.siret }
+            : null,
+        );
+      } catch (e) {
+        if (!active) return;
+        console.error('Erreur chargement me', e);
+        setMe(null);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // --- Load ---
   useEffect(() => {
@@ -159,6 +193,68 @@ export default function QuoteEditPage() {
 
   const money = useMoneyFormatter(quote?.currency ?? 'EUR');
 
+  function todayISO(): string {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 10);
+  }
+
+  // --- Build du payload de preview ---
+  const previewPayload: PreviewPayload | null = useMemo(() => {
+    const seller = {
+      name: me?.name ?? 'FreelanSign - Professional',
+      email: me?.email ?? 'professional@freelansign.com',
+      siret: me?.siret ?? '12345678901234',
+    };
+    const client = quote?.client
+      ? {
+          name: quote.client.name,
+          email: quote.client.email,
+          company: quote.client.company,
+          address_line1: quote.client.address_line1,
+          address_line2: quote.client.address_line2,
+          city: quote.client.city,
+          postal_code: quote.client.postal_code,
+        }
+      : EMPTY_CLIENT_CONST;
+    const meta = {
+      number: quote?.reference ?? 'Undefined PREVIEW',
+      date: quote?.issue_date ?? todayISO(),
+      valid_until: quote?.due_date ?? todayISO(),
+      payment_terms: quote?.terms ?? 'Conditions générales sur demande.',
+      currency: quote?.currency ?? 'EUR',
+      language: 'fr',
+      title: quote?.title ?? 'Undefined Devis',
+    };
+    const lines = (quote?.line_items ?? []).map((l) => ({
+      designation: l.designation || 'Prestation',
+      description: l.description ?? null,
+      quantity: Number(l.quantity),
+      unit_price: Number(l.unit_price ?? 0),
+      tax_rate: typeof l.tax_rate === 'number' ? l.tax_rate : null,
+      discount: 0,
+    }));
+    const branding = { name: 'FreelanSign' };
+    return { seller, client, meta, lines, branding };
+  }, [quote, me?.name, me?.email, me?.siret]);
+
+  const debouncedPreviewPayload = useDebouncedValue<PreviewPayload | null>(
+    previewPayload,
+    500,
+  );
+  const {
+    url: pdfUrl,
+    loading: pdfLoading,
+    error: pdfError,
+    refresh: refreshPdf,
+  } = usePdfPreview(debouncedPreviewPayload, previewOpen);
+  useEffect(() => {
+    if (previewOpen) {
+      refreshPdf();
+    }
+  }, [previewOpen, refreshPdf]);
+
   // Derived totals (UI)
   const totals = useMemo(() => {
     const lines = quote?.line_items ?? [];
@@ -180,7 +276,7 @@ export default function QuoteEditPage() {
   ) => {
     setQuote((q) => {
       if (!q) return q;
-      const base = q.client ?? EMPTY_CLIENT;
+      const base = q.client ?? EMPTY_CLIENT_CONST;
       return { ...q, client: { ...base, [key]: value } };
     });
   };
@@ -281,6 +377,7 @@ export default function QuoteEditPage() {
     setError(null);
     try {
       const payload = toApiPayload(quote);
+      console.log('Payload PATCH envoyé', payload);
       await quoteRepository.update(id, payload);
       navigate(`/quotes/${id}`);
     } catch (err) {
@@ -316,6 +413,13 @@ export default function QuoteEditPage() {
             </p>
           </div>
           <div className="flex gap-2">
+            <button
+              type="button"
+              className={styles.buttonGhost}
+              onClick={() => setPreviewOpen(true)}
+            >
+              Aperçu
+            </button>
             <Link to={`/quotes/${quote.id}`} className={styles.buttonGhost}>
               Annuler
             </Link>
@@ -342,7 +446,7 @@ export default function QuoteEditPage() {
               <input
                 className={styles.input}
                 value={quote.reference}
-                onChange={(e) => setField('reference', e.target.value)}
+                disabled
                 placeholder="FS-2025-001"
               />
             </label>
@@ -746,6 +850,49 @@ export default function QuoteEditPage() {
           </Link>
         </div>
       </form>
+      <Modal
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        title="Aperçu du devis"
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={refreshPdf}
+              className="fs-btn fs-btn--ghost"
+            >
+              Actualiser
+            </button>
+            {pdfUrl && (
+              <>
+                <button
+                  type="button"
+                  className="fs-btn fs-btn--ghost"
+                  onClick={() => openBlobUrlInNewTab(pdfUrl)}
+                >
+                  Ouvrir dans un nouvel onglet
+                </button>
+                <button
+                  type="button"
+                  className="fs-btn fs-btn--primary"
+                  onClick={() =>
+                    saveBlobUrlAs(
+                      pdfUrl,
+                      `devis-${(quote?.reference || 'preview').replace(/\s+/g, '_')}.pdf`,
+                    )
+                  }
+                >
+                  Télécharger
+                </button>
+              </>
+            )}
+          </>
+        }
+      >
+        <div className="fs-pdf-shell">
+          <PdfPreviewPane url={pdfUrl} loading={pdfLoading} error={pdfError} />
+        </div>
+      </Modal>
     </main>
   );
 }

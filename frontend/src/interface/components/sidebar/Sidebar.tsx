@@ -46,6 +46,18 @@ const Sidebar: React.FC = () => {
         </svg>
       ),
     },
+    {
+      to: '/branding/themes',
+      label: 'Thèmes',
+      icon: (
+        <img
+          src="/src/assets/icons/pen-nib-line.svg"
+          width={20}
+          height={20}
+          alt="Thèmes"
+        />
+      ),
+    },
   ];
 
   return (

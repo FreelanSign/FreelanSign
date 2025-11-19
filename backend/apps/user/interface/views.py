@@ -1,301 +1,366 @@
 # apps/user/interface/views.py
-import logging
+from __future__ import annotations
 
-from django.contrib.auth import authenticate
+import logging
+from dataclasses import dataclass
+from typing import Optional
+
 from django.core.exceptions import ObjectDoesNotExist
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
-from rest_framework import decorators, permissions, response, status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.user.infrastructure.user_repository import UserRepository
-from apps.user.interface.serializers import (
-    ChangePasswordSerializer,
-    LogoutSerializer,
-    ProfessionalUserSerializer,
-    ProfileUpdateSerializer,
-    UserRegistrationSerializer,
-    UserSerializer,
+# Adapters (implémentations concrètes des ports)
+from apps.user.adapters.persistence.django_user_repository import (
+    DjangoProfessionalRepository,
+    DjangoUserRepository,
 )
-from apps.user.models.models import ProfessionalUser
-from apps.user.services.user_service import UserService
+
+# DTOs / VMs
+from apps.user.application.dto.user_inputs import GetUserInput
+from apps.user.application.dto.user_viewmodels import (
+    ProfessionalViewModel,
+    ProfileViewModel,
+    UserListViewModel,
+    UserViewModel,
+)
+from apps.user.application.errors import DuplicateEmailError
+from apps.user.application.usecases.change_password import ChangePassword
+from apps.user.application.usecases.create_professional import CreateProfessional
+
+# Use cases
+from apps.user.application.usecases.list_users import ListUsers
+from apps.user.application.usecases.register_user import RegisterUser
+from apps.user.application.usecases.update_professional import UpdateProfessional
+from apps.user.application.usecases.update_profile import UpdateProfile
+
+# Interface serializers (boundary)
+from apps.user.interface.serializers import (
+    ChangePasswordInputSerializer,
+    ProfessionalOutputSerializer,
+    ProfessionalUpsertInputSerializer,
+    ProfilePatchInputSerializer,
+    UserListOutputSerializer,
+    UserOutputSerializer,
+    UserRegistrationInputSerializer,
+)
 
 logger = logging.getLogger("apps.user.views")
 
 
+# ---------------------------------------------------------------------------
+# Helpers (presentation-only): builder de VMs depuis modèles quand on lit
+# (pas de règles métier ici; formatage simple côté présentation)
+# ---------------------------------------------------------------------------
+
+
+def _user_vm_from_model(u) -> UserViewModel:
+    """Mappe un modèle User (+profile) vers UserViewModel (lecture simple)."""
+    p = getattr(u, "profile", None)
+    first = getattr(p, "first_name", None) or ""
+    last = getattr(p, "last_name", None) or ""
+    full_display = (first + " " + last).strip()
+
+    return UserViewModel(
+        id=u.id,
+        email=u.email,
+        profile=ProfileViewModel(
+            first_name=getattr(p, "first_name", None),
+            last_name=getattr(p, "last_name", None),
+            birthday=getattr(p, "birthday", None),
+            phone=getattr(p, "phone", None),
+            avatar_url=getattr(p, "avatar_url", None),
+            role=getattr(p, "role", "freelance"),
+            full_name_display=full_display,
+        ),
+        created_at=getattr(u, "date_joined"),
+        updated_at=getattr(p, "updated_at"),
+    )
+
+
+def _professional_vm_from_model(pro) -> ProfessionalViewModel:
+    """Mappe un modèle ProfessionalUser vers ProfessionalViewModel (lecture simple)."""
+    domaine = getattr(pro, "domaine", None)
+    domaine_name = getattr(domaine, "name", None) if domaine else None
+    # formatter lisible pour la sortie
+    tjm_cents = getattr(pro, "tjm_cents", 0) or 0
+    tjm_display = f"{tjm_cents/100:.2f}"
+
+    service_type_ids = []
+    if hasattr(pro, "service_types"):
+        try:
+            service_type_ids = list(pro.service_types.values_list("id", flat=True))
+        except Exception:
+            # si pas de M2M préchargé
+            service_type_ids = [st.id for st in pro.service_types.all()]
+
+    return ProfessionalViewModel(
+        id=pro.id,
+        user_id=pro.user_id,
+        name=getattr(pro, "name", None),
+        status_juridique=getattr(pro, "status_juridique", None),
+        domaine_id=getattr(pro, "domaine_id", None),
+        domaine_name=domaine_name,
+        tjm_cents=tjm_cents,
+        tjm_display=tjm_display,
+        number_pro=getattr(pro, "number_pro", None),
+        service_type_ids=service_type_ids,
+        created_at=getattr(pro, "created_at"),
+        updated_at=getattr(pro, "updated_at"),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Users
+# ---------------------------------------------------------------------------
+
+
 @extend_schema_view(
-    list=extend_schema(summary="List all users", responses={200: OpenApiResponse(UserSerializer(many=True))}, tags=["Users"]),
+    list=extend_schema(
+        summary="List all users",
+        responses={200: OpenApiResponse(UserListOutputSerializer)},
+        tags=["Users"],
+    ),
     create=extend_schema(
         summary="Register a new user",
-        request=UserRegistrationSerializer,
-        responses={201: OpenApiResponse(UserSerializer)},
+        request=UserRegistrationInputSerializer,
+        responses={201: OpenApiResponse(UserOutputSerializer)},
         tags=["Users"],
     ),
     me=extend_schema(
-        summary="Get current authenticated user", responses={200: OpenApiResponse(UserSerializer)}, tags=["Users"]
+        summary="Get or patch current authenticated user",
+        responses={200: OpenApiResponse(UserOutputSerializer)},
+        tags=["Users"],
     ),
     update_me_profile=extend_schema(
         summary="Update profile of current user",
-        request=ProfileUpdateSerializer,
-        responses={200: OpenApiResponse(UserSerializer)},
+        request=ProfilePatchInputSerializer,
+        responses={200: OpenApiResponse(UserOutputSerializer)},
         tags=["Users"],
     ),
     change_password=extend_schema(
         summary="Change password for current user",
-        request=ChangePasswordSerializer,
+        request=ChangePasswordInputSerializer,
         responses={204: OpenApiResponse({"detail": "Password changed successfully"})},
         tags=["Users"],
     ),
 )
 class UserViewSet(viewsets.ViewSet):
-    service = UserService(user_repository=UserRepository())
+    """
+    HTTP <-> Use cases boundary for Users.
+    """
+
+    user_repo = DjangoUserRepository()
 
     def get_permissions(self):
         if self.action in ["create", "list"]:
             return [AllowAny()]
         return [IsAuthenticated()]
 
-    @extend_schema(responses=UserSerializer(many=True))
     def list(self, request):
         logger.info("users.list called", extra={"user_id": getattr(request.user, "id", None)})
-        users = self.service.list_users()
-        logger.debug("users.list returning %d users", len(users))
-        return Response(UserSerializer(users, many=True).data)
 
-    @extend_schema(request=UserRegistrationSerializer, responses={201: UserSerializer}, summary="Register a new user")
+        uc = ListUsers(self.user_repo)
+        vm_list: UserListViewModel = uc.execute()
+
+        payload = UserListOutputSerializer.from_vm_list(vm_list).data
+        logger.debug("users.list returning %d users", payload["count"])
+        return Response(payload, status=status.HTTP_200_OK)
+
     def create(self, request):
-        logger.info("users.create called", extra={"params": {k: v for k, v in request.data.items() if k != "password"}})
-        reg = UserRegistrationSerializer(data=request.data)
-        try:
-            reg.is_valid(raise_exception=True)
-        except Exception as e:
-            logger.warning("users.create validation failed: %s", reg.errors)
-            raise
-        user = self.service.register_user(**reg.validated_data)
-        logger.info("users.create succeeded for user_id=%s", getattr(user, "id", None))
-        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+        logger.info(
+            "users.create called",
+            extra={"params": {k: v for k, v in request.data.items() if k != "password"}},
+        )
 
-    @action(
-        detail=False,
-        methods=["get", "patch"],
-        url_path="me",
-        permission_classes=[IsAuthenticated],
-    )
-    @extend_schema(responses=UserSerializer, summary="Get or patch current authenticated user")
+        ser = UserRegistrationInputSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        dto = ser.to_dto()
+
+        uc = RegisterUser(self.user_repo)
+        try:
+            vm: UserViewModel = uc.execute(dto)
+        except DuplicateEmailError as e:
+            return Response(
+                {"email": ["A user with this email already exists."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        logger.info("users.create succeeded for user_id=%s", vm.id)
+        return Response(UserOutputSerializer.from_vm(vm).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["get", "patch"], url_path="me", permission_classes=[IsAuthenticated])
     def me(self, request):
         """
-        GET  -> retourne l'utilisateur courant (comme avant)
-        PATCH -> met à jour le profil courant (attend partial payload pour Profile)
+        GET  -> current user
+        PATCH -> partial profile update
         """
-        user = request.user
-
         if request.method == "GET":
-            logger.debug("users.me called", extra={"user_id": getattr(user, "id", None)})
-            return Response(UserSerializer(user).data)
+            logger.debug("users.me (GET) called", extra={"user_id": request.user.id})
+            # petite lecture directe via repo, mapping présentation-only
+            u = self.user_repo.get_by_id(request.user.id)
+            vm = _user_vm_from_model(u)
+            return Response(UserOutputSerializer.from_vm(vm).data, status=status.HTTP_200_OK)
 
-        # PATCH handling
-        logger.info("users.me (PATCH) called", extra={"user_id": getattr(user, "id", None), "params": request.data})
-        data = request.data
-        if "profile" in data and isinstance(data["profile"], dict):
-            payload = data["profile"]
-        else:
-            payload = data
-
-        ser = ProfileUpdateSerializer(user.profile, data=payload, partial=True)
+        # PATCH
+        logger.info("users.me (PATCH) called", extra={"user_id": request.user.id, "params": request.data})
+        # accepte payload à plat ou sous `profile`
+        payload = request.data.get("profile") if isinstance(request.data.get("profile"), dict) else request.data
+        if not request.user.is_staff and isinstance(payload, dict) and "role" in payload:
+            payload = {k: v for k, v in payload.items() if k != "role"}
+        ser = ProfilePatchInputSerializer(data=payload)
         ser.is_valid(raise_exception=True)
-        ser.save()
+        dto = ser.to_dto(user_id=request.user.id, updater_is_staff=request.user.is_staff)
 
-        logger.info("users.me (PATCH) succeeded", extra={"user_id": getattr(user, "id", None)})
-        return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+        uc = UpdateProfile(self.user_repo)
+        vm: UserViewModel = uc.execute(dto)
+
+        logger.info("users.me (PATCH) succeeded", extra={"user_id": request.user.id})
+        return Response(UserOutputSerializer.from_vm(vm).data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["patch"], url_path="me/profile", permission_classes=[IsAuthenticated])
-    @extend_schema(request=ProfileUpdateSerializer, responses=UserSerializer, summary="Update profile of current user")
     def update_me_profile(self, request):
         logger.info("users.update_me_profile called", extra={"user_id": request.user.id, "params": request.data})
-        ser = ProfileUpdateSerializer(request.user.profile, data=request.data, partial=True)
-        try:
-            ser.is_valid(raise_exception=True)
-            ser.save()
-        except Exception:
-            logger.exception("users.update_me_profile failed for user_id=%s", request.user.id)
-            raise
+
+        ser = ProfilePatchInputSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        dto = ser.to_dto(user_id=request.user.id, updater_is_staff=request.user.is_staff)
+
+        uc = UpdateProfile(self.user_repo)
+        vm: UserViewModel = uc.execute(dto)
+
         logger.info("users.update_me_profile succeeded for user_id=%s", request.user.id)
-        return Response(UserSerializer(request.user).data)
+        return Response(UserOutputSerializer.from_vm(vm).data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="me/change-password", permission_classes=[IsAuthenticated])
     def change_password(self, request):
         logger.info("change_password called", extra={"user_id": request.user.id})
-        ser = ChangePasswordSerializer(data=request.data)
+
+        ser = ChangePasswordInputSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
-        user = request.user
-        if not user.check_password(ser.validated_data["current_password"]):
-            logger.warning("change_password incorrect current_password for user_id=%s", user.id)
-            return Response({"current_password": "Incorrect password"}, status=400)
-        user.set_password(ser.validated_data["new_password"])
-        user.save()
-        logger.info("change_password succeeded for user_id=%s", user.id)
-        return Response({"detail": "Password changed successfully"}, status=204)
+        dto = ser.to_dto(user_id=request.user.id)
+
+        uc = ChangePassword(self.user_repo)
+        uc.execute(dto)
+
+        logger.info("change_password succeeded for user_id=%s", request.user.id)
+        return Response({"detail": "Password changed successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+
+# ---------------------------------------------------------------------------
+# Professional (me + onboarding)
+# ---------------------------------------------------------------------------
 
 
 class ProfessionalUserMeView(APIView):
     permission_classes = [IsAuthenticated]
     logger = logging.getLogger("apps.user.views.ProfessionalUserMeView")
 
+    pro_repo = DjangoProfessionalRepository()
+    user_repo = DjangoUserRepository()
+
     @extend_schema(
         responses={
-            200: OpenApiResponse(ProfessionalUserSerializer),
+            200: OpenApiResponse(ProfessionalOutputSerializer),
             404: OpenApiResponse(description="Professional profile not found."),
         },
         summary="Get professional profile for current authenticated user",
         tags=["Professional Users"],
     )
     def get(self, request):
-        logger.info("ProfessionalUserMeView.get called", extra={"user_id": request.user.id})
-        prof = getattr(request.user, "professional", None)
-        if not prof:
-            logger.debug("ProfessionalUserMeView.get: no professional for user_id=%s", request.user.id)
+        self.logger.info("ProfessionalUserMeView.get called", extra={"user_id": request.user.id})
+        pro = self.pro_repo.get_by_user_id(request.user.id)
+        if not pro:
+            self.logger.debug("ProfessionalUserMeView.get: no professional for user_id=%s", request.user.id)
             return Response({"detail": "Professional profile not found."}, status=status.HTTP_404_NOT_FOUND)
-        serializer = ProfessionalUserSerializer(prof, context={"request": request})
-        logger.debug("ProfessionalUserMeView.get: returning professional id=%s", prof.id)
-        return Response(serializer.data)
+
+        vm = _professional_vm_from_model(pro)
+        return Response(ProfessionalOutputSerializer.from_vm(vm).data, status=status.HTTP_200_OK)
 
     @extend_schema(
-        request=ProfessionalUserSerializer,
-        responses={200: OpenApiResponse(ProfessionalUserSerializer)},
+        request=ProfessionalUpsertInputSerializer,
+        responses={200: OpenApiResponse(ProfessionalOutputSerializer)},
         summary="Patch (create if missing) professional profile for current user",
         tags=["Professional Users"],
     )
     def patch(self, request):
-        logger.info("ProfessionalUserMeView.patch called", extra={"user_id": request.user.id, "params": request.data})
-        prof = getattr(request.user, "professional", None)
-        if not prof:
-            serializer = ProfessionalUserSerializer(data=request.data, context={"request": request})
+        self.logger.info("ProfessionalUserMeView.patch called", extra={"user_id": request.user.id, "params": request.data})
+
+        pro = self.pro_repo.get_by_user_id(request.user.id)
+        ser = ProfessionalUpsertInputSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+
+        if not pro:
+            # create
+            dto = ser.to_create_dto(user_id=request.user.id)
+            uc = CreateProfessional(self.user_repo, self.pro_repo)
+            vm: ProfessionalViewModel = uc.execute(dto)
+            status_code = status.HTTP_201_CREATED
             action = "create"
         else:
-            serializer = ProfessionalUserSerializer(prof, data=request.data, partial=True, context={"request": request})
+            # update
+            dto = ser.to_update_dto(
+                professional_id=pro.id,
+                user_id=request.user.id,
+                updater_is_staff=request.user.is_staff,
+            )
+            uc = UpdateProfessional(self.user_repo, self.pro_repo)
+            vm: ProfessionalViewModel = uc.execute(dto)
+            status_code = status.HTTP_200_OK
             action = "update"
 
-        try:
-            serializer.is_valid(raise_exception=True)
-            obj = serializer.save()
-        except Exception:
-            logger.exception("ProfessionalUserMeView.patch failed for user_id=%s", request.user.id)
-            raise
-
-        logger.info(
-            "ProfessionalUserMeView.patch %s succeeded for professional_id=%s user_id=%s",
-            action,
-            getattr(obj, "id", None),
-            request.user.id,
-        )
-        return Response(ProfessionalUserSerializer(obj, context={"request": request}).data, status=status.HTTP_200_OK)
+        self.logger.info("ProfessionalUserMeView.patch %s succeeded for user_id=%s", action, request.user.id)
+        return Response(ProfessionalOutputSerializer.from_vm(vm).data, status=status_code)
 
 
 class OnboardingProfessionalView(APIView):
+    """
+    POST pour créer/mettre à jour le profil pro durant l'onboarding.
+    (Même logique que PATCH /professional/me mais en POST pour flows front.)
+    """
+
     permission_classes = [IsAuthenticated]
     logger = logging.getLogger("apps.user.views.OnboardingProfessionalView")
 
+    pro_repo = DjangoProfessionalRepository()
+    user_repo = DjangoUserRepository()
+
     @extend_schema(
-        request=ProfessionalUserSerializer,
-        responses={
-            201: OpenApiResponse(ProfessionalUserSerializer),
-            200: OpenApiResponse(ProfessionalUserSerializer),
-        },
+        request=ProfessionalUpsertInputSerializer,
+        responses={201: OpenApiResponse(ProfessionalOutputSerializer), 200: OpenApiResponse(ProfessionalOutputSerializer)},
         summary="Create or update professional entity during onboarding",
         tags=["Professional Users"],
     )
     def post(self, request):
-        logger.info("OnboardingProfessionalView.post called", extra={"user_id": request.user.id, "params": request.data})
-        try:
-            prof = request.user.professional
-        except ObjectDoesNotExist:
-            prof = None
-        if prof:
-            serializer = ProfessionalUserSerializer(prof, data=request.data, partial=True, context={"request": request})
-            status_code = status.HTTP_200_OK
-            action = "update"
-        else:
-            serializer = ProfessionalUserSerializer(data=request.data, context={"request": request})
+        self.logger.info("OnboardingProfessionalView.post called", extra={"user_id": request.user.id, "params": request.data})
+
+        pro = self.pro_repo.get_by_user_id(request.user.id)
+        ser = ProfessionalUpsertInputSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+
+        if not pro:
+            dto = ser.to_create_dto(user_id=request.user.id)
+            uc = CreateProfessional(self.user_repo, self.pro_repo)
+            vm: ProfessionalViewModel = uc.execute(dto)
             status_code = status.HTTP_201_CREATED
             action = "create"
+        else:
+            dto = ser.to_update_dto(
+                professional_id=pro.id,
+                user_id=request.user.id,
+                updater_is_staff=request.user.is_staff,
+            )
+            uc = UpdateProfessional(self.user_repo, self.pro_repo)
+            vm: ProfessionalViewModel = uc.execute(dto)
+            status_code = status.HTTP_200_OK
+            action = "update"
 
-        try:
-            serializer.is_valid(raise_exception=True)
-            obj = serializer.save()
-        except Exception:
-            logger.exception("OnboardingProfessionalView.post failed for user_id=%s", request.user.id)
-            raise
-
-        logger.info(
+        self.logger.info(
             "OnboardingProfessionalView.post %s succeeded professional_id=%s user_id=%s",
             action,
-            getattr(obj, "id", None),
+            getattr(vm, "id", None),
             request.user.id,
         )
-        return Response(ProfessionalUserSerializer(obj, context={"request": request}).data, status=status_code)
-
-
-class IsOwnerOrAdmin(permissions.BasePermission):
-    def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
-            logger.debug("IsOwnerOrAdmin.has_permission denied unauthenticated request")
-            return False
-        if getattr(view, "action", None) == "list":
-            allowed = request.user.is_staff
-            logger.debug("IsOwnerOrAdmin.has_permission for list -> is_staff=%s", request.user.is_staff)
-            return allowed
-        return True
-
-    def has_object_permission(self, request, view, obj):
-        if request.user and request.user.is_staff:
-            logger.debug("IsOwnerOrAdmin.has_object_permission allowed for staff user_id=%s", request.user.id)
-            return True
-        owner = getattr(obj, "user", None)
-        allowed = owner == request.user
-        logger.debug(
-            "IsOwnerOrAdmin.has_object_permission owner=%s user=%s allowed=%s",
-            getattr(owner, "id", None),
-            request.user.id,
-            allowed,
-        )
-        return allowed
-
-
-class ProfessionalUserViewSet(viewsets.ModelViewSet):
-    serializer_class = ProfessionalUserSerializer
-    permission_classes = [IsOwnerOrAdmin]
-    logger = logging.getLogger("apps.user.views.ProfessionalUserViewSet")
-
-    def get_queryset(self):
-        self.logger.debug("ProfessionalUserViewSet.get_queryset called user_id=%s", getattr(self.request.user, "id", None))
-        qs = ProfessionalUser.objects.all().select_related("user", "domaine").prefetch_related("service_types")
-        if self.request.user.is_staff:
-            self.logger.debug("ProfessionalUserViewSet.get_queryset returning full queryset for staff user")
-            return qs
-        self.logger.debug("ProfessionalUserViewSet.get_queryset filtering by user=%s", self.request.user.id)
-        return qs.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        self.logger.info("ProfessionalUserViewSet.perform_create called user_id=%s", getattr(self.request.user, "id", None))
-        serializer.save(user=self.request.user)
-        self.logger.info(
-            "ProfessionalUserViewSet.perform_create finished saved professional for user_id=%s", self.request.user.id
-        )
-
-    def perform_destroy(self, instance):
-        self.logger.info("ProfessionalUserViewSet.perform_destroy called professional_id=%s", getattr(instance, "id", None))
-        instance.delete()
-        self.logger.info("ProfessionalUserViewSet.perform_destroy finished professional_id=%s", getattr(instance, "id", None))
-
-    @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated])
-    def me(self, request):
-        self.logger.debug("ProfessionalUserViewSet.me called user_id=%s", request.user.id)
-        prof = getattr(request.user, "professional", None)
-        if not prof:
-            self.logger.debug("ProfessionalUserViewSet.me: professional not found for user_id=%s", request.user.id)
-            return Response({"detail": "Professional profile not found."}, status=status.HTTP_404_NOT_FOUND)
-        serializer = self.get_serializer(prof)
-        return Response(serializer.data)
+        return Response(ProfessionalOutputSerializer.from_vm(vm).data, status=status_code)

@@ -33,6 +33,21 @@ DEBUG = env("DEBUG", default=False)
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 # --------------------------------------------------------------------------------------
+# Email settings
+# --------------------------------------------------------------------------------------
+# Looking to send emails in production? Check out our Email API/SMTP product!
+# Pour le développement avec Mailtrap uniquement
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "sandbox.smtp.mailtrap.io"
+EMAIL_HOST_USER = "54e99456c8cc20"
+EMAIL_HOST_PASSWORD = "04ef95b11a8fce"
+EMAIL_PORT = 2525  # Port non-sécurisé de Mailtrap
+EMAIL_USE_TLS = False  # Pas de TLS en dev
+EMAIL_USE_SSL = False  # Pas de SSL en dev
+EMAIL_FROM = "noreply@example.com"
+RESET_PASSWORD_URL = "https://frontend/reset-password"
+
+# --------------------------------------------------------------------------------------
 # Database
 # - Priorité à DATABASE_URL
 # - Sinon, variables séparées
@@ -85,6 +100,9 @@ INSTALLED_APPS = [
     "apps.catalog.apps.CatalogConfig",
     "apps.quote.apps.QuoteConfig",
     "apps.client.apps.ClientConfig",
+    "apps.branding.apps.BrandingConfig",
+    "apps.email.apps.EmailConfig",
+    "django_extensions",
 ]
 
 MIDDLEWARE = [
@@ -116,6 +134,8 @@ TEMPLATES = [
         },
     },
 ]
+TEMPLATES[0]["DIRS"] = [BASE_DIR / "templates"]
+
 
 WSGI_APPLICATION = "config.wsgi.application"
 
@@ -180,7 +200,7 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "EXCEPTION_HANDLER": "config.exceptions.drf_exception_handler",
+    "EXCEPTION_HANDLER": "config.api_errors.custom_exception_handler",
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
@@ -283,7 +303,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 LOG_DIR = BASE_DIR / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 
 LOGGING = {
     "version": 1,

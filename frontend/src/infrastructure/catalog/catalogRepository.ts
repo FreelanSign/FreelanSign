@@ -36,6 +36,7 @@ type ListPrestationsOpts = {
   search?: string | null;
   ordering?: string | null;
   ids?: number[] | null; // optional batch support
+  signal?: AbortSignal | null;
 };
 
 /**
@@ -84,6 +85,7 @@ export const catalogRepository = {
   /**
    * List prestations with optional filters.
    * Example: listPrestations({ area: 8 }) -> GET /api/catalog/prestations/?area=8
+   * Example: listPrestations({ area: 8, signal: new AbortSignal() }) -> GET /api/catalog/prestations/?area=8&signal=...
    */
   async listPrestations(opts?: ListPrestationsOpts): Promise<PrestationDto[]> {
     const params: Record<string, string> = {};
@@ -97,6 +99,7 @@ export const catalogRepository = {
 
     const resp = await apiClient.get(API_ENDPOINTS.catalogPrestation, {
       params,
+      signal: opts?.signal ?? undefined,
     });
     const data = resp.data;
     const normalized = normalizeListResponse<PrestationDto>(data);

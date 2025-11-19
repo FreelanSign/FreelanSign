@@ -86,7 +86,7 @@ class Quote(models.Model):
     )
 
     title = models.CharField(max_length=255)
-    reference = models.CharField(max_length=64, help_text="Human-readable reference unique per owner.")
+    reference = models.CharField(max_length=64, help_text="Human-readable reference unique per owner.", editable=False)
     currency = models.CharField(max_length=3, help_text="ISO currency code, e.g. 'EUR'.")
     language = models.CharField(max_length=8, default="fr", help_text="IETF language tag, e.g. 'fr', 'en'.")
 

@@ -132,7 +132,7 @@ def resolve_area(row: dict, areas_map: dict[str, Area]) -> Area:
     raise ValueError(f"Impossible de résoudre l'Area pour la prestation: {row}")
 
 
-def import_prestations(rows: list[dict], areas_map: dict[str, Area]) -> tuple[int, int]:
+def import_prestations(rows: list[dict], areas_map: dict[str, Area]) -> tuple[int, int, int]:
     """
     Colonnes tolérées:
       - area_key (ou area_name / area)
@@ -141,9 +141,13 @@ def import_prestations(rows: list[dict], areas_map: dict[str, Area]) -> tuple[in
       - weight_days (sinon 0)
       - default_rate_eur OU default_rate_cents
       - status (DRAFT/ACTIVE/ARCHIVED) — insensible à la casse
+
+    Retourne: (created, updated, archived)
     """
     created = 0
     updated = 0
+    archived = 0
+    seen_keys = set()
 
     for row in rows:
         name = _norm(row.get("name"))
@@ -151,6 +155,9 @@ def import_prestations(rows: list[dict], areas_map: dict[str, Area]) -> tuple[in
             raise ValueError(f"Prestation invalide (name manquant): {row}")
 
         area = resolve_area(row, areas_map)
+        key = (area.id, name.lower())
+        seen_keys.add(key)
+
         description = _norm(row.get("description"))
         weight_days_raw = _norm(row.get("weight_days"))
         try:
@@ -177,7 +184,15 @@ def import_prestations(rows: list[dict], areas_map: dict[str, Area]) -> tuple[in
         created += int(is_created)
         updated += int(not is_created)
 
-    return created, updated
+    # Archivage des prestations absentes du CSV
+    for p in Prestation.objects.all():
+        key = (p.area_id, p.name.lower())
+        if key not in seen_keys and p.status != PrestationStatus.ARCHIVED:
+            p.status = PrestationStatus.ARCHIVED
+            p.save(update_fields=["status"])
+            archived += 1
+
+    return created, updated, archived
 
 
 def main() -> None:
@@ -188,11 +203,8 @@ def main() -> None:
 
     print(f"Lecture: {PRESTAS_CSV}")
     presta_rows = _read_csv(PRESTAS_CSV)
-    created, updated = import_prestations(presta_rows, areas_map)
-
-    print("Colonnes areas.csv:", list(areas_rows[0].keys()) if areas_rows else [])
-    print("Colonnes prestations.csv:", list(presta_rows[0].keys()) if presta_rows else [])
-    print(f"Prestations — created={created}, updated={updated}")
+    created, updated, archived = import_prestations(presta_rows, areas_map)
+    print(f"Prestations — created={created}, updated={updated}, archived={archived}")
     print("Import OK ✅")
 
 

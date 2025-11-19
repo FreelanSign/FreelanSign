@@ -22,13 +22,15 @@ export type ProfessionalUserDto = {
   id: number;
   user: number; // user id
   name?: string | null;
+  email?: string | null;
+  siret?: string | null;
   status_juridique?: string | null;
   domaine?: number | null; // id of area
   tjm_cents?: number | null;
   number_pro?: string | null;
-  service_types?: number[]; // list of prestation ids
+  service_type_ids?: number[]; // list of prestation ids
   // optional meta information to help the frontend render warnings (read-only)
-  service_types_meta?: Array<{
+  service_type_ids_meta?: Array<{
     id: number;
     name?: string | null;
     area_id?: number | null;

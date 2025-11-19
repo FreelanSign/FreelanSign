@@ -1,4 +1,13 @@
 {
+	"name": "freelansign",
+	"version": "0.2.0",
+	"description": "FreelanSign - A modern quote management platform",
+	"scripts": {
+		"release": "standard-version",
+		"release:patch": "standard-version --release-as patch",
+		"release:minor": "standard-version --release-as minor",
+		"release:major": "standard-version --release-as major"
+	},
 	"dependencies": {
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
@@ -7,6 +16,7 @@
 	"devDependencies": {
 		"@types/react": "^18.3.25",
 		"@types/react-dom": "^18.3.7",
+		"standard-version": "^9.5.0",
 		"typescript": "^5.9.3"
 	}
 }

@@ -3,15 +3,27 @@ from __future__ import annotations
 
 import logging
 from decimal import ROUND_HALF_UP, Decimal, getcontext
+from re import L
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from apps.client.interface.serializers import ClientReadSerializer
 from apps.client.models import Client
-from apps.core.logging import get_logger  # ✅ même helper que dans PrestationSerializer
+from apps.core.logging import get_logger
+from apps.quote.adapters.persistence.django_quote_repository import DjangoQuoteRepository
+from apps.quote.adapters.reference.django_quote_reference_generator import get_quote_reference_generator
+from apps.quote.application.usecases.create_quote import CreateQuoteUseCase
+from apps.quote.application.usecases.update_quote import UpdateQuoteUseCase
+from apps.quote.domain.policies.tax_policy import (
+    TaxPolicyError,
+    effective_rate_for_line,
+    normalize_rate_percent,
+    validate_client_vat_rule,
+)
 from apps.quote.models import Quote, QuoteLineItem
 
 getcontext().prec = 28
@@ -78,11 +90,23 @@ class QuoteLineItemSerializer(serializers.ModelSerializer):
         return quantize_money(value)
 
     def validate_tax_rate(self, value: Decimal) -> Decimal:
+        """Validate the tax rate as a percentage (0..100).
+
+        Args:
+            value: The tax rate to validate (as percentage).
+
+        Returns:
+            The validated tax rate (as percentage).
+
+        Raises:
+            ValidationError: If the tax rate is not between 0 and 100 (percentage).
+        """
         if value is None:
             return value
-        if value < ZERO or value > Decimal("100.00"):
-            raise ValidationError("Tax rate must be between 0 and 100 (percentage).")
-        return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        try:
+            return normalize_rate_percent(value)
+        except TaxPolicyError as e:
+            raise ValidationError(str(e))
 
     def to_representation(self, instance: QuoteLineItem) -> Dict[str, Any]:
         rep = super().to_representation(instance)
@@ -121,14 +145,22 @@ def _owner_vat_config(owner) -> Tuple[bool, Decimal]:
 
 
 def _collect_item_tax_rates(items: Iterable[dict], vat_exempt: bool, owner_default_tax: Decimal) -> List[Decimal]:
+    """Collect the tax rates for the items.
+
+    Args:
+        items: The items to collect the tax rates for.
+        vat_exempt: Whether the owner is VAT-exempt.
+        owner_default_tax: The default tax rate for the owner.
+
+    Returns:
+        The tax rates for the items.
+    """
     rates: List[Decimal] = []
     for item in items:
-        tax = item.get("tax_rate", None)
-        if tax is None:
-            assumed = ZERO if vat_exempt else owner_default_tax
-            rates.append(assumed)
-        else:
-            rates.append(Decimal(str(tax)))
+        raw = item.get("tax_rate", None)
+        raw_dec = Decimal(str(raw)) if raw is not None else None
+        eff = effective_rate_for_line(raw_dec, owner_vat_exempt=vat_exempt, owner_default_rate_pct=owner_default_tax)
+        rates.append(eff)
     return rates
 
 
@@ -189,18 +221,14 @@ def _create_items_and_compute_totals(
         quote_id=str(getattr(quote, "id", None)),
         count=len(items),
         vat_exempt=vat_exempt,
-        owner_default_tax=str(owner_default),
+        owner_default_rate_pct=str(owner_default),
     )
 
     for order, item in enumerate(items):
         _validate_item_basics(item, order)
-        if vat_exempt:
-            tax_rate = ZERO
-        else:
-            if "tax_rate" in item and item.get("tax_rate") is not None:
-                tax_rate = Decimal(str(item.get("tax_rate"))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-            else:
-                tax_rate = owner_default
+        raw = item.get("tax_rate", None)
+        raw_dec = Decimal(str(raw)) if raw is not None else None
+        tax_rate = effective_rate_for_line(raw_dec, owner_vat_exempt=vat_exempt, owner_default_rate_pct=owner_default)
         pt, ta = _create_and_accumulate_line(serializer, quote, item, order, owner, tax_rate)
         subtotal += pt
         tax_total += ta
@@ -248,9 +276,20 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
             "client_update",
             "items",
         ]
-        read_only_fields = ["id"]
+        read_only_fields = ["id", "reference"]
 
     def validate(self, data: dict) -> dict:
+        """Validate the quote data.
+
+        Args:
+            data: The quote data to validate.
+
+        Returns:
+            The validated quote data.
+
+        Raises:
+            ValidationError: If the quote data is invalid.
+        """
         items = data.get("items", None)
         if not self.partial:
             if not items or len(items) < 1:
@@ -284,235 +323,63 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
             has_client_update=bool(self.initial_data.get("client_update")),
         )
 
-        if vat_exempt:
-            non_zero = [t for t in item_tax_rates if quantize_money(t) != ZERO]
-            if non_zero:
-                raise ValidationError({"items": "Owner is VAT-exempt; line tax rates must be 0."})
-
-        if client_country and client_country in {"FR", "FRA", "FRANCE"} and not vat_exempt:
-            zero_rates_idx = [i for i, t in enumerate(item_tax_rates) if quantize_money(t) == ZERO]
-            if zero_rates_idx:
-                raise ValidationError(
-                    {
-                        "items": f"VAT missing for French client on lines: {zero_rates_idx}. Owner must apply VAT or be VAT-exempt."
-                    }
-                )
+        try:
+            validate_client_vat_rule(client_country, vat_exempt, item_tax_rates)
+        except TaxPolicyError as e:
+            raise ValidationError({"items": str(e)})
 
         return data
 
-    def _apply_client_update(self, client_obj: Client, patch: dict, *, requester) -> Client:
-        if getattr(client_obj, "owner_id", None) != getattr(requester, "id", None):
-            _qlog(
-                self,
-                logging.WARNING,
-                "client.update.forbidden",
-                client_id=str(getattr(client_obj, "id", None)),
-                requester_id=getattr(requester, "id", None),
-            )
-            raise ValidationError({"client": "You do not own this client."})
-
-        allowed_fields = {"name", "email", "phone", "address", "vat_number", "metadata"}
-        changed: Dict[str, Tuple[Any, Any]] = {}
-
-        for k, v in patch.items():
-            if k in allowed_fields:
-                old = getattr(client_obj, k, None)
-                new = v if v is not None else ""
-                if old != new:
-                    changed[k] = (old, new)
-                    setattr(client_obj, k, new)
-
-        if changed:
-            client_obj.save(update_fields=[f for f in allowed_fields if hasattr(client_obj, f)])
-            # logs détaillés champ par champ
-            for field, (old, new) in changed.items():
-                # Exemple demandé : "Client ... email updated from .. to .."
-                _qlog(
-                    self,
-                    logging.INFO,
-                    "client.field.updated",
-                    client_id=str(getattr(client_obj, "id", None)),
-                    field=field,
-                    old=str(old),
-                    new=str(new),
-                )
-        else:
-            _qlog(self, logging.DEBUG, "client.no_changes", client_id=str(getattr(client_obj, "id", None)))
-
-        return client_obj
-
-    @transaction.atomic
     def create(self, validated_data: dict) -> Quote:
-        items = validated_data.pop("items", [])
+        """
+        Create a new Quote instance using application logic.
+
+        Delegates all business logic (reference generation, client patch, line item creation, total calculation) to the CreateQuoteUseCase.
+
+        Args:
+            validated_data (dict): Pre-validated input data from the serializer.
+
+        Returns:
+            Quote: The created quote instance.
+        """
         request = self.context["request"]
         owner = request.user
+        client_patch = self.initial_data.get("client_update", None)
 
-        client_patch = self.initial_data.get("client_update", None)  # ✅ fix typo
-        client_obj: Optional[Client] = validated_data.get("client")
+        usecase = CreateQuoteUseCase(ref_generator=get_quote_reference_generator(), quote_repository=DjangoQuoteRepository())
+        return usecase.execute(owner=owner, validated_data=validated_data, client_patch=client_patch)
 
-        if client_patch and client_obj:
-            _qlog(self, logging.INFO, "client.update.before_create", client_id=str(getattr(client_obj, "id", None)))
-            self._apply_client_update(client_obj, client_patch, requester=owner)
-
-        _qlog(
-            self,
-            logging.INFO,
-            "quote.create.start",
-            owner_id=getattr(owner, "id", None),
-            client_id=str(getattr(client_obj, "id", None)) if client_obj else None,
-        )
-
-        quote = Quote.objects.create(owner=owner, **validated_data, subtotal=ZERO, tax_total=ZERO, total=ZERO)
-        _qlog(self, logging.DEBUG, "quote.created", quote_id=str(getattr(quote, "id", None)))
-
-        subtotal, tax_total = _create_items_and_compute_totals(self, quote, items, owner)
-
-        discount_total = quantize_money(Decimal(str(validated_data.get("discount_total", ZERO) or ZERO)))
-        total = quantize_money(subtotal + tax_total - discount_total)
-
-        Quote.objects.filter(pk=quote.pk).update(
-            subtotal=subtotal, tax_total=tax_total, discount_total=discount_total, total=total
-        )
-        quote.refresh_from_db()
-
-        _qlog(
-            self,
-            logging.INFO,
-            "quote.create.finish",
-            quote_id=str(getattr(quote, "id", None)),
-            subtotal=str(quote.subtotal),
-            tax_total=str(quote.tax_total),
-            discount_total=str(quote.discount_total),
-            total=str(quote.total),
-        )
-
-        return quote
-
-    @transaction.atomic
     def update(self, instance: Quote, validated_data: dict) -> Quote:
-        # ⚠️ On veut savoir si 'items' est présent ou non dans le payload brut
+        """
+        Update an existing Quote instance using the UpdateQuoteUseCase.
+
+        Delegates business logic such as Client patching, line item replacement, and total recalculation
+        to the application layer. The serializer is only responsible for I/O and orchestration.
+
+        Args:
+            instance (Quote): The quote instance to update.
+            validated_data (dict): The validated data for the update.
+
+        Returns:
+            Quote: The updated quote instance.
+        """
+        request = self.context["request"]
+        owner = request.user
+        client_patch = self.initial_data.get("client_update", None)
         items_field_provided = "items" in (self.initial_data or {})
-        # Si présent, on lit sa valeur validée (peut être []), sinon on laisse à None
+        # remove field not meant for model
+        validated_data.pop("client_update", None)
         items = validated_data.pop("items", None) if items_field_provided else None
 
-        request = self.context["request"]
-        owner = request.user
-
-        _qlog(
-            self,
-            logging.INFO,
-            "quote.update.start",
-            quote_id=str(getattr(instance, "id", None)),
-            owner_id=getattr(owner, "id", None),
+        usecase = UpdateQuoteUseCase(quote_repo=DjangoQuoteRepository())
+        return usecase.execute(
+            quote=instance,
+            owner=owner,
+            validated_data=validated_data,
+            client_patch=client_patch,
             items_field_provided=items_field_provided,
-            items_count=(len(items) if isinstance(items, list) else None),
+            items=items,
         )
-
-        # --- Reassignation éventuelle du client ---
-        new_client = validated_data.get("client", None)
-        if new_client is not None and new_client != instance.client:
-            if getattr(new_client, "owner_id", None) != getattr(owner, "id", None):
-                _qlog(
-                    self,
-                    logging.WARNING,
-                    "quote.update.client.forbidden",
-                    quote_id=str(getattr(instance, "id", None)),
-                    new_client_id=str(getattr(new_client, "id", None)),
-                    owner_id=getattr(owner, "id", None),
-                )
-                raise ValidationError({"client": "You do not own this client."})
-            _qlog(
-                self,
-                logging.INFO,
-                "quote.update.client.reassigned",
-                quote_id=str(getattr(instance, "id", None)),
-                old_client_id=str(getattr(instance.client, "id", None)) if instance.client else None,
-                new_client_id=str(getattr(new_client, "id", None)),
-            )
-            instance.client = new_client
-
-        # --- Patch des champs du client lié ---
-        client_patch = self.initial_data.get("client_update", None)
-        if client_patch:
-            _qlog(
-                self,
-                logging.INFO,
-                "client.update.in_update",
-                quote_id=str(getattr(instance, "id", None)),
-                client_id=str(getattr(instance.client, "id", None)) if instance.client else None,
-            )
-            self._apply_client_update(instance.client, client_patch, requester=owner)
-
-        # --- Autres champs du header (sans re-set de client) ---
-        for attr, val in validated_data.items():
-            if attr == "client":
-                continue
-            setattr(instance, attr, val)
-        instance.save()
-
-        # --- Gestion des lignes selon présence de 'items' dans le payload ---
-        if items_field_provided:
-            # On remplace entièrement (ou vide) les lignes
-            deleted_count, _ = instance.items.all().delete()
-            _qlog(
-                self, logging.DEBUG, "quote.lines.cleared", quote_id=str(getattr(instance, "id", None)), deleted=deleted_count
-            )
-
-            if items and len(items) > 0:
-                # Recréation depuis le payload
-                subtotal, tax_total = _create_items_and_compute_totals(self, instance, items, owner)
-                _qlog(
-                    self,
-                    logging.INFO,
-                    "quote.lines.replaced",
-                    quote_id=str(getattr(instance, "id", None)),
-                    new_count=len(items),
-                    subtotal=str(subtotal),
-                    tax_total=str(tax_total),
-                )
-            else:
-                # items = [] → tout est vide
-                subtotal = ZERO
-                tax_total = ZERO
-                _qlog(self, logging.INFO, "quote.lines.empty_after_update", quote_id=str(getattr(instance, "id", None)))
-        else:
-            # On conserve les lignes existantes et on recalcule depuis la DB
-            # (profite d'un éventuel prefetch; sinon simple agrégat Python)
-            existing = list(instance.items.all())
-            subtotal = quantize_money(sum((l.pre_tax_total() for l in existing), ZERO))
-            tax_total = quantize_money(sum((l.tax_amount() for l in existing), ZERO))
-            _qlog(
-                self,
-                logging.INFO,
-                "quote.lines.preserved",
-                quote_id=str(getattr(instance, "id", None)),
-                existing_count=len(existing),
-                subtotal=str(subtotal),
-                tax_total=str(tax_total),
-            )
-
-        # --- Totaux finaux (on conserve discount_total existant si non fourni en header) ---
-        discount_total = quantize_money(Decimal(str(getattr(instance, "discount_total", ZERO) or ZERO)))
-        total = quantize_money(subtotal + tax_total - discount_total)
-
-        Quote.objects.filter(pk=instance.pk).update(
-            subtotal=subtotal, tax_total=tax_total, discount_total=discount_total, total=total
-        )
-        instance.refresh_from_db()
-
-        _qlog(
-            self,
-            logging.INFO,
-            "quote.update.finish",
-            quote_id=str(getattr(instance, "id", None)),
-            subtotal=str(instance.subtotal),
-            tax_total=str(instance.tax_total),
-            discount_total=str(instance.discount_total),
-            total=str(instance.total),
-            items_field_provided=items_field_provided,
-        )
-
-        return instance
 
 
 # --------------------------------------------------------------------------------------
@@ -521,6 +388,7 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
 class QuoteSerializer(serializers.ModelSerializer):
     items = QuoteLineItemSerializer(many=True, read_only=True)
     client = ClientReadSerializer(read_only=True)
+    reference = serializers.CharField(read_only=True)
     pdf_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -559,3 +427,62 @@ class QuoteSerializer(serializers.ModelSerializer):
             except Exception:
                 return ""
         return ""
+
+
+# --------------------------------------------------------------------------------------
+# PDF preview serializer
+# --------------------------------------------------------------------------------------
+class QuotePreviewLineSerializer(serializers.Serializer):
+    designation = serializers.CharField(required=False)
+    description = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    quantity = serializers.FloatField(min_value=0.000001)
+    unit_price = serializers.FloatField(min_value=0.0)
+    tax_rate = serializers.FloatField(required=False, allow_null=True)  # 0.2 => 20% (fraction UI)
+    discount = serializers.FloatField(required=False, min_value=0.0)
+
+
+class QuotePreviewPayloadSerializer(serializers.Serializer):
+    seller = serializers.DictField()
+    client = serializers.DictField()
+    meta = serializers.DictField()
+    lines = QuotePreviewLineSerializer(many=True)
+    branding = serializers.DictField(required=False)
+
+    def validate(self, data):
+        """Only normalize the data, do not validate the data."""
+        normalized_lines = []
+        for raw in data["lines"]:
+            line = dict(raw)
+
+            # designation fallback
+            if not line.get("designation"):
+                alt = line.get("name")
+                if alt:
+                    line["designation"] = str(alt)
+            if not line.get("designation"):
+                raise serializers.ValidationError("Designation/name is required for each line.")
+
+            # tax_rate fallback
+            tr = line.get("tax_rate", None)
+            if tr is not None:
+                tr = float(tr)
+                if tr < 0:
+                    tr = 0.0
+                if tr > 1.0:
+                    tr = tr / 100.0
+                line["tax_rate"] = tr
+            else:
+                line["tax_rate"] = None
+
+            # discount fallback
+            if "discount" in line and line["discount"] is not None:
+                line["discount"] = float(line["discount"])
+                if line["discount"] < 0:
+                    line["discount"] = 0.0
+
+            line["quantity"] = float(line["quantity"])
+            line["unit_price"] = float(line["unit_price"])
+
+            normalized_lines.append(line)
+        data["lines"] = normalized_lines
+        return data

@@ -1,13 +1,13 @@
-import { API_ENDPOINTS } from '../../shared/endpoints';
-import { apiClient } from '../../infrastructure/http/apiClient';
-import { tokenStorage } from '../../infrastructure/storage/tokenStorage';
 import type {
   AuthPort,
+  AuthUser,
   LoginPayload,
   RegisterPayload,
   TokenPair,
-  AuthUser,
 } from '../../domain/types';
+import { apiClient } from '../../infrastructure/http/apiClient';
+import { tokenStorage } from '../../infrastructure/storage/tokenStorage';
+import { API_ENDPOINTS } from '../../shared/endpoints';
 
 /**
  * Implémentation concrète des appels Auth contre DRF.
@@ -56,5 +56,9 @@ export const authRepository: AuthPort = {
   async getMe(): Promise<AuthUser> {
     const { data } = await apiClient.get(API_ENDPOINTS.me);
     return data as AuthUser;
+  },
+
+  async requestPasswordReset(email: string): Promise<void> {
+    await apiClient.post(API_ENDPOINTS.requestPasswordReset, { email });
   },
 };

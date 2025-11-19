@@ -1,6 +1,5 @@
 /**
  * Centralise les endpoints pour pouvoir les ajuster sans toucher au code métier.
- * ⚠️ Ajuste-les à tes vrais chemins DRF.
  */
 export const API_ENDPOINTS = {
   // Auth (DRF SimpleJWT custom views)
@@ -24,4 +23,9 @@ export const API_ENDPOINTS = {
   catalogArea: '/api/catalog/areas/',
   clients: '/api/clients/',
   quotes: '/api/quotes/',
+  quotePreview: '/api/quotes/preview-pdf/',
+  quotePdf: (id: string | number) => `/api/quotes/${id}/pdf/`,
+  requestPasswordReset: 'api/auth/request-password-reset/',
+  preparedEmail: (quoteId: string | number) =>
+    `api/quote/${quoteId}/prepared-email`,
 } as const;
