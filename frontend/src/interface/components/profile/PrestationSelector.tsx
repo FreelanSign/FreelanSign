@@ -223,12 +223,14 @@ export default function PrestationsSelector({
           <div className="flex items-start gap-3">
             <span className="text-lg">⚠️</span>
             <div>
-              <strong className="font-semibold">Attention :</strong> Vous avez sélectionné{' '}
-              {outOfDomainCount} prestation{outOfDomainCount > 1 ? 's' : ''}{' '}
-              en dehors de votre domaine principal.
+              <strong className="font-semibold">Attention :</strong> Vous avez
+              sélectionné {outOfDomainCount} prestation
+              {outOfDomainCount > 1 ? 's' : ''} en dehors de votre domaine
+              principal.
               {domaine && (
                 <div className="mt-1 text-xs text-yellow-800">
-                  Décochez "Filtrer par domaine professionnel" pour voir toutes vos sélections.
+                  Décochez "Filtrer par domaine professionnel" pour voir toutes
+                  vos sélections.
                 </div>
               )}
             </div>
@@ -239,11 +241,17 @@ export default function PrestationsSelector({
       {/* Liste des prestations */}
       <div>
         {loading ? (
-          <div className="text-center py-8 text-gray-500">Chargement des prestations…</div>
+          <div className="text-center py-8 text-gray-500">
+            Chargement des prestations…
+          </div>
         ) : prestations === null ? (
-          <div className="text-center py-8 text-red-500">Impossible de charger les prestations.</div>
+          <div className="text-center py-8 text-red-500">
+            Impossible de charger les prestations.
+          </div>
         ) : displayedWithWarnings.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">Aucune prestation disponible.</div>
+          <div className="text-center py-8 text-gray-500">
+            Aucune prestation disponible.
+          </div>
         ) : (
           <div className="grid gap-2">
             {displayedWithWarnings.map((p) => {

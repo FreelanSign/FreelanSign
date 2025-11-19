@@ -116,7 +116,9 @@ export default function PersonalUserDataForm({
       </label>
 
       <label className="block">
-        <div className="text-sm font-medium text-gray-700 mb-1">Date de naissance</div>
+        <div className="text-sm font-medium text-gray-700 mb-1">
+          Date de naissance
+        </div>
         <input
           {...register('birthday')}
           type="date"
@@ -132,7 +134,9 @@ export default function PersonalUserDataForm({
       </label>
 
       <label className="block">
-        <div className="text-sm font-medium text-gray-700 mb-1">Avatar (URL)</div>
+        <div className="text-sm font-medium text-gray-700 mb-1">
+          Avatar (URL)
+        </div>
         <input
           {...register('avatar_url')}
           className={`w-full px-3.5 py-2.5 border rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${

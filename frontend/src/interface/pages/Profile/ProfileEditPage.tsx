@@ -132,7 +132,8 @@ export default function ProfileEditPage() {
     const profileChanged =
       JSON.stringify(profileDraft ?? {}) !== JSON.stringify(currentProfile);
 
-    const currentPro = professional && professional !== 'loading' ? professional : null;
+    const currentPro =
+      professional && professional !== 'loading' ? professional : null;
     const proDraftChanged =
       JSON.stringify({
         name: proDraft.name ?? null,
@@ -271,7 +272,9 @@ export default function ProfileEditPage() {
               initialValues={user?.profile ?? {}}
               onSave={async (vals) => {
                 // keep individual save available (backwards compatible)
-                await userRepository.updateMe({ profile: normalizeProfile(vals) });
+                await userRepository.updateMe({
+                  profile: normalizeProfile(vals),
+                });
                 const me = await userRepository.getMe();
                 setUser(me);
                 setProfileDraft(me?.profile ?? {});

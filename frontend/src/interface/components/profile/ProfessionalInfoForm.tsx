@@ -123,7 +123,9 @@ export default function ProfessionalInfoForm({
   return (
     <form onSubmit={handleSubmit(internalOnSubmit)} className="grid gap-4">
       <label className="block">
-        <div className="text-sm font-medium text-gray-700 mb-1">Nom structure</div>
+        <div className="text-sm font-medium text-gray-700 mb-1">
+          Nom structure
+        </div>
         <input
           {...register('name')}
           className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -132,7 +134,9 @@ export default function ProfessionalInfoForm({
       </label>
 
       <label className="block">
-        <div className="text-sm font-medium text-gray-700 mb-1">Statut juridique</div>
+        <div className="text-sm font-medium text-gray-700 mb-1">
+          Statut juridique
+        </div>
         <input
           {...register('status_juridique')}
           className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -175,7 +179,9 @@ export default function ProfessionalInfoForm({
       </label>
 
       <label className="block">
-        <div className="text-sm font-medium text-gray-700 mb-1">Numéro pro (SIRET / TVA)</div>
+        <div className="text-sm font-medium text-gray-700 mb-1">
+          Numéro pro (SIRET / TVA)
+        </div>
         <input
           {...register('number_pro')}
           className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
