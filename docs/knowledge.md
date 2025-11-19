@@ -1059,6 +1059,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── client-create-drawer.module.css
 │   │   │   │   │   └── ClientCreateDrawer.tsx
 │   │   │   │   ├── common
+│   │   │   │   │   ├── card.module.css
+│   │   │   │   │   ├── Card.tsx
+│   │   │   │   │   ├── confirm-modal.module.css
+│   │   │   │   │   ├── ConfirmModal.tsx
 │   │   │   │   │   ├── Modal.css
 │   │   │   │   │   └── Modal.tsx
 │   │   │   │   ├── email
@@ -1164,7 +1168,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-210 directories, 498 files
+210 directories, 502 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1172,7 +1176,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 <!-- BEGIN AUTO: FRONTEND_PACKAGE_JSON -->
 Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
 **name**: `frontend`  •  **version**: `0.1.0`
-**scripts**: 10  •  **dependencies**: 18  •  **devDependencies**: 27
+**scripts**: 10  •  **dependencies**: 19  •  **devDependencies**: 27
 
 <details><summary>Top dependencies</summary>
 
@@ -1190,6 +1194,7 @@ Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
 - react-dom: ^19.1.0
 - react-helmet-async: ^2.0.5
 - react-hook-form: ^7.62.0
+- react-hot-toast: ^2.6.0
 - react-router-dom: ^7.9.1
 - tailwind-merge: ^3.3.1
 - tailwindcss: ^4.1.13
@@ -1237,5 +1242,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-18 22:48:37 CET**
+_Updated_: **2025-11-19 08:35:18 CET**
 <!-- END AUTO: LAST_UPDATED -->
