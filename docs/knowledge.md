@@ -1110,6 +1110,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── LoginPage.module.css
 │   │   │   │   │   └── LoginPage.tsx
 │   │   │   │   ├── Profile
+│   │   │   │   │   ├── profile-edit-page.module.css
 │   │   │   │   │   ├── profile-page.module.css
 │   │   │   │   │   ├── ProfileEditPage.tsx
 │   │   │   │   │   └── ProfilePage.tsx
@@ -1168,7 +1169,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-210 directories, 502 files
+210 directories, 503 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1242,5 +1243,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-19 08:35:18 CET**
+_Updated_: **2025-11-19 08:36:47 CET**
 <!-- END AUTO: LAST_UPDATED -->
