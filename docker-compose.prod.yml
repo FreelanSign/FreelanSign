@@ -1,0 +1,71 @@
+services:
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: freelansign_postgres_prod
+    restart: always
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-freelansign}
+      POSTGRES_USER: ${DATABASE_USER:-fs_user}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-fs_password}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    networks:
+      - freelansign_network_prod
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-fs_user} -d ${DATABASE_NAME:-freelansign}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Django
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: freelansign_backend_prod
+    restart: always
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=${DATABASE_NAME:-freelansign}
+      - DATABASE_USER=${DATABASE_USER:-fs_user}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-fs_password}
+      - DEBUG=False
+      - SECRET_KEY=${SECRET_KEY} # Ensure this is set in .env
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1}
+    volumes:
+      - backend_static_prod:/app/static
+      - backend_media_prod:/app/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - freelansign_network_prod
+
+  # Frontend React (served via Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production-server
+    container_name: freelansign_frontend_prod
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    volumes:
+      - backend_static_prod:/app/static:ro # Mount static files for Nginx to serve
+      - backend_media_prod:/app/media:ro   # Mount media files for Nginx to serve
+    networks:
+      - freelansign_network_prod
+
+volumes:
+  postgres_data_prod:
+  backend_static_prod:
+  backend_media_prod:
+
+networks:
+  freelansign_network_prod:
+    driver: bridge

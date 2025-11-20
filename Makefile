@@ -1,7 +1,7 @@
 # Makefile pour FreelansSign
 
 # Variables
-DOCKER_COMPOSE = docker-compose
+DOCKER_COMPOSE = docker compose
 ENV_FILE = .env.docker
 
 # Couleurs pour les messages
@@ -64,6 +64,20 @@ dev-docker: setup-docker build up
 	@echo "$(GREEN)Mode développement Docker démarré!$(NC)"
 	@echo "Frontend: http://localhost:3000"
 	@echo "Backend: http://localhost:8000"
+
+# Production Docker
+prod-build:
+	@echo "$(GREEN)Construction des images Docker pour la production...$(NC)"
+	@docker compose -f docker-compose.prod.yml build
+
+prod-up:
+	@echo "$(GREEN)Démarrage des services en production...$(NC)"
+	@docker compose -f docker-compose.prod.yml up -d
+	@echo "$(GREEN)Services de production démarrés sur http://localhost$(NC)"
+
+prod-down:
+	@echo "$(YELLOW)Arrêt des services de production...$(NC)"
+	@docker compose -f docker-compose.prod.yml down
 
 # Construction des images
 build:

@@ -463,6 +463,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── settings.json
 │   └── settings.local.json
 ├── .coverage
+├── .dockerignore
 ├── .env
 ├── .github
 │   ├── CODEOWNERS
@@ -476,9 +477,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── .pre-commit-config.yaml
 ├── .sonarcloud.properties
 ├── .sonarignore
+├── AGENT.md
 ├── backend
 │   ├── .coverage
 │   ├── .coveragerc
+│   ├── .dockerignore
 │   ├── apps
 │   │   ├── __init__.py
 │   │   ├── branding
@@ -951,12 +954,18 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │       │   ├── areas.json
 │       │   └── prestations.json
 │       └── prestations.csv
+├── build_log.txt
 ├── CHANGELOG.md
 ├── CLAUDE.md
 ├── coverage.xml
+├── database
+│   └── dumps
+│       └── dump_local_20251120_094504.sql
+├── docker-compose.prod.yml
 ├── docker-compose.yml
 ├── docs
 │   ├── backup.md
+│   ├── database_management.md
 │   ├── good-practices
 │   │   ├── claud-good-habits.md
 │   │   ├── dev-docs-pattern.md
@@ -965,10 +974,14 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   └── paradigms.md
 │   ├── knowledge.md
 │   ├── knowledge.sh
-│   ├── RELEASE_PLAN_v0.1.0.md
-│   └── RELEASE_PLAN_v0.2.0.md
+│   ├── release
+│   │   ├── RELEASE_PLAN_v0.1.0.md
+│   │   └── RELEASE_PLAN_v0.2.0.md
+│   └── tmp
+│       └── docker-implementation.md
 ├── FreelanSign.code-workspace
 ├── frontend
+│   ├── .dockerignore
 │   ├── .env.development.local
 │   ├── .env.prod
 │   ├── .eslintrc.cjs
@@ -977,6 +990,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── Dockerfile
 │   ├── eslint.config.js
 │   ├── index.html
+│   ├── nginx.conf
 │   ├── package-lock.json
 │   ├── package.json
 │   ├── pnpm-lock.yaml
@@ -1156,6 +1170,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── pnpm-lock.yaml
 ├── release.md
 ├── scripts
+│   ├── db-dump.sh
+│   ├── db-restore.sh
 │   ├── load-env.sh
 │   └── precommit.sh
 ├── sonar-project.properties
@@ -1167,7 +1183,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-208 directories, 503 files
+212 directories, 515 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1175,7 +1191,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 <!-- BEGIN AUTO: FRONTEND_PACKAGE_JSON -->
 Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
 **name**: `frontend`  •  **version**: `0.1.0`
-**scripts**: 10  •  **dependencies**: 19  •  **devDependencies**: 27
+**scripts**: 10  •  **dependencies**: 19  •  **devDependencies**: 26
 
 <details><summary>Top dependencies</summary>
 
@@ -1241,5 +1257,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-19 12:05:32 CET**
+_Updated_: **2025-11-20 10:05:52 CET**
 <!-- END AUTO: LAST_UPDATED -->
