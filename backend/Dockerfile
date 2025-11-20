@@ -34,11 +34,17 @@ COPY --from=builder /app/requirements.txt .
 
 RUN pip install --no-cache /wheels/*
 
+# Install Playwright browsers and dependencies
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN playwright install --with-deps chromium
+
+
 COPY . /app/
 
 # Create a non-root user
 RUN addgroup --system app && adduser --system --group app
 RUN chown -R app:app /app
+RUN chown -R app:app /ms-playwright
 
 USER app
 
