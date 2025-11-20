@@ -477,6 +477,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── .pre-commit-config.yaml
 ├── .sonarcloud.properties
 ├── .sonarignore
+├── AGENT.md
 ├── backend
 │   ├── .coverage
 │   ├── .coveragerc
@@ -957,10 +958,14 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── CHANGELOG.md
 ├── CLAUDE.md
 ├── coverage.xml
+├── database
+│   └── dumps
+│       └── dump_local_20251120_094504.sql
 ├── docker-compose.prod.yml
 ├── docker-compose.yml
 ├── docs
 │   ├── backup.md
+│   ├── database_management.md
 │   ├── good-practices
 │   │   ├── claud-good-habits.md
 │   │   ├── dev-docs-pattern.md
@@ -1165,6 +1170,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── pnpm-lock.yaml
 ├── release.md
 ├── scripts
+│   ├── db-dump.sh
+│   ├── db-restore.sh
 │   ├── load-env.sh
 │   └── precommit.sh
 ├── sonar-project.properties
@@ -1176,7 +1183,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-210 directories, 510 files
+212 directories, 515 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1250,5 +1257,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-20 09:11:10 CET**
+_Updated_: **2025-11-20 09:52:32 CET**
 <!-- END AUTO: LAST_UPDATED -->
