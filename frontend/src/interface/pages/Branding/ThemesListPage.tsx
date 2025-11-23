@@ -1,12 +1,12 @@
+
 // src/interface/pages/Branding/ThemesListPage.tsx
-import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import Sidebar from '../../components/sidebar/Sidebar';
-import Navbar from '../../components/navbar/Navbar';
+import { Link } from 'react-router-dom';
+import type { ThemeListItem } from '../../../infrastructure/branding/themeRepository';
+import { themeRepository } from '../../../infrastructure/branding/themeRepository';
 import { useThemes } from '../../hooks/useThemes';
 import styles from './themes.module.css';
-import { themeRepository } from '../../../infrastructure/branding/themeRepository';
-import type { ThemeListItem } from '../../../infrastructure/branding/themeRepository';
+
 
 /** Helpers type-safe pour récupérer un message d'erreur sans any */
 function isErrorWithMessage(e: unknown): e is { message: string } {
@@ -86,14 +86,8 @@ export default function ThemesListPage() {
   }
 
   const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div>
-      <Sidebar />
-      <div className={styles.page}>
-        <Navbar />
-        <main className={`${styles.inner} container mx-auto grid gap-6`}>
-          {children}
-        </main>
-      </div>
+    <div className="grid gap-6">
+      {children}
     </div>
   );
 

@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { apiToUiQuote } from '../../../domain/quote/mappers';
 import type {
-  ApiQuoteResponse,
-  ApiQuoteUpdatePayload,
+    ApiQuoteResponse,
+    ApiQuoteUpdatePayload,
 } from '../../../domain/quote/types';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 import { userRepository } from '../../../infrastructure/user/userRepository';
@@ -394,14 +394,14 @@ export default function QuoteEditPage() {
 
   if (loading || !quote) {
     return (
-      <main className={`container mx-auto p-6 ${styles.page}`}>
+      <div className="grid gap-6">
         <div className={styles.skeletonHeader} />
         <div className={styles.skeletonCard} />
-      </main>
+      </div>
     );
   }
   return (
-    <main className={`container mx-auto p-6 grid gap-6 ${styles.page}`}>
+    <div className="grid gap-6">
       <header className={styles.header}>
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -893,6 +893,6 @@ export default function QuoteEditPage() {
           <PdfPreviewPane url={pdfUrl} loading={pdfLoading} error={pdfError} />
         </div>
       </Modal>
-    </main>
+    </div>
   );
 }

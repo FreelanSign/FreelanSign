@@ -7,8 +7,6 @@ import type { ProfessionalUserDto, UserDto } from '../../../domain/user/types';
 import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
 import { userRepository } from '../../../infrastructure/user/userRepository';
 
-import Sidebar from '../../components/sidebar/Sidebar';
-import Navbar from '../../components/navbar/Navbar';
 import styles from './profile-page.module.css';
 
 /**
@@ -96,13 +94,7 @@ export default function ProfilePage() {
 
   if (loading)
     return (
-      <>
-        <Sidebar />
-        <div className={styles.page}>
-          <Navbar />
-          <main className={styles.inner}>Chargement du profil…</main>
-        </div>
-      </>
+      <div>Chargement du profil…</div>
     );
 
   const fullName = user
@@ -111,97 +103,91 @@ export default function ProfilePage() {
     : 'Utilisateur';
 
   return (
-    <>
-      <Sidebar />
-      <div className={styles.page}>
-        <Navbar />
-        <main className={`${styles.inner} container mx-auto grid gap-6`}>
-          {/* Compact User Header */}
-          <header className={styles.header}>
-            <div className={styles.avatarWrap}>
-              <img
-                src={user?.profile?.avatar_url || '/img/default-avatar.jpeg'}
-                alt="Avatar"
-                className={styles.avatarImg}
-              />
-            </div>
-            <div className={styles.headerContent}>
-              <h1 className={styles.userName}>{fullName}</h1>
-              <div className={styles.meta}>
-                <span className={styles.metaItem}>
-                  {user?.email || authUser?.email || '—'}
+    <div className="grid gap-6">
+      {/* Compact User Header */}
+      <header className={styles.header}>
+        <div className={styles.avatarWrap}>
+          <img
+            src={user?.profile?.avatar_url || '/img/default-avatar.jpeg'}
+            alt="Avatar"
+            className={styles.avatarImg}
+          />
+        </div>
+        <div className={styles.headerContent}>
+          <h1 className={styles.userName}>{fullName}</h1>
+          <div className={styles.meta}>
+            <span className={styles.metaItem}>
+              {user?.email || authUser?.email || '—'}
+            </span>
+            {user?.profile?.phone && (
+              <span className={styles.metaItem}>{user.profile.phone}</span>
+            )}
+          </div>
+        </div>
+        <button
+          onClick={() => navigate('/profile/edit')}
+          className={`${styles.buttonPrimary} ${styles.editButton}`}
+        >
+          Modifier
+        </button>
+      </header>
+
+      {/* Professional Info Card */}
+      {professional && professional !== 'loading' && (
+        <section className={styles.card}>
+          <h2 className={styles.h2}>
+            {professional.name || 'Structure professionnelle'}
+            {professional.status_juridique && (
+              <span className={`${styles.badge} ${styles.badgeInfo}`}>
+                {professional.status_juridique}
+              </span>
+            )}
+          </h2>
+
+          <div className={styles.kv}>
+            <span>Domaine</span>
+            <strong>{areaName || '—'}</strong>
+          </div>
+
+          <div className={styles.kv}>
+            <span>TJM</span>
+            <strong>
+              {professional.tjm_cents
+                ? `${(professional.tjm_cents / 100).toFixed(2)} €`
+                : '—'}
+            </strong>
+          </div>
+
+          <div className={styles.kv}>
+            <span>SIRET</span>
+            <strong>{professional.number_pro || '—'}</strong>
+          </div>
+        </section>
+      )}
+
+      {/* Services Card */}
+      {professional && professional !== 'loading' && (
+        <section className={styles.card}>
+          <h2 className={styles.h2}>Prestations</h2>
+          {prestations === 'loading' ? (
+            <p className={styles.emptyServices}>
+              Chargement des prestations…
+            </p>
+          ) : prestations && prestations.length > 0 ? (
+            <div className={styles.servicesGrid}>
+              {prestations.map((p) => (
+                <span key={p.id} className={styles.chip}>
+                  {p.name || p.title || p.label || 'Service'}
                 </span>
-                {user?.profile?.phone && (
-                  <span className={styles.metaItem}>{user.profile.phone}</span>
-                )}
-              </div>
+              ))}
             </div>
-            <button
-              onClick={() => navigate('/profile/edit')}
-              className={`${styles.buttonPrimary} ${styles.editButton}`}
-            >
-              Modifier
-            </button>
-          </header>
-
-          {/* Professional Info Card */}
-          {professional && professional !== 'loading' && (
-            <section className={styles.card}>
-              <h2 className={styles.h2}>
-                {professional.name || 'Structure professionnelle'}
-                {professional.status_juridique && (
-                  <span className={`${styles.badge} ${styles.badgeInfo}`}>
-                    {professional.status_juridique}
-                  </span>
-                )}
-              </h2>
-
-              <div className={styles.kv}>
-                <span>Domaine</span>
-                <strong>{areaName || '—'}</strong>
-              </div>
-
-              <div className={styles.kv}>
-                <span>TJM</span>
-                <strong>
-                  {professional.tjm_cents
-                    ? `${(professional.tjm_cents / 100).toFixed(2)} €`
-                    : '—'}
-                </strong>
-              </div>
-
-              <div className={styles.kv}>
-                <span>SIRET</span>
-                <strong>{professional.number_pro || '—'}</strong>
-              </div>
-            </section>
+          ) : (
+            <p className={styles.emptyServices}>
+              Aucune prestation configurée
+            </p>
           )}
-
-          {/* Services Card */}
-          {professional && professional !== 'loading' && (
-            <section className={styles.card}>
-              <h2 className={styles.h2}>Prestations</h2>
-              {prestations === 'loading' ? (
-                <p className={styles.emptyServices}>
-                  Chargement des prestations…
-                </p>
-              ) : prestations && prestations.length > 0 ? (
-                <div className={styles.servicesGrid}>
-                  {prestations.map((p) => (
-                    <span key={p.id} className={styles.chip}>
-                      {p.name || p.title || p.label || 'Service'}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className={styles.emptyServices}>
-                  Aucune prestation configurée
-                </p>
-              )}
-            </section>
-          )}
-        </main>
-      </div>
-    </>
+        </section>
+      )}
+    </div>
   );
 }

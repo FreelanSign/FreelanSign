@@ -2,11 +2,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  useFieldArray,
-  useForm,
-  useWatch,
-  type Resolver,
-  type SubmitHandler,
+    useFieldArray,
+    useForm,
+    useWatch,
+    type Resolver,
+    type SubmitHandler,
 } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -19,9 +19,7 @@ import { apiClient } from '../../../infrastructure/http/apiClient';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 import ClientCreateDrawer from '../../components/client/ClientCreateDrawer';
 import Modal from '../../components/common/Modal';
-import NavBar from '../../components/navbar/Navbar';
 import { PdfPreviewPane } from '../../components/quote/PdfPreviewPane';
-import Sidebar from '../../components/sidebar/Sidebar';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { usePdfPreview } from '../../hooks/usePdfPreview';
 import { openBlobUrlInNewTab, saveBlobUrlAs } from '../../utils/saveFile';
@@ -493,19 +491,15 @@ export default function QuoteCreatePage() {
 
   if (clients === 'loading' || prestations === 'loading') {
     return (
-      <main className={`container mx-auto p-6 ${styles.page}`}>
+      <div className="grid gap-6">
         <div className={styles.skeletonHeader} />
         <div className={styles.skeletonCard} />
-      </main>
+      </div>
     );
   }
 
   return (
-    <main
-      className={`container mx-auto p-6 grid gap-6 ${styles.page} ${styles.withSidebar}`}
-    >
-      <Sidebar />
-      <NavBar />
+    <div className="grid gap-6">
       {/* Header */}
       <header className={styles.header}>
         <div className="flex items-start justify-between gap-4">
@@ -1022,6 +1016,6 @@ export default function QuoteCreatePage() {
         onClose={() => setClientDrawerOpen(false)}
         onClientCreated={handleClientCreated}
       />
-    </main>
+    </div>
   );
 }

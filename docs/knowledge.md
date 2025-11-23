@@ -456,6 +456,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 <!-- BEGIN AUTO: PROJECT_STRUCTURE -->
 ```text
 .
+├── .agent
+│   └── rules
+│       └── overall-guide.md
 ├── .claude
 │   ├── commands
 │   │   ├── dev-docs-update.md
@@ -465,6 +468,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── .coverage
 ├── .dockerignore
 ├── .env
+├── .env.example
 ├── .github
 │   ├── CODEOWNERS
 │   ├── hooks
@@ -954,18 +958,27 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │       │   ├── areas.json
 │       │   └── prestations.json
 │       └── prestations.csv
-├── build_log.txt
 ├── CHANGELOG.md
 ├── CLAUDE.md
 ├── coverage.xml
 ├── database
 │   └── dumps
 │       └── dump_local_20251120_094504.sql
+├── docker-compose.certbot.yml
 ├── docker-compose.prod.yml
 ├── docker-compose.yml
 ├── docs
 │   ├── backup.md
 │   ├── database_management.md
+│   ├── deployment
+│   │   ├── backups.md
+│   │   ├── build-and-deploy.md
+│   │   ├── DEPLOYMENT_MASTER_GUIDE.md
+│   │   ├── disaster-recovery.md
+│   │   ├── environment-config.md
+│   │   ├── monitoring.md
+│   │   ├── production-checklist.md
+│   │   └── vps-setup.md
 │   ├── good-practices
 │   │   ├── claud-good-habits.md
 │   │   ├── dev-docs-pattern.md
@@ -974,11 +987,12 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   └── paradigms.md
 │   ├── knowledge.md
 │   ├── knowledge.sh
+│   ├── plans
+│   │   └── production-ready.md
 │   ├── release
 │   │   ├── RELEASE_PLAN_v0.1.0.md
 │   │   └── RELEASE_PLAN_v0.2.0.md
 │   └── tmp
-│       └── docker-implementation.md
 ├── FreelanSign.code-workspace
 ├── frontend
 │   ├── .dockerignore
@@ -1080,6 +1094,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── email
 │   │   │   │   │   ├── quote-email-preview-dialog.module.css
 │   │   │   │   │   └── QuoteEmailPreviewDialog.tsx
+│   │   │   │   ├── footer
+│   │   │   │   │   ├── footer.module.css
+│   │   │   │   │   └── Footer.tsx
 │   │   │   │   ├── login
 │   │   │   │   │   ├── login-form.module.css
 │   │   │   │   │   └── LoginForm.tsx
@@ -1105,6 +1122,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── usePdfPreview.ts
 │   │   │   │   └── useThemes.ts
 │   │   │   ├── layout
+│   │   │   │   ├── main-layout.module.css
+│   │   │   │   ├── MainLayout.tsx
 │   │   │   │   └── RootSeo.tsx
 │   │   │   ├── pages
 │   │   │   │   ├── Auth
@@ -1163,17 +1182,21 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   └── vitest.config.ts
 ├── LICENSE
 ├── logo.png
+├── logrotate.conf
 ├── logs
 │   └── app.log
 ├── Makefile
 ├── package.json
 ├── pnpm-lock.yaml
+├── postgres.conf
 ├── release.md
 ├── scripts
+│   ├── backup.sh
 │   ├── db-dump.sh
 │   ├── db-restore.sh
 │   ├── load-env.sh
-│   └── precommit.sh
+│   ├── precommit.sh
+│   └── restore.sh
 ├── sonar-project.properties
 └── typings
     └── rest_framework
@@ -1183,7 +1206,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-212 directories, 515 files
+217 directories, 533 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1257,5 +1280,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-20 10:05:52 CET**
+_Updated_: **2025-11-23 11:19:42 CET**
 <!-- END AUTO: LAST_UPDATED -->

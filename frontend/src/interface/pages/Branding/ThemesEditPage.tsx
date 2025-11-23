@@ -1,14 +1,12 @@
 // pages/branding/ThemeEditPage.tsx
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import Sidebar from '../../components/sidebar/Sidebar';
-import Navbar from '../../components/navbar/Navbar';
-import ThemeForm, {
-  type ThemeFormData,
-} from '../../components/branding/ThemesForm';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { themeRepository } from '../../../infrastructure/branding/themeRepository';
+import ThemeForm, {
+    type ThemeFormData,
+} from '../../components/branding/ThemesForm';
+import { normalizeSpacing, normalizeTypography } from '../../utils/branding';
 import styles from './themes.module.css';
-import { normalizeTypography, normalizeSpacing } from '../../utils/branding';
 
 export default function ThemeEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -83,22 +81,16 @@ export default function ThemeEditPage() {
 
   if (loadingTheme) {
     return (
-      <div>
-        <Sidebar />
-        <div className={styles.page}>
-          <Navbar />
-          <main className={`${styles.inner} container mx-auto grid gap-6`}>
-            <div className={styles.headerRow}>
-              <div>
-                <h1 className={styles.title}>Chargement...</h1>
-              </div>
-            </div>
-            <div className={styles.card}>
-              <div className={styles.skel}></div>
-              <div className={styles.skel} style={{ marginTop: '1rem' }}></div>
-              <div className={styles.skel} style={{ marginTop: '1rem' }}></div>
-            </div>
-          </main>
+      <div className="grid gap-6">
+        <div className={styles.headerRow}>
+          <div>
+            <h1 className={styles.title}>Chargement...</h1>
+          </div>
+        </div>
+        <div className={styles.card}>
+          <div className={styles.skel}></div>
+          <div className={styles.skel} style={{ marginTop: '1rem' }}></div>
+          <div className={styles.skel} style={{ marginTop: '1rem' }}></div>
         </div>
       </div>
     );
@@ -106,25 +98,19 @@ export default function ThemeEditPage() {
 
   if (error && !initialData) {
     return (
-      <div>
-        <Sidebar />
-        <div className={styles.page}>
-          <Navbar />
-          <main className={`${styles.inner} container mx-auto grid gap-6`}>
-            <div className={styles.headerRow}>
-              <div>
-                <h1 className={styles.title}>Erreur</h1>
-              </div>
-              <Link
-                to="/branding/themes"
-                className={`${styles.btn} ${styles.btnGhost}`}
-              >
-                ← Retour
-              </Link>
-            </div>
-            <div className={styles.error}>{error}</div>
-          </main>
+      <div className="grid gap-6">
+        <div className={styles.headerRow}>
+          <div>
+            <h1 className={styles.title}>Erreur</h1>
+          </div>
+          <Link
+            to="/branding/themes"
+            className={`${styles.btn} ${styles.btnGhost}`}
+          >
+            ← Retour
+          </Link>
         </div>
+        <div className={styles.error}>{error}</div>
       </div>
     );
   }
@@ -134,35 +120,29 @@ export default function ThemeEditPage() {
   }
 
   return (
-    <div>
-      <Sidebar />
-      <div className={styles.page}>
-        <Navbar />
-        <main className={`${styles.inner} container mx-auto grid gap-6`}>
-          <div className={styles.headerRow}>
-            <div>
-              <h1 className={styles.title}>Modifier le thème</h1>
-              <p className={styles.headerSubtitle}>
-                Ajustez les paramètres de votre thème
-              </p>
-            </div>
-            <Link
-              to="/branding/themes"
-              className={`${styles.btn} ${styles.btnGhost}`}
-            >
-              ← Retour
-            </Link>
-          </div>
-
-          <ThemeForm
-            initialData={initialData}
-            onSubmit={handleSubmit}
-            submitLabel="💾  Enregistrer les modifications"
-            isLoading={loading}
-            error={error}
-          />
-        </main>
+    <div className="grid gap-6">
+      <div className={styles.headerRow}>
+        <div>
+          <h1 className={styles.title}>Modifier le thème</h1>
+          <p className={styles.headerSubtitle}>
+            Ajustez les paramètres de votre thème
+          </p>
+        </div>
+        <Link
+          to="/branding/themes"
+          className={`${styles.btn} ${styles.btnGhost}`}
+        >
+          ← Retour
+        </Link>
       </div>
+
+      <ThemeForm
+        initialData={initialData}
+        onSubmit={handleSubmit}
+        submitLabel="💾  Enregistrer les modifications"
+        isLoading={loading}
+        error={error}
+      />
     </div>
   );
 }
