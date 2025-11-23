@@ -2,8 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 import QuoteEmailPreviewDialog from '../../components/email/QuoteEmailPreviewDialog';
-import Navbar from '../../components/navbar/Navbar';
-import Sidebar from '../../components/sidebar/Sidebar';
 import styles from './quote-detail.module.css';
 
 import { apiToUiQuoteDetail } from '../../../domain/quote/mappers';
@@ -120,15 +118,7 @@ export default function QuoteDetailPage() {
   }, [quote]);
 
   const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div>
-      <Sidebar />
-      <div className={styles.page}>
-        <Navbar />
-        <main className={`${styles.inner} container mx-auto grid gap-6`}>
-          {children}
-        </main>
-      </div>
-    </div>
+    <div className="grid gap-6">{children}</div>
   );
 
   if (loading) {

@@ -1,12 +1,10 @@
 // pages/branding/ThemeCreatePage.tsx
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import Sidebar from '../../components/sidebar/Sidebar';
-import Navbar from '../../components/navbar/Navbar';
+import { Link, useNavigate } from 'react-router-dom';
+import { themeRepository } from '../../../infrastructure/branding/themeRepository';
 import ThemeForm, {
   type ThemeFormData,
 } from '../../components/branding/ThemesForm';
-import { themeRepository } from '../../../infrastructure/branding/themeRepository';
 import styles from './themes.module.css';
 
 const DEFAULT_COLORS = {
@@ -83,36 +81,29 @@ export default function ThemeCreatePage() {
   }
 
   return (
-    <div>
-      <Sidebar />
-      <div className={styles.page}>
-        <Navbar />
-        <main className={`${styles.inner} container mx-auto grid gap-6`}>
-          <div className={styles.headerRow}>
-            <div>
-              <h1 className={styles.title}>Créer un nouveau thème</h1>
-              <p className={styles.headerSubtitle}>
-                Personnalisez l'apparence de vos documents avec un thème sur
-                mesure
-              </p>
-            </div>
-            <Link
-              to="/branding/themes"
-              className={`${styles.btn} ${styles.btnGhost}`}
-            >
-              ← Retour
-            </Link>
-          </div>
-
-          <ThemeForm
-            initialData={initialData}
-            onSubmit={handleSubmit}
-            submitLabel="✨ Créer le thème"
-            isLoading={loading}
-            error={error}
-          />
-        </main>
+    <div className="grid gap-6">
+      <div className={styles.headerRow}>
+        <div>
+          <h1 className={styles.title}>Créer un nouveau thème</h1>
+          <p className={styles.headerSubtitle}>
+            Personnalisez l'apparence de vos documents avec un thème sur mesure
+          </p>
+        </div>
+        <Link
+          to="/branding/themes"
+          className={`${styles.btn} ${styles.btnGhost}`}
+        >
+          ← Retour
+        </Link>
       </div>
+
+      <ThemeForm
+        initialData={initialData}
+        onSubmit={handleSubmit}
+        submitLabel="✨ Créer le thème"
+        isLoading={loading}
+        error={error}
+      />
     </div>
   );
 }

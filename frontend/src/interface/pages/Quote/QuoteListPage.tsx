@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Sidebar from '../../components/sidebar/Sidebar';
-import Navbar from '../../components/navbar/Navbar';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 import styles from './quotes-list.module.css';
 
@@ -79,15 +77,7 @@ export default function QuotesListPage() {
     : undefined;
 
   const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div>
-      <Sidebar />
-      <div className={styles.page}>
-        <Navbar />
-        <main className={`${styles.inner} container mx-auto grid gap-6`}>
-          {children}
-        </main>
-      </div>
-    </div>
+    <div className="grid gap-6">{children}</div>
   );
 
   if (loading) {

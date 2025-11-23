@@ -33,19 +33,32 @@ DEBUG = env("DEBUG", default=False)
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 # --------------------------------------------------------------------------------------
+# Security settings (Production)
+# --------------------------------------------------------------------------------------
+if not DEBUG:
+    SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
+    SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=31536000)  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", default=True)
+    SECURE_HSTS_PRELOAD = env.bool("SECURE_HSTS_PRELOAD", default=True)
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = env.bool("SESSION_COOKIE_SECURE", default=True)
+    CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE", default=True)
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = "SAMEORIGIN"
+
+# --------------------------------------------------------------------------------------
 # Email settings
 # --------------------------------------------------------------------------------------
-# Looking to send emails in production? Check out our Email API/SMTP product!
-# Pour le développement avec Mailtrap uniquement
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "sandbox.smtp.mailtrap.io"
-EMAIL_HOST_USER = "54e99456c8cc20"
-EMAIL_HOST_PASSWORD = "04ef95b11a8fce"
-EMAIL_PORT = 2525  # Port non-sécurisé de Mailtrap
-EMAIL_USE_TLS = False  # Pas de TLS en dev
-EMAIL_USE_SSL = False  # Pas de SSL en dev
-EMAIL_FROM = "noreply@example.com"
-RESET_PASSWORD_URL = "https://frontend/reset-password"
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = env("EMAIL_HOST", default="sandbox.smtp.mailtrap.io")
+EMAIL_PORT = env.int("EMAIL_PORT", default=2525)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="54e99456c8cc20")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="04ef95b11a8fce")
+EMAIL_FROM = env("EMAIL_FROM", default="noreply@example.com")
+RESET_PASSWORD_URL = env("RESET_PASSWORD_URL", default="http://localhost:3000/reset-password")
 
 # --------------------------------------------------------------------------------------
 # Database
@@ -151,6 +164,13 @@ DATABASES = {
         "PASSWORD": env("DATABASE_PASSWORD"),
         "HOST": env("DATABASE_HOST"),
         "PORT": env("DATABASE_PORT"),
+        # Connection pooling settings
+        "CONN_MAX_AGE": env.int("CONN_MAX_AGE", default=600),  # 10 minutes
+        "CONN_HEALTH_CHECKS": True,  # Check connections before use
+        "OPTIONS": {
+            "connect_timeout": 10,
+            "options": "-c statement_timeout=30000",  # 30s query timeout
+        },
     }
 }
 
@@ -301,6 +321,9 @@ CORS_PREFLIGHT_MAX_AGE = 86400
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
 LOG_DIR = BASE_DIR / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
@@ -346,3 +369,19 @@ LOGGING = {
         # "apps.catalog": {"handlers": ["console","file"], "level": "DEBUG", "propagate": False},
     },
 }
+
+# --------------------------------------------------------------------------------------
+# Sentry (Error Tracking)
+# --------------------------------------------------------------------------------------
+SENTRY_DSN = env("SENTRY_DSN", default=None)
+if SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        environment=env("SENTRY_ENVIRONMENT", default="production"),
+        traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.1),
+        integrations=[DjangoIntegration()],
+        send_default_pii=False,
+    )
