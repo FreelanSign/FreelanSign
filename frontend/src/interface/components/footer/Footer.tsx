@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import pkg from '../../../../../package.json';
+import pkg from '../../../../package.json';
 import styles from './footer.module.css';
 
 export default function Footer() {
@@ -37,7 +37,11 @@ export default function Footer() {
 
         <div className={styles.column}>
           <h3 className={styles.title}>Informations</h3>
-          <Link to="/changelog" className={styles.link}>
+          <Link
+            to="/changelog"
+            onClick={handleNotAvailable}
+            className={styles.link}
+          >
             Version {version}
           </Link>
           <div className={styles.status}>
@@ -48,8 +52,8 @@ export default function Footer() {
 
         <div className={styles.column}>
           <h3 className={styles.title}>Contact</h3>
-          <a href="mailto:contact@freelansign.com" className={styles.link}>
-            contact@freelansign.com
+          <a href="mailto:freelansign@gmail.com" className={styles.link}>
+            freelansign@gmail.com
           </a>
         </div>
       </div>

@@ -374,7 +374,7 @@ LOGGING = {
 # Sentry (Error Tracking)
 # --------------------------------------------------------------------------------------
 SENTRY_DSN = env("SENTRY_DSN", default=None)
-if SENTRY_DSN:
+if SENTRY_DSN and SENTRY_DSN.startswith("http"):
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
 

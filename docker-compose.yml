@@ -34,6 +34,8 @@ services:
       - DATABASE_USER=${DATABASE_USER:-fs_user}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD:-fs_password}
       - DEBUG=${DEBUG:-True}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
     ports:
       - "8000:8000"
     volumes:
