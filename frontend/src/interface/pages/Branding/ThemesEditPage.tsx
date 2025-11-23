@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { themeRepository } from '../../../infrastructure/branding/themeRepository';
 import ThemeForm, {
-    type ThemeFormData,
+  type ThemeFormData,
 } from '../../components/branding/ThemesForm';
 import { normalizeSpacing, normalizeTypography } from '../../utils/branding';
 import styles from './themes.module.css';

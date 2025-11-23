@@ -10,11 +10,11 @@ import { userRepository } from '../../../infrastructure/user/userRepository';
 import { Card } from '../../components/common/Card';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
 import PersonalUserDataForm, {
-    type PersonalUserFormValues,
+  type PersonalUserFormValues,
 } from '../../components/profile/PersonalUserDataForm';
 import PrestationsSelector from '../../components/profile/PrestationSelector';
 import ProfessionalInfoForm, {
-    type ProfessionalInfoValues,
+  type ProfessionalInfoValues,
 } from '../../components/profile/ProfessionalInfoForm';
 
 import styles from './profile-edit-page.module.css';
@@ -245,9 +245,7 @@ export default function ProfileEditPage() {
   }
 
   if (loading) {
-    return (
-      <div className={styles.loading}>Chargement…</div>
-    );
+    return <div className={styles.loading}>Chargement…</div>;
   }
 
   return (

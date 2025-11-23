@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { themeRepository } from '../../../infrastructure/branding/themeRepository';
 import ThemeForm, {
-    type ThemeFormData,
+  type ThemeFormData,
 } from '../../components/branding/ThemesForm';
 import styles from './themes.module.css';
 
@@ -87,8 +87,7 @@ export default function ThemeCreatePage() {
         <div>
           <h1 className={styles.title}>Créer un nouveau thème</h1>
           <p className={styles.headerSubtitle}>
-            Personnalisez l'apparence de vos documents avec un thème sur
-            mesure
+            Personnalisez l'apparence de vos documents avec un thème sur mesure
           </p>
         </div>
         <Link

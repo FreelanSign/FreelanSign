@@ -7,7 +7,6 @@ import { themeRepository } from '../../../infrastructure/branding/themeRepositor
 import { useThemes } from '../../hooks/useThemes';
 import styles from './themes.module.css';
 
-
 /** Helpers type-safe pour récupérer un message d'erreur sans any */
 function isErrorWithMessage(e: unknown): e is { message: string } {
   return (
@@ -86,9 +85,7 @@ export default function ThemesListPage() {
   }
 
   const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className="grid gap-6">
-      {children}
-    </div>
+    <div className="grid gap-6">{children}</div>
   );
 
   return (

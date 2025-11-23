@@ -11,16 +11,10 @@ export default function DashboardPage() {
       <div className={styles.headerRow}>
         <h1 className={styles.title}>Dashboard</h1>
         <div className={styles.headerCta}>
-          <Link
-            to="/profile"
-            className={`${styles.btn} ${styles.btnPrimary}`}
-          >
+          <Link to="/profile" className={`${styles.btn} ${styles.btnPrimary}`}>
             Mon profil
           </Link>
-          <Link
-            to="/quotes"
-            className={`${styles.btn} ${styles.btnIndigo}`}
-          >
+          <Link to="/quotes" className={`${styles.btn} ${styles.btnIndigo}`}>
             Mes devis
           </Link>
           <Link
