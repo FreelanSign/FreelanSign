@@ -3,12 +3,16 @@
 # FreelanSign Database Restore Script
 # Restores PostgreSQL database from backup file
 #
-
+# Refactored to handle container name based on environment (prod/dev).
+# @author Bertrand2808
+# @version 1.0
+# @date 2025-11-23
 set -e
+set -o pipefail
 
 # Configuration
+# Configuration
 BACKUP_DIR="/home/deploy/backups"
-DB_CONTAINER="freelansign_postgres_prod"
 DB_NAME="${DATABASE_NAME:-freelansign}"
 DB_USER="${DATABASE_USER:-fs_user}"
 
@@ -33,11 +37,12 @@ warn() {
 
 # Usage information
 usage() {
-    echo "Usage: $0 <backup_file>"
+    echo "Usage: $0 <backup_file> docker <env>"
+    echo "  env: dev or prod"
     echo ""
     echo "Examples:"
-    echo "  $0 /home/deploy/backups/daily/backup_20250121_143022.sql.gz"
-    echo "  $0 latest  # Restores the most recent daily backup"
+    echo "  $0 /home/deploy/backups/daily/backup_20250121_143022.sql.gz docker prod"
+    echo "  $0 latest docker dev  # Restores the most recent daily backup to dev"
     echo ""
     echo "Available backups:"
     echo ""
@@ -53,12 +58,31 @@ usage() {
 }
 
 # Check arguments
-if [ $# -eq 0 ]; then
-    error "No backup file specified"
+# Check arguments
+if [ $# -lt 3 ]; then
+    error "Insufficient arguments"
     usage
 fi
 
 BACKUP_FILE="$1"
+MODE="$2"
+ENV="$3"
+
+if [ "$MODE" != "docker" ]; then
+    error "Second argument must be 'docker'"
+    usage
+fi
+
+if [ "$ENV" == "prod" ]; then
+    DB_CONTAINER="freelansign_postgres_prod"
+    COMPOSE_FILE="docker-compose.prod.yml"
+elif [ "$ENV" == "dev" ]; then
+    DB_CONTAINER="freelansign_postgres"
+    COMPOSE_FILE="docker-compose.yml"
+else
+    error "Environment must be 'dev' or 'prod'"
+    usage
+fi
 
 # Handle 'latest' keyword
 if [ "$BACKUP_FILE" == "latest" ]; then
@@ -106,7 +130,7 @@ log "Safety backup created: $(du -h "$SAFETY_BACKUP" | cut -f1)"
 
 # Stop application (to prevent connections during restore)
 log "Stopping application containers..."
-docker compose -f /home/deploy/FreelanSign/docker-compose.prod.yml stop backend frontend
+docker compose -f "$COMPOSE_FILE" stop backend frontend
 
 # Wait for connections to close
 sleep 3
@@ -125,8 +149,15 @@ log "Creating fresh database..."
 docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d postgres -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
 
 # Restore from backup
+# Restore from backup
 log "Restoring from backup..."
-gunzip -c "$BACKUP_FILE" | docker exec -i "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME"
+
+# Determine if file is gzipped based on extension
+if [[ "$BACKUP_FILE" == *.gz ]]; then
+    gunzip -c "$BACKUP_FILE" | docker exec -i "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME"
+else
+    cat "$BACKUP_FILE" | docker exec -i "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME"
+fi
 
 if [ $? -eq 0 ]; then
     log "✅ Database restored successfully"
@@ -138,7 +169,7 @@ fi
 
 # Restart application
 log "Restarting application containers..."
-docker compose -f /home/deploy/FreelanSign/docker-compose.prod.yml start backend frontend
+docker compose -f "$COMPOSE_FILE" start backend frontend
 
 # Wait for services to be ready
 sleep 5

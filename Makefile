@@ -36,6 +36,13 @@ help:
 	@echo "$(YELLOW)Utilitaires:$(NC)"
 	@echo "  clean          - Nettoyer les conteneurs et volumes"
 
+
+# Configuration clean
+setup-clean:
+	@echo "$(GREEN)Configuration clean...$(NC)"
+	@cp .env.example .env 2>/dev/null || echo "Fichier .env.example non trouvé"
+	@echo "$(GREEN)Configuration clean terminée!$(NC)"
+
 # Configuration locale
 setup-local:
 	@echo "$(GREEN)Configuration pour développement local...$(NC)"

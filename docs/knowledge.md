@@ -468,7 +468,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── .coverage
 ├── .dockerignore
 ├── .env
+├── .env.docker
 ├── .env.example
+├── .env.local
 ├── .github
 │   ├── CODEOWNERS
 │   ├── hooks
@@ -1195,7 +1197,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── frontend
 │   ├── .dockerignore
 │   ├── .env.development.local
-│   ├── .env.prod
 │   ├── .eslintrc.cjs
 │   ├── .gitignore
 │   ├── components.json
@@ -1404,14 +1405,14 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-247 directories, 701 files
+247 directories, 702 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
 ## Frontend package.json
 <!-- BEGIN AUTO: FRONTEND_PACKAGE_JSON -->
 Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
-**name**: `frontend`  •  **version**: `0.1.0`
+**name**: `frontend`  •  **version**: `0.2.0`
 **scripts**: 10  •  **dependencies**: 19  •  **devDependencies**: 26
 
 <details><summary>Top dependencies</summary>
@@ -1478,5 +1479,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-23 12:56:30 CET**
+_Updated_: **2025-11-23 16:16:22 CET**
 <!-- END AUTO: LAST_UPDATED -->

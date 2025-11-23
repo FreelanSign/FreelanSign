@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { apiToUiQuote } from '../../../domain/quote/mappers';
 import type {
-    ApiQuoteResponse,
-    ApiQuoteUpdatePayload,
+  ApiQuoteResponse,
+  ApiQuoteUpdatePayload,
 } from '../../../domain/quote/types';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 import { userRepository } from '../../../infrastructure/user/userRepository';
