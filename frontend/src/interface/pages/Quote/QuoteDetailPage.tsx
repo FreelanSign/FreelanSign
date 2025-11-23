@@ -6,8 +6,8 @@ import styles from './quote-detail.module.css';
 
 import { apiToUiQuoteDetail } from '../../../domain/quote/mappers';
 import type {
-    ApiQuoteResponse,
-    UiQuoteDetail,
+  ApiQuoteResponse,
+  UiQuoteDetail,
 } from '../../../domain/quote/types';
 
 function useIntlFormatters(currency: string | null | undefined) {
@@ -118,9 +118,7 @@ export default function QuoteDetailPage() {
   }, [quote]);
 
   const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className="grid gap-6">
-      {children}
-    </div>
+    <div className="grid gap-6">{children}</div>
   );
 
   if (loading) {

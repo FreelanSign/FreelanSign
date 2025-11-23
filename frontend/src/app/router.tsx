@@ -1,8 +1,8 @@
 import React from 'react';
 import {
-    createBrowserRouter,
-    Navigate,
-    RouterProvider,
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
 } from 'react-router-dom';
 import MainLayout from '../interface/layout/MainLayout';
 import RequestPasswordResetPage from '../interface/pages/Auth/request-password-reset';

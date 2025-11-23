@@ -92,10 +92,7 @@ export default function ProfilePage() {
     };
   }, [navigate]);
 
-  if (loading)
-    return (
-      <div>Chargement du profil…</div>
-    );
+  if (loading) return <div>Chargement du profil…</div>;
 
   const fullName = user
     ? `${user.profile?.first_name || ''} ${user.profile?.last_name || ''}`.trim() ||
@@ -170,9 +167,7 @@ export default function ProfilePage() {
         <section className={styles.card}>
           <h2 className={styles.h2}>Prestations</h2>
           {prestations === 'loading' ? (
-            <p className={styles.emptyServices}>
-              Chargement des prestations…
-            </p>
+            <p className={styles.emptyServices}>Chargement des prestations…</p>
           ) : prestations && prestations.length > 0 ? (
             <div className={styles.servicesGrid}>
               {prestations.map((p) => (
@@ -182,9 +177,7 @@ export default function ProfilePage() {
               ))}
             </div>
           ) : (
-            <p className={styles.emptyServices}>
-              Aucune prestation configurée
-            </p>
+            <p className={styles.emptyServices}>Aucune prestation configurée</p>
           )}
         </section>
       )}

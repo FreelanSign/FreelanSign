@@ -1,4 +1,3 @@
-
 // src/interface/pages/Branding/ThemesListPage.tsx
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -6,7 +5,6 @@ import type { ThemeListItem } from '../../../infrastructure/branding/themeReposi
 import { themeRepository } from '../../../infrastructure/branding/themeRepository';
 import { useThemes } from '../../hooks/useThemes';
 import styles from './themes.module.css';
-
 
 /** Helpers type-safe pour récupérer un message d'erreur sans any */
 function isErrorWithMessage(e: unknown): e is { message: string } {
@@ -86,9 +84,7 @@ export default function ThemesListPage() {
   }
 
   const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className="grid gap-6">
-      {children}
-    </div>
+    <div className="grid gap-6">{children}</div>
   );
 
   return (

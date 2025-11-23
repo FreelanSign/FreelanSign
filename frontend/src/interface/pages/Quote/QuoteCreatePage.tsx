@@ -2,11 +2,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useState } from 'react';
 import {
-    useFieldArray,
-    useForm,
-    useWatch,
-    type Resolver,
-    type SubmitHandler,
+  useFieldArray,
+  useForm,
+  useWatch,
+  type Resolver,
+  type SubmitHandler,
 } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';

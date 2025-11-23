@@ -77,9 +77,7 @@ export default function QuotesListPage() {
     : undefined;
 
   const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className="grid gap-6">
-      {children}
-    </div>
+    <div className="grid gap-6">{children}</div>
   );
 
   if (loading) {
