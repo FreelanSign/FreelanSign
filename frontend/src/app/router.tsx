@@ -1,9 +1,10 @@
 import React from 'react';
 import {
-  createBrowserRouter,
-  Navigate,
-  RouterProvider,
+    createBrowserRouter,
+    Navigate,
+    RouterProvider,
 } from 'react-router-dom';
+import MainLayout from '../interface/layout/MainLayout';
 import RequestPasswordResetPage from '../interface/pages/Auth/request-password-reset';
 import ResetPasswordPage from '../interface/pages/Auth/reset-password';
 import ThemesCreatePage from '../interface/pages/Branding/ThemesCreatePage';
@@ -33,76 +34,23 @@ const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/register', element: <RegisterPage /> },
   {
-    path: '/profile',
     element: (
       <Protected>
-        <ProfilePage />
+        <MainLayout />
       </Protected>
     ),
-  },
-  {
-    path: '/profile/edit',
-    element: (
-      <Protected>
-        <ProfileEditPage />
-      </Protected>
-    ),
-  },
-  {
-    path: '/dashboard',
-    element: (
-      <Protected>
-        <DashboardPage />
-      </Protected>
-    ),
-  },
-  {
-    path: '/quotes/new',
-    element: (
-      <Protected>
-        <QuoteCreatePage />
-      </Protected>
-    ),
-  },
-  {
-    path: 'quotes',
-    element: (
-      <Protected>
-        <QuotesListPage />
-      </Protected>
-    ),
-  },
-  {
-    path: '/quotes/:id',
-    element: <QuoteDetailPage />,
-  },
-  {
-    path: '/quotes/:id/edit/',
-    element: <QuoteEditPage />,
-  },
-  {
-    path: '/branding/themes',
-    element: (
-      <Protected>
-        <ThemesListPage />
-      </Protected>
-    ),
-  },
-  {
-    path: '/branding/themes/new',
-    element: (
-      <Protected>
-        <ThemesCreatePage />
-      </Protected>
-    ),
-  },
-  {
-    path: '/branding/themes/:id/edit',
-    element: (
-      <Protected>
-        <ThemesEditPage />
-      </Protected>
-    ),
+    children: [
+      { path: '/profile', element: <ProfilePage /> },
+      { path: '/profile/edit', element: <ProfileEditPage /> },
+      { path: '/dashboard', element: <DashboardPage /> },
+      { path: '/quotes/new', element: <QuoteCreatePage /> },
+      { path: 'quotes', element: <QuotesListPage /> },
+      { path: '/quotes/:id', element: <QuoteDetailPage /> },
+      { path: '/quotes/:id/edit/', element: <QuoteEditPage /> },
+      { path: '/branding/themes', element: <ThemesListPage /> },
+      { path: '/branding/themes/new', element: <ThemesCreatePage /> },
+      { path: '/branding/themes/:id/edit', element: <ThemesEditPage /> },
+    ],
   },
   {
     path: '/auth/request-password-reset',
