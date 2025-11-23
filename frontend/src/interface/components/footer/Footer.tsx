@@ -37,7 +37,11 @@ export default function Footer() {
 
         <div className={styles.column}>
           <h3 className={styles.title}>Informations</h3>
-          <Link to="/changelog" onClick={handleNotAvailable} className={styles.link}>
+          <Link
+            to="/changelog"
+            onClick={handleNotAvailable}
+            className={styles.link}
+          >
             Version {version}
           </Link>
           <div className={styles.status}>

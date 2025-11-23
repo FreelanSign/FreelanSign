@@ -87,7 +87,12 @@ const Sidebar: React.FC = () => {
       </nav>
 
       <div className={styles.bottom}>
-        <Link to="/settings" title="Paramètres" onClick={handleNotAvailable} aria-label="Paramètres">
+        <Link
+          to="/settings"
+          title="Paramètres"
+          onClick={handleNotAvailable}
+          aria-label="Paramètres"
+        >
           <div className={styles.icon}>
             <svg
               width="20"
