@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.1](https://github.com/FreelanSign/FreelanSign/compare/v0.2.0...v0.2.1) (2025-11-23)
+
+
+### Features
+
+* Implement comprehensive production deployment setup ([#51](https://github.com/FreelanSign/FreelanSign/issues/51)) ([ee29f8d](https://github.com/FreelanSign/FreelanSign/commit/ee29f8d9e9989cab82189e243b6a03a9e0a5b00f))
+* **infra:** implement production-ready Docker environment ([#50](https://github.com/FreelanSign/FreelanSign/issues/50)) ([74cf6b9](https://github.com/FreelanSign/FreelanSign/commit/74cf6b903bf728ed6d3300b024fbb42c5e13ce54))
+* **quote:** add PDF preview functionality for quotes ([#34](https://github.com/FreelanSign/FreelanSign/issues/34)) ([802990a](https://github.com/FreelanSign/FreelanSign/commit/802990a51bf69ba618f7e4f23fe710707333bfe3))
+* **quote:** implement PDF download functionality for quotes ([#35](https://github.com/FreelanSign/FreelanSign/issues/35)) ([b325f46](https://github.com/FreelanSign/FreelanSign/commit/b325f46d051a5fe605813373197d3f0b6fdb1287))
+* **ui:** add a basic footer with essential informations ([#52](https://github.com/FreelanSign/FreelanSign/issues/52)) ([1578c81](https://github.com/FreelanSign/FreelanSign/commit/1578c81c3cd1d14c5972bccde778a2d51cce77f1))
+
+
+### Bug Fixes
+
+* **auth:** allow staff to edit role and block admin self-signup ([#33](https://github.com/FreelanSign/FreelanSign/issues/33)) ([51ad782](https://github.com/FreelanSign/FreelanSign/commit/51ad7823d6aa90aa145743f7884798239538942d))
+
 ## [0.2.0](https://github.com/FreelanSign/FreelanSign/compare/v0.1.0...v0.2.0) (2025-11-19)
 
 
