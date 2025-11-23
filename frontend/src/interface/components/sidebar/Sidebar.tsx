@@ -13,6 +13,11 @@ const IconWrapper: React.FC<{
   );
 };
 
+const handleNotAvailable = (e: React.MouseEvent) => {
+  e.preventDefault();
+  alert('Disponible prochainement');
+};
+
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const items = [
@@ -82,7 +87,12 @@ const Sidebar: React.FC = () => {
       </nav>
 
       <div className={styles.bottom}>
-        <Link to="/settings" title="Paramètres" aria-label="Paramètres">
+        <Link
+          to="/settings"
+          title="Paramètres"
+          onClick={handleNotAvailable}
+          aria-label="Paramètres"
+        >
           <div className={styles.icon}>
             <svg
               width="20"

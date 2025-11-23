@@ -1,0 +1,20 @@
+services:
+  certbot:
+    image: certbot/certbot:latest
+    container_name: freelansign_certbot
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    # Commande magique : renouvelle ET recharge nginx si succès
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+  frontend:
+    ports:
+      - "443:443"
+    volumes:
+      - certbot_conf:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
+
+volumes:
+  certbot_conf:
+  certbot_www:

@@ -456,6 +456,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 <!-- BEGIN AUTO: PROJECT_STRUCTURE -->
 ```text
 .
+├── .agent
+│   └── rules
+│       └── overall-guide.md
 ├── .claude
 │   ├── commands
 │   │   ├── dev-docs-update.md
@@ -463,7 +466,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── settings.json
 │   └── settings.local.json
 ├── .coverage
+├── .dockerignore
 ├── .env
+├── .env.docker
+├── .env.example
+├── .env.local
 ├── .github
 │   ├── CODEOWNERS
 │   ├── hooks
@@ -476,9 +483,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── .pre-commit-config.yaml
 ├── .sonarcloud.properties
 ├── .sonarignore
+├── AGENT.md
 ├── backend
 │   ├── .coverage
 │   ├── .coveragerc
+│   ├── .dockerignore
 │   ├── apps
 │   │   ├── __init__.py
 │   │   ├── branding
@@ -931,12 +940,209 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── logs
 │   │   └── app.log
 │   ├── manage.py
+│   ├── media
 │   ├── pyproject.toml
 │   ├── pytest.ini
 │   ├── requirements
 │   │   ├── dev-requirements.txt
 │   │   └── requirements.txt
 │   ├── setup.cfg
+│   ├── static
+│   ├── staticfiles
+│   │   ├── admin
+│   │   │   ├── css
+│   │   │   │   ├── autocomplete.css
+│   │   │   │   ├── base.css
+│   │   │   │   ├── changelists.css
+│   │   │   │   ├── dark_mode.css
+│   │   │   │   ├── dashboard.css
+│   │   │   │   ├── forms.css
+│   │   │   │   ├── login.css
+│   │   │   │   ├── nav_sidebar.css
+│   │   │   │   ├── responsive_rtl.css
+│   │   │   │   ├── responsive.css
+│   │   │   │   ├── rtl.css
+│   │   │   │   ├── unusable_password_field.css
+│   │   │   │   ├── vendor
+│   │   │   │   │   └── select2
+│   │   │   │   │       ├── LICENSE-SELECT2.md
+│   │   │   │   │       ├── select2.css
+│   │   │   │   │       └── select2.min.css
+│   │   │   │   └── widgets.css
+│   │   │   ├── img
+│   │   │   │   ├── calendar-icons.svg
+│   │   │   │   ├── gis
+│   │   │   │   │   ├── move_vertex_off.svg
+│   │   │   │   │   └── move_vertex_on.svg
+│   │   │   │   ├── icon-addlink.svg
+│   │   │   │   ├── icon-alert.svg
+│   │   │   │   ├── icon-calendar.svg
+│   │   │   │   ├── icon-changelink.svg
+│   │   │   │   ├── icon-clock.svg
+│   │   │   │   ├── icon-deletelink.svg
+│   │   │   │   ├── icon-hidelink.svg
+│   │   │   │   ├── icon-no.svg
+│   │   │   │   ├── icon-unknown-alt.svg
+│   │   │   │   ├── icon-unknown.svg
+│   │   │   │   ├── icon-viewlink.svg
+│   │   │   │   ├── icon-yes.svg
+│   │   │   │   ├── inline-delete.svg
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.txt
+│   │   │   │   ├── search.svg
+│   │   │   │   ├── selector-icons.svg
+│   │   │   │   ├── sorting-icons.svg
+│   │   │   │   ├── tooltag-add.svg
+│   │   │   │   └── tooltag-arrowright.svg
+│   │   │   └── js
+│   │   │       ├── actions.js
+│   │   │       ├── admin
+│   │   │       │   ├── DateTimeShortcuts.js
+│   │   │       │   └── RelatedObjectLookups.js
+│   │   │       ├── autocomplete.js
+│   │   │       ├── calendar.js
+│   │   │       ├── cancel.js
+│   │   │       ├── change_form.js
+│   │   │       ├── core.js
+│   │   │       ├── filters.js
+│   │   │       ├── inlines.js
+│   │   │       ├── jquery.init.js
+│   │   │       ├── nav_sidebar.js
+│   │   │       ├── popup_response.js
+│   │   │       ├── prepopulate_init.js
+│   │   │       ├── prepopulate.js
+│   │   │       ├── SelectBox.js
+│   │   │       ├── SelectFilter2.js
+│   │   │       ├── theme.js
+│   │   │       ├── unusable_password_field.js
+│   │   │       ├── urlify.js
+│   │   │       └── vendor
+│   │   │           ├── jquery
+│   │   │           │   ├── jquery.js
+│   │   │           │   ├── jquery.min.js
+│   │   │           │   └── LICENSE.txt
+│   │   │           ├── select2
+│   │   │           │   ├── i18n
+│   │   │           │   │   ├── af.js
+│   │   │           │   │   ├── ar.js
+│   │   │           │   │   ├── az.js
+│   │   │           │   │   ├── bg.js
+│   │   │           │   │   ├── bn.js
+│   │   │           │   │   ├── bs.js
+│   │   │           │   │   ├── ca.js
+│   │   │           │   │   ├── cs.js
+│   │   │           │   │   ├── da.js
+│   │   │           │   │   ├── de.js
+│   │   │           │   │   ├── dsb.js
+│   │   │           │   │   ├── el.js
+│   │   │           │   │   ├── en.js
+│   │   │           │   │   ├── es.js
+│   │   │           │   │   ├── et.js
+│   │   │           │   │   ├── eu.js
+│   │   │           │   │   ├── fa.js
+│   │   │           │   │   ├── fi.js
+│   │   │           │   │   ├── fr.js
+│   │   │           │   │   ├── gl.js
+│   │   │           │   │   ├── he.js
+│   │   │           │   │   ├── hi.js
+│   │   │           │   │   ├── hr.js
+│   │   │           │   │   ├── hsb.js
+│   │   │           │   │   ├── hu.js
+│   │   │           │   │   ├── hy.js
+│   │   │           │   │   ├── id.js
+│   │   │           │   │   ├── is.js
+│   │   │           │   │   ├── it.js
+│   │   │           │   │   ├── ja.js
+│   │   │           │   │   ├── ka.js
+│   │   │           │   │   ├── km.js
+│   │   │           │   │   ├── ko.js
+│   │   │           │   │   ├── lt.js
+│   │   │           │   │   ├── lv.js
+│   │   │           │   │   ├── mk.js
+│   │   │           │   │   ├── ms.js
+│   │   │           │   │   ├── nb.js
+│   │   │           │   │   ├── ne.js
+│   │   │           │   │   ├── nl.js
+│   │   │           │   │   ├── pl.js
+│   │   │           │   │   ├── ps.js
+│   │   │           │   │   ├── pt-BR.js
+│   │   │           │   │   ├── pt.js
+│   │   │           │   │   ├── ro.js
+│   │   │           │   │   ├── ru.js
+│   │   │           │   │   ├── sk.js
+│   │   │           │   │   ├── sl.js
+│   │   │           │   │   ├── sq.js
+│   │   │           │   │   ├── sr-Cyrl.js
+│   │   │           │   │   ├── sr.js
+│   │   │           │   │   ├── sv.js
+│   │   │           │   │   ├── th.js
+│   │   │           │   │   ├── tk.js
+│   │   │           │   │   ├── tr.js
+│   │   │           │   │   ├── uk.js
+│   │   │           │   │   ├── vi.js
+│   │   │           │   │   ├── zh-CN.js
+│   │   │           │   │   └── zh-TW.js
+│   │   │           │   ├── LICENSE.md
+│   │   │           │   ├── select2.full.js
+│   │   │           │   └── select2.full.min.js
+│   │   │           └── xregexp
+│   │   │               ├── LICENSE.txt
+│   │   │               ├── xregexp.js
+│   │   │               └── xregexp.min.js
+│   │   ├── django_extensions
+│   │   │   ├── css
+│   │   │   │   └── jquery.autocomplete.css
+│   │   │   ├── img
+│   │   │   │   └── indicator.gif
+│   │   │   └── js
+│   │   │       ├── jquery.ajaxQueue.js
+│   │   │       ├── jquery.autocomplete.js
+│   │   │       └── jquery.bgiframe.js
+│   │   └── rest_framework
+│   │       ├── css
+│   │       │   ├── bootstrap-theme.min.css
+│   │       │   ├── bootstrap-theme.min.css.map
+│   │       │   ├── bootstrap-tweaks.css
+│   │       │   ├── bootstrap.min.css
+│   │       │   ├── bootstrap.min.css.map
+│   │       │   ├── default.css
+│   │       │   ├── font-awesome-4.0.3.css
+│   │       │   └── prettify.css
+│   │       ├── docs
+│   │       │   ├── css
+│   │       │   │   ├── base.css
+│   │       │   │   ├── highlight.css
+│   │       │   │   └── jquery.json-view.min.css
+│   │       │   ├── img
+│   │       │   │   ├── favicon.ico
+│   │       │   │   └── grid.png
+│   │       │   └── js
+│   │       │       ├── api.js
+│   │       │       ├── highlight.pack.js
+│   │       │       └── jquery.json-view.min.js
+│   │       ├── fonts
+│   │       │   ├── fontawesome-webfont.eot
+│   │       │   ├── fontawesome-webfont.svg
+│   │       │   ├── fontawesome-webfont.ttf
+│   │       │   ├── fontawesome-webfont.woff
+│   │       │   ├── glyphicons-halflings-regular.eot
+│   │       │   ├── glyphicons-halflings-regular.svg
+│   │       │   ├── glyphicons-halflings-regular.ttf
+│   │       │   ├── glyphicons-halflings-regular.woff
+│   │       │   └── glyphicons-halflings-regular.woff2
+│   │       ├── img
+│   │       │   ├── glyphicons-halflings-white.png
+│   │       │   ├── glyphicons-halflings.png
+│   │       │   └── grid.png
+│   │       └── js
+│   │           ├── ajax-form.js
+│   │           ├── bootstrap.min.js
+│   │           ├── coreapi-0.1.1.js
+│   │           ├── csrf.js
+│   │           ├── default.js
+│   │           ├── jquery-3.7.1.min.js
+│   │           ├── load-ajax-form.js
+│   │           └── prettify-min.js
 │   ├── swagger.yaml
 │   ├── templates
 │   │   └── quote
@@ -954,9 +1160,25 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── CHANGELOG.md
 ├── CLAUDE.md
 ├── coverage.xml
+├── database
+│   ├── dumps
+│   │   └── dump_local_20251120_094504.sql
+│   └── init
+├── docker-compose.certbot.yml
+├── docker-compose.prod.yml
 ├── docker-compose.yml
 ├── docs
 │   ├── backup.md
+│   ├── database_management.md
+│   ├── deployment
+│   │   ├── backups.md
+│   │   ├── build-and-deploy.md
+│   │   ├── DEPLOYMENT_MASTER_GUIDE.md
+│   │   ├── disaster-recovery.md
+│   │   ├── environment-config.md
+│   │   ├── monitoring.md
+│   │   ├── production-checklist.md
+│   │   └── vps-setup.md
 │   ├── good-practices
 │   │   ├── claud-good-habits.md
 │   │   ├── dev-docs-pattern.md
@@ -965,18 +1187,23 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   └── paradigms.md
 │   ├── knowledge.md
 │   ├── knowledge.sh
-│   ├── RELEASE_PLAN_v0.1.0.md
-│   └── RELEASE_PLAN_v0.2.0.md
+│   ├── plans
+│   │   └── production-ready.md
+│   ├── release
+│   │   ├── RELEASE_PLAN_v0.1.0.md
+│   │   └── RELEASE_PLAN_v0.2.0.md
+│   └── tmp
 ├── FreelanSign.code-workspace
 ├── frontend
+│   ├── .dockerignore
 │   ├── .env.development.local
-│   ├── .env.prod
 │   ├── .eslintrc.cjs
 │   ├── .gitignore
 │   ├── components.json
 │   ├── Dockerfile
 │   ├── eslint.config.js
 │   ├── index.html
+│   ├── nginx.conf
 │   ├── package-lock.json
 │   ├── package.json
 │   ├── pnpm-lock.yaml
@@ -1066,6 +1293,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── email
 │   │   │   │   │   ├── quote-email-preview-dialog.module.css
 │   │   │   │   │   └── QuoteEmailPreviewDialog.tsx
+│   │   │   │   ├── footer
+│   │   │   │   │   ├── footer.module.css
+│   │   │   │   │   └── Footer.tsx
 │   │   │   │   ├── login
 │   │   │   │   │   ├── login-form.module.css
 │   │   │   │   │   └── LoginForm.tsx
@@ -1091,6 +1321,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── usePdfPreview.ts
 │   │   │   │   └── useThemes.ts
 │   │   │   ├── layout
+│   │   │   │   ├── main-layout.module.css
+│   │   │   │   ├── MainLayout.tsx
 │   │   │   │   └── RootSeo.tsx
 │   │   │   ├── pages
 │   │   │   │   ├── Auth
@@ -1149,15 +1381,21 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   └── vitest.config.ts
 ├── LICENSE
 ├── logo.png
+├── logrotate.conf
 ├── logs
 │   └── app.log
 ├── Makefile
 ├── package.json
 ├── pnpm-lock.yaml
+├── postgres.conf
 ├── release.md
 ├── scripts
+│   ├── backup.sh
+│   ├── db-dump.sh
+│   ├── db-restore.sh
 │   ├── load-env.sh
-│   └── precommit.sh
+│   ├── precommit.sh
+│   └── restore.sh
 ├── sonar-project.properties
 └── typings
     └── rest_framework
@@ -1167,15 +1405,15 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-208 directories, 503 files
+247 directories, 702 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
 ## Frontend package.json
 <!-- BEGIN AUTO: FRONTEND_PACKAGE_JSON -->
 Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
-**name**: `frontend`  •  **version**: `0.1.0`
-**scripts**: 10  •  **dependencies**: 19  •  **devDependencies**: 27
+**name**: `frontend`  •  **version**: `0.2.0`
+**scripts**: 10  •  **dependencies**: 19  •  **devDependencies**: 26
 
 <details><summary>Top dependencies</summary>
 
@@ -1241,5 +1479,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-19 11:43:38 CET**
+_Updated_: **2025-11-23 17:54:24 CET**
 <!-- END AUTO: LAST_UPDATED -->

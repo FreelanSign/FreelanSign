@@ -1,0 +1,103 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: freelansign_postgres_prod
+    restart: always
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-freelansign}
+      POSTGRES_USER: ${DATABASE_USER:-fs_user}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+      # On retire le fichier conf externe pour simplifier, on passe les commandes en ligne
+      # C'est plus sûr pour un MVP que de gérer un fichier externe
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=128MB" # Optimisé pour 2GB RAM
+      - "-c"
+      - "max_connections=50"
+      - "-c"
+      - "work_mem=4MB"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - freelansign_network_prod
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-fs_user} -d ${DATABASE_NAME:-freelansign}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    # REMPLACÉ: On utilise l'image buildée localement
+    image: ghcr.io/freelansign/freelansign-backend:latest
+    container_name: freelansign_backend_prod
+    restart: always
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DEBUG=False
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD} # N'oublie pas les autres vars email
+    volumes:
+      - backend_static_prod:/app/static
+      - backend_media_prod:/app/media
+      - backend_logs_prod:/app/logs
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 768M
+        reservations:
+          memory: 384M
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - freelansign_network_prod
+
+  frontend:
+    # REMPLACÉ: On utilise l'image buildée localement
+    image: ghcr.io/freelansign/freelansign-frontend:latest
+    container_name: freelansign_frontend_prod
+    restart: always
+    ports:
+      - "80:80"
+      # Le port 443 est ajouté via le fichier certbot override
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+    depends_on:
+      - backend
+    volumes:
+      - backend_static_prod:/app/static:ro
+      - backend_media_prod:/app/media:ro
+      - nginx_logs_prod:/var/log/nginx
+      # VOLUME CRITIQUE POUR LE CHALLENGE ACME
+      - certbot_www:/var/www/certbot:ro
+    networks:
+      - freelansign_network_prod
+
+volumes:
+  postgres_data_prod:
+  backend_static_prod:
+  backend_media_prod:
+  backend_logs_prod:
+  nginx_logs_prod:
+  certbot_www: # On déclare le volume ici
+
+networks:
+  freelansign_network_prod:
+    driver: bridge

@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENT.md
 
 **Be extremely concise. Sacrifice grammar for concision.**
 
@@ -34,6 +34,5 @@ apps/<domain>/
 
 ## Plan
 
-End each plan with concise unresolved questions.
-
-- Do not mention Claude Code in any Commit message, PR description or Github issues.
+- End each plan with concise unresolved questions.
+- In plan mode, do not launch any command without asking for confirmation.

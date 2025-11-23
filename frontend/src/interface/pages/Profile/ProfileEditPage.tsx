@@ -1,23 +1,21 @@
 // src/interface/pages/ProfileEditPage.tsx
-import { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
-import { userRepository } from '../../../infrastructure/user/userRepository';
-import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
-import type { UserDto, ProfessionalUserDto } from '../../../domain/user/types';
+import { useNavigate } from 'react-router-dom';
 import type { AreaDto } from '../../../domain/catalog/types';
+import type { ProfessionalUserDto, UserDto } from '../../../domain/user/types';
+import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
+import { userRepository } from '../../../infrastructure/user/userRepository';
 
+import { Card } from '../../components/common/Card';
+import { ConfirmModal } from '../../components/common/ConfirmModal';
 import PersonalUserDataForm, {
   type PersonalUserFormValues,
 } from '../../components/profile/PersonalUserDataForm';
+import PrestationsSelector from '../../components/profile/PrestationSelector';
 import ProfessionalInfoForm, {
   type ProfessionalInfoValues,
 } from '../../components/profile/ProfessionalInfoForm';
-import PrestationsSelector from '../../components/profile/PrestationSelector';
-import { Card } from '../../components/common/Card';
-import { ConfirmModal } from '../../components/common/ConfirmModal';
-import Sidebar from '../../components/sidebar/Sidebar';
-import Navbar from '../../components/navbar/Navbar';
 
 import styles from './profile-edit-page.module.css';
 
@@ -247,114 +245,98 @@ export default function ProfileEditPage() {
   }
 
   if (loading) {
-    return (
-      <>
-        <Sidebar />
-        <div className={styles.page}>
-          <Navbar />
-          <main className={styles.inner}>
-            <div className={styles.loading}>Chargement…</div>
-          </main>
-        </div>
-      </>
-    );
+    return <div className={styles.loading}>Chargement…</div>;
   }
 
   return (
-    <>
-      <Sidebar />
-      <div className={styles.page}>
-        <Navbar />
-        <main className={styles.inner}>
-          {/* Informations personnelles */}
-          <Card title="Informations personnelles">
-            <PersonalUserDataForm
-              initialValues={user?.profile ?? {}}
-              onSave={async (vals) => {
-                // keep individual save available (backwards compatible)
-                await userRepository.updateMe({
-                  profile: normalizeProfile(vals),
-                });
-                const me = await userRepository.getMe();
-                setUser(me);
-                setProfileDraft(me?.profile ?? {});
-                toast.success('Informations personnelles mises à jour');
-              }}
-              onCancel={() => navigate('/profile')}
-              onChange={(vals) => setProfileDraft(vals)}
-              showButtons={false}
-            />
-          </Card>
+    <div className="grid gap-6">
+      {/* Informations personnelles */}
+      <Card title="Informations personnelles">
+        <PersonalUserDataForm
+          initialValues={user?.profile ?? {}}
+          onSave={async (vals) => {
+            // keep individual save available (backwards compatible)
+            await userRepository.updateMe({
+              profile: normalizeProfile(vals),
+            });
+            const me = await userRepository.getMe();
+            setUser(me);
+            setProfileDraft(me?.profile ?? {});
+            toast.success('Informations personnelles mises à jour');
+          }}
+          onCancel={() => navigate('/profile')}
+          onChange={(vals) => setProfileDraft(vals)}
+          showButtons={false}
+        />
+      </Card>
 
-          {/* Compte professionnel */}
-          <Card title="Compte professionnel">
-            {professional === 'loading' ? (
-              <div className="text-gray-500">Chargement…</div>
-            ) : professional ? (
-              <ProfessionalInfoForm
-                initialValues={{
-                  name: professional.name ?? null,
-                  status_juridique: professional.status_juridique ?? null,
-                  domaine: professional.domaine ?? null,
-                  tjm_cents: professional.tjm_cents ?? undefined,
-                  number_pro: professional.number_pro ?? null,
-                }}
-                areas={areas}
-                onSave={async (payload) => {
-                  await userRepository.updateProfessionalMe(payload);
-                  const prof = await userRepository.getProfessionalMe();
-                  setProfessional(prof ?? null);
-                  setSelectedServiceIds(prof?.service_type_ids ?? []);
-                }}
-                onDomaineChange={handleDomaineChange}
-                onValuesChange={(vals) => handleProValuesChange(vals)}
-                onCancel={() => navigate('/profile')}
-              />
-            ) : (
-              <div>
-                <p className="text-gray-600">
-                  Vous n'avez pas encore de profil professionnel.
-                </p>
-                <button
-                  onClick={() => navigate('/onboarding-professional')}
-                  className="underline text-blue-600 mt-2 hover:text-blue-800"
-                >
-                  Commencer l'onboarding
-                </button>
-              </div>
-            )}
-          </Card>
-
-          {/* Services proposés */}
-          {professional && professional !== 'loading' && (
-            <Card title="Services proposés">
-              <PrestationsSelector
-                professionalId={professional.id}
-                domaine={proDraft.domaine ?? professional.domaine ?? null}
-                selected={selectedServiceIds}
-                onChange={setSelectedServiceIds}
-              />
-            </Card>
-          )}
-
-          {/* Buttons sticky at bottom */}
-          <div className={styles.buttonContainer}>
+      {/* Compte professionnel */}
+      <Card title="Compte professionnel">
+        {professional === 'loading' ? (
+          <div className="text-gray-500">Chargement…</div>
+        ) : professional ? (
+          <ProfessionalInfoForm
+            initialValues={{
+              name: professional.name ?? null,
+              status_juridique: professional.status_juridique ?? null,
+              domaine: professional.domaine ?? null,
+              tjm_cents: professional.tjm_cents ?? undefined,
+              number_pro: professional.number_pro ?? null,
+            }}
+            areas={areas}
+            onSave={async (payload) => {
+              await userRepository.updateProfessionalMe(payload);
+              const prof = await userRepository.getProfessionalMe();
+              setProfessional(prof ?? null);
+              setSelectedServiceIds(prof?.service_type_ids ?? []);
+            }}
+            onDomaineChange={handleDomaineChange}
+            onValuesChange={(vals) => handleProValuesChange(vals)}
+            onCancel={() => navigate('/profile')}
+          />
+        ) : (
+          <div>
+            <p className="text-gray-600">
+              Vous n'avez pas encore de profil professionnel.
+            </p>
             <button
-              onClick={handleCancel}
-              className={styles.buttonGhost}
-              disabled={saving}
+              onClick={() => navigate('/onboarding-professional')}
+              className="underline text-blue-600 mt-2 hover:text-blue-800"
             >
-              Annuler
-            </button>
-            <button
-              onClick={handleSaveAll}
-              className={styles.buttonPrimary}
-              disabled={saving}
-            >
-              {saving ? 'Enregistrement…' : 'Enregistrer'}
+              Commencer l'onboarding
             </button>
           </div>
-        </main>
+        )}
+      </Card>
+
+      {/* Services proposés */}
+      {professional && professional !== 'loading' && (
+        <Card title="Services proposés">
+          <PrestationsSelector
+            professionalId={professional.id}
+            domaine={proDraft.domaine ?? professional.domaine ?? null}
+            selected={selectedServiceIds}
+            onChange={setSelectedServiceIds}
+          />
+        </Card>
+      )}
+
+      {/* Buttons sticky at bottom */}
+      <div className={styles.buttonContainer}>
+        <button
+          onClick={handleCancel}
+          className={styles.buttonGhost}
+          disabled={saving}
+        >
+          Annuler
+        </button>
+        <button
+          onClick={handleSaveAll}
+          className={styles.buttonPrimary}
+          disabled={saving}
+        >
+          {saving ? 'Enregistrement…' : 'Enregistrer'}
+        </button>
       </div>
 
       {/* Toast notifications */}
@@ -370,6 +352,6 @@ export default function ProfileEditPage() {
         onConfirm={handleConfirmCancel}
         onCancel={() => setShowCancelModal(false)}
       />
-    </>
+    </div>
   );
 }

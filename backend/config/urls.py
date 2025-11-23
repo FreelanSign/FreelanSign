@@ -4,8 +4,12 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.permissions import AllowAny
 
+from apps.core.views import health_check
+
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # Health check endpoint
+    path("api/health/", health_check, name="health-check"),
     # OpenAPI schema & Swagger UI en public
     path(
         "api/schema/",
