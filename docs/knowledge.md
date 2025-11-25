@@ -851,14 +851,19 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       ├── admin.py
 │   │       ├── application
 │   │       │   ├── dto
+│   │       │   │   ├── account_inputs.py
+│   │       │   │   ├── account_viewmodels.py
 │   │       │   │   ├── user_inputs.py
 │   │       │   │   └── user_viewmodels.py
 │   │       │   ├── errors.py
 │   │       │   ├── ports
+│   │       │   │   ├── account_repository.py
+│   │       │   │   ├── clock.py
 │   │       │   │   ├── token_sender.py
 │   │       │   │   └── user_repository.py
 │   │       │   └── usecases
 │   │       │       ├── change_password.py
+│   │       │       ├── create_account.py
 │   │       │       ├── create_professional.py
 │   │       │       ├── list_users.py
 │   │       │       ├── register_user.py
@@ -910,6 +915,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── __init__.py
 │   │       │   ├── application
 │   │       │   │   └── usecases
+│   │       │   │       ├── __init__.py
+│   │       │   │       ├── test_create_account.py
 │   │       │   │       ├── test_request_password_reset.py
 │   │       │   │       └── test_reset_password.py
 │   │       │   ├── domain
@@ -1205,6 +1212,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   └── work
 │   │       ├── account_phase1_domain.md
 │   │       ├── auth_user_refacto.md
+│   │       ├── DEPRECATED_FILES_ACCOUNT.md
 │   │       ├── legal_terms_v0.md
 │   │       ├── subscription_v0.md
 │   │       └── user_refacto_analysis.md
@@ -1445,7 +1453,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-254 directories, 735 files
+254 directories, 743 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1519,5 +1527,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-25 16:03:59 CET**
+_Updated_: **2025-11-25 16:50:09 CET**
 <!-- END AUTO: LAST_UPDATED -->
