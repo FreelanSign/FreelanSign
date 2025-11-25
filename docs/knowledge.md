@@ -872,11 +872,16 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │       └── user
 │   │       │           └── logs
 │   │       ├── domain
+│   │       │   ├── entities
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── account.py
 │   │       │   ├── errors.py
 │   │       │   ├── policies
+│   │       │   │   ├── account_policy.py
 │   │       │   │   └── user_policy.py
-│   │       │   └── services
-│   │       │       └── user_calculator.py
+│   │       │   ├── services
+│   │       │   │   └── user_calculator.py
+│   │       │   └── value_objects.py
 │   │       ├── interface
 │   │       │   ├── __init__.py
 │   │       │   ├── auth_urls.py
@@ -907,6 +912,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   │   └── usecases
 │   │       │   │       ├── test_request_password_reset.py
 │   │       │   │       └── test_reset_password.py
+│   │       │   ├── domain
+│   │       │   │   ├── __init__.py
+│   │       │   │   ├── test_account_entity.py
+│   │       │   │   ├── test_account_policy.py
+│   │       │   │   └── test_legal_form_value_object.py
 │   │       │   ├── interface
 │   │       │   │   └── serializers
 │   │       │   │       └── test_reset_password_serializer.py
@@ -927,6 +937,14 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   └── wsgi.py
 │   ├── conftest.py
 │   ├── coverage.xml
+│   ├── diagrams
+│   │   ├── branding_diagram.mermaid
+│   │   ├── catalog_diagram.mermaid
+│   │   ├── client_diagram.mermaid
+│   │   ├── core_diagram.mermaid
+│   │   ├── quote_diagram.mermaid
+│   │   ├── user_class_diagram.mermaid
+│   │   └── user_diagram.mermaid
 │   ├── doc
 │   │   └── classes
 │   │       └── quote
@@ -937,9 +955,15 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │           ├── packages_quote_arch.dot
 │   │           └── packages_quote_arch.png
 │   ├── Dockerfile
+│   ├── generate_diagrams.py
 │   ├── logs
 │   │   └── app.log
 │   ├── manage.py
+│   ├── management
+│   │   ├── __init__.py
+│   │   └── commands
+│   │       ├── __init__.py
+│   │       └── generate_mermaid.py
 │   ├── media
 │   ├── pyproject.toml
 │   ├── pytest.ini
@@ -1168,6 +1192,22 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── docker-compose.prod.yml
 ├── docker-compose.yml
 ├── docs
+│   ├── architecture
+│   │   ├── architecture.md
+│   │   ├── bc_branding.md
+│   │   ├── bc_catalog.md
+│   │   ├── bc_client.md
+│   │   ├── bc_core.md
+│   │   ├── bc_email.md
+│   │   ├── bc_quote.md
+│   │   ├── bc_user.md
+│   │   ├── template_bounded_context.md
+│   │   └── work
+│   │       ├── account_phase1_domain.md
+│   │       ├── auth_user_refacto.md
+│   │       ├── legal_terms_v0.md
+│   │       ├── subscription_v0.md
+│   │       └── user_refacto_analysis.md
 │   ├── backup.md
 │   ├── database_management.md
 │   ├── deployment
@@ -1405,7 +1445,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-247 directories, 702 files
+254 directories, 735 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1479,5 +1519,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-23 17:59:43 CET**
+_Updated_: **2025-11-25 16:03:59 CET**
 <!-- END AUTO: LAST_UPDATED -->
