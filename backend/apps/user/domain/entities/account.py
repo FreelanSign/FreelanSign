@@ -14,6 +14,10 @@ class Account:
     """
     Domain Entity pour un compte professionnel (entité freelance).
     Un utilisateur peut avoir plusieurs Accounts (multi-entity future).
+
+    @author: @Bertrand2808
+    @since: 2025-11-25
+    @version: 1.0
     """
 
     id: int
@@ -22,6 +26,7 @@ class Account:
     legal_form: LegalForm  # Forme juridique (enum)
     legal_id: str | None  # SIRET (14 chiffres)
     domain_id: int | None  # FK vers catalog.Area
+    is_active: bool
     created_at: datetime
     updated_at: datetime
 

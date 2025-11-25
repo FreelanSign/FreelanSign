@@ -13,7 +13,13 @@ from apps.user.domain.value_objects import LegalForm
 
 
 class CreateAccount:
-    """Use case pour créer un compte professionnel."""
+    """
+    Use case pour créer un compte professionnel.
+
+    @author: @Bertrand2808
+    @since: 2025-11-25
+    @version: 1.0
+    """
 
     def __init__(self, repository: AccountRepository, clock: Clock):
         self.repository = repository
@@ -59,6 +65,7 @@ class CreateAccount:
             legal_form=legal_form_enum,
             legal_id=input_dto.legal_id,
             domain_id=input_dto.domain_id,
+            is_active=True,
             created_at=now,
             updated_at=now,
         )

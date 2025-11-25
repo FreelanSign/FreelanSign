@@ -23,6 +23,7 @@ class TestGetUserAccounts:
             legal_id=None,
             domain_id=None,
             created_at=datetime(2024, 1, 1),
+            is_active=True,
             updated_at=datetime(2024, 1, 1),
         )
         account2 = Account(
@@ -33,6 +34,7 @@ class TestGetUserAccounts:
             legal_id="12345678901234",
             domain_id=5,
             created_at=datetime(2024, 2, 1),
+            is_active=True,
             updated_at=datetime(2024, 2, 1),
         )
         repository.get_by_user.return_value = [account1, account2]
@@ -57,6 +59,7 @@ class TestGetUserAccounts:
             legal_id=None,
             domain_id=None,
             created_at=datetime(2024, 1, 1),
+            is_active=True,
             updated_at=datetime(2024, 1, 1),
         )
         repository.get_by_user.return_value = [account]

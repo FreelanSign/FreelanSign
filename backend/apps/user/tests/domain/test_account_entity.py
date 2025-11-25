@@ -24,6 +24,7 @@ class TestAccountEntity:
             legal_form=LegalForm.EURL,
             legal_id="12345678901234",
             domain_id=5,
+            is_active=True,
             created_at=datetime(2024, 1, 1, 12, 0, 0),
             updated_at=datetime(2024, 1, 15, 14, 30, 0),
         )
@@ -46,6 +47,7 @@ class TestAccountEntity:
             legal_form=LegalForm.MICRO,
             legal_id=None,  # Optionnel
             domain_id=None,  # Optionnel
+            is_active=True,
             created_at=datetime(2024, 2, 1),
             updated_at=datetime(2024, 2, 1),
         )
@@ -66,6 +68,7 @@ class TestAccountEntity:
             legal_form=LegalForm.MICRO,
             legal_id=None,
             domain_id=None,
+            is_active=True,
             created_at=datetime.now(),
             updated_at=datetime.now(),
         )
@@ -91,6 +94,7 @@ class TestAccountEntity:
                 legal_form=LegalForm.MICRO,
                 legal_id=None,
                 domain_id=None,
+                is_active=True,
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
             )
@@ -103,6 +107,7 @@ class TestAccountEntity:
                 legal_form=LegalForm.MICRO,
                 legal_id=None,
                 domain_id=None,
+                is_active=True,
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
             )
@@ -119,6 +124,7 @@ class TestAccountEntity:
                 legal_form=LegalForm.SASU,
                 legal_id=None,
                 domain_id=None,
+                is_active=True,
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
             )

@@ -906,9 +906,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── 0005_alter_user_options_user_uniq_user_email_ci.py
 │   │       │   ├── 0006_professionaluser.py
 │   │       │   ├── 0007_professionaluser_allowed_areas.py
-│   │       │   └── 0008_remove_professionaluser_allowed_areas.py
+│   │       │   ├── 0008_remove_professionaluser_allowed_areas.py
+│   │       │   └── 0009_account.py
 │   │       ├── models
 │   │       │   ├── __init__.py
+│   │       │   ├── account.py
 │   │       │   └── models.py
 │   │       ├── services
 │   │       │   ├── __init__.py
@@ -1221,6 +1223,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       ├── DEPRECATED_FILES_ACCOUNT.md
 │   │       ├── legal_terms_v0.md
 │   │       ├── subscription_v0.md
+│   │       ├── TODO_FAVORITE_PRESTATIONS.md
 │   │       └── user_refacto_analysis.md
 │   ├── backup.md
 │   ├── database_management.md
@@ -1459,7 +1462,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-254 directories, 749 files
+254 directories, 752 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1533,5 +1536,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-25 16:58:23 CET**
+_Updated_: **2025-11-25 21:12:29 CET**
 <!-- END AUTO: LAST_UPDATED -->
