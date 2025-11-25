@@ -91,3 +91,11 @@ class UnauthorizedOperationError(UserApplicationError):
 
     def __init__(self, message: str):
         super().__init__(message, code="UNAUTHORIZED_OPERATION")
+
+
+class CannotDeactivateAccountError(Exception):
+    """Raised when trying to deactivate an account that has quotes."""
+
+    def __init__(self, account_id: int):
+        self.account_id = account_id
+        super().__init__(f"Cannot deactivate account {account_id}: has associated quotes")
