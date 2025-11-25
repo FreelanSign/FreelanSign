@@ -103,3 +103,62 @@ class DuplicateProfessionalError(ProfessionalPolicyError):
 
     def __init__(self, user_id: int):
         super().__init__(f"Un profil professionnel existe déjà pour l'utilisateur {user_id}")
+
+
+# Erreurs pour Account
+class AccountPolicyError(UserDomainError):
+    """Erreur de politique liée aux comptes professionnels (Account)."""
+
+    def __init__(self, message: str):
+        super().__init__(message, code="ACCOUNT_POLICY_ERROR")
+
+
+class InvalidDisplayNameError(AccountPolicyError):
+    """Nom d'affichage invalide."""
+
+    def __init__(self, name: str, reason: str = ""):
+        msg = f"Nom d'affichage invalide: '{name}'"
+        if reason:
+            msg += f" ({reason})"
+        super().__init__(msg)
+
+
+class InvalidLegalFormError(AccountPolicyError):
+    """Forme juridique invalide."""
+
+    def __init__(self, legal_form: str):
+        super().__init__(f"Forme juridique invalide: '{legal_form}'")
+
+
+class InvalidLegalIdError(AccountPolicyError):
+    """Identifiant légal (SIRET) invalide."""
+
+    def __init__(self, legal_id: str, reason: str = ""):
+        msg = f"Identifiant légal invalide: '{legal_id}'"
+        if reason:
+            msg += f" ({reason})"
+        super().__init__(msg)
+
+
+class InvalidDomainIdError(AccountPolicyError):
+    """ID de domaine invalide."""
+
+    def __init__(self, domain_id: int | None):
+        super().__init__(f"ID de domaine invalide: {domain_id} (doit être > 0)")
+
+
+class DuplicateAccountNameError(AccountPolicyError):
+    """Un compte avec ce nom existe déjà pour cet utilisateur."""
+
+    def __init__(self, user_id: int, display_name: str):
+        super().__init__(f"Un compte nommé '{display_name}' existe déjà pour l'utilisateur {user_id}")
+
+
+class AccountNotFoundError(AccountPolicyError):
+    """Compte non trouvé."""
+
+    def __init__(self, account_id: int, context: str = ""):
+        msg = f"Compte {account_id} non trouvé"
+        if context:
+            msg += f" ({context})"
+        super().__init__(msg)
