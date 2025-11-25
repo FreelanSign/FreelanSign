@@ -268,6 +268,11 @@ SPECTACULAR_SETTINGS = {
 # Models
 AUTH_USER_MODEL = "user.User"
 
+# --------------------------------------------------------------------------------------
+# Account Feature Flags (Phase 4)
+# --------------------------------------------------------------------------------------
+ENABLE_ACCOUNT_MODEL = env.bool("ENABLE_ACCOUNT_MODEL", default=False)
+
 # CORS settings
 import os
 
