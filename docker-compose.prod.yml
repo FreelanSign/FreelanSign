@@ -87,6 +87,7 @@ services:
       - nginx_logs_prod:/var/log/nginx
       # VOLUME CRITIQUE POUR LE CHALLENGE ACME
       - certbot_www:/var/www/certbot:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     networks:
       - freelansign_network_prod
 

@@ -258,17 +258,40 @@ We use a temporary Nginx container to get the initial certificate.
     🛑 **Replace email and domain**:
     ```bash
     docker run -it --rm \
-      -v /etc/letsencrypt:/etc/letsencrypt \
-      -v /tmp/certbot-www:/var/www/certbot \
-      certbot/certbot certonly \
-      --webroot \
-      --webroot-path=/var/www/certbot \
-      --email your-email@domain.com \
-      --agree-tos \
-      --no-eff-email \
-      -d your-domain.com \
-      -d www.your-domain.com
+        -v /etc/letsencrypt:/etc/letsencrypt \
+        -v /tmp/certbot-www:/var/www/certbot \
+        certbot/certbot certonly \
+        --webroot \
+        --webroot-path=/var/www/certbot \
+        --email freelansign@gmail.com \
+        --agree-tos \
+        --no-eff-email \
+        -d freelansign.fr \
+        -d www.freelansign.fr \
+        -d app.freelansign.fr
     ```
+
+**En sortie :**
+
+```bash
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Requesting a certificate for freelansign.fr and 2 more domains
+
+Successfully received certificate.
+Certificate is saved at: /etc/letsencrypt/live/freelansign.fr/fullchain.pem
+Key is saved at:         /etc/letsencrypt/live/freelansign.fr/privkey.pem
+This certificate expires on 2026-02-21.
+These files will be updated when the certificate renews.
+
+NEXT STEPS:
+- The certificate will need to be renewed before it expires. Certbot can automatically renew the certificate in the background, but you may need to take steps to enable that functionality. See https://certbot.org/renewal-setup for instructions.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+If you like Certbot, please consider supporting our work by:
+ * Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
+ * Donating to EFF:                    https://eff.org/donate-le
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+```
 
 4.  **Cleanup**:
     ```bash

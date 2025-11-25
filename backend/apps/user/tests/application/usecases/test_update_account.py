@@ -36,6 +36,7 @@ class TestUpdateAccount:
             legal_id=None,
             domain_id=None,
             created_at=datetime(2024, 1, 1),
+            is_active=True,
             updated_at=datetime(2024, 1, 1),
         )
         repository.get_by_id.return_value = existing
@@ -68,6 +69,7 @@ class TestUpdateAccount:
             legal_id=None,
             domain_id=None,
             created_at=datetime(2024, 1, 1),
+            is_active=True,
             updated_at=datetime(2024, 1, 1),
         )
         repository.get_by_id.return_value = existing
@@ -120,6 +122,7 @@ class TestUpdateAccount:
             legal_id=None,
             domain_id=None,
             created_at=datetime(2024, 1, 1),
+            is_active=True,
             updated_at=datetime(2024, 1, 1),
         )
         repository.get_by_id.return_value = existing
@@ -143,6 +146,7 @@ class TestUpdateAccount:
             legal_id=None,
             domain_id=None,
             created_at=datetime(2024, 1, 1),
+            is_active=True,
             updated_at=datetime(2024, 1, 1),
         )
         repository.get_by_id.return_value = existing
@@ -168,6 +172,7 @@ class TestUpdateAccount:
             legal_id=None,
             domain_id=None,
             created_at=datetime(2024, 1, 1),
+            is_active=True,
             updated_at=datetime(2024, 1, 1),
         )
         repository.get_by_id.return_value = existing

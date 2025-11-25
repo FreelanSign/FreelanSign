@@ -48,13 +48,23 @@ make clean             # Clean containers and volumes
 - Backend: http://localhost:8000
 - PostgreSQL: localhost:5432
 
-## Testing
+## Development
+
+## Paradigms
+
+- **Clean Architecture** : All business logic is isolated from external concerns (frameworks, databases, APIs). The application is structured into Domain / Application / Adapters / Interface layers. This ensures: Independence from frameworks, High testability, Easy replacement of infrastructure components (database, UI, etc.)
+- **Clean Code**: Every module must be : Readable — names clearly reflect intent,Maintainable — single responsibility per file/class, Consistent — strict linting and formatting rules enforced, Self-documented — code should explain itself, comments only where logic isn’t obvious. The principle: “Code should read like well-written prose.”
+- **TDD** : Each feature follows the Red → Green → Refactor cycle: 1- Write a failing test (specifying expected behavior), 2- Implement minimal code to make it pass, 3- Refactor for clarity and maintainability. This keeps logic testable, modular, and avoids regression. Unit tests (pytest, Jest) are mandatory on domain and application layers.
+- **DDD** : Business logic drives the codebase structure.The Domain layer expresses the core rules and concepts of the business (quotes, clients, documents, templates). Ubiquitous language is shared between developers, domain experts, and documentation to avoid ambiguity. Bounded contexts are separated (e.g., User, Quote, Document, Branding) to maintain clear ownership and reduce coupling.
+- **BDD** : Features are described from the user’s point of view using concrete examples (“Given / When / Then”). Gherkin scenarios define the expected behavior and business rules before any code is written. These scenarios drive TDD at the domain and application layers and serve as living documentation that non-technical stakeholders can understand and validate.
+
 
 ### Backend
 - **Framework**: pytest with pytest-django, pytest-cov, pytest-mock
 - **Coverage target**: Domain and application layers must be tested
 - **Test structure**: Mirror app structure in `tests/`
 - **TDD approach**: Red → Green → Refactor
+- **BDD approach**: We need to write tests before writing the code when we are not sure about the implementation.
 - **Config**: `backend/pytest.ini`
 
 ### Frontend
