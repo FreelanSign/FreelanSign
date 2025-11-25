@@ -865,10 +865,13 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │       ├── change_password.py
 │   │       │       ├── create_account.py
 │   │       │       ├── create_professional.py
+│   │       │       ├── deactivate_account.py
+│   │       │       ├── get_user_accounts.py
 │   │       │       ├── list_users.py
 │   │       │       ├── register_user.py
 │   │       │       ├── request_password_reset.py
 │   │       │       ├── reset_password.py
+│   │       │       ├── update_account.py
 │   │       │       ├── update_professional.py
 │   │       │       └── update_profile.py
 │   │       ├── apps.py
@@ -917,8 +920,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   │   └── usecases
 │   │       │   │       ├── __init__.py
 │   │       │   │       ├── test_create_account.py
+│   │       │   │       ├── test_deactivate_account.py
+│   │       │   │       ├── test_get_user_accounts.py
 │   │       │   │       ├── test_request_password_reset.py
-│   │       │   │       └── test_reset_password.py
+│   │       │   │       ├── test_reset_password.py
+│   │       │   │       └── test_update_account.py
 │   │       │   ├── domain
 │   │       │   │   ├── __init__.py
 │   │       │   │   ├── test_account_entity.py
@@ -1453,7 +1459,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-254 directories, 743 files
+254 directories, 749 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1527,5 +1533,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-25 16:50:09 CET**
+_Updated_: **2025-11-25 16:58:23 CET**
 <!-- END AUTO: LAST_UPDATED -->
