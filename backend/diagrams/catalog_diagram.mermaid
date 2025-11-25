@@ -1,0 +1,22 @@
+classDiagram
+    class Area {
+        +String id
+        +DateTime created_at
+        +DateTime updated_at
+        +String name
+    }
+    class Prestation {
+        +String id
+        +DateTime created_at
+        +DateTime updated_at
+        +Boolean is_deleted
+        +DateTime deleted_at
+        +String name
+        +String description
+        +Number weight_days
+        +Number default_rate_cents
+        +String status
+        +Boolean custom
+    }
+    Prestation "*" --> "1" Area : area
+    Prestation "*" --> "1" ProfessionalUser : professional_user

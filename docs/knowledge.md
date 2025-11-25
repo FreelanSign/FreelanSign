@@ -843,11 +843,15 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   └── user
 │   │       ├── __init__.py
 │   │       ├── adapters
+│   │       │   ├── __init__.py
 │   │       │   ├── persistence
+│   │       │   │   ├── __init__.py
+│   │       │   │   ├── django_account_repository.py
 │   │       │   │   └── django_user_repository.py
-│   │       │   └── providers
-│   │       │       ├── logging_token_sender.py
-│   │       │       └── smtp_token_provider.py
+│   │       │   ├── providers
+│   │       │   │   ├── logging_token_sender.py
+│   │       │   │   └── smtp_token_provider.py
+│   │       │   └── system_clock.py
 │   │       ├── admin.py
 │   │       ├── application
 │   │       │   ├── dto
@@ -907,7 +911,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── 0006_professionaluser.py
 │   │       │   ├── 0007_professionaluser_allowed_areas.py
 │   │       │   ├── 0008_remove_professionaluser_allowed_areas.py
-│   │       │   └── 0009_account.py
+│   │       │   ├── 0009_account.py
+│   │       │   └── 0010_migrate_professional_to_account.py
 │   │       ├── models
 │   │       │   ├── __init__.py
 │   │       │   ├── account.py
@@ -918,6 +923,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       ├── signals.py
 │   │       ├── tests
 │   │       │   ├── __init__.py
+│   │       │   ├── adapters
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── persistence
+│   │       │   │       ├── __init__.py
+│   │       │   │       └── test_django_account_repository.py
 │   │       │   ├── application
 │   │       │   │   └── usecases
 │   │       │   │       ├── __init__.py
@@ -1216,6 +1226,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── bc_email.md
 │   │   ├── bc_quote.md
 │   │   ├── bc_user.md
+│   │   ├── decisions
+│   │   │   └── ADR-001-cross-context-repository-dependencies.md
 │   │   ├── template_bounded_context.md
 │   │   └── work
 │   │       ├── account_phase1_domain.md
@@ -1462,7 +1474,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-254 directories, 752 files
+257 directories, 761 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1536,5 +1548,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-25 21:12:29 CET**
+_Updated_: **2025-11-25 21:48:59 CET**
 <!-- END AUTO: LAST_UPDATED -->
