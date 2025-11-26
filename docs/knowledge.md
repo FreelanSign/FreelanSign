@@ -902,7 +902,19 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── exceptions
 │   │       │   │   ├── __init__.py
 │   │       │   │   └── account_exceptions.py
+│   │       │   ├── middleware
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── account_context.py
+│   │       │   ├── permissions
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── account_permissions.py
+│   │       │   ├── serializers
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── account_serializers.py
 │   │       │   ├── serializers.py
+│   │       │   ├── views
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── account_views.py
 │   │       │   └── views.py
 │   │       ├── migrations
 │   │       │   ├── __init__.py
@@ -946,8 +958,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   │   ├── test_account_policy.py
 │   │       │   │   └── test_legal_form_value_object.py
 │   │       │   ├── interface
-│   │       │   │   └── serializers
-│   │       │   │       └── test_reset_password_serializer.py
+│   │       │   │   ├── __init__.py
+│   │       │   │   ├── serializers
+│   │       │   │   │   └── test_reset_password_serializer.py
+│   │       │   │   └── test_account_api.py
 │   │       │   ├── test_auth_api.py
 │   │       │   ├── test_auth_logout.py
 │   │       │   ├── test_professional_api.py
@@ -1477,7 +1491,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-258 directories, 763 files
+262 directories, 773 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1551,5 +1565,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-25 22:21:30 CET**
+_Updated_: **2025-11-26 22:19:37 CET**
 <!-- END AUTO: LAST_UPDATED -->

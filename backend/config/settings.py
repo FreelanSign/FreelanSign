@@ -126,6 +126,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "apps.user.interface.middleware.AccountContextMiddleware",  # Phase 4
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.core.middleware.request_logging.RequestLoggingMiddleware",
@@ -303,6 +304,7 @@ CORS_ALLOW_HEADERS = [
     "dnt",
     "origin",
     "user-agent",
+    "x-account-id",  # Phase 4: Account context header
     "x-csrftoken",
     "x-requested-with",
 ]
