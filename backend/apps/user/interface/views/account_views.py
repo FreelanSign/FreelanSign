@@ -19,8 +19,8 @@ from rest_framework.response import Response
 from apps.user.adapters.persistence.django_account_repository import DjangoAccountRepository
 from apps.user.adapters.system_clock import SystemClock
 from apps.user.application.dto.account_inputs import CreateAccountInput, UpdateAccountInput
+from apps.user.application.errors import AccountNotFoundError as DomainAccountNotFoundError
 from apps.user.application.errors import (
-    AccountNotFoundError as DomainAccountNotFoundError,
     DuplicateAccountNameError,
 )
 from apps.user.application.usecases.create_account import CreateAccount
