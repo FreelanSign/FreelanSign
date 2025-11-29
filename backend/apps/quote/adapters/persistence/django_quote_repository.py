@@ -40,10 +40,15 @@ class DjangoQuoteRepository(QuoteRepository):
         except Quote.DoesNotExist:
             raise QuoteNotFoundError()
 
-    def create(self, *, owner_id: str, fields: dict) -> str:
-        """Create a new quote header with initial totals set to zero."""
+    def create(self, *, account_id: int, fields: dict) -> str:
+        """
+        Create a new quote header with initial totals set to zero.
+
+        Phase 5: Uses account FK (owner kept for backward compat until Phase 6).
+        """
         quote = Quote.objects.create(
-            owner_id=owner_id,
+            account_id=account_id,
+            owner_id=fields.pop("owner_id", None),  # Backward compat (optional)
             **fields,
             subtotal=Decimal(0.00),
             tax_total=Decimal(0.00),

@@ -20,7 +20,7 @@ class QuoteRepository(Protocol):
     def create(
         self,
         *,
-        owner_id: str,
+        account_id: int,  # Phase 5: account FK
         fields: dict,
     ) -> str:
         """Create a quote"""
