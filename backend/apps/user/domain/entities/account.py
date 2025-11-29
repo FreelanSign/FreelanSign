@@ -1,6 +1,10 @@
 # apps/user/domain/entities/account.py
 """
 Entité Account du domaine user.
+
+@version: 1.0
+@author: @Bertrand2808
+@since: 2025-11-25
 """
 from dataclasses import dataclass
 from datetime import datetime
