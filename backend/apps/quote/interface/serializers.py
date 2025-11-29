@@ -336,6 +336,8 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
 
         Delegates all business logic (reference generation, client patch, line item creation, total calculation) to the CreateQuoteUseCase.
 
+        Phase 5: Uses account from middleware (request.account)
+
         Args:
             validated_data (dict): Pre-validated input data from the serializer.
 
@@ -343,11 +345,17 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
             Quote: The created quote instance.
         """
         request = self.context["request"]
-        owner = request.user
+        # Phase 5: account from middleware, user for requester_id
+        account = getattr(request, "account", None)
+        if not account:
+            raise ValidationError("Account context required (X-Account-Id header or fallback)")
+
         client_patch = self.initial_data.get("client_update", None)
 
         usecase = CreateQuoteUseCase(ref_generator=get_quote_reference_generator(), quote_repository=DjangoQuoteRepository())
-        return usecase.execute(owner=owner, validated_data=validated_data, client_patch=client_patch)
+        return usecase.execute(
+            account_id=account.id, requester_id=request.user.id, validated_data=validated_data, client_patch=client_patch
+        )
 
     def update(self, instance: Quote, validated_data: dict) -> Quote:
         """
@@ -355,6 +363,8 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
 
         Delegates business logic such as Client patching, line item replacement, and total recalculation
         to the application layer. The serializer is only responsible for I/O and orchestration.
+
+        Phase 5: Uses requester_id (no owner object)
 
         Args:
             instance (Quote): The quote instance to update.
@@ -364,7 +374,7 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
             Quote: The updated quote instance.
         """
         request = self.context["request"]
-        owner = request.user
+        requester_id = request.user.id  # Phase 5
         client_patch = self.initial_data.get("client_update", None)
         items_field_provided = "items" in (self.initial_data or {})
         # remove field not meant for model
@@ -374,7 +384,7 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
         usecase = UpdateQuoteUseCase(quote_repo=DjangoQuoteRepository())
         return usecase.execute(
             quote=instance,
-            owner=owner,
+            requester_id=requester_id,
             validated_data=validated_data,
             client_patch=client_patch,
             items_field_provided=items_field_provided,
