@@ -14,15 +14,17 @@ class DuplicateQuote:
         self.repo = repo
         self.reference_gen = reference_gen
 
-    def execute(self, *, quote_id: str, actor):
+    def execute(self, *, quote_id: str, account_id: int, actor):
         """Duplicate a quote."""
         orig = self.repo.get(quote_id, include_lines=True)
-        ref = self.reference_gen.new(actor.id)
+        # Phase 5: Use account_id for reference generation
+        ref = self.reference_gen.new(account_id)
         # construct header clone
         from apps.quote.models import Quote, QuoteHistory, QuoteLineItem
 
         new_q = Quote.objects.create(
-            owner=orig.owner,
+            account_id=account_id,
+            owner=orig.owner,  # Keep for backward compat
             client=orig.client,
             title=f"{orig.title} (copy)",
             reference=ref,
