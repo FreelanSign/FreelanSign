@@ -16,7 +16,7 @@ def test_add_prestation_line(api_client, user_with_account, mock_pdf_and_email):
     from apps.quote.models import Quote
 
     area = Area.objects.create(name="SEO")
-    cli = Client.objects.create(owner=user, name="ACME")
+    cli = Client.objects.create(owner=user, name="ACME", account=account)
     q = Quote.objects.create(
         owner=user,
         account=account,

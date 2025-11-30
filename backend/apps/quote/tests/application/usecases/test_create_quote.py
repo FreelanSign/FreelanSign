@@ -27,11 +27,9 @@ def test_create_quote_success(mocker):
     User = get_user_model()
     owner = User.objects.create_user(email="owner@example.test", password="test")
 
-    # ✅ NOUVEAU: Créer un Account pour le User
     account = Account.objects.create(user=owner, display_name="Test Account", legal_form="EI")
 
-    # TODO Phase 5.2: Client aura account FK au lieu de owner
-    client = Client.objects.create(name="Test Client", owner=owner)
+    client = Client.objects.create(name="Test Client", owner=owner, account=account)
 
     item = {
         "description": "Test item",
@@ -64,10 +62,9 @@ def test_create_quote_success(mocker):
 
     # Mock repository
     fake_repo = mocker.Mock()
-    # ✅ CHANGEMENT: create() prend account_id au lieu de owner_id
     fake_repo.create.side_effect = lambda account_id, fields: str(
         Quote.objects.create(
-            account_id=account_id,  # Nouvelle FK
+            account_id=account_id,
             **fields,
             subtotal=Decimal("0.00"),
             tax_total=Decimal("0.00"),
@@ -78,19 +75,16 @@ def test_create_quote_success(mocker):
 
     fake_repo.get.side_effect = lambda quote_id, requester_id: Quote.objects.get(pk=quote_id)
 
-    # Instancie le usecase
     usecase = CreateQuoteUseCase(ref_generator=fake_ref_generator, quote_repository=fake_repo)
 
-    # ✅ CHANGEMENT: owner=owner → account_id + requester_id
     quote = usecase.execute(
-        account_id=account.id,  # FK vers Account
-        requester_id=owner.id,  # User qui fait l'action
+        account_id=account.id,
+        requester_id=owner.id,
         validated_data=validated_data.copy(),
     )
 
-    # Assertions
     assert quote.reference == "Q-2025-11-0001"
-    assert quote.account_id == account.id  # ✅ CHANGEMENT: account au lieu de owner
+    assert quote.account_id == account.id
     assert quote.client == client
     assert quote.subtotal == Decimal("200.00")
     assert quote.tax_total == Decimal("40.00")
@@ -103,10 +97,7 @@ def test_create_quote_success(mocker):
     assert items[0].unit_price == Decimal("100.00")
     assert items[0].tax_rate == Decimal("20.00")
 
-    # ✅ CHANGEMENT: Vérifie que ref_generator a reçu account.id
-    fake_ref_generator.next_reference.assert_called_once_with(
-        owner_id=account.id, when=date(2025, 11, 6)  # account_id utilisé pour la référence
-    )
+    fake_ref_generator.next_reference.assert_called_once_with(owner_id=account.id, when=date(2025, 11, 6))
     fake_repo.create.assert_called_once()
     fake_repo.get.assert_called_once()
 
@@ -127,11 +118,9 @@ def test_client_patch_forbidden(mocker):
     owner = User.objects.create_user(email="owner@example.test", password="test")
     other_user = User.objects.create_user(email="otheruser@example.test", password="password")
 
-    # ✅ NOUVEAU: Créer Account pour owner
     account = Account.objects.create(user=owner, display_name="Owner Account", legal_form="EI")
 
-    # Client appartient à other_user (pas owner)
-    client = Client.objects.create(name="Client Toto", owner=other_user)
+    client = Client.objects.create(name="Client Toto", owner=other_user, account=account)
 
     item = {
         "description": "Test item",
@@ -179,12 +168,10 @@ def test_client_patch_forbidden(mocker):
 
     usecase = CreateQuoteUseCase(ref_generator=fake_ref_generator, quote_repository=fake_repo)
 
-    # ✅ CHANGEMENT: Tente de créer quote avec account_id de owner
-    # mais patch un client de other_user → doit échouer
     with pytest.raises(ValidationError) as execution_info:
         usecase.execute(
             account_id=account.id,
-            requester_id=owner.id,  # requester != client.owner
+            requester_id=owner.id,
             validated_data=validated_data.copy(),
             client_patch=client_patch.copy(),
         )
@@ -206,10 +193,9 @@ def test_create_quote_no_changes_to_client(mocker):
     User = get_user_model()
     owner = User.objects.create_user(email="owner@example.test", password="test")
 
-    # ✅ NOUVEAU: Créer Account
     account = Account.objects.create(user=owner, display_name="Test Account", legal_form="EI")
 
-    client = Client.objects.create(name="Client Toto", owner=owner)
+    client = Client.objects.create(name="Client Toto", owner=owner, account=account)
 
     item = {
         "description": "Test item",
@@ -284,10 +270,9 @@ def test_totals_are_computed(mocker):
     User = get_user_model()
     owner = User.objects.create_user(email="owner@example.test", password="test")
 
-    # ✅ NOUVEAU: Créer Account
     account = Account.objects.create(user=owner, display_name="Test Account", legal_form="EI")
 
-    client = Client.objects.create(name="Client Toto", owner=owner)
+    client = Client.objects.create(name="Client Toto", owner=owner, account=account)
 
     item1 = {
         "description": "Test item",
@@ -350,7 +335,6 @@ def test_totals_are_computed(mocker):
 
     usecase = CreateQuoteUseCase(ref_generator=fake_ref_generator, quote_repository=fake_repo)
 
-    # ✅ CHANGEMENT
     quote = usecase.execute(
         account_id=account.id,
         requester_id=owner.id,

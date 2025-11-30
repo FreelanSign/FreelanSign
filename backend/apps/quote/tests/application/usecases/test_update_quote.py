@@ -22,7 +22,7 @@ def test_update_quote_header_only():
 
     account = Account.objects.create(user=owner, display_name="Owner Account")
 
-    client = Client.objects.create(name="Initial Client", owner=owner)
+    client = Client.objects.create(name="Initial Client", owner=owner, account=account)
 
     quote = Quote.objects.create(
         owner=owner,
@@ -65,7 +65,7 @@ def test_update_quote_with_items():
 
     account = Account.objects.create(user=owner, display_name="Owner Account")
 
-    client = Client.objects.create(name="Client with items", owner=owner)
+    client = Client.objects.create(name="Client with items", owner=owner, account=account)
 
     quote = Quote.objects.create(
         owner=owner,
@@ -134,7 +134,7 @@ def test_update_quote_client_patch_forbidden():
 
     account = Account.objects.create(user=owner, display_name="Owner Account")
 
-    client = Client.objects.create(name="Not owned client", owner=other_user)
+    client = Client.objects.create(name="Not owned client", owner=other_user, account=account)
 
     quote = Quote.objects.create(
         owner=owner,
@@ -177,7 +177,7 @@ def test_update_quote_preserve_items():
 
     account = Account.objects.create(user=owner, display_name="Owner Account")
 
-    client = Client.objects.create(name="Client", owner=owner)
+    client = Client.objects.create(name="Client", owner=owner, account=account)
 
     quote = Quote.objects.create(
         owner=owner,

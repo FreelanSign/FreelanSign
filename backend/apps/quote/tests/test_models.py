@@ -22,7 +22,7 @@ def test_reference_unique_per_owner():  # ← Retire le paramètre client_model
 
     account = Account.objects.create(user=owner, display_name="Account A")
 
-    c = Client.objects.create(owner=owner, name="ACME")  # ← Utilise Client directement
+    c = Client.objects.create(owner=owner, name="ACME", account=account)
 
     q1 = Quote.objects.create(
         owner=owner,
@@ -68,7 +68,7 @@ def test_totals_verification():  # ← Retire le paramètre client_model
 
     account = Account.objects.create(user=owner, display_name="Account B")
 
-    c = Client.objects.create(owner=owner, name="Client B")  # ← Utilise Client directement
+    c = Client.objects.create(owner=owner, name="Client B", account=account)
 
     q = Quote.objects.create(
         owner=owner,

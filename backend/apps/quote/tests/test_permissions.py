@@ -25,7 +25,7 @@ def test_other_professional_cannot_view_or_edit_quote():
     other_account = Account.objects.create(user=other, display_name="Other Account")
 
     # create client owned by 'owner' (owner is required by Client model)
-    client = Client.objects.create(owner=owner, name="Acme Corp")
+    client = Client.objects.create(owner=owner, name="Acme Corp", account=owner_account)
     # create a quote owned by 'owner'
     q = Quote.objects.create(
         owner=owner,
@@ -71,7 +71,7 @@ def test_admin_can_read_and_cancel_with_all_param():
     # admin doesn't strictly need an account for this test if acting as staff, but good practice
 
     # client must have an owner as per Client model constraints
-    client = Client.objects.create(owner=owner, name="Acme Corp 2")
+    client = Client.objects.create(owner=owner, name="Acme Corp 2", account=owner_account)
     q = Quote.objects.create(
         owner=owner,
         account=owner_account,

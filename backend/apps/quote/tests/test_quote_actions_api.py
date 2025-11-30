@@ -12,7 +12,7 @@ def test_duplicate_quote(api_client, user_with_account, mock_pdf_and_email):
     from apps.client.models import Client as ClientModel
     from apps.quote.models import Quote, QuoteLineItem
 
-    cli = ClientModel.objects.create(owner=user, name="ACME")
+    cli = ClientModel.objects.create(owner=user, name="ACME", account=account)
     q = Quote.objects.create(
         owner=user,
         account=account,
@@ -48,7 +48,7 @@ def test_change_status_illegal_transition(api_client, user_with_account, mock_pd
     from apps.client.models import Client as ClientModel
     from apps.quote.models import Quote
 
-    cli = ClientModel.objects.create(owner=user, name="ACME")
+    cli = ClientModel.objects.create(owner=user, name="ACME", account=account)
     q = Quote.objects.create(
         owner=user,
         account=account,
@@ -78,7 +78,7 @@ def test_send_quote_ok(api_client, user_with_account, mock_pdf_and_email):
     from apps.client.models import Client as ClientModel
     from apps.quote.models import Quote, QuoteLineItem
 
-    cli = ClientModel.objects.create(owner=user, name="ACME", email="client@a.test")
+    cli = ClientModel.objects.create(owner=user, name="ACME", email="client@a.test", account=account)
     q = Quote.objects.create(
         owner=user,
         account=account,

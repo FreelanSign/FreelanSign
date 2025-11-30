@@ -15,7 +15,7 @@ def test_download_pdf_ok(api_client, user_with_account, mock_pdf_and_email):
     from apps.client.models import Client as ClientModel
     from apps.quote.models import Quote, QuoteLineItem
 
-    cli = ClientModel.objects.create(owner=user, name="ACME", email="a@a.test")  # adapte si owner requis différemment
+    cli = ClientModel.objects.create(owner=user, name="ACME", email="a@a.test", account=account)
     q = Quote.objects.create(
         owner=user,
         account=account,

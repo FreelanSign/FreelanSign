@@ -16,7 +16,7 @@ User = get_user_model()
 def test_replace_lines_recalculates_totals():
     user = User.objects.create_user(email="repo1@example.test", password="x")
     account = Account.objects.create(user=user, display_name="Repo1 Account")
-    client = Client.objects.create(owner=user, name="ACME")
+    client = Client.objects.create(owner=user, account=account, name="ACME")
 
     # Création d'un devis "brut" (ici on ne teste pas la génération de référence)
     q = Quote.objects.create(
@@ -90,7 +90,7 @@ def test_replace_lines_recalculates_totals():
 def test_add_line_item_updates_totals():
     user = User.objects.create_user(email="repo2@example.test", password="x")
     account = Account.objects.create(user=user, display_name="Repo2 Account")
-    client = Client.objects.create(owner=user, name="BETA")
+    client = Client.objects.create(owner=user, account=account, name="BETA")
 
     q = Quote.objects.create(
         account=account,
