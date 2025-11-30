@@ -20,13 +20,11 @@ from apps.user.adapters.persistence.django_account_repository import DjangoAccou
 from apps.user.adapters.system_clock import SystemClock
 from apps.user.application.dto.account_inputs import CreateAccountInput, UpdateAccountInput
 from apps.user.application.errors import AccountNotFoundError as DomainAccountNotFoundError
-from apps.user.application.errors import (
-    DuplicateAccountNameError,
-)
 from apps.user.application.usecases.create_account import CreateAccount
 from apps.user.application.usecases.deactivate_account import DeactivateAccount
 from apps.user.application.usecases.get_user_accounts import GetUserAccounts
 from apps.user.application.usecases.update_account import UpdateAccount
+from apps.user.domain.errors import DuplicateAccountNameError
 from apps.user.interface.permissions import IsAccountOwner
 from apps.user.interface.serializers import AccountInputSerializer, AccountOutputSerializer
 from apps.user.models.account import Account
@@ -54,40 +52,32 @@ class AccountViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Return queryset for list view.
+        Return ALL accounts - permissions handle authorization.
 
-        NOTE: Returns ALL accounts - IsAccountOwner permission handles 403.
-        This maintains semantic distinction between 404 (not exists) and 403 (forbidden).
+        CRITICAL: Do NOT filter by user here. This would cause 404 instead of 403
+        when a user tries to access another user's account.
 
-        Admin users: Can list all accounts
-        Regular users: Can only list their own (filtered here for performance)
+        The IsAccountOwner permission class will properly return 403 Forbidden.
         """
-        user = self.request.user
-
-        # NOTE: Using profile.role instead of Django Groups for now (legacy).
-        # TODO v0.3: Migrate to Django Groups + Permissions
-        if hasattr(user, "profile") and user.profile.role == "admin":
-            return Account.objects.all()
-        else:
-            # Performance optimization: pre-filter for list view
-            # Single retrieve still goes through permission check
-            return Account.objects.filter(user=user)
+        return Account.objects.all()
 
     def list(self, request):
         """
         GET /api/accounts/
 
-        List accounts using Clean Architecture use case.
+        List accounts - admin sees all, regular users see only their own.
         """
-        use_case = GetUserAccounts(repository=self.repository)
+        user = request.user
 
-        # Admin can see inactive accounts
-        include_inactive = hasattr(request.user, "profile") and request.user.profile.role == "admin"
+        # Admin sees all accounts
+        if hasattr(user, "profile") and user.profile.role == "admin":
+            accounts = Account.objects.all()
+        else:
+            # Regular users see only their own
+            accounts = Account.objects.filter(user=user)
 
-        result = use_case.execute(user_id=request.user.id, include_inactive=include_inactive)
-
-        # DRF serializer reads ViewModel attributes directly (no manual mapping)
-        serializer = self.get_serializer(result.accounts, many=True)
+        # DRF serializer reads model attributes directly
+        serializer = self.get_serializer(accounts, many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):

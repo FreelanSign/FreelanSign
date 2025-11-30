@@ -24,8 +24,9 @@ class DeactivateAccount:
         if self.repository.has_quotes(account_id):
             raise CannotDeactivateAccountError(account_id)
 
-        # 3. Set updated_at (is_active will be added to entity in Phase 3)
+        # 3. Deactivate account (soft delete)
+        account.is_active = False
         account.updated_at = self.clock.now()
 
-        # 4. Persist (repository will set is_active=False in Phase 3)
+        # 4. Persist changes
         self.repository.update(account)

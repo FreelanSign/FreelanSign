@@ -27,16 +27,22 @@ class AccountInputSerializer(serializers.Serializer):
         """
         Validate using domain policy.
 
+        For partial updates (PATCH), only validate provided fields.
+        The view layer will merge with existing data before calling the use case.
+
         Raises:
             ValidationError: If data doesn't meet domain rules
         """
-        # Use AccountPolicy for domain validation
-        AccountPolicy.validate_account_data(
-            display_name=data["display_name"],
-            legal_form=data.get("legal_form"),
-            legal_id=data.get("legal_id"),
-            domain_id=data.get("domain_id"),
-        )
+        # Only validate if all required fields are present
+        # For PATCH requests, the view merges with existing data
+        if "display_name" in data and "legal_form" in data:
+            # Use AccountPolicy for domain validation
+            AccountPolicy.validate_account_data(
+                display_name=data["display_name"],
+                legal_form=data["legal_form"],
+                legal_id=data.get("legal_id"),
+                domain_id=data.get("domain_id"),
+            )
         return data
 
 
