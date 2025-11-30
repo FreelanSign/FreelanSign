@@ -34,7 +34,6 @@ class UserApiTests(APITestCase):
                 "first_name": "Jeanne",
                 "last_name": "Dupont",
                 "phone": "0712345678",
-                "birthday": "1995-06-15",
                 "role": "freelance",
                 "avatar_url": "https://cdn.test/avatar.png",
             },
@@ -49,19 +48,17 @@ class UserApiTests(APITestCase):
         self.assertEqual(body["profile"]["last_name"], "Dupont")
         self.assertEqual(body["profile"]["role"], "freelance")
 
-    def test_register_user_legacy_full_name_phone(self):
+    def test_register_user_with_phone(self):
         payload = {
-            "email": "legacy@example.com",
+            "email": "phonetest@example.com",
             "password": "Secret123!",
-            "full_name": "Marie Curie",
             "phone": "0600000000",
         }
         res = self.client.post(BASE, data=payload, format="json")
         self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.content)
         body = res.json()
-        self.assertEqual(body["email"], "legacy@example.com")
-        self.assertEqual(body["profile"]["first_name"], "Marie")
-        self.assertEqual(body["profile"]["last_name"], "Curie")
+        self.assertEqual(body["email"], "phonetest@example.com")
+        self.assertEqual(body["profile"]["phone"], "0600000000")
         self.assertEqual(body["profile"]["phone"], "0600000000")
         self.assertEqual(body["profile"]["role"], "freelance")
 

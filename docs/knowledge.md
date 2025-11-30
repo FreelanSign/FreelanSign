@@ -890,7 +890,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   └── usecases
 │   │       │       ├── change_password.py
 │   │       │       ├── create_account.py
-│   │       │       ├── create_professional.py
 │   │       │       ├── deactivate_account.py
 │   │       │       ├── get_user_accounts.py
 │   │       │       ├── list_users.py
@@ -898,7 +897,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │       ├── request_password_reset.py
 │   │       │       ├── reset_password.py
 │   │       │       ├── update_account.py
-│   │       │       ├── update_professional.py
 │   │       │       └── update_profile.py
 │   │       ├── apps.py
 │   │       ├── backend
@@ -937,7 +935,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   └── views
 │   │       │       ├── __init__.py
 │   │       │       ├── account_views.py
-│   │       │       ├── professional_views.py
 │   │       │       └── user_views.py
 │   │       ├── migrations
 │   │       │   ├── __init__.py
@@ -950,7 +947,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── 0007_professionaluser_allowed_areas.py
 │   │       │   ├── 0008_remove_professionaluser_allowed_areas.py
 │   │       │   ├── 0009_account.py
-│   │       │   └── 0010_migrate_professional_to_account.py
+│   │       │   ├── 0010_migrate_professional_to_account.py
+│   │       │   └── 0011_cleanup_phase6.py
 │   │       ├── models
 │   │       │   ├── __init__.py
 │   │       │   ├── account.py
@@ -987,8 +985,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   │   └── test_account_api.py
 │   │       │   ├── test_auth_api.py
 │   │       │   ├── test_auth_logout.py
-│   │       │   ├── test_professional_api.py
-│   │       │   ├── test_professional_serializer_minimal.py
 │   │       │   ├── test_refresh_rotation.py
 │   │       │   └── test_user_api.py
 │   │       └── urls.py
@@ -1514,7 +1510,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-263 directories, 795 files
+263 directories, 791 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1581,12 +1577,11 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 | `QuoteLineItem` | `apps/quote/models.py` |
 | `QuoteHistory` | `apps/quote/models.py` |
 | `Profile` | `apps/user/models/models.py` |
-| `ProfessionalUser` | `apps/user/models/models.py` |
 <!-- END AUTO: DJANGO_MODELS -->
 
 ---
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-30 22:36:52 CET**
+_Updated_: **2025-11-30 22:56:00 CET**
 <!-- END AUTO: LAST_UPDATED -->

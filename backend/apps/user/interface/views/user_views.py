@@ -50,7 +50,6 @@ def _user_vm_from_model(u) -> UserViewModel:
         profile=ProfileViewModel(
             first_name=getattr(p, "first_name", None),
             last_name=getattr(p, "last_name", None),
-            birthday=getattr(p, "birthday", None),
             phone=getattr(p, "phone", None),
             avatar_url=getattr(p, "avatar_url", None),
             role=getattr(p, "role", "freelance"),

@@ -5,8 +5,6 @@ from apps.user.interface.serializers.account_serializers import (
 from apps.user.interface.serializers.user_serializers import (
     ChangePasswordInputSerializer,
     LogoutSerializer,
-    ProfessionalOutputSerializer,
-    ProfessionalUpsertInputSerializer,
     ProfileOutputSerializer,
     ProfilePatchInputSerializer,
     RequestPasswordResetSerializer,
@@ -21,8 +19,6 @@ __all__ = [
     "AccountOutputSerializer",
     "ChangePasswordInputSerializer",
     "LogoutSerializer",
-    "ProfessionalOutputSerializer",
-    "ProfessionalUpsertInputSerializer",
     "ProfileOutputSerializer",
     "ProfilePatchInputSerializer",
     "RequestPasswordResetSerializer",
