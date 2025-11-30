@@ -12,8 +12,25 @@ logger = logging.getLogger(__name__)
 
 class DjangoClientRepository(ClientRepository):
     def create(self, data: dict) -> Client:
+        """
+        Create a Client from a raw dict coming from the use case.
+
+        Normalise les champs optionnels pour respecter les contraintes DB:
+        - String optionnelles: None -> ""
+        - metadata: None -> {}
+        """
         try:
-            return Client.objects.create(**data)
+            normalized = data.copy()
+            # TODO: avoid dict field in code
+            for field in ("email", "phone", "address", "vat_number"):
+                value = normalized.get(field, "")
+                if value is None:
+                    normalized[field] = ""
+
+            if normalized.get("metadata") is None:
+                normalized["metadata"] = {}
+
+            return Client.objects.create(**normalized)
         except Exception as e:
             logger.exception("Erreur create client")
             raise RepositoryError("Erreur technique lors de la création du client", original_error=e)

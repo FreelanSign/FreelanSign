@@ -21,17 +21,18 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name="schema", permission_classes=[AllowAny], authentication_classes=[]),
         name="docs",
     ),
-    # Votre API users
-    path("api/user/", include("apps.user.urls", namespace="user")),
+    # API users
+    path("api/user/", include("apps.user.urls")),
     # Auth endpoints
     path("api/auth/", include("apps.user.interface.auth_urls")),
     # Catalog
-    path("api/catalog/", include("apps.catalog.interface.urls", namespace="catalog")),
+    path("api/catalog/", include("apps.catalog.interface.urls")),
     # Quotes
-    path("api/quotes/", include("apps.quote.interface.urls", namespace="quote")),
+    path("api/quotes/", include("apps.quote.interface.urls")),
     # Clients
-    path("api/clients/", include("apps.client.interface.urls", namespace="client")),
+    path("api/clients/", include("apps.client.interface.urls")),
     # Branding
-    path("api/branding/", include("apps.branding.interface.urls", namespace="branding")),
-    path("api/", include("apps.email.interface.urls", namespace="email")),
+    path("api/branding/", include("apps.branding.interface.urls")),
+    # Email
+    path("api/", include("apps.email.interface.urls")),
 ]
