@@ -1,4 +1,4 @@
-# apps/user/interface/serializers.py
+# apps/user/interface/serializers/user_serializers.py
 """
 Interface serializers (API boundary).
 - Input serializers: validate API payload shape and convert to application DTOs.
@@ -247,21 +247,6 @@ class ProfessionalOutputSerializer(serializers.Serializer):
     @staticmethod
     def from_vm(vm: ProfessionalViewModel) -> "ProfessionalOutputSerializer":
         return ProfessionalOutputSerializer(instance=vm)
-
-
-__all__ = [
-    # inputs
-    "UserRegistrationInputSerializer",
-    "ProfilePatchInputSerializer",
-    "ChangePasswordInputSerializer",
-    "ProfessionalUpsertInputSerializer",
-    "LogoutSerializer",
-    # outputs
-    "ProfileOutputSerializer",
-    "UserOutputSerializer",
-    "UserListOutputSerializer",
-    "ProfessionalOutputSerializer",
-]
 
 
 class RequestPasswordResetSerializer(serializers.Serializer):

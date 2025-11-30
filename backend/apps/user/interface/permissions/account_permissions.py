@@ -35,3 +35,18 @@ class IsAccountOwner(permissions.BasePermission):
 
         # Owner check - must be the account's user
         return obj.user == request.user
+
+
+class HasAccountContext(permissions.BasePermission):
+    """
+    Permission to ensure the request has a valid account context.
+
+    Requires AccountContextMiddleware to be active.
+    """
+
+    def has_permission(self, request, view):
+        # Admin bypass
+        if request.user and request.user.is_staff:
+            return True
+        # request.account is populated by AccountContextMiddleware
+        return getattr(request, "account", None) is not None
