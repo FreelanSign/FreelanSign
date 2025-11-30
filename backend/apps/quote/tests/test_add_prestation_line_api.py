@@ -6,10 +6,11 @@ from django.urls import reverse
 
 
 @pytest.mark.django_db
-def test_add_prestation_line(api_client, django_user_model, mock_pdf_and_email):
+@pytest.mark.django_db
+def test_add_prestation_line(api_client, user_with_account, mock_pdf_and_email):
     # setup user + quote + prestation
-    user = django_user_model.objects.create_user(email="u@a.test", password="p")
-    api_client.force_authenticate(user)
+    user, account = user_with_account
+    api_client.force_login(user)
     from apps.catalog.models import Area, Prestation  # adapte si besoin
     from apps.client.models import Client
     from apps.quote.models import Quote
@@ -18,6 +19,7 @@ def test_add_prestation_line(api_client, django_user_model, mock_pdf_and_email):
     cli = Client.objects.create(owner=user, name="ACME")
     q = Quote.objects.create(
         owner=user,
+        account=account,
         client=cli,
         title="T",
         reference="REF-ADD",

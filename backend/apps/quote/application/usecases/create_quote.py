@@ -63,6 +63,8 @@ class CreateQuoteUseCase:
         validated_data["reference"] = reference
 
         # Phase 5: Create with account_id
+        # Backward compat: Ensure owner_id is set (requester is owner)
+        validated_data["owner_id"] = requester_id
         quote_id = self.quote_repository.create(account_id=account_id, fields=validated_data)
         logger.info("quote.created", extra={"quote_id": str(quote_id)})
         quote = self.quote_repository.get(quote_id=quote_id, requester_id=requester_id)

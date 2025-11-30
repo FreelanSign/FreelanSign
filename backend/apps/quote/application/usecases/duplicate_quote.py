@@ -16,7 +16,7 @@ class DuplicateQuote:
 
     def execute(self, *, quote_id: str, account_id: int, actor):
         """Duplicate a quote."""
-        orig = self.repo.get(quote_id, include_lines=True)
+        orig = self.repo.get(quote_id, requester_id=str(actor.id), include_lines=True)
         # Phase 5: Use account_id for reference generation
         ref = self.reference_gen.new(account_id)
         # construct header clone

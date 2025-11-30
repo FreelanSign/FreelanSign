@@ -485,6 +485,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── .sonarignore
 ├── AGENT.md
 ├── backend
+│   ├── .claude
+│   │   └── settings.local.json
 │   ├── .coverage
 │   ├── .coveragerc
 │   ├── .dockerignore
@@ -634,7 +636,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── views.py
 │   │   │   ├── migrations
 │   │   │   │   ├── __init__.py
-│   │   │   │   └── 0001_initial.py
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_client_account.py
+│   │   │   │   ├── 0003_migrate_client_to_account.py
+│   │   │   │   └── 0004_alter_client_account.py
 │   │   │   ├── models.py
 │   │   │   ├── tests
 │   │   │   │   ├── __init__.py
@@ -834,6 +839,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── test_tax_policy.py
 │   │   │   │   │   └── test_totals.py
+│   │   │   │   ├── temp_fixtures.py
 │   │   │   │   ├── test_add_prestation_line_api.py
 │   │   │   │   ├── test_mock_verification.py
 │   │   │   │   ├── test_models.py
@@ -913,12 +919,13 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   │   └── account_permissions.py
 │   │       │   ├── serializers
 │   │       │   │   ├── __init__.py
-│   │       │   │   └── account_serializers.py
-│   │       │   ├── serializers.py
-│   │       │   ├── views
-│   │       │   │   ├── __init__.py
-│   │       │   │   └── account_views.py
-│   │       │   └── views.py
+│   │       │   │   ├── account_serializers.py
+│   │       │   │   └── user_serializers.py
+│   │       │   └── views
+│   │       │       ├── __init__.py
+│   │       │       ├── account_views.py
+│   │       │       ├── professional_views.py
+│   │       │       └── user_views.py
 │   │       ├── migrations
 │   │       │   ├── __init__.py
 │   │       │   ├── 0001_initial.py
@@ -1494,7 +1501,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-262 directories, 776 files
+263 directories, 782 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1568,5 +1575,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-29 18:15:06 CET**
+_Updated_: **2025-11-30 13:46:47 CET**
 <!-- END AUTO: LAST_UPDATED -->

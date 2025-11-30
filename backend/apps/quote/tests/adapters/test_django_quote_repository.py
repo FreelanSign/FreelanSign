@@ -7,6 +7,7 @@ from django.utils import timezone
 from apps.client.models import Client
 from apps.quote.adapters.persistence.django_quote_repository import DjangoQuoteRepository
 from apps.quote.models import Quote
+from apps.user.models.account import Account
 
 User = get_user_model()
 
@@ -14,11 +15,13 @@ User = get_user_model()
 @pytest.mark.django_db
 def test_replace_lines_recalculates_totals():
     user = User.objects.create_user(email="repo1@example.test", password="x")
+    account = Account.objects.create(user=user, display_name="Repo1 Account")
     client = Client.objects.create(owner=user, name="ACME")
 
     # Création d'un devis "brut" (ici on ne teste pas la génération de référence)
     q = Quote.objects.create(
         id=None,
+        account=account,
         owner=user,
         client=client,
         title="Test Repo Replace",
@@ -57,7 +60,7 @@ def test_replace_lines_recalculates_totals():
         },
     ]
 
-    repo.replace_lines(q, items)
+    repo.replace_lines(quote_id=str(q.id), lines=items)
 
     q.refresh_from_db()
     lines = list(q.items.order_by("order"))
@@ -86,9 +89,11 @@ def test_replace_lines_recalculates_totals():
 @pytest.mark.django_db
 def test_add_line_item_updates_totals():
     user = User.objects.create_user(email="repo2@example.test", password="x")
+    account = Account.objects.create(user=user, display_name="Repo2 Account")
     client = Client.objects.create(owner=user, name="BETA")
 
     q = Quote.objects.create(
+        account=account,
         owner=user,
         client=client,
         title="Test Repo Add",

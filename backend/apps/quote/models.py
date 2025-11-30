@@ -85,6 +85,13 @@ class Quote(models.Model):
         help_text="Client associated with this quote.",
     )
 
+    account = models.ForeignKey(
+        "user.Account",
+        on_delete=models.PROTECT,
+        related_name="quotes",
+        help_text="Account owning this quote.",
+    )
+
     title = models.CharField(max_length=255)
     reference = models.CharField(max_length=64, help_text="Human-readable reference unique per owner.", editable=False)
     currency = models.CharField(max_length=3, help_text="ISO currency code, e.g. 'EUR'.")

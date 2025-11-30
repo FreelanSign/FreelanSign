@@ -40,7 +40,6 @@ from apps.quote.application.usecases.download_pdf import DownloadPdf  # type: ig
 from apps.quote.application.usecases.duplicate_quote import DuplicateQuote  # type: ignore
 from apps.quote.application.usecases.generate_preview import generate_preview
 from apps.quote.application.usecases.send_quote import SendQuote  # type: ignore
-from apps.quote.application.usecases.send_quote import SendQuote  # type: ignore
 from apps.quote.interface.permissions import IsOwnerOrAdmin
 from apps.user.interface.permissions.account_permissions import IsAccountOwner, HasAccountContext
 from apps.quote.interface.renderers import PDFRenderer

@@ -16,10 +16,17 @@ User = get_user_model()
 @pytest.mark.django_db
 def test_update_quote_header_only():
     owner = User.objects.create_user(email="owner@example.test", password="test")
+
+    # Create account
+    from apps.user.models.account import Account
+
+    account = Account.objects.create(user=owner, display_name="Owner Account")
+
     client = Client.objects.create(name="Initial Client", owner=owner)
 
     quote = Quote.objects.create(
         owner=owner,
+        account=account,
         client=client,
         title="Initial title",
         status="DRAFT",
@@ -39,7 +46,7 @@ def test_update_quote_header_only():
 
     updated = usecase.execute(
         quote=quote,
-        owner=owner,
+        requester_id=owner.id,
         validated_data=validated_data,
         client_patch=None,
         items_field_provided=False,
@@ -52,10 +59,17 @@ def test_update_quote_header_only():
 @pytest.mark.django_db
 def test_update_quote_with_items():
     owner = User.objects.create_user(email="owner@example.test", password="test")
+
+    # Create account
+    from apps.user.models.account import Account
+
+    account = Account.objects.create(user=owner, display_name="Owner Account")
+
     client = Client.objects.create(name="Client with items", owner=owner)
 
     quote = Quote.objects.create(
         owner=owner,
+        account=account,
         client=client,
         title="With items",
         status="DRAFT",
@@ -85,7 +99,7 @@ def test_update_quote_with_items():
             "description": "New item",
             "qty": Decimal("2.00"),
             "unit_price": Decimal("200.00"),
-            "tax_rate": Decimal("10.00"),
+            "tax_rate_pct": Decimal("10.00"),
             "discount": Decimal("0.00"),
             "order": 0,
             "metadata": {},
@@ -96,7 +110,7 @@ def test_update_quote_with_items():
 
     updated = usecase.execute(
         quote=quote,
-        owner=owner,
+        requester_id=owner.id,
         validated_data={},
         client_patch=None,
         items_field_provided=True,
@@ -114,10 +128,17 @@ def test_update_quote_with_items():
 def test_update_quote_client_patch_forbidden():
     owner = User.objects.create_user(email="owner@example.test", password="test")
     other_user = User.objects.create_user(email="other@example.test", password="test")
+
+    # Create account
+    from apps.user.models.account import Account
+
+    account = Account.objects.create(user=owner, display_name="Owner Account")
+
     client = Client.objects.create(name="Not owned client", owner=other_user)
 
     quote = Quote.objects.create(
         owner=owner,
+        account=account,
         client=client,
         title="Initial",
         status="DRAFT",
@@ -137,7 +158,7 @@ def test_update_quote_client_patch_forbidden():
     with pytest.raises(ValidationError) as err:
         usecase.execute(
             quote=quote,
-            owner=owner,
+            requester_id=owner.id,
             validated_data={},
             client_patch=client_patch,
             items_field_provided=False,
@@ -150,10 +171,17 @@ def test_update_quote_client_patch_forbidden():
 @pytest.mark.django_db
 def test_update_quote_preserve_items():
     owner = User.objects.create_user(email="owner@example.test", password="test")
+
+    # Create account
+    from apps.user.models.account import Account
+
+    account = Account.objects.create(user=owner, display_name="Owner Account")
+
     client = Client.objects.create(name="Client", owner=owner)
 
     quote = Quote.objects.create(
         owner=owner,
+        account=account,
         client=client,
         title="Preserve",
         status="DRAFT",
@@ -182,7 +210,7 @@ def test_update_quote_preserve_items():
 
     updated = usecase.execute(
         quote=quote,
-        owner=owner,
+        requester_id=owner.id,
         validated_data={},
         client_patch=None,
         items_field_provided=False,

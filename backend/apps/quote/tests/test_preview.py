@@ -4,8 +4,8 @@ from django.urls import reverse
 
 
 @pytest.mark.django_db
-def test_preview_pdf_ok(api_client, django_user_model, mock_pdf_and_email):
-    user = django_user_model.objects.create_user(email="u@a.test", password="p")
+def test_preview_pdf_ok(api_client, user_with_account, mock_pdf_and_email):
+    user, account = user_with_account
     api_client.force_authenticate(user)
 
     payload = {
