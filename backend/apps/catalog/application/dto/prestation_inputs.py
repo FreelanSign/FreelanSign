@@ -13,7 +13,7 @@ class ListPrestationsInput:
     area_id: Optional[int] = None
     status: Optional[str] = None
     search: Optional[str] = None
-    professional_user_id: Optional[int] = None
+    account_id: Optional[int] = None  # Phase 5.4: renamed from professional_user_id
     prestation_ids: Optional[list[int]] = None
     ordering: Optional[str] = None
 
@@ -35,7 +35,7 @@ class CreatePrestationInput:
     weight_days: int
     default_rate_cents: int
     status: str = "DRAFT"
-    professional_user_id: Optional[int] = None
+    account_id: Optional[int] = None  # Phase 5.4: renamed from professional_user_id
 
 
 @dataclass(frozen=True)
