@@ -15,6 +15,12 @@ class Client(models.Model):
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="clients", help_text="Owner who created this client."
     )
+    account = models.ForeignKey(
+        "user.Account",
+        on_delete=models.PROTECT,
+        related_name="clients",
+        help_text="Account owning this client.",
+    )
     name = models.CharField(max_length=255)
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=64, blank=True)
@@ -30,7 +36,7 @@ class Client(models.Model):
         verbose_name = "Client"
         verbose_name_plural = "Clients"
         indexes = [
-            models.Index(fields=["owner", "name"], name="ix_client_owner_name"),
+            models.Index(fields=["account", "name"], name="ix_client_account_name"),
         ]
 
     def __str__(self):

@@ -121,6 +121,7 @@ class ClientOutputSerializer(serializers.Serializer):
 
     id = serializers.UUIDField()
     owner = serializers.IntegerField(source="owner_id")
+    account_id = serializers.IntegerField()  # Phase 5
     name = serializers.CharField()
     email = serializers.CharField(allow_null=True, allow_blank=True)
     phone = serializers.CharField(allow_null=True, allow_blank=True)

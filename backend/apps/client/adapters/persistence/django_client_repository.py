@@ -40,11 +40,16 @@ class DjangoClientRepository(ClientRepository):
             logger.exception("Erreur get_by_id client %s", client_id)
             raise RepositoryError("Erreur technique lors de la récupération du client", original_error=e)
 
-    def list(self, owner_id: Optional[int], search: Optional[str], ordering: Optional[str]) -> Iterable[Client]:
+    def list(
+        self, owner_id: Optional[int], account_id: Optional[int], search: Optional[str], ordering: Optional[str]
+    ) -> Iterable[Client]:
         try:
-            qs = Client.objects.all().select_related("owner")
-            if owner_id is not None:
+            qs = Client.objects.all().select_related("owner", "account")
+            if account_id is not None:
+                qs = qs.filter(account_id=account_id)
+            elif owner_id is not None:
                 qs = qs.filter(owner_id=owner_id)
+
             if search:
                 qs = qs.filter(Q(name__icontains=search) | Q(email__icontains=search) | Q(phone__icontains=search))
             if ordering:
@@ -62,8 +67,16 @@ class DjangoClientRepository(ClientRepository):
             raise RepositoryError("Erreur technique lors de la suppression du client", original_error=e)
 
     def exists_by_owner_name(self, owner_id: int, name: str) -> bool:
+        # Deprecated: use exists_by_account_name
         try:
             return Client.objects.filter(owner_id=owner_id, name=name).exists()
         except Exception as e:
             logger.exception("Erreur exists_by_owner_name owner_id=%s name=%s", owner_id, name)
+            raise RepositoryError("Erreur technique lors de la vérification d'existence du client", original_error=e)
+
+    def exists_by_account_name(self, account_id: int, name: str) -> bool:
+        try:
+            return Client.objects.filter(account_id=account_id, name=name).exists()
+        except Exception as e:
+            logger.exception("Erreur exists_by_account_name account_id=%s name=%s", account_id, name)
             raise RepositoryError("Erreur technique lors de la vérification d'existence du client", original_error=e)

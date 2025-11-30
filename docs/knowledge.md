@@ -639,7 +639,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── 0001_initial.py
 │   │   │   │   ├── 0002_client_account.py
 │   │   │   │   ├── 0003_migrate_client_to_account.py
-│   │   │   │   └── 0004_alter_client_account.py
+│   │   │   │   ├── 0004_alter_client_account.py
+│   │   │   │   └── 0005_update_client_index.py
 │   │   │   ├── models.py
 │   │   │   ├── tests
 │   │   │   │   ├── __init__.py
@@ -647,6 +648,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   └── test_django_client_repository.py
 │   │   │   │   ├── application
 │   │   │   │   │   └── test_create_client.py
+│   │   │   │   ├── conftest.py
 │   │   │   │   ├── domain
 │   │   │   │   │   └── test_name_policy.py
 │   │   │   │   ├── test_api_client_endpoint.py
@@ -1501,7 +1503,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-263 directories, 782 files
+263 directories, 784 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1575,5 +1577,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-30 13:46:47 CET**
+_Updated_: **2025-11-30 13:54:44 CET**
 <!-- END AUTO: LAST_UPDATED -->

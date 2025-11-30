@@ -5,6 +5,7 @@ from typing import Optional
 @dataclass(frozen=True)
 class CreateClientInput:
     owner_id: int
+    account_id: int  # Phase 5
     name: str
     email: Optional[str] = None
     phone: Optional[str] = None
@@ -32,6 +33,7 @@ class GetClientInput:
 @dataclass(frozen=True)
 class ListClientsInput:
     owner_id: Optional[int] = None
+    account_id: Optional[int] = None  # Phase 5
     search: Optional[str] = None
     ordering: Optional[str] = "-created_at"
 
