@@ -601,7 +601,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── 0002_remove_prestation_unique_area_prestation_name_and_more.py
 │   │   │   │   ├── 0003_add_account_fk.py
 │   │   │   │   ├── 0004_migrate_to_account.py
-│   │   │   │   └── 0005_account_not_null_drop_professional_user.py
+│   │   │   │   ├── 0005_account_not_null_drop_professional_user.py
+│   │   │   │   ├── 0006_remove_prestation_unique_area_prestation_name_global_and_more.py
+│   │   │   │   └── 0007_remove_prestation_unique_area_prestation_name_global.py
 │   │   │   ├── models.py
 │   │   │   ├── tests
 │   │   │   │   ├── __init__.py
@@ -826,7 +828,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── 0004_alter_quote_reference.py
 │   │   │   │   ├── 0005_add_account_fk.py
 │   │   │   │   ├── 0006_migrate_to_account.py
-│   │   │   │   └── 0007_account_not_null.py
+│   │   │   │   ├── 0007_account_not_null.py
+│   │   │   │   └── 0008_alter_quote_account.py
 │   │   │   ├── models.py
 │   │   │   ├── signals.py
 │   │   │   ├── tests
@@ -1511,7 +1514,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-263 directories, 792 files
+263 directories, 795 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1585,5 +1588,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-30 16:53:38 CET**
+_Updated_: **2025-11-30 18:10:24 CET**
 <!-- END AUTO: LAST_UPDATED -->

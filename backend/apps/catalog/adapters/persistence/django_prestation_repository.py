@@ -77,7 +77,7 @@ class DjangoPrestationRepository(PrestationRepository):
             raise RepositoryError("Erreur technique lors du listing des prestations", original_error=e)
 
     def exists_by_name_and_area(self, name: str, area_id: int, account_id: Optional[int] = None) -> bool:
-        """Vérifie si une prestation existe déjà. Phase 5.4: account_id instead of professional_user_id."""
+        """Vérifie si une prestation existe déjà."""
         try:
             if account_id is None:
                 # Prestation globale
