@@ -550,7 +550,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── views.py
 │   │   │   ├── migrations
 │   │   │   │   ├── __init__.py
-│   │   │   │   └── 0001_initial.py
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_add_account_fk.py
+│   │   │   │   ├── 0003_migrate_to_account.py
+│   │   │   │   └── 0004_account_not_null_drop_professional.py
 │   │   │   ├── models.py
 │   │   │   └── tests
 │   │   │       ├── __init__.py
@@ -558,6 +561,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       │   └── __init__.py
 │   │   │       ├── application
 │   │   │       │   └── __init__.py
+│   │   │       ├── conftest.py
 │   │   │       ├── domain
 │   │   │       │   └── __init__.py
 │   │   │       └── interface
@@ -1503,7 +1507,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-263 directories, 784 files
+263 directories, 788 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1577,5 +1581,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-30 13:54:44 CET**
+_Updated_: **2025-11-30 14:05:54 CET**
 <!-- END AUTO: LAST_UPDATED -->
