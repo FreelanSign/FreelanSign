@@ -40,6 +40,8 @@ class UpdateAccount:
         account.legal_form = LegalForm(input_dto.legal_form)
         account.legal_id = input_dto.legal_id
         account.domain_id = input_dto.domain_id
+        account.default_rate_cents = input_dto.default_rate_cents
+        account.service_type_ids = input_dto.service_type_ids or []
         account.updated_at = self.clock.now()
 
         # 5. Persist
@@ -57,6 +59,8 @@ class UpdateAccount:
             legal_form=account.legal_form.value,
             legal_id=account.legal_id,
             domain_id=account.domain_id,
+            default_rate_cents=account.default_rate_cents,
+            service_type_ids=account.service_type_ids,
             is_active=True,
             created_at=account.created_at,
             updated_at=account.updated_at,

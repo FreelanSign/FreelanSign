@@ -22,6 +22,12 @@ class AccountInputSerializer(serializers.Serializer):
     legal_form = serializers.ChoiceField(choices=["micro", "eirl", "eurl", "sasu", "other"], required=False, allow_null=True)
     legal_id = serializers.CharField(max_length=14, required=False, allow_null=True, allow_blank=True)
     domain_id = serializers.IntegerField(required=False, allow_null=True)
+    default_rate_cents = serializers.IntegerField(required=False, allow_null=True)
+    service_type_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=False,
+        allow_empty=True,
+    )
 
     def validate(self, data):
         """
@@ -58,6 +64,8 @@ class AccountOutputSerializer(serializers.Serializer):
     legal_form = serializers.CharField(allow_null=True)
     legal_id = serializers.CharField(allow_null=True)
     domain_id = serializers.IntegerField(allow_null=True)
+    default_rate_cents = serializers.IntegerField(allow_null=True)
+    service_type_ids = serializers.ListField(child=serializers.IntegerField())
     is_active = serializers.BooleanField()
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()

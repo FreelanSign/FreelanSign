@@ -49,6 +49,17 @@ class Account(models.Model):
         blank=True,
         related_name="accounts",
     )
+    default_rate_cents = models.BigIntegerField(
+        blank=True,
+        null=True,
+        help_text="Default daily rate in cents (TJM)",
+    )
+    service_types = models.ManyToManyField(
+        "catalog.Prestation",
+        blank=True,
+        related_name="accounts_favorites",
+        help_text="Favorite service types for this account",
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

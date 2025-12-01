@@ -26,7 +26,9 @@ class GetUserAccounts:
             legal_form=account.legal_form.value,
             legal_id=account.legal_id,
             domain_id=account.domain_id,
-            is_active=True,
+            default_rate_cents=account.default_rate_cents,
+            service_type_ids=account.service_type_ids,
+            is_active=account.is_active,
             created_at=account.created_at,
             updated_at=account.updated_at,
         )
