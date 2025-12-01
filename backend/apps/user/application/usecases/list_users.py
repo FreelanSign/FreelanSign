@@ -41,7 +41,6 @@ class ListUsers:
                     profile=ProfileViewModel(
                         first_name=p.first_name,
                         last_name=p.last_name,
-                        birthday=p.birthday,
                         phone=p.phone,
                         avatar_url=p.avatar_url,
                         role=p.role,

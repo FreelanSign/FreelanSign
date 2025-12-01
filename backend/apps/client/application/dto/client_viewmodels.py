@@ -9,6 +9,7 @@ from uuid import UUID
 class ClientViewModel:
     id: UUID
     owner_id: int
+    account_id: int  # Phase 5
     name: str
     email: str | None
     phone: str | None

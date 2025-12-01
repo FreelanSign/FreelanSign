@@ -52,9 +52,9 @@ class DjangoPrestationRepository(PrestationRepository):
             if filters.status:
                 qs = qs.filter(status__iexact=filters.status)
 
-            # Filtre par professional_user
-            if filters.professional_user_id is not None:
-                qs = qs.filter(Q(professional_user__isnull=True) | Q(professional_user_id=filters.professional_user_id))
+            # Filtre par account (Phase 5.4)
+            if filters.account_id is not None:
+                qs = qs.filter(Q(account__isnull=True) | Q(account_id=filters.account_id))
 
             # Recherche textuelle
             if filters.search:
@@ -76,15 +76,15 @@ class DjangoPrestationRepository(PrestationRepository):
             logger.exception("Erreur lors du listing des prestations")
             raise RepositoryError("Erreur technique lors du listing des prestations", original_error=e)
 
-    def exists_by_name_and_area(self, name: str, area_id: int, professional_user_id: Optional[int] = None) -> bool:
+    def exists_by_name_and_area(self, name: str, area_id: int, account_id: Optional[int] = None) -> bool:
         """Vérifie si une prestation existe déjà."""
         try:
-            if professional_user_id is None:
+            if account_id is None:
                 # Prestation globale
-                return Prestation.objects.filter(name__iexact=name, area_id=area_id, professional_user__isnull=True).exists()
+                return Prestation.objects.filter(name__iexact=name, area_id=area_id, account__isnull=True).exists()
             else:
-                # Prestation custom d'un pro
-                return Prestation.objects.filter(name__iexact=name, professional_user_id=professional_user_id).exists()
+                # Prestation custom d'un account
+                return Prestation.objects.filter(name__iexact=name, account_id=account_id).exists()
         except Exception as e:
             logger.exception("Erreur lors de exists_by_name_and_area")
             raise RepositoryError("Erreur technique lors de la vérification d'existence", original_error=e)

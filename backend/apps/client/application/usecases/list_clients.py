@@ -8,11 +8,12 @@ class ListClients:
         self.repo = repo
 
     def execute(self, inp: ListClientsInput) -> ClientListViewModel:
-        qs = self.repo.list(owner_id=inp.owner_id, search=inp.search, ordering=inp.ordering)
+        qs = self.repo.list(owner_id=inp.owner_id, account_id=inp.account_id, search=inp.search, ordering=inp.ordering)
         items = [
             ClientViewModel(
                 id=str(o.id),
                 owner_id=o.owner_id,
+                account_id=o.account_id,  # Phase 5
                 name=o.name,
                 email=o.email or None,
                 phone=o.phone or None,

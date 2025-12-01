@@ -1,4 +1,4 @@
-# apps/user/interface/serializers.py
+# apps/user/interface/serializers/user_serializers.py
 """
 Interface serializers (API boundary).
 - Input serializers: validate API payload shape and convert to application DTOs.
@@ -14,12 +14,10 @@ from rest_framework import serializers
 
 from apps.user.application.dto.user_inputs import (
     ChangePasswordInput,
-    CreateProfessionalInput,
     RegisterUserInput,
-    UpdateProfessionalInput,
     UpdateProfileInput,
 )
-from apps.user.application.dto.user_viewmodels import ProfessionalViewModel, ProfileViewModel, UserListViewModel, UserViewModel
+from apps.user.application.dto.user_viewmodels import ProfileViewModel, UserListViewModel, UserViewModel
 
 # Only imported for enum/choices exposure at the boundary (not for persistence)
 from apps.user.models.models import Profile
@@ -39,11 +37,9 @@ class UserRegistrationInputSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     # Optional (flat)
-    full_name = serializers.CharField(required=False, allow_blank=True)
     first_name = serializers.CharField(required=False, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_blank=True)
     phone = serializers.CharField(required=False, allow_blank=True)
-    birthday = serializers.DateField(required=False)
     avatar_url = serializers.URLField(required=False, allow_blank=True)
     role = serializers.ChoiceField(required=False, choices=Profile.Role.choices)
 
@@ -59,10 +55,8 @@ class UserRegistrationInputSerializer(serializers.Serializer):
             first_name=d.get("first_name") or prof.get("first_name"),
             last_name=d.get("last_name") or prof.get("last_name"),
             phone=d.get("phone") or prof.get("phone"),
-            birthday=d.get("birthday") or prof.get("birthday"),
             avatar_url=d.get("avatar_url") or prof.get("avatar_url"),
             role=d.get("role") or prof.get("role") or Profile.Role.FREELANCE,
-            full_name=d.get("full_name"),
         )
 
 
@@ -75,7 +69,6 @@ class ProfilePatchInputSerializer(serializers.Serializer):
     first_name = serializers.CharField(required=False, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_blank=True)
     phone = serializers.CharField(required=False, allow_blank=True)
-    birthday = serializers.DateField(required=False, allow_null=True)
     avatar_url = serializers.URLField(required=False, allow_blank=True, allow_null=True)
     role = serializers.ChoiceField(required=False, choices=Profile.Role.choices)
 
@@ -87,7 +80,6 @@ class ProfilePatchInputSerializer(serializers.Serializer):
             first_name=d.get("first_name") if "first_name" in d else None,
             last_name=d.get("last_name") if "last_name" in d else None,
             phone=d.get("phone") if "phone" in d else None,
-            birthday=d.get("birthday") if "birthday" in d else None,
             avatar_url=d.get("avatar_url") if "avatar_url" in d else None,
             role=d.get("role") if "role" in d else None,
             updater_is_staff=updater_is_staff,
@@ -111,56 +103,6 @@ class ChangePasswordInputSerializer(serializers.Serializer):
         )
 
 
-class ProfessionalUpsertInputSerializer(serializers.Serializer):
-    """
-    Shape validator for creating/updating a professional profile.
-    Converts to CreateProfessionalInput or UpdateProfessionalInput DTO.
-    """
-
-    name = serializers.CharField(required=False, allow_blank=True)
-    status_juridique = serializers.CharField(required=False, allow_blank=True)
-    domaine_id = serializers.IntegerField(required=False, allow_null=True)
-    tjm_cents = serializers.IntegerField(required=False)
-    number_pro = serializers.CharField(required=False, allow_blank=True)
-    service_type_ids = serializers.ListField(
-        child=serializers.IntegerField(),
-        required=False,
-        allow_empty=True,
-    )
-
-    def to_create_dto(self, *, user_id: int) -> CreateProfessionalInput:
-        d = self.validated_data
-        return CreateProfessionalInput(
-            user_id=user_id,
-            name=d.get("name"),
-            status_juridique=d.get("status_juridique"),
-            domaine_id=d.get("domaine_id"),
-            tjm_cents=d.get("tjm_cents", 0),
-            number_pro=d.get("number_pro"),
-            service_type_ids=d.get("service_type_ids") or [],
-        )
-
-    def to_update_dto(
-        self,
-        *,
-        professional_id: int,
-        user_id: int,
-        updater_is_staff: bool,
-    ) -> UpdateProfessionalInput:
-        d = self.validated_data
-        return UpdateProfessionalInput(
-            professional_id=professional_id,
-            user_id=user_id,
-            name=d.get("name") if "name" in d else None,
-            status_juridique=d.get("status_juridique") if "status_juridique" in d else None,
-            domaine_id=d.get("domaine_id") if "domaine_id" in d else None,
-            tjm_cents=d.get("tjm_cents") if "tjm_cents" in d else None,
-            number_pro=d.get("number_pro") if "number_pro" in d else None,
-            service_type_ids=d.get("service_type_ids") if "service_type_ids" in d else None,
-            updater_is_staff=updater_is_staff,
-        )
-
-
 class LogoutSerializer(serializers.Serializer):
     """
     Minimal shape for logout endpoint (refresh token blacklisting).
@@ -181,7 +123,6 @@ class ProfileOutputSerializer(serializers.Serializer):
 
     first_name = serializers.CharField(allow_null=True)
     last_name = serializers.CharField(allow_null=True)
-    birthday = serializers.DateField(allow_null=True)
     phone = serializers.CharField(allow_null=True)
     avatar_url = serializers.CharField(allow_null=True)
     role = serializers.CharField()
@@ -224,44 +165,6 @@ class UserListOutputSerializer(serializers.Serializer):
             "results": [UserOutputSerializer.from_vm(u).data for u in vm.users],
         }
         return UserListOutputSerializer(instance=payload)
-
-
-class ProfessionalOutputSerializer(serializers.Serializer):
-    """
-    Renders ProfessionalViewModel to API payload.
-    """
-
-    id = serializers.IntegerField()
-    user_id = serializers.IntegerField()
-    name = serializers.CharField(allow_null=True)
-    status_juridique = serializers.CharField(allow_null=True)
-    domaine_id = serializers.IntegerField(allow_null=True)
-    domaine_name = serializers.CharField(allow_null=True)
-    tjm_cents = serializers.IntegerField()
-    tjm_display = serializers.CharField()
-    number_pro = serializers.CharField(allow_null=True)
-    service_type_ids = serializers.ListField(child=serializers.IntegerField())
-    created_at = serializers.DateTimeField()
-    updated_at = serializers.DateTimeField()
-
-    @staticmethod
-    def from_vm(vm: ProfessionalViewModel) -> "ProfessionalOutputSerializer":
-        return ProfessionalOutputSerializer(instance=vm)
-
-
-__all__ = [
-    # inputs
-    "UserRegistrationInputSerializer",
-    "ProfilePatchInputSerializer",
-    "ChangePasswordInputSerializer",
-    "ProfessionalUpsertInputSerializer",
-    "LogoutSerializer",
-    # outputs
-    "ProfileOutputSerializer",
-    "UserOutputSerializer",
-    "UserListOutputSerializer",
-    "ProfessionalOutputSerializer",
-]
 
 
 class RequestPasswordResetSerializer(serializers.Serializer):

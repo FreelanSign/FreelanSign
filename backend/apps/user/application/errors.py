@@ -53,6 +53,28 @@ class ProfessionalNotFoundError(UserApplicationError):
         self.professional_id = professional_id
 
 
+class AccountNotFoundError(UserApplicationError):
+    """Compte introuvable."""
+
+    def __init__(self, account_id: int = None):
+        if account_id:
+            msg = f"Compte {account_id} introuvable"
+        else:
+            msg = "Compte introuvable"
+        super().__init__(msg, code="ACCOUNT_NOT_FOUND")
+        self.account_id = account_id
+
+        self.account_id = account_id
+
+
+class DuplicateAccountNameError(UserApplicationError):
+    """Nom de compte déjà utilisé."""
+
+    def __init__(self, name: str):
+        super().__init__(f"Un compte avec le nom '{name}' existe déjà", code="DUPLICATE_ACCOUNT_NAME")
+        self.name = name
+
+
 class DuplicateEmailError(UserApplicationError):
     """Email déjà utilisé."""
 

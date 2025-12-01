@@ -44,6 +44,7 @@ from apps.quote.interface.permissions import IsOwnerOrAdmin
 from apps.quote.interface.renderers import PDFRenderer
 from apps.quote.interface.serializers import QuoteCreateUpdateSerializer, QuotePreviewPayloadSerializer, QuoteSerializer
 from apps.quote.models import Quote, QuoteHistory, QuoteLineItem
+from apps.user.interface.permissions.account_permissions import HasAccountContext, IsAccountOwner
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +118,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
     queryset = Quote.objects.all().select_related("client").prefetch_related("items")
     serializer_class = QuoteSerializer
-    permission_classes = [IsOwnerOrAdmin]
+    permission_classes = [IsOwnerOrAdmin, HasAccountContext]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_fields = ["status", "client", "owner"]
@@ -209,8 +210,16 @@ class QuoteViewSet(viewsets.ModelViewSet):
             Prefetch("items", queryset=QuoteLineItem.objects.select_related().order_by("order"))
         )
         user = getattr(self.request, "user", None)
+        account = getattr(self.request, "account", None)
+
         if user and (user.is_staff or user.is_superuser):
             return queryset
+
+        # Phase 5: Filter by account
+        if account:
+            return queryset.filter(account=account)
+
+        # Fallback for backward compat (if no account context but user authenticated)
         return queryset.filter(owner=user)
 
     def _get_detail_obj(self, pk: str) -> Quote:
@@ -348,7 +357,13 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
         uc = DuplicateQuote(repo=self._repo(), reference_gen=self._reference_gen())
         with transaction.atomic():
-            new_quote = uc.execute(quote_id=str(original.pk), actor=request.user)
+            # Phase 5: Pass account_id
+            account = getattr(request, "account", None)
+            if not account:
+                # Should be caught by permission, but safe fallback
+                return Response({"detail": "Account context required"}, status=400)
+
+            new_quote = uc.execute(quote_id=str(original.pk), account_id=account.id, actor=request.user)
 
         return Response(QuoteSerializer(new_quote, context={"request": request}).data, status=201)
 

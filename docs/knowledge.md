@@ -485,6 +485,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── .sonarignore
 ├── AGENT.md
 ├── backend
+│   ├── .claude
+│   │   └── settings.local.json
 │   ├── .coverage
 │   ├── .coveragerc
 │   ├── .dockerignore
@@ -548,7 +550,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── views.py
 │   │   │   ├── migrations
 │   │   │   │   ├── __init__.py
-│   │   │   │   └── 0001_initial.py
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_add_account_fk.py
+│   │   │   │   ├── 0003_migrate_to_account.py
+│   │   │   │   └── 0004_account_not_null_drop_professional.py
 │   │   │   ├── models.py
 │   │   │   └── tests
 │   │   │       ├── __init__.py
@@ -556,6 +561,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       │   └── __init__.py
 │   │   │       ├── application
 │   │   │       │   └── __init__.py
+│   │   │       ├── conftest.py
 │   │   │       ├── domain
 │   │   │       │   └── __init__.py
 │   │   │       └── interface
@@ -592,10 +598,16 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── migrations
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── 0001_initial.py
-│   │   │   │   └── 0002_remove_prestation_unique_area_prestation_name_and_more.py
+│   │   │   │   ├── 0002_remove_prestation_unique_area_prestation_name_and_more.py
+│   │   │   │   ├── 0003_add_account_fk.py
+│   │   │   │   ├── 0004_migrate_to_account.py
+│   │   │   │   ├── 0005_account_not_null_drop_professional_user.py
+│   │   │   │   ├── 0006_remove_prestation_unique_area_prestation_name_global_and_more.py
+│   │   │   │   └── 0007_remove_prestation_unique_area_prestation_name_global.py
 │   │   │   ├── models.py
 │   │   │   ├── tests
 │   │   │   │   ├── __init__.py
+│   │   │   │   ├── conftest.py
 │   │   │   │   ├── domain
 │   │   │   │   │   ├── test_prestation_calculator.py
 │   │   │   │   │   └── test_prestation_policy.py
@@ -634,7 +646,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── views.py
 │   │   │   ├── migrations
 │   │   │   │   ├── __init__.py
-│   │   │   │   └── 0001_initial.py
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_client_account.py
+│   │   │   │   ├── 0003_migrate_client_to_account.py
+│   │   │   │   ├── 0004_alter_client_account.py
+│   │   │   │   └── 0005_update_client_index.py
 │   │   │   ├── models.py
 │   │   │   ├── tests
 │   │   │   │   ├── __init__.py
@@ -642,6 +658,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   └── test_django_client_repository.py
 │   │   │   │   ├── application
 │   │   │   │   │   └── test_create_client.py
+│   │   │   │   ├── conftest.py
 │   │   │   │   ├── domain
 │   │   │   │   │   └── test_name_policy.py
 │   │   │   │   ├── test_api_client_endpoint.py
@@ -808,7 +825,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── 0001_initial.py
 │   │   │   │   ├── 0002_alter_quotelineitem_options_and_more.py
 │   │   │   │   ├── 0003_alter_paymentterms_owner_and_more.py
-│   │   │   │   └── 0004_alter_quote_reference.py
+│   │   │   │   ├── 0004_alter_quote_reference.py
+│   │   │   │   ├── 0005_add_account_fk.py
+│   │   │   │   ├── 0006_migrate_to_account.py
+│   │   │   │   ├── 0007_account_not_null.py
+│   │   │   │   └── 0008_alter_quote_account.py
 │   │   │   ├── models.py
 │   │   │   ├── signals.py
 │   │   │   ├── tests
@@ -831,6 +852,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── test_tax_policy.py
 │   │   │   │   │   └── test_totals.py
+│   │   │   │   ├── temp_fixtures.py
 │   │   │   │   ├── test_add_prestation_line_api.py
 │   │   │   │   ├── test_mock_verification.py
 │   │   │   │   ├── test_models.py
@@ -868,7 +890,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   └── usecases
 │   │       │       ├── change_password.py
 │   │       │       ├── create_account.py
-│   │       │       ├── create_professional.py
 │   │       │       ├── deactivate_account.py
 │   │       │       ├── get_user_accounts.py
 │   │       │       ├── list_users.py
@@ -876,7 +897,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │       ├── request_password_reset.py
 │   │       │       ├── reset_password.py
 │   │       │       ├── update_account.py
-│   │       │       ├── update_professional.py
 │   │       │       └── update_profile.py
 │   │       ├── apps.py
 │   │       ├── backend
@@ -910,12 +930,12 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   │   └── account_permissions.py
 │   │       │   ├── serializers
 │   │       │   │   ├── __init__.py
-│   │       │   │   └── account_serializers.py
-│   │       │   ├── serializers.py
-│   │       │   ├── views
-│   │       │   │   ├── __init__.py
-│   │       │   │   └── account_views.py
-│   │       │   └── views.py
+│   │       │   │   ├── account_serializers.py
+│   │       │   │   └── user_serializers.py
+│   │       │   └── views
+│   │       │       ├── __init__.py
+│   │       │       ├── account_views.py
+│   │       │       └── user_views.py
 │   │       ├── migrations
 │   │       │   ├── __init__.py
 │   │       │   ├── 0001_initial.py
@@ -927,7 +947,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── 0007_professionaluser_allowed_areas.py
 │   │       │   ├── 0008_remove_professionaluser_allowed_areas.py
 │   │       │   ├── 0009_account.py
-│   │       │   └── 0010_migrate_professional_to_account.py
+│   │       │   ├── 0010_migrate_professional_to_account.py
+│   │       │   └── 0011_cleanup_phase6.py
 │   │       ├── models
 │   │       │   ├── __init__.py
 │   │       │   ├── account.py
@@ -964,8 +985,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   │   └── test_account_api.py
 │   │       │   ├── test_auth_api.py
 │   │       │   ├── test_auth_logout.py
-│   │       │   ├── test_professional_api.py
-│   │       │   ├── test_professional_serializer_minimal.py
 │   │       │   ├── test_refresh_rotation.py
 │   │       │   └── test_user_api.py
 │   │       └── urls.py
@@ -1491,7 +1510,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-262 directories, 773 files
+263 directories, 791 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1558,12 +1577,11 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 | `QuoteLineItem` | `apps/quote/models.py` |
 | `QuoteHistory` | `apps/quote/models.py` |
 | `Profile` | `apps/user/models/models.py` |
-| `ProfessionalUser` | `apps/user/models/models.py` |
 <!-- END AUTO: DJANGO_MODELS -->
 
 ---
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-29 17:44:16 CET**
+_Updated_: **2025-12-01 08:26:57 CET**
 <!-- END AUTO: LAST_UPDATED -->

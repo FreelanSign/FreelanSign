@@ -3,7 +3,15 @@
 from django.conf import settings
 from django.db import models
 
-from apps.user.models.models import StatusJuridique
+
+class LegalForm(models.TextChoices):
+    """Legal forms for freelance accounts."""
+
+    MICRO = "micro", "Micro-entrepreneur"
+    EIRL = "eirl", "EIRL"
+    EURL = "eurl", "EURL"
+    SASU = "sasu", "SASU"
+    OTHER = "other", "Autre"
 
 
 class Account(models.Model):
@@ -24,7 +32,7 @@ class Account(models.Model):
     display_name = models.CharField(max_length=255)
     legal_form = models.CharField(
         max_length=10,
-        choices=StatusJuridique.choices,
+        choices=LegalForm.choices,
         blank=True,
         null=True,
     )

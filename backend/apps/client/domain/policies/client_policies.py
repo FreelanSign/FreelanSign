@@ -26,6 +26,12 @@ def ensure_unique_name_within_owner(owner_id: int, name: str, exists_by_owner_na
         raise ClientAlreadyExistsError(name)
 
 
+def ensure_unique_name_within_account(account_id: int, name: str, exists_by_account_name: Callable[[int, str], bool]):
+    # Phase 5: Check uniqueness within account
+    if exists_by_account_name(account_id, name):
+        raise ClientAlreadyExistsError(name)
+
+
 def ensure_client_exists(client_id: str):
     if not client_id:
         raise ClientNotFoundError(client_id)

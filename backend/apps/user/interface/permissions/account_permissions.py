@@ -8,6 +8,8 @@ Permissions for Account resource.
 """
 from rest_framework import permissions
 
+from apps.user.models.account import Account
+
 
 class IsAccountOwner(permissions.BasePermission):
     """
@@ -35,3 +37,38 @@ class IsAccountOwner(permissions.BasePermission):
 
         # Owner check - must be the account's user
         return obj.user == request.user
+
+
+class HasAccountContext(permissions.BasePermission):
+    """
+    Permission to ensure the request has a valid account context.
+
+    - Admin (is_staff) : bypass
+    - Utilisateur authentifié : doit avoir un Account actif
+      -> on essaye d'abord request.account (middleware)
+      -> sinon on fallback vers le 1er account actif en DB
+    """
+
+    def has_permission(self, request, view):
+        # Pas logué => pas d'account context pour les opérations écriture
+        # (IsAuthenticatedOrReadOnly) s'occupe déjà de refuser les méthodes non SAFE
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        # Admin bypass
+        if request.user.is_staff:
+            return True
+
+        # Middleware a déjà mis un account ?
+        account = getattr(request, "account", None)
+        if account is not None:
+            return True
+
+        # Fallback vers le 1er account actif en DB
+        account = Account.objects.filter(user=request.user, is_active=True).first()
+        if account:
+            request.account = account
+            return True
+
+        # User sans account actif => 403
+        return False

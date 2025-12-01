@@ -32,13 +32,13 @@ from apps.branding.application.usecases.delete_theme import DeleteThemeUseCase
 from apps.branding.application.usecases.get_active_theme import GetActiveThemeUseCase
 from apps.branding.application.usecases.list_themes import ListThemesUseCase
 from apps.branding.application.usecases.update_theme import UpdateThemeUseCase
-from apps.branding.interface.permissions import IsProfessionalUser
 from apps.branding.interface.serializers import (
     CreateThemeSerializer,
     ThemeListItemSerializer,
     ThemeSerializer,
     UpdateThemeSerializer,
 )
+from apps.user.interface.permissions.account_permissions import HasAccountContext
 
 
 class ThemeListCreateView(APIView):
@@ -47,7 +47,7 @@ class ThemeListCreateView(APIView):
     POST: Create a new theme.
     """
 
-    permission_classes = [IsAuthenticated, IsProfessionalUser]
+    permission_classes = [IsAuthenticated, HasAccountContext]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     @extend_schema(
@@ -57,7 +57,7 @@ class ThemeListCreateView(APIView):
     )
     def get(self, request):
         """List all themes for the authenticated user."""
-        professional_id = request.user.id
+        professional_id = request.account.id  # Phase 5.3: account context
 
         # Initialize dependencies
         repository = DjangoThemeRepository()
@@ -81,7 +81,7 @@ class ThemeListCreateView(APIView):
         serializer = CreateThemeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        professional_id = request.user.id
+        professional_id = request.account.id  # Phase 5.3: account context
 
         # Initialize dependencies
         repository = DjangoThemeRepository()
@@ -130,12 +130,12 @@ class ThemeDetailView(APIView):
     DELETE: Delete a specific theme.
     """
 
-    permission_classes = [IsAuthenticated, IsProfessionalUser]
+    permission_classes = [IsAuthenticated, HasAccountContext]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get(self, request, theme_id):
         """Retrieve a specific theme."""
-        professional_id = request.user.id
+        professional_id = request.account.id  # Phase 5.3: account context
 
         # Initialize dependencies
         repository = DjangoThemeRepository()
@@ -174,7 +174,7 @@ class ThemeDetailView(APIView):
         serializer = UpdateThemeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        professional_id = request.user.id
+        professional_id = request.account.id  # Phase 5.3: account context
 
         # Initialize dependencies
         repository = DjangoThemeRepository()
@@ -215,7 +215,7 @@ class ThemeDetailView(APIView):
 
     def delete(self, request, theme_id):
         """Delete a specific theme."""
-        professional_id = request.user.id
+        professional_id = request.account.id  # Phase 5.3: account context
 
         # Initialize dependencies
         repository = DjangoThemeRepository()
@@ -253,11 +253,11 @@ class ActiveThemeView(APIView):
     GET: Get the active theme for the authenticated user.
     """
 
-    permission_classes = [IsAuthenticated, IsProfessionalUser]
+    permission_classes = [IsAuthenticated, HasAccountContext]
 
     def get(self, request):
         """Get the active theme for the authenticated user."""
-        professional_id = request.user.id
+        professional_id = request.account.id  # Phase 5.3: account context
 
         # Initialize dependencies
         repository = DjangoThemeRepository()
@@ -279,7 +279,7 @@ class ActivateThemeView(APIView):
     POST: Activate a specific theme (and deactivate others).
     """
 
-    permission_classes = [IsAuthenticated, IsProfessionalUser]
+    permission_classes = [IsAuthenticated, HasAccountContext]
 
     @extend_schema(
         summary="Activate a specific theme",
@@ -288,7 +288,7 @@ class ActivateThemeView(APIView):
     )
     def post(self, request, theme_id):
         """Activate a specific theme."""
-        professional_id = request.user.id
+        professional_id = request.account.id  # Phase 5.3: account context
 
         # Initialize dependencies
         repository = DjangoThemeRepository()
@@ -321,7 +321,7 @@ class DeactivateThemeView(APIView):
     POST: Deactivate a specific theme.
     """
 
-    permission_classes = [IsAuthenticated, IsProfessionalUser]
+    permission_classes = [IsAuthenticated, HasAccountContext]
 
     @extend_schema(
         summary="Deactivate a specific theme",
@@ -330,7 +330,7 @@ class DeactivateThemeView(APIView):
     )
     def post(self, request, theme_id):
         """Deactivate a specific theme."""
-        professional_id = request.user.id
+        professional_id = request.account.id  # Phase 5.3: account context
 
         # Initialize dependencies
         repository = DjangoThemeRepository()

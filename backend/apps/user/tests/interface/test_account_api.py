@@ -66,19 +66,23 @@ class TestAccountList:
         response = api_client.get("/api/user/accounts/")
 
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data["accounts"]) == 1
-        assert response.data["accounts"][0]["display_name"] == "User Account"
+        assert len(response.data) == 1
+        assert response.data[0]["display_name"] == "User Account"
 
     def test_admin_sees_all_accounts(self, api_client, admin_user, user_account):
         """Admin lists all accounts."""
-        # Create admin's account
         Account.objects.create(user=admin_user, display_name="Admin Account", legal_form="sasu")
 
         api_client.force_authenticate(user=admin_user)
         response = api_client.get("/api/user/accounts/")
 
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data["accounts"]) >= 2  # Both accounts visible
+
+        assert isinstance(response.data, list)
+        assert len(response.data) >= 2
+
+        ids = {item["id"] for item in response.data}
+        assert user_account.id in ids
 
 
 @pytest.mark.django_db

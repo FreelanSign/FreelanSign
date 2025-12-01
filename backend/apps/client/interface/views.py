@@ -27,6 +27,7 @@ from apps.client.interface.serializers import (
     ClientUpdateInputSerializer,
 )
 from apps.client.models import Client
+from apps.user.interface.permissions.account_permissions import HasAccountContext
 
 
 class StandardClientViewSet(viewsets.ModelViewSet):
@@ -34,9 +35,15 @@ class StandardClientViewSet(viewsets.ModelViewSet):
     ViewSet CRUD fin : délègue aux use cases.
     """
 
-    queryset = Client.objects.all().select_related("owner")
+    queryset = Client.objects.all().select_related("owner", "account")
     serializer_class = ClientOutputSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, HasAccountContext]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if getattr(self.request, "account", None):
+            qs = qs.filter(account=self.request.account)
+        return qs
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ["owner"]
@@ -57,6 +64,7 @@ class StandardClientViewSet(viewsets.ModelViewSet):
 
         inp = ListClientsInput(
             owner_id=int(owner_id) if owner_id is not None else None,
+            account_id=request.account.id,  # Phase 5
             search=search,
             ordering=ordering,
         )
@@ -83,6 +91,7 @@ class StandardClientViewSet(viewsets.ModelViewSet):
         user = getattr(request, "user", None)
         inp = CreateClientInput(
             owner_id=user.id if user else None,
+            account_id=request.account.id,  # Phase 5
             name=serializer.validated_data.get("name"),
             email=serializer.validated_data.get("email"),
             phone=serializer.validated_data.get("phone"),

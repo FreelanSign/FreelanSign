@@ -16,7 +16,7 @@ class SendQuote:
 
     def execute(self, *, quote_id: str, owner_vat_exempt: bool, owner_default_rate_pct, client_country: str | None, actor):
         """Send a quote."""
-        quote = self.repo.get(quote_id, include_lines=True)
+        quote = self.repo.get(quote_id, requester_id=str(actor.id), include_lines=True)
         # build DTO from persisted quote (or reuse your existing mapping utils)
         lines = [
             LineItemInputDTO(

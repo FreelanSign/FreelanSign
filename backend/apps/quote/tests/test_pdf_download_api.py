@@ -6,17 +6,19 @@ from django.urls import reverse
 
 
 @pytest.mark.django_db
-def test_download_pdf_ok(api_client, django_user_model, mock_pdf_and_email):
+@pytest.mark.django_db
+def test_download_pdf_ok(api_client, user_with_account, mock_pdf_and_email):
     # Setup rapide : user + client + quote + line item
-    user = django_user_model.objects.create_user(email="u@a.test", password="p")
-    api_client.force_authenticate(user)
+    user, account = user_with_account
+    api_client.force_login(user)
 
     from apps.client.models import Client as ClientModel
     from apps.quote.models import Quote, QuoteLineItem
 
-    cli = ClientModel.objects.create(owner=user, name="ACME", email="a@a.test")  # adapte si owner requis différemment
+    cli = ClientModel.objects.create(owner=user, name="ACME", email="a@a.test", account=account)
     q = Quote.objects.create(
         owner=user,
+        account=account,
         client=cli,
         title="T",
         reference="REF-TEST",

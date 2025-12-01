@@ -39,7 +39,7 @@ class UpdateQuoteUseCase:
         self,
         *,
         quote: Quote,
-        owner,
+        requester_id: int,  # Phase 5
         validated_data: dict,
         client_patch: Optional[Dict[str, Any]] = None,
         items: Optional[list[dict]] = None,
@@ -50,13 +50,14 @@ class UpdateQuoteUseCase:
         # --- Client Reassignment ---
         new_client: Optional[Client] = validated_data.get("client")
         if new_client and new_client != quote.client:
-            if new_client.owner_id != owner.id:
+            # TODO Phase 5.2: Update when Client has account FK
+            if new_client.owner_id != requester_id:
                 logger.warning(
                     "quote.update.client.forbidden",
                     extra={
                         "quote_id": str(quote_id),
                         "new_client_id": str(new_client.id),
-                        "owner_id": owner.id,
+                        "requester_id": requester_id,
                     },
                 )
                 raise ValidationError({"client": "You do not own this client."})
@@ -72,7 +73,7 @@ class UpdateQuoteUseCase:
 
         # --- Client patch ---
         if client_patch:
-            self._apply_client_patch(quote.client, client_patch, requester=owner)
+            self._apply_client_patch(quote.client, client_patch, requester_id=requester_id)
 
         # --- Header fields update ---
         update_fields = {k: v for k, v in validated_data.items() if k not in {"client", "reference", "items"}}
@@ -109,7 +110,7 @@ class UpdateQuoteUseCase:
             },
         )
 
-        updated = self.quote_repo.get(quote_id=quote_id, requester_id=owner.id)
+        updated = self.quote_repo.get(quote_id=quote_id, requester_id=requester_id)
         logger.info(
             "quote.update.finish",
             extra={
@@ -123,13 +124,14 @@ class UpdateQuoteUseCase:
         )
         return updated
 
-    def _apply_client_patch(self, client: Client, patch: dict, *, requester) -> None:
-        if client.owner_id != requester.id:
+    def _apply_client_patch(self, client: Client, patch: dict, *, requester_id: int) -> None:
+        # TODO Phase 5.2: Update when Client has account FK
+        if client.owner_id != requester_id:
             logger.warning(
                 "client.update.forbidden",
                 extra={
                     "client_id": str(client.id),
-                    "requester_id": requester.id,
+                    "requester_id": requester_id,
                 },
             )
             raise ValidationError({"client": "You do not own this client."})

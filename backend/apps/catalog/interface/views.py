@@ -139,7 +139,7 @@ class PrestationViewSet(CatalogBaseViewSet):
         area_id = request.query_params.get("area")
         status = request.query_params.get("status")
         search = request.query_params.get("search")
-        professional_user_id = request.query_params.get("professional_user")
+        account_id = request.query_params.get("account") or request.query_params.get("professional_user")  # Phase 5.4
         ordering_param = request.query_params.get("ordering")
         ordering = None
         if ordering_param:
@@ -166,18 +166,18 @@ class PrestationViewSet(CatalogBaseViewSet):
             except (ValueError, TypeError):
                 logger.debug("Invalid area param: %r", area_id)
 
-        professional_user_id_int = None
-        if professional_user_id:
+        account_id_int = None
+        if account_id:
             try:
-                professional_user_id_int = int(professional_user_id)
+                account_id_int = int(account_id)
             except (ValueError, TypeError):
-                logger.debug("Invalid professional_user param: %r", professional_user_id)
+                logger.debug("Invalid account param: %r", account_id)
 
         return ListPrestationsInput(
             area_id=area_id_int,
             status=status,
             search=search,
-            professional_user_id=professional_user_id_int,
+            account_id=account_id_int,
             prestation_ids=prestation_ids,
             ordering=ordering,
         )

@@ -31,7 +31,7 @@ class DownloadPdf:
         log.info("download_pdf.start quote_id=%s, actor_id=%s", quote_id, getattr(actor, "id", None))
 
         # 1) récupérer le devis
-        quote = self.repo.get(quote_id, requester_id=actor.id, include_lines=True)
+        quote = self.repo.get(quote_id, requester_id=str(actor.id), include_lines=True)
         log.info(
             "download_pdf.quote_loaded quote_id=%s, client_id=%s, nb_lines=%s",
             quote.id,
