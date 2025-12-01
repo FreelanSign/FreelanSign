@@ -12,10 +12,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import type { PrestationDto } from '../../../domain/catalog/types';
 import type { ClientDto } from '../../../domain/client/types';
-import type { ProfessionalUserDto } from '../../../domain/user/types';
+import type { AccountDto } from '../../../domain/account/types';
+import type { UserDto } from '../../../domain/user/types';
 import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
 import { clientRepository } from '../../../infrastructure/client/clientRepository';
-import { apiClient } from '../../../infrastructure/http/apiClient';
+import { accountRepository } from '../../../infrastructure/account/accountRepository';
+import { userRepository } from '../../../infrastructure/user/userRepository';
+import { useAccountStore } from '../../../infrastructure/account/accountStore';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 import ClientCreateDrawer from '../../components/client/ClientCreateDrawer';
 import Modal from '../../components/common/Modal';
@@ -137,7 +140,9 @@ export default function QuoteCreatePage() {
   const [prestations, setPrestations] = useState<
     PrestationDto[] | 'loading' | null
   >('loading');
-  const [me, setMe] = useState<ProfessionalUserDto | null>(null);
+  const [user, setUser] = useState<UserDto | null>(null);
+  const [account, setAccount] = useState<AccountDto | null>(null);
+  const activeAccountId = useAccountStore((state) => state.activeAccountId);
   const [loading, setLoading] = useState(false);
 
   // Remarque: on force le type Resolver<FormData> pour que zodResolver soit compatible
@@ -206,9 +211,9 @@ export default function QuoteCreatePage() {
 
   const previewPayload = useMemo(() => {
     const seller = {
-      name: me?.name ?? 'FreelanSign - Professional',
-      email: me?.email ?? 'professional@freelansign.com',
-      siret: me?.siret ?? '12345678901234',
+      name: account?.display_name ?? 'FreelanSign',
+      email: user?.email ?? 'contact@freelansign.com',
+      siret: account?.legal_id ?? '',
     };
     const client = selectedClient
       ? {
@@ -248,9 +253,9 @@ export default function QuoteCreatePage() {
     const branding = { name: 'FreelanSign' };
     return { seller, client, meta, lines, branding };
   }, [
-    me?.name,
-    me?.email,
-    me?.siret,
+    account?.display_name,
+    user?.email,
+    account?.legal_id,
     selectedClient,
     watchedItems,
     watchedIssueDate,
@@ -315,21 +320,26 @@ export default function QuoteCreatePage() {
       active = false;
     };
   }, []);
-  // Charger les prestations liées au professionnel (me)
+  // Charger les prestations liées au compte professionnel
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        // 1) qui suis-je ?
-        const meResp = await apiClient.get<ProfessionalUserDto>(
-          '/api/user/professional/me/',
-        );
-        // BUG: fix prestation fetch
-        const ids = meResp.data?.service_type_ids ?? [];
-        setMe(meResp.data ?? null);
-        console.log('meResp.data', meResp.data);
+        // 1) Fetch user and account in parallel
+        const [userData, accountData] = await Promise.all([
+          userRepository.getMe(),
+          activeAccountId
+            ? accountRepository.retrieve(activeAccountId)
+            : Promise.resolve(null),
+        ]);
 
-        // s’il n’y a rien de lié -> vide explicite (et un message UI sympa)
+        if (!active) return;
+        setUser(userData);
+        setAccount(accountData);
+
+        const ids = accountData?.service_type_ids ?? [];
+
+        // s'il n'y a rien de lié -> vide explicite (et un message UI sympa)
         if (!ids.length) {
           if (active) setPrestations([]);
           return;
@@ -348,7 +358,7 @@ export default function QuoteCreatePage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [activeAccountId]);
 
   // ---- helpers de narrowing sûrs
   function pickString(
@@ -762,8 +772,8 @@ export default function QuoteCreatePage() {
                               const taxRate = getPrestationTaxRate(p);
                               const weight = getPrestationWeightDays(p);
 
-                              const tjm = me?.tjm_cents
-                                ? me.tjm_cents / 100
+                              const tjm = account?.default_rate_cents
+                                ? account.default_rate_cents / 100
                                 : undefined;
                               const fallbackDayRate = getPrestationPrice(p);
                               const dayRate =

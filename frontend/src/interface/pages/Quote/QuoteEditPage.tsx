@@ -6,8 +6,12 @@ import type {
   ApiQuoteResponse,
   ApiQuoteUpdatePayload,
 } from '../../../domain/quote/types';
+import type { AccountDto } from '../../../domain/account/types';
+import type { UserDto } from '../../../domain/user/types';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 import { userRepository } from '../../../infrastructure/user/userRepository';
+import { accountRepository } from '../../../infrastructure/account/accountRepository';
+import { useAccountStore } from '../../../infrastructure/account/accountStore';
 import Modal from '../../components/common/Modal';
 import { PdfPreviewPane } from '../../components/quote/PdfPreviewPane';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
@@ -84,34 +88,35 @@ export default function QuoteEditPage() {
   const [error, setError] = useState<string | null>(null);
   const [quote, setQuote] = useState<Quote | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [me, setMe] = useState<{
-    name?: string | null;
-    email?: string | null;
-    siret?: string | null;
-  } | null>(null);
+  const [user, setUser] = useState<UserDto | null>(null);
+  const [account, setAccount] = useState<AccountDto | null>(null);
+  const activeAccountId = useAccountStore((state) => state.activeAccountId);
 
-  // --- Load me ---
+  // --- Load user and account ---
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const meResp = await userRepository.getProfessionalMe();
+        const [userData, accountData] = await Promise.all([
+          userRepository.getMe(),
+          activeAccountId
+            ? accountRepository.retrieve(activeAccountId)
+            : Promise.resolve(null),
+        ]);
         if (!active) return;
-        setMe(
-          meResp
-            ? { name: meResp.name, email: meResp.email, siret: meResp.siret }
-            : null,
-        );
+        setUser(userData);
+        setAccount(accountData);
       } catch (e) {
         if (!active) return;
-        console.error('Erreur chargement me', e);
-        setMe(null);
+        console.error('Erreur chargement user/account', e);
+        setUser(null);
+        setAccount(null);
       }
     })();
     return () => {
       active = false;
     };
-  }, []);
+  }, [activeAccountId]);
 
   // --- Load ---
   useEffect(() => {
@@ -203,9 +208,9 @@ export default function QuoteEditPage() {
   // --- Build du payload de preview ---
   const previewPayload: PreviewPayload | null = useMemo(() => {
     const seller = {
-      name: me?.name ?? 'FreelanSign - Professional',
-      email: me?.email ?? 'professional@freelansign.com',
-      siret: me?.siret ?? '12345678901234',
+      name: account?.display_name ?? 'FreelanSign',
+      email: user?.email ?? 'contact@freelansign.com',
+      siret: account?.legal_id ?? '',
     };
     const client = quote?.client
       ? {
@@ -237,7 +242,7 @@ export default function QuoteEditPage() {
     }));
     const branding = { name: 'FreelanSign' };
     return { seller, client, meta, lines, branding };
-  }, [quote, me?.name, me?.email, me?.siret]);
+  }, [quote, account?.display_name, user?.email, account?.legal_id]);
 
   const debouncedPreviewPayload = useDebouncedValue<PreviewPayload | null>(
     previewPayload,
