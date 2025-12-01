@@ -41,10 +41,10 @@ from apps.quote.application.usecases.duplicate_quote import DuplicateQuote  # ty
 from apps.quote.application.usecases.generate_preview import generate_preview
 from apps.quote.application.usecases.send_quote import SendQuote  # type: ignore
 from apps.quote.interface.permissions import IsOwnerOrAdmin
-from apps.user.interface.permissions.account_permissions import IsAccountOwner, HasAccountContext
 from apps.quote.interface.renderers import PDFRenderer
 from apps.quote.interface.serializers import QuoteCreateUpdateSerializer, QuotePreviewPayloadSerializer, QuoteSerializer
 from apps.quote.models import Quote, QuoteHistory, QuoteLineItem
+from apps.user.interface.permissions.account_permissions import HasAccountContext, IsAccountOwner
 
 logger = logging.getLogger(__name__)
 

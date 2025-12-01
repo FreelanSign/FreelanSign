@@ -6,6 +6,7 @@ from django.db import models
 
 class LegalForm(models.TextChoices):
     """Legal forms for freelance accounts."""
+
     MICRO = "micro", "Micro-entrepreneur"
     EIRL = "eirl", "EIRL"
     EURL = "eurl", "EURL"

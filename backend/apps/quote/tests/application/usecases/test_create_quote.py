@@ -22,6 +22,7 @@ def test_create_quote_success(mocker):
     - ref_generator prend account_id au lieu de owner_id
     """
     from django.contrib.auth import get_user_model
+
     from apps.user.models import Account
 
     User = get_user_model()
@@ -112,6 +113,7 @@ def test_client_patch_forbidden(mocker):
     - Vérification: requester_id != client.owner_id → 403
     """
     from django.contrib.auth import get_user_model
+
     from apps.user.models import Account
 
     User = get_user_model()
@@ -188,6 +190,7 @@ def test_create_quote_no_changes_to_client(mocker):
     - owner → account_id + requester_id
     """
     from django.contrib.auth import get_user_model
+
     from apps.user.models import Account
 
     User = get_user_model()
@@ -265,6 +268,7 @@ def test_totals_are_computed(mocker):
     - owner → account_id + requester_id
     """
     from django.contrib.auth import get_user_model
+
     from apps.user.models import Account
 
     User = get_user_model()
