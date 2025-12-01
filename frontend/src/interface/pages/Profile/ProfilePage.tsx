@@ -3,9 +3,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../app/providers/AuthProvider';
 import type { PrestationDto } from '../../../domain/catalog/types';
-import type { ProfessionalUserDto, UserDto } from '../../../domain/user/types';
+import type { AccountDto } from '../../../domain/account/types';
+import type { UserDto } from '../../../domain/user/types';
 import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
 import { userRepository } from '../../../infrastructure/user/userRepository';
+import { accountRepository } from '../../../infrastructure/account/accountRepository';
+import { useAccountStore } from '../../../infrastructure/account/accountStore';
 
 import styles from './profile-page.module.css';
 
@@ -16,10 +19,11 @@ import styles from './profile-page.module.css';
 
 export default function ProfilePage() {
   const { user: authUser } = useAuth();
+  const activeAccountId = useAccountStore((state) => state.activeAccountId);
   const [user, setUser] = useState<UserDto | null>(null);
-  const [professional, setProfessional] = useState<
-    ProfessionalUserDto | null | 'loading'
-  >('loading');
+  const [account, setAccount] = useState<AccountDto | null | 'loading'>(
+    'loading',
+  );
   const [prestations, setPrestations] = useState<
     PrestationDto[] | 'loading' | null
   >(null);
@@ -46,35 +50,38 @@ export default function ProfilePage() {
         if (!mounted) return;
         setUser(me);
 
-        const prof = await userRepository.getProfessionalMe();
-        if (!mounted) return;
-        setProfessional(prof ?? null);
+        if (activeAccountId) {
+          const acc = await accountRepository.retrieve(activeAccountId);
+          if (!mounted) return;
+          setAccount(acc ?? null);
 
-        if (prof) {
-          setPrestations('loading');
+          if (acc) {
+            setPrestations('loading');
 
-          const ids = prof.service_type_ids ?? [];
-          try {
-            const prestationsResult =
-              await catalogRepository.getPrestationsByIds(ids);
-            if (!mounted) return;
-            setPrestations(prestationsResult);
-          } catch (err) {
-            console.error('Erreur récupération prestations', err);
-            if (!mounted) return;
-            setPrestations(null);
+            const ids = acc.service_type_ids ?? [];
+            try {
+              const prestationsResult =
+                await catalogRepository.getPrestationsByIds(ids);
+              if (!mounted) return;
+              setPrestations(prestationsResult);
+            } catch (err) {
+              console.error('Erreur récupération prestations', err);
+              if (!mounted) return;
+              setPrestations(null);
+            }
+
+            try {
+              const area = await catalogRepository.getAreaById(acc.domain_id);
+              if (!mounted) return;
+              setAreaName(area?.name ?? null);
+            } catch (err) {
+              console.warn('Erreur récupération domaine', err);
+              if (!mounted) return;
+              setAreaName(null);
+            }
           }
-
-          try {
-            const domaineId = prof.domaine as unknown as number | null;
-            const area = await catalogRepository.getAreaById(domaineId);
-            if (!mounted) return;
-            setAreaName(area?.name ?? null);
-          } catch (err) {
-            console.warn('Erreur récupération domaine', err);
-            if (!mounted) return;
-            setAreaName(null);
-          }
+        } else {
+          setAccount(null);
         }
       } catch (e: unknown) {
         if (isApiError(e) && e.response?.status === 401) {
@@ -90,7 +97,7 @@ export default function ProfilePage() {
     return () => {
       mounted = false;
     };
-  }, [navigate]);
+  }, [navigate, activeAccountId]);
 
   if (loading) return <div>Chargement du profil…</div>;
 
@@ -130,13 +137,13 @@ export default function ProfilePage() {
       </header>
 
       {/* Professional Info Card */}
-      {professional && professional !== 'loading' && (
+      {account && account !== 'loading' && (
         <section className={styles.card}>
           <h2 className={styles.h2}>
-            {professional.name || 'Structure professionnelle'}
-            {professional.status_juridique && (
+            {account.display_name || 'Structure professionnelle'}
+            {account.legal_form && (
               <span className={`${styles.badge} ${styles.badgeInfo}`}>
-                {professional.status_juridique}
+                {account.legal_form}
               </span>
             )}
           </h2>
@@ -149,21 +156,21 @@ export default function ProfilePage() {
           <div className={styles.kv}>
             <span>TJM</span>
             <strong>
-              {professional.tjm_cents
-                ? `${(professional.tjm_cents / 100).toFixed(2)} €`
+              {account.default_rate_cents
+                ? `${(account.default_rate_cents / 100).toFixed(2)} €`
                 : '—'}
             </strong>
           </div>
 
           <div className={styles.kv}>
             <span>SIRET</span>
-            <strong>{professional.number_pro || '—'}</strong>
+            <strong>{account.legal_id || '—'}</strong>
           </div>
         </section>
       )}
 
       {/* Services Card */}
-      {professional && professional !== 'loading' && (
+      {account && account !== 'loading' && (
         <section className={styles.card}>
           <h2 className={styles.h2}>Prestations</h2>
           {prestations === 'loading' ? (
