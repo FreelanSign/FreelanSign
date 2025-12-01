@@ -14,6 +14,6 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "types": ["vite/client", "node"]
+    "types": ["vite/client", "vitest", "node"]
   }
 }

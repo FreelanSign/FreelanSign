@@ -4,9 +4,10 @@ import axios, {
   type AxiosInstance,
   type AxiosRequestConfig,
 } from 'axios';
-import { ENV } from '../../shared/env';
-import { API_ENDPOINTS } from '../../shared/endpoints';
 import { tokenStorage } from '../../infrastructure/storage/tokenStorage';
+import { API_ENDPOINTS } from '../../shared/endpoints';
+import { ENV } from '../../shared/env';
+import { getActiveAccountId } from '../account/accountContext';
 
 type RefreshResponse = { access?: string; refresh?: string };
 type OriginalRequest = AxiosRequestConfig & { _retry?: boolean };
@@ -75,17 +76,31 @@ function processQueue(error: unknown, token: string | null) {
 
 // --- Request: ajoute seulement Authorization, NE PAS remplacer headers ---
 apiClient.interceptors.request.use((config) => {
+  // 1) Auth
   const access = tokenStorage.getAccess();
   if (access) {
     config.headers = config.headers || {};
     (config.headers as Record<string, string>)['Authorization'] =
       `Bearer ${access}`;
   }
-  // DEBUG TEMP:
+
+  // 2) Account
+  const accountId = getActiveAccountId();
+  if (accountId) {
+    // Sécurise les headers
+    config.headers = config.headers || {};
+    const headers = config.headers as Record<string, string>;
+    // Ne pas écraser un header explicite fourni par l'appelant
+    if (!Object.prototype.hasOwnProperty.call(headers, 'X-Account-Id')) {
+      headers['X-Account-Id'] = accountId;
+    }
+  }
 
   console.debug('[api] =>', config.method?.toUpperCase(), config.url, {
     hasAuth: Boolean(access),
     authHead: access ? `Bearer ${access.slice(0, 12)}…` : null,
+    hasAccount: Boolean(accountId),
+    accountHead: accountId ? `Account ${accountId}` : null,
   });
   return config;
 });
