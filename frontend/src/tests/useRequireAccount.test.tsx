@@ -26,7 +26,7 @@ let mockAccountState: {
 
 // mock useAccountStore
 vi.mock('../infrastructure/account/accountStore', () => ({
-  useAccountStore: (selector: (s: typeof mockAccountState) => any) =>
+  useAccountStore: (selector: (s: typeof mockAccountState) => unknown) =>
     selector(mockAccountState),
 }));
 

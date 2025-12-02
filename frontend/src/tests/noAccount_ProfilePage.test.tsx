@@ -17,14 +17,19 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+type MockAccountState = {
+  accounts: { id: number }[];
+  activeAccountId: number | null;
+};
+
 // 2) Mock account store
-let mockAccountState = {
-  accounts: [] as { id: number }[],
-  activeAccountId: null as number | null,
+let mockAccountState: MockAccountState = {
+  accounts: [],
+  activeAccountId: null,
 };
 
 vi.mock('../infrastructure/account/accountStore', () => ({
-  useAccountStore: (selector: (s: typeof mockAccountState) => any) =>
+  useAccountStore: (selector: (s: MockAccountState) => unknown) =>
     selector(mockAccountState),
 }));
 
@@ -59,7 +64,7 @@ describe('ProfilePage – no-account handling', () => {
 
   it('ne redirige pas quand un compte existe', async () => {
     mockAccountState = {
-      accounts: [{ id: 1 } as any],
+      accounts: [{ id: 1 }],
       activeAccountId: 1,
     };
 

@@ -33,10 +33,13 @@ export default function DashboardPage() {
       {activeAccountId === null && (
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Commencez votre aventure freelance</h2>
+            <h2 className={styles.cardTitle}>
+              Commencez votre aventure freelance
+            </h2>
           </div>
           <p className={styles.cardDescription}>
-            Créez votre compte professionnel en quelques minutes pour commencer à générer vos devis et factures.
+            Créez votre compte professionnel en quelques minutes pour commencer
+            à générer vos devis et factures.
           </p>
           <Link
             to="/onboarding-account"
@@ -45,7 +48,8 @@ export default function DashboardPage() {
             Créer mon compte
           </Link>
           <div className={styles.cardMeta}>
-            Vous pourrez modifier ces informations à tout moment depuis votre profil.
+            Vous pourrez modifier ces informations à tout moment depuis votre
+            profil.
           </div>
         </div>
       )}
