@@ -9,7 +9,7 @@ let accessMemory: string | null = null;
 const getLocalStorage = (): Storage | null => {
   if (typeof globalThis === 'undefined') return null;
 
-  const ls = (globalThis as any).localStorage as Storage | undefined | null;
+  const ls = globalThis.localStorage as Storage | undefined | null;
   return ls ?? null;
 };
 

@@ -1502,7 +1502,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── tsconfig.app.json
 │   ├── tsconfig.json
 │   ├── tsconfig.node.json
-│   ├── vite-env.d.ts
 │   ├── vite.config.ts
 │   └── vitest.config.ts
 ├── LICENSE
@@ -1531,7 +1530,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-270 directories, 805 files
+270 directories, 804 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1604,5 +1603,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-02 11:39:12 CET**
+_Updated_: **2025-12-02 12:00:48 CET**
 <!-- END AUTO: LAST_UPDATED -->
