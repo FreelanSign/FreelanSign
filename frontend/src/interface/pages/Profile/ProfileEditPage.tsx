@@ -16,9 +16,9 @@ import PersonalUserDataForm, {
   type PersonalUserFormValues,
 } from '../../components/profile/PersonalUserDataForm';
 import PrestationsSelector from '../../components/profile/PrestationSelector';
-import ProfessionalInfoForm, {
-  type ProfessionalInfoValues,
-} from '../../components/profile/ProfessionalInfoForm';
+import AccountDataForm, {
+  type AccountFormValues,
+} from '../../components/account/AccountDataForm';
 
 import styles from './profile-edit-page.module.css';
 
@@ -39,7 +39,7 @@ export default function ProfileEditPage() {
   // Draft values kept locally until Save All
   // include both default_rate_cents and tjm_eur to avoid any casts later
   type AccountDraftType = Partial<
-    ProfessionalInfoValues & { default_rate_cents?: number; tjm_eur?: number }
+    AccountFormValues & { default_rate_cents?: number; tjm_eur?: number }
   >;
   const [accountDraft, setAccountDraft] = useState<AccountDraftType>({});
   const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>([]);
@@ -75,11 +75,11 @@ export default function ProfileEditPage() {
           setSelectedServiceIds(acc?.service_type_ids ?? []);
           // init draft from backend values
           setAccountDraft({
-            name: acc?.display_name ?? null,
-            status_juridique: acc?.legal_form ?? null,
-            domaine: acc?.domain_id ?? null,
+            display_name: acc?.display_name ?? null,
+            legal_form: acc?.legal_form ?? null,
+            domain_id: acc?.domain_id ?? null,
             default_rate_cents: acc?.default_rate_cents ?? undefined,
-            number_pro: acc?.legal_id ?? null,
+            legal_id: acc?.legal_id ?? null,
           });
         } else {
           setAccount(null);
@@ -102,22 +102,22 @@ export default function ProfileEditPage() {
     };
   }, [navigate, activeAccountId]);
 
-  // called by ProfessionalInfoForm watch - update local draft and domaine used to fetch prestations
-  function handleProValuesChange(values: ProfessionalInfoValues) {
+  // called by AccountDataForm watch - update local draft and domain_id used to fetch prestations
+  function handleAccountValuesChange(values: AccountFormValues) {
     setAccountDraft((prev) => ({
       ...prev,
-      name: values.name ?? null,
-      status_juridique: values.status_juridique ?? null,
-      domaine: values.domaine ?? null,
+      display_name: values.display_name ?? null,
+      legal_form: values.legal_form ?? null,
+      domain_id: values.domain_id ?? null,
       // use undefined (not null) to match the state's tjm_eur type
       tjm_eur: values.tjm_eur ?? undefined,
-      number_pro: values.number_pro ?? null,
+      legal_id: values.legal_id ?? null,
     }));
   }
 
-  // called when domaine changes (immediate) => update local draft and re-fetch prestations in PrestationsSelector (it uses domaine prop)
-  function handleDomaineChange(domaine: number | null) {
-    setAccountDraft((d) => ({ ...d, domaine }));
+  // called when domain_id changes (immediate) => update local draft and re-fetch prestations in PrestationsSelector (it uses domaine prop)
+  function handleDomainChange(domain_id: number | null) {
+    setAccountDraft((d) => ({ ...d, domain_id }));
     // NOTE: we DON'T persist to backend here (single save), but PrestationsSelector will get updated domaine prop
   }
 
@@ -149,18 +149,18 @@ export default function ProfileEditPage() {
     const currentAcc = account && account !== 'loading' ? account : null;
     const accountDraftChanged =
       JSON.stringify({
-        name: accountDraft.name ?? null,
-        status_juridique: accountDraft.status_juridique ?? null,
-        domaine: accountDraft.domaine ?? null,
+        display_name: accountDraft.display_name ?? null,
+        legal_form: accountDraft.legal_form ?? null,
+        domain_id: accountDraft.domain_id ?? null,
         default_rate_cents: accountDraft.default_rate_cents ?? null,
-        number_pro: accountDraft.number_pro ?? null,
+        legal_id: accountDraft.legal_id ?? null,
       }) !==
       JSON.stringify({
-        name: currentAcc?.display_name ?? null,
-        status_juridique: currentAcc?.legal_form ?? null,
-        domaine: currentAcc?.domain_id ?? null,
+        display_name: currentAcc?.display_name ?? null,
+        legal_form: currentAcc?.legal_form ?? null,
+        domain_id: currentAcc?.domain_id ?? null,
         default_rate_cents: currentAcc?.default_rate_cents ?? null,
-        number_pro: currentAcc?.legal_id ?? null,
+        legal_id: currentAcc?.legal_id ?? null,
       });
 
     const servicesChanged =
@@ -213,10 +213,10 @@ export default function ProfileEditPage() {
 
       // 2) build payload for account
       const payload: SavePayload = {
-        display_name: accountDraft.name ?? '',
-        legal_form: accountDraft.status_juridique ?? null,
-        domain_id: accountDraft.domaine ?? null,
-        legal_id: accountDraft.number_pro ?? null,
+        display_name: accountDraft.display_name ?? '',
+        legal_form: accountDraft.legal_form ?? null,
+        domain_id: accountDraft.domain_id ?? null,
+        legal_id: accountDraft.legal_id ?? null,
         service_type_ids: selectedServiceIds ?? [],
         default_rate_cents: null,
       };
@@ -239,11 +239,11 @@ export default function ProfileEditPage() {
       setSelectedServiceIds(acc?.service_type_ids ?? []);
       // update draft with persisted values
       setAccountDraft({
-        name: acc?.display_name ?? null,
-        status_juridique: acc?.legal_form ?? null,
-        domaine: acc?.domain_id ?? null,
+        display_name: acc?.display_name ?? null,
+        legal_form: acc?.legal_form ?? null,
+        domain_id: acc?.domain_id ?? null,
         default_rate_cents: acc?.default_rate_cents ?? undefined,
-        number_pro: acc?.legal_id ?? null,
+        legal_id: acc?.legal_id ?? null,
       });
 
       // show success toast
@@ -295,31 +295,32 @@ export default function ProfileEditPage() {
         {account === 'loading' ? (
           <div className="text-gray-500">Chargement…</div>
         ) : account ? (
-          <ProfessionalInfoForm
+          <AccountDataForm
             initialValues={{
-              name: account.display_name ?? null,
-              status_juridique: account.legal_form ?? null,
-              domaine: account.domain_id ?? null,
-              tjm_cents: account.default_rate_cents ?? undefined,
-              number_pro: account.legal_id ?? null,
+              display_name: account.display_name ?? null,
+              legal_form: account.legal_form ?? null,
+              domain_id: account.domain_id ?? null,
+              default_rate_cents: account.default_rate_cents ?? undefined,
+              legal_id: account.legal_id ?? null,
             }}
             areas={areas}
             onSave={async (payload) => {
               if (!activeAccountId) return;
               await accountRepository.update(activeAccountId, {
-                display_name: payload.name ?? '',
-                legal_form: payload.status_juridique ?? null,
-                domain_id: payload.domaine ?? null,
-                legal_id: payload.number_pro ?? null,
-                default_rate_cents: payload.tjm_cents ?? null,
+                display_name: payload.display_name ?? '',
+                legal_form: payload.legal_form ?? null,
+                domain_id: payload.domain_id ?? null,
+                legal_id: payload.legal_id ?? null,
+                default_rate_cents: payload.default_rate_cents ?? null,
               });
               const acc = await accountRepository.retrieve(activeAccountId);
               setAccount(acc ?? null);
               setSelectedServiceIds(acc?.service_type_ids ?? []);
             }}
-            onDomaineChange={handleDomaineChange}
-            onValuesChange={(vals) => handleProValuesChange(vals)}
+            onDomainChange={handleDomainChange}
+            onChange={(vals) => handleAccountValuesChange(vals)}
             onCancel={() => navigate('/profile')}
+            showButtons={false}
           />
         ) : (
           <div>
@@ -340,8 +341,8 @@ export default function ProfileEditPage() {
       {account && account !== 'loading' && (
         <Card title="Services proposés">
           <PrestationsSelector
-            professionalId={account.id}
-            domaine={accountDraft.domaine ?? account.domain_id ?? null}
+            accountId={account.id}
+            domaine={accountDraft.domain_id ?? account.domain_id ?? null}
             selected={selectedServiceIds}
             onChange={setSelectedServiceIds}
           />

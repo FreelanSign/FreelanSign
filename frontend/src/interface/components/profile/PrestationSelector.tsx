@@ -59,7 +59,7 @@ function getPrestationAreaId(p: unknown): number | null {
 
 // --- props -----------------------------------------------------------------
 type Props = {
-  professionalId?: number | null;
+  accountId?: number | null;
   domaine?: number | null;
   /** liste contrôlée par le parent */
   selected: number[];
