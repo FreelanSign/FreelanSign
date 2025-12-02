@@ -1445,6 +1445,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── MainLayout.tsx
 │   │   │   │   └── RootSeo.tsx
 │   │   │   ├── pages
+│   │   │   │   ├── Account
+│   │   │   │   │   └── AccountOnboardingPage.tsx
 │   │   │   │   ├── Auth
 │   │   │   │   │   ├── request-password-reset.module.css
 │   │   │   │   │   ├── request-password-reset.tsx
@@ -1528,7 +1530,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-269 directories, 803 files
+270 directories, 804 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1601,5 +1603,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-02 08:31:46 CET**
+_Updated_: **2025-12-02 08:56:53 CET**
 <!-- END AUTO: LAST_UPDATED -->

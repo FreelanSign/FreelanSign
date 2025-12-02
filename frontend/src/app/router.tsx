@@ -19,6 +19,7 @@ import QuoteDetailPage from '../interface/pages/Quote/QuoteDetailPage';
 import QuoteEditPage from '../interface/pages/Quote/QuoteEditPage';
 import QuotesListPage from '../interface/pages/Quote/QuoteListPage';
 import RegisterPage from '../interface/pages/Register/RegisterPage';
+import AccountOnboardingPage from '../interface/pages/Account/AccountOnboardingPage';
 import { useAuth } from './providers/AuthProvider';
 
 /** Route protégée très simple */
@@ -42,6 +43,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/profile', element: <ProfilePage /> },
       { path: '/profile/edit', element: <ProfileEditPage /> },
+      { path: '/onboarding-account', element: <AccountOnboardingPage /> },
       { path: '/dashboard', element: <DashboardPage /> },
       { path: '/quotes/new', element: <QuoteCreatePage /> },
       { path: 'quotes', element: <QuotesListPage /> },
