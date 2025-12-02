@@ -2,12 +2,12 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    include: ['src/tests/**/*.test.ts'],
+    include: ['src/tests/**/*.test.ts', 'src/tests/**/*.test.tsx'],
     environment: 'jsdom',
-    globals: true,           // pour pouvoir utiliser `describe`, `it`, `expect` sans import
+    globals: true, // pour pouvoir utiliser `describe`, `it`, `expect` sans import
     coverage: {
-      reporter: ['text', 'lcov'],  // affichage console + rapport HTML
-      exclude: ['node_modules/', 'src/interface/**'],  // modules et UI si tu veux
+      reporter: ['text', 'lcov'], // affichage console + rapport HTML
+      exclude: ['node_modules/', 'src/interface/**'], // modules et UI si tu veux
     },
   },
 });

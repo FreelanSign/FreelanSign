@@ -2,31 +2,30 @@
 import { useEffect, useMemo, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import type { AreaDto } from '../../../domain/catalog/types';
 import type { AccountDto } from '../../../domain/account/types';
+import type { AreaDto } from '../../../domain/catalog/types';
 import type { UserDto } from '../../../domain/user/types';
-import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
-import { userRepository } from '../../../infrastructure/user/userRepository';
 import { accountRepository } from '../../../infrastructure/account/accountRepository';
 import { useAccountStore } from '../../../infrastructure/account/accountStore';
+import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
+import { userRepository } from '../../../infrastructure/user/userRepository';
 
+import AccountDataForm, {
+  type AccountFormValues,
+} from '../../components/account/AccountDataForm';
 import { Card } from '../../components/common/Card';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
 import PersonalUserDataForm, {
   type PersonalUserFormValues,
 } from '../../components/profile/PersonalUserDataForm';
 import PrestationsSelector from '../../components/profile/PrestationSelector';
-import AccountDataForm, {
-  type AccountFormValues,
-} from '../../components/account/AccountDataForm';
 
+import { useRequireAccount } from '../../hooks/useRequireAccount';
 import styles from './profile-edit-page.module.css';
 
 export default function ProfileEditPage() {
   const navigate = useNavigate();
   const activeAccountId = useAccountStore((state) => state.activeAccountId);
-  const accounts = useAccountStore((state) => state.accounts);
-
   const [user, setUser] = useState<UserDto | null>(null);
   const [account, setAccount] = useState<AccountDto | null | 'loading'>(
     'loading',
@@ -49,13 +48,7 @@ export default function ProfileEditPage() {
     Partial<PersonalUserFormValues>
   >({});
 
-  // Redirect to onboarding if no active account
-  useEffect(() => {
-    if (!loading && accounts.length === 0) {
-      navigate('/onboarding-account');
-    }
-  }, [accounts, loading, navigate]);
-
+  useRequireAccount({ loading });
   useEffect(() => {
     let mounted = true;
     (async () => {
