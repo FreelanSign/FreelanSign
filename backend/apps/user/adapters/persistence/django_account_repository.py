@@ -119,7 +119,7 @@ class DjangoAccountRepository:
             legal_id=model.legal_id,
             domain_id=model.domain_id,
             default_rate_cents=model.default_rate_cents,
-            service_type_ids=list(model.service_types.values_list('id', flat=True)),
+            service_type_ids=list(model.service_types.values_list("id", flat=True)),
             is_active=model.is_active,
             created_at=model.created_at,
             updated_at=model.updated_at,

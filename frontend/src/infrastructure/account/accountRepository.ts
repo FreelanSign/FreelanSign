@@ -1,6 +1,10 @@
 import { apiClient } from '../http/apiClient';
 import { API_ENDPOINTS } from '../../shared/endpoints';
-import type { AccountDto, CreateAccountInput, UpdateAccountInput } from '../../domain/account/types';
+import type {
+  AccountDto,
+  CreateAccountInput,
+  UpdateAccountInput,
+} from '../../domain/account/types';
 
 export const accountRepository = {
   async list(): Promise<AccountDto[]> {
@@ -18,8 +22,14 @@ export const accountRepository = {
     return data;
   },
 
-  async update(id: string | number, payload: UpdateAccountInput): Promise<AccountDto> {
-    const { data } = await apiClient.patch(API_ENDPOINTS.account(String(id)), payload);
+  async update(
+    id: string | number,
+    payload: UpdateAccountInput,
+  ): Promise<AccountDto> {
+    const { data } = await apiClient.patch(
+      API_ENDPOINTS.account(String(id)),
+      payload,
+    );
     return data;
   },
 

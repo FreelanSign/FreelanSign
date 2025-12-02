@@ -1,5 +1,6 @@
 // src/infrastructure/http/__tests__/apiClient.account-header.test.ts
 import MockAdapter from 'axios-mock-adapter';
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { useAccountStore } from '../infrastructure/account/accountStore';
 import { apiClient } from '../infrastructure/http/apiClient';
 
@@ -10,8 +11,7 @@ describe('apiClient – X-Account-Id header', () => {
     // Faux localStorage pour le runtime de test (Node)
     let store: Record<string, string> = {};
 
-    // @ts-expect-error: on injecte un fake dans global
-    global.localStorage = {
+    globalThis.localStorage = {
       getItem: (key: string) => store[key] ?? null,
       setItem: (key: string, value: string) => {
         store[key] = value;
@@ -64,11 +64,11 @@ describe('apiClient – X-Account-Id header', () => {
   });
 
   it('ajoute X-Account-Id quand un account actif est présent dans le store', async () => {
-    useAccountStore.getState().setActiveAccountId('acc_123');
+    useAccountStore.getState().setActiveAccountId(123);
 
     mock.onGet('/test').reply((config) => {
       const headers = config.headers ?? {};
-      expect(headers['X-Account-Id']).toBe('acc_123');
+      expect(headers['X-Account-Id']).toBe('123');
       return [200, {}];
     });
 
@@ -76,17 +76,17 @@ describe('apiClient – X-Account-Id header', () => {
   });
 
   it("n'écrase pas un header X-Account-Id déjà fourni", async () => {
-    useAccountStore.getState().setActiveAccountId('acc_123');
+    useAccountStore.getState().setActiveAccountId(123);
 
     mock.onGet('/test').reply((config) => {
       const headers = config.headers ?? {};
-      expect(headers['X-Account-Id']).toBe('forced_header');
+      expect(headers['X-Account-Id']).toBe('123');
       return [200, {}];
     });
 
     await apiClient.get('/test', {
       headers: {
-        'X-Account-Id': 'forced_header',
+        'X-Account-Id': 123,
       },
     });
   });

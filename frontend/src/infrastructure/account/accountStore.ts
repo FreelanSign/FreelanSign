@@ -1,8 +1,8 @@
 // src/infrastructure/account/accountStore.ts
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { accountRepository } from './accountRepository';
 import type { AccountDto } from '../../domain/account/types';
+import { accountRepository } from './accountRepository';
 
 export type Account = AccountDto;
 
@@ -17,6 +17,12 @@ type AccountState = {
   setAccounts: (accounts: Account[]) => void;
   selectFirstAccountIfNeeded: () => void;
   clear: () => void;
+};
+
+const noopStorage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
 };
 
 export const useAccountStore = create<AccountState>()(
@@ -34,7 +40,12 @@ export const useAccountStore = create<AccountState>()(
           set({ accounts, loading: false });
           get().selectFirstAccountIfNeeded();
         } catch (error) {
-          set({ error: 'Failed to fetch accounts', loading: false });
+          console.error('Failed to fetch accounts', error);
+          const message =
+            error instanceof Error && error.message
+              ? error.message
+              : 'Failed to fetch accounts';
+          set({ error: message, loading: false });
         }
       },
 
@@ -65,7 +76,7 @@ export const useAccountStore = create<AccountState>()(
     {
       name: 'account-store',
       storage: createJSONStorage(() => {
-        // ✅ en browser OU en test (globalThis.localStorage mocké)
+        // en browser OU en test (globalThis.localStorage mocké)
         if (
           typeof globalThis !== 'undefined' &&
           'localStorage' in globalThis &&
@@ -73,8 +84,8 @@ export const useAccountStore = create<AccountState>()(
         ) {
           return globalThis.localStorage;
         }
-        // ✅ en SSR, on tombe ici → noop storage
-        return undefined as any;
+        // en SSR, on tombe ici → noop storage
+        return noopStorage;
       }),
       partialize: (state) => ({ activeAccountId: state.activeAccountId }),
     },

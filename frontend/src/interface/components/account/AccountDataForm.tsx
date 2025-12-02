@@ -189,7 +189,10 @@ export default function AccountDataForm({
 
       <label>
         <div className="text-sm">Domaine</div>
-        <select {...register('domain_id')} className="border p-2 rounded w-full">
+        <select
+          {...register('domain_id')}
+          className="border p-2 rounded w-full"
+        >
           <option value="">-- Aucune --</option>
           {Array.isArray(areas) && areas.length > 0 ? (
             areas.map((a) => (
