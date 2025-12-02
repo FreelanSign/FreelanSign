@@ -948,7 +948,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── 0008_remove_professionaluser_allowed_areas.py
 │   │       │   ├── 0009_account.py
 │   │       │   ├── 0010_migrate_professional_to_account.py
-│   │       │   └── 0011_cleanup_phase6.py
+│   │       │   ├── 0011_cleanup_phase6.py
+│   │       │   └── 0012_add_rate_and_service_types_to_account.py
 │   │       ├── models
 │   │       │   ├── __init__.py
 │   │       │   ├── account.py
@@ -1293,7 +1294,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── knowledge.md
 │   ├── knowledge.sh
 │   ├── plans
-│   │   └── production-ready.md
+│   │   ├── production-ready.md
+│   │   └── suite-plan.md
 │   ├── release
 │   │   ├── RELEASE_PLAN_v0.1.0.md
 │   │   └── RELEASE_PLAN_v0.2.0.md
@@ -1301,11 +1303,16 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── FreelanSign.code-workspace
 ├── frontend
 │   ├── .dockerignore
+│   ├── .env
 │   ├── .env.development.local
 │   ├── .eslintrc.cjs
 │   ├── .gitignore
 │   ├── components.json
 │   ├── Dockerfile
+│   ├── docs
+│   │   └── tests
+│   │       ├── account_header.feature.md
+│   │       └── account_store.feature.md
 │   ├── eslint.config.js
 │   ├── index.html
 │   ├── nginx.conf
@@ -1341,6 +1348,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       ├── dialog.tsx
 │   │   │       └── textarea.tsx
 │   │   ├── domain
+│   │   │   ├── account
+│   │   │   │   └── types.ts
 │   │   │   ├── auth
 │   │   │   │   └── usecases.ts
 │   │   │   ├── catalog
@@ -1356,6 +1365,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   └── user
 │   │   │       └── types.ts
 │   │   ├── infrastructure
+│   │   │   ├── account
+│   │   │   │   ├── accountContext.ts
+│   │   │   │   ├── accountRepository.ts
+│   │   │   │   └── accountStore.ts
 │   │   │   ├── api.ts
 │   │   │   ├── auth
 │   │   │   │   └── authRepository.ts
@@ -1377,6 +1390,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       └── userRepository.ts
 │   │   ├── interface
 │   │   │   ├── components
+│   │   │   │   ├── account
+│   │   │   │   │   └── AccountDataForm.tsx
 │   │   │   │   ├── AppToBar.tsx
 │   │   │   │   ├── auth
 │   │   │   │   │   ├── request-password-reset-form.module.css
@@ -1430,6 +1445,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── MainLayout.tsx
 │   │   │   │   └── RootSeo.tsx
 │   │   │   ├── pages
+│   │   │   │   ├── Account
+│   │   │   │   │   └── AccountOnboardingPage.tsx
 │   │   │   │   ├── Auth
 │   │   │   │   │   ├── request-password-reset.module.css
 │   │   │   │   │   ├── request-password-reset.tsx
@@ -1478,6 +1495,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       └── obj.ts
 │   │   ├── styles
 │   │   │   └── index.css
+│   │   ├── tests
+│   │   │   ├── accountStore.test.ts
+│   │   │   └── apiClient.account-header.test.ts
 │   │   └── vite-env.d.ts
 │   ├── tsconfig.app.json
 │   ├── tsconfig.json
@@ -1510,7 +1530,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-263 directories, 791 files
+270 directories, 804 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1518,7 +1538,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 <!-- BEGIN AUTO: FRONTEND_PACKAGE_JSON -->
 Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
 **name**: `frontend`  •  **version**: `0.2.0`
-**scripts**: 10  •  **dependencies**: 19  •  **devDependencies**: 26
+**scripts**: 10  •  **dependencies**: 19  •  **devDependencies**: 29
 
 <details><summary>Top dependencies</summary>
 
@@ -1583,5 +1603,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-01 08:26:57 CET**
+_Updated_: **2025-12-02 12:00:48 CET**
 <!-- END AUTO: LAST_UPDATED -->

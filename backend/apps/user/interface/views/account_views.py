@@ -167,6 +167,8 @@ class AccountViewSet(viewsets.ModelViewSet):
             "legal_form": instance.legal_form,
             "legal_id": instance.legal_id,
             "domain_id": instance.domain_id,
+            "default_rate_cents": instance.default_rate_cents,
+            "service_type_ids": list(instance.service_types.values_list("id", flat=True)),
         }
         merged_data = {**existing_data, **input_serializer.validated_data}
 

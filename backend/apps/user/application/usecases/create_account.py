@@ -65,6 +65,8 @@ class CreateAccount:
             legal_form=legal_form_enum,
             legal_id=input_dto.legal_id,
             domain_id=input_dto.domain_id,
+            default_rate_cents=input_dto.default_rate_cents,
+            service_type_ids=input_dto.service_type_ids or [],
             is_active=True,
             created_at=now,
             updated_at=now,
@@ -85,6 +87,8 @@ class CreateAccount:
             legal_form=account.legal_form.value,
             legal_id=account.legal_id,
             domain_id=account.domain_id,
+            default_rate_cents=account.default_rate_cents,
+            service_type_ids=account.service_type_ids,
             is_active=True,  # New accounts are active by default
             created_at=account.created_at,
             updated_at=account.updated_at,

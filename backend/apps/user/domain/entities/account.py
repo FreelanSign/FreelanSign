@@ -30,6 +30,8 @@ class Account:
     legal_form: LegalForm  # Forme juridique (enum)
     legal_id: str | None  # SIRET (14 chiffres)
     domain_id: int | None  # FK vers catalog.Area
+    default_rate_cents: int | None  # TJM en centimes
+    service_type_ids: list[int]  # IDs des prestations favorites
     is_active: bool
     created_at: datetime
     updated_at: datetime

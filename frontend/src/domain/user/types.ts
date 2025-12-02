@@ -1,5 +1,5 @@
 /**
- * Types légers pour User / Profile / ProfessionalUser.
+ * Types légers pour User / Profile.
  * Ajuste selon ton serializer backend.
  */
 
@@ -16,27 +16,4 @@ export type UserDto = {
   id: number;
   email: string;
   profile?: ProfileDto | null;
-};
-
-export type ProfessionalUserDto = {
-  id: number;
-  user: number; // user id
-  name?: string | null;
-  email?: string | null;
-  siret?: string | null;
-  status_juridique?: string | null;
-  domaine?: number | null; // id of area
-  tjm_cents?: number | null;
-  number_pro?: string | null;
-  service_type_ids?: number[]; // list of prestation ids
-  // optional meta information to help the frontend render warnings (read-only)
-  service_type_ids_meta?: Array<{
-    id: number;
-    name?: string | null;
-    area_id?: number | null;
-    area_name?: string | null;
-    off_domain?: boolean;
-  }>;
-  created_at?: string;
-  updated_at?: string;
 };

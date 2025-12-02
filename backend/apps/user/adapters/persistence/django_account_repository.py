@@ -29,10 +29,14 @@ class DjangoAccountRepository:
             legal_form=account.legal_form.value,
             legal_id=account.legal_id,
             domain_id=account.domain_id,
+            default_rate_cents=account.default_rate_cents,
             is_active=account.is_active,
             created_at=account.created_at,
             updated_at=account.updated_at,
         )
+        # Set M2M relationship for service_types
+        if account.service_type_ids:
+            model.service_types.set(account.service_type_ids)
         return self._to_entity(model)
 
     def get_by_id(self, account_id: int) -> AccountEntity | None:
@@ -59,9 +63,12 @@ class DjangoAccountRepository:
         model.legal_form = account.legal_form.value
         model.legal_id = account.legal_id
         model.domain_id = account.domain_id
+        model.default_rate_cents = account.default_rate_cents
         model.is_active = account.is_active
         model.updated_at = account.updated_at
         model.save()
+        # Update M2M relationship for service_types
+        model.service_types.set(account.service_type_ids)
         return self._to_entity(model)
 
     def exists_by_name(self, user_id: int, display_name: str, exclude_id: int | None = None) -> bool:
@@ -111,6 +118,8 @@ class DjangoAccountRepository:
             legal_form=LegalForm(model.legal_form) if model.legal_form else LegalForm.MICRO,
             legal_id=model.legal_id,
             domain_id=model.domain_id,
+            default_rate_cents=model.default_rate_cents,
+            service_type_ids=list(model.service_types.values_list("id", flat=True)),
             is_active=model.is_active,
             created_at=model.created_at,
             updated_at=model.updated_at,

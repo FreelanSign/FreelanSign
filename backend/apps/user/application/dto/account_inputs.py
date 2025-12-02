@@ -14,6 +14,8 @@ class CreateAccountInput:
     legal_form: str  # Sera converti en LegalForm enum
     legal_id: str | None = None
     domain_id: int | None = None
+    default_rate_cents: int | None = None
+    service_type_ids: list[int] | None = None
 
 
 @dataclass(frozen=True)
@@ -25,3 +27,5 @@ class UpdateAccountInput:
     legal_form: str
     legal_id: str | None = None
     domain_id: int | None = None
+    default_rate_cents: int | None = None
+    service_type_ids: list[int] | None = None

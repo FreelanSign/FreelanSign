@@ -3,9 +3,12 @@ import { useEffect, useMemo, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import type { AreaDto } from '../../../domain/catalog/types';
-import type { ProfessionalUserDto, UserDto } from '../../../domain/user/types';
+import type { AccountDto } from '../../../domain/account/types';
+import type { UserDto } from '../../../domain/user/types';
 import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
 import { userRepository } from '../../../infrastructure/user/userRepository';
+import { accountRepository } from '../../../infrastructure/account/accountRepository';
+import { useAccountStore } from '../../../infrastructure/account/accountStore';
 
 import { Card } from '../../components/common/Card';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
@@ -13,36 +16,45 @@ import PersonalUserDataForm, {
   type PersonalUserFormValues,
 } from '../../components/profile/PersonalUserDataForm';
 import PrestationsSelector from '../../components/profile/PrestationSelector';
-import ProfessionalInfoForm, {
-  type ProfessionalInfoValues,
-} from '../../components/profile/ProfessionalInfoForm';
+import AccountDataForm, {
+  type AccountFormValues,
+} from '../../components/account/AccountDataForm';
 
 import styles from './profile-edit-page.module.css';
 
 export default function ProfileEditPage() {
   const navigate = useNavigate();
+  const activeAccountId = useAccountStore((state) => state.activeAccountId);
+  const accounts = useAccountStore((state) => state.accounts);
 
   const [user, setUser] = useState<UserDto | null>(null);
-  const [professional, setProfessional] = useState<
-    ProfessionalUserDto | null | 'loading'
-  >('loading');
+  const [account, setAccount] = useState<AccountDto | null | 'loading'>(
+    'loading',
+  );
   const [areas, setAreas] = useState<AreaDto[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
   // Draft values kept locally until Save All
-  // include both tjm_cents and tjm_eur to avoid any casts later
-  type ProDraftType = Partial<
-    ProfessionalInfoValues & { tjm_cents?: number; tjm_eur?: number }
+  // include both default_rate_cents and tjm_eur to avoid any casts later
+  type AccountDraftType = Partial<
+    AccountFormValues & { default_rate_cents?: number; tjm_eur?: number }
   >;
-  const [proDraft, setProDraft] = useState<ProDraftType>({});
+  const [accountDraft, setAccountDraft] = useState<AccountDraftType>({});
   const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>([]);
 
   // NEW: profile draft tracked so Save All can persist profile + pro
   const [profileDraft, setProfileDraft] = useState<
     Partial<PersonalUserFormValues>
   >({});
+
+  // Redirect to onboarding if no active account
+  useEffect(() => {
+    if (!loading && accounts.length === 0) {
+      navigate('/onboarding-account');
+    }
+  }, [accounts, loading, navigate]);
 
   useEffect(() => {
     let mounted = true;
@@ -56,18 +68,22 @@ export default function ProfileEditPage() {
         // initialize profileDraft from backend values
         setProfileDraft(me?.profile ?? {});
 
-        const prof = await userRepository.getProfessionalMe();
-        if (!mounted) return;
-        setProfessional(prof ?? null);
-        setSelectedServiceIds(prof?.service_type_ids ?? []);
-        // init draft from backend values
-        setProDraft({
-          name: prof?.name ?? null,
-          status_juridique: prof?.status_juridique ?? null,
-          domaine: prof?.domaine ?? null,
-          tjm_cents: prof?.tjm_cents ?? undefined,
-          number_pro: prof?.number_pro ?? null,
-        });
+        if (activeAccountId) {
+          const acc = await accountRepository.retrieve(activeAccountId);
+          if (!mounted) return;
+          setAccount(acc ?? null);
+          setSelectedServiceIds(acc?.service_type_ids ?? []);
+          // init draft from backend values
+          setAccountDraft({
+            display_name: acc?.display_name ?? null,
+            legal_form: acc?.legal_form ?? null,
+            domain_id: acc?.domain_id ?? null,
+            default_rate_cents: acc?.default_rate_cents ?? undefined,
+            legal_id: acc?.legal_id ?? null,
+          });
+        } else {
+          setAccount(null);
+        }
 
         const areasList = await catalogRepository.listAreas();
         if (!mounted) return;
@@ -84,35 +100,35 @@ export default function ProfileEditPage() {
     return () => {
       mounted = false;
     };
-  }, [navigate]);
+  }, [navigate, activeAccountId]);
 
-  // called by ProfessionalInfoForm watch - update local draft and domaine used to fetch prestations
-  function handleProValuesChange(values: ProfessionalInfoValues) {
-    setProDraft((prev) => ({
+  // called by AccountDataForm watch - update local draft and domain_id used to fetch prestations
+  function handleAccountValuesChange(values: AccountFormValues) {
+    setAccountDraft((prev) => ({
       ...prev,
-      name: values.name ?? null,
-      status_juridique: values.status_juridique ?? null,
-      domaine: values.domaine ?? null,
+      display_name: values.display_name ?? null,
+      legal_form: values.legal_form ?? null,
+      domain_id: values.domain_id ?? null,
       // use undefined (not null) to match the state's tjm_eur type
       tjm_eur: values.tjm_eur ?? undefined,
-      number_pro: values.number_pro ?? null,
+      legal_id: values.legal_id ?? null,
     }));
   }
 
-  // called when domaine changes (immediate) => update local draft and re-fetch prestations in PrestationsSelector (it uses domaine prop)
-  function handleDomaineChange(domaine: number | null) {
-    setProDraft((d) => ({ ...d, domaine }));
+  // called when domain_id changes (immediate) => update local draft and re-fetch prestations in PrestationsSelector (it uses domaine prop)
+  function handleDomainChange(domain_id: number | null) {
+    setAccountDraft((d) => ({ ...d, domain_id }));
     // NOTE: we DON'T persist to backend here (single save), but PrestationsSelector will get updated domaine prop
   }
 
   // Save payload type (avoid any)
   type SavePayload = {
-    name?: string | null;
-    status_juridique?: string | null;
-    domaine?: number | null;
-    number_pro?: string | null;
+    display_name?: string;
+    legal_form?: string | null;
+    domain_id?: number | null;
+    legal_id?: string | null;
     service_type_ids?: number[];
-    tjm_cents?: number | null;
+    default_rate_cents?: number | null;
   };
 
   // helper: normalise profile fields (convert '' -> null)
@@ -130,30 +146,29 @@ export default function ProfileEditPage() {
     const profileChanged =
       JSON.stringify(profileDraft ?? {}) !== JSON.stringify(currentProfile);
 
-    const currentPro =
-      professional && professional !== 'loading' ? professional : null;
-    const proDraftChanged =
+    const currentAcc = account && account !== 'loading' ? account : null;
+    const accountDraftChanged =
       JSON.stringify({
-        name: proDraft.name ?? null,
-        status_juridique: proDraft.status_juridique ?? null,
-        domaine: proDraft.domaine ?? null,
-        tjm_cents: proDraft.tjm_cents ?? null,
-        number_pro: proDraft.number_pro ?? null,
+        display_name: accountDraft.display_name ?? null,
+        legal_form: accountDraft.legal_form ?? null,
+        domain_id: accountDraft.domain_id ?? null,
+        default_rate_cents: accountDraft.default_rate_cents ?? null,
+        legal_id: accountDraft.legal_id ?? null,
       }) !==
       JSON.stringify({
-        name: currentPro?.name ?? null,
-        status_juridique: currentPro?.status_juridique ?? null,
-        domaine: currentPro?.domaine ?? null,
-        tjm_cents: currentPro?.tjm_cents ?? null,
-        number_pro: currentPro?.number_pro ?? null,
+        display_name: currentAcc?.display_name ?? null,
+        legal_form: currentAcc?.legal_form ?? null,
+        domain_id: currentAcc?.domain_id ?? null,
+        default_rate_cents: currentAcc?.default_rate_cents ?? null,
+        legal_id: currentAcc?.legal_id ?? null,
       });
 
     const servicesChanged =
       JSON.stringify(selectedServiceIds) !==
-      JSON.stringify(currentPro?.service_type_ids ?? []);
+      JSON.stringify(currentAcc?.service_type_ids ?? []);
 
-    return profileChanged || proDraftChanged || servicesChanged;
-  }, [user, professional, profileDraft, proDraft, selectedServiceIds]);
+    return profileChanged || accountDraftChanged || servicesChanged;
+  }, [user, account, profileDraft, accountDraft, selectedServiceIds]);
 
   // Handle cancel with confirmation if dirty
   function handleCancel() {
@@ -174,6 +189,11 @@ export default function ProfileEditPage() {
     try {
       setSaving(true);
 
+      if (!activeAccountId) {
+        toast.error('Aucun compte actif sélectionné');
+        return;
+      }
+
       // 0) determine if profile changed vs current backend user
       const currentProfile = user?.profile ?? {};
       const profileChanged =
@@ -191,39 +211,39 @@ export default function ProfileEditPage() {
         setProfileDraft(me?.profile ?? {});
       }
 
-      // 2) build payload for professional (existing code)
+      // 2) build payload for account
       const payload: SavePayload = {
-        name: proDraft.name ?? null,
-        status_juridique: proDraft.status_juridique ?? null,
-        domaine: proDraft.domaine ?? null,
-        number_pro: proDraft.number_pro ?? null,
+        display_name: accountDraft.display_name ?? '',
+        legal_form: accountDraft.legal_form ?? null,
+        domain_id: accountDraft.domain_id ?? null,
+        legal_id: accountDraft.legal_id ?? null,
         service_type_ids: selectedServiceIds ?? [],
-        tjm_cents: null,
+        default_rate_cents: null,
       };
 
-      // convert tjm_eur (if provided) to tjm_cents
-      if (typeof proDraft.tjm_eur === 'number') {
-        payload.tjm_cents = Math.round(proDraft.tjm_eur * 100);
-      } else if (typeof proDraft.tjm_cents === 'number') {
-        payload.tjm_cents = proDraft.tjm_cents;
+      // convert tjm_eur (if provided) to default_rate_cents
+      if (typeof accountDraft.tjm_eur === 'number') {
+        payload.default_rate_cents = Math.round(accountDraft.tjm_eur * 100);
+      } else if (typeof accountDraft.default_rate_cents === 'number') {
+        payload.default_rate_cents = accountDraft.default_rate_cents;
       } else {
-        payload.tjm_cents = null;
+        payload.default_rate_cents = null;
       }
 
-      // single PATCH with everything for professional
-      await userRepository.updateProfessionalMe(payload);
+      // single PATCH with everything for account
+      await accountRepository.update(activeAccountId, payload);
 
-      // re-fetch professional
-      const prof = await userRepository.getProfessionalMe();
-      setProfessional(prof ?? null);
-      setSelectedServiceIds(prof?.service_type_ids ?? []);
+      // re-fetch account
+      const acc = await accountRepository.retrieve(activeAccountId);
+      setAccount(acc ?? null);
+      setSelectedServiceIds(acc?.service_type_ids ?? []);
       // update draft with persisted values
-      setProDraft({
-        name: prof?.name ?? null,
-        status_juridique: prof?.status_juridique ?? null,
-        domaine: prof?.domaine ?? null,
-        tjm_cents: prof?.tjm_cents ?? undefined,
-        number_pro: prof?.number_pro ?? null,
+      setAccountDraft({
+        display_name: acc?.display_name ?? null,
+        legal_form: acc?.legal_form ?? null,
+        domain_id: acc?.domain_id ?? null,
+        default_rate_cents: acc?.default_rate_cents ?? undefined,
+        legal_id: acc?.legal_id ?? null,
       });
 
       // show success toast
@@ -272,35 +292,43 @@ export default function ProfileEditPage() {
 
       {/* Compte professionnel */}
       <Card title="Compte professionnel">
-        {professional === 'loading' ? (
+        {account === 'loading' ? (
           <div className="text-gray-500">Chargement…</div>
-        ) : professional ? (
-          <ProfessionalInfoForm
+        ) : account ? (
+          <AccountDataForm
             initialValues={{
-              name: professional.name ?? null,
-              status_juridique: professional.status_juridique ?? null,
-              domaine: professional.domaine ?? null,
-              tjm_cents: professional.tjm_cents ?? undefined,
-              number_pro: professional.number_pro ?? null,
+              display_name: account.display_name ?? null,
+              legal_form: account.legal_form ?? null,
+              domain_id: account.domain_id ?? null,
+              default_rate_cents: account.default_rate_cents ?? undefined,
+              legal_id: account.legal_id ?? null,
             }}
             areas={areas}
             onSave={async (payload) => {
-              await userRepository.updateProfessionalMe(payload);
-              const prof = await userRepository.getProfessionalMe();
-              setProfessional(prof ?? null);
-              setSelectedServiceIds(prof?.service_type_ids ?? []);
+              if (!activeAccountId) return;
+              await accountRepository.update(activeAccountId, {
+                display_name: payload.display_name ?? '',
+                legal_form: payload.legal_form ?? null,
+                domain_id: payload.domain_id ?? null,
+                legal_id: payload.legal_id ?? null,
+                default_rate_cents: payload.default_rate_cents ?? null,
+              });
+              const acc = await accountRepository.retrieve(activeAccountId);
+              setAccount(acc ?? null);
+              setSelectedServiceIds(acc?.service_type_ids ?? []);
             }}
-            onDomaineChange={handleDomaineChange}
-            onValuesChange={(vals) => handleProValuesChange(vals)}
+            onDomainChange={handleDomainChange}
+            onChange={(vals) => handleAccountValuesChange(vals)}
             onCancel={() => navigate('/profile')}
+            showButtons={false}
           />
         ) : (
           <div>
             <p className="text-gray-600">
-              Vous n'avez pas encore de profil professionnel.
+              Vous n'avez pas encore de compte professionnel.
             </p>
             <button
-              onClick={() => navigate('/onboarding-professional')}
+              onClick={() => navigate('/onboarding-account')}
               className="underline text-blue-600 mt-2 hover:text-blue-800"
             >
               Commencer l'onboarding
@@ -310,11 +338,11 @@ export default function ProfileEditPage() {
       </Card>
 
       {/* Services proposés */}
-      {professional && professional !== 'loading' && (
+      {account && account !== 'loading' && (
         <Card title="Services proposés">
           <PrestationsSelector
-            professionalId={professional.id}
-            domaine={proDraft.domaine ?? professional.domaine ?? null}
+            accountId={account.id}
+            domaine={accountDraft.domain_id ?? account.domain_id ?? null}
             selected={selectedServiceIds}
             onChange={setSelectedServiceIds}
           />
