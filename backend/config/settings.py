@@ -115,6 +115,7 @@ INSTALLED_APPS = [
     "apps.client.apps.ClientConfig",
     "apps.branding.apps.BrandingConfig",
     "apps.email.apps.EmailConfig",
+    "apps.legal_terms.apps.LegalTermsConfig",
     "django_extensions",
 ]
 
