@@ -1,6 +1,7 @@
 """
 Clause content value object.
 """
+
 from dataclasses import dataclass
 
 

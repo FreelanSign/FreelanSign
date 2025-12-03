@@ -1,6 +1,7 @@
 """
 Rendered clause value object.
 """
+
 from dataclasses import dataclass
 
 

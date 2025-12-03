@@ -1,6 +1,7 @@
 """
 LegalProfile entity - per-account overrides for legal templates.
 """
+
 from dataclasses import dataclass, field
 from typing import Any
 

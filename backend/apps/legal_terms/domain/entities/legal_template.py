@@ -1,6 +1,7 @@
 """
 LegalTemplate entity - global, FreelanSign-owned templates.
 """
+
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -40,8 +41,4 @@ class LegalTemplate:
 
     def get_mandatory_clause_identifiers(self) -> set[str]:
         """Get identifiers of all mandatory clauses."""
-        return {
-            clause["identifier"]
-            for clause in self.clauses
-            if clause.get("category") == ClauseCategory.MANDATORY
-        }
+        return {clause["identifier"] for clause in self.clauses if clause.get("category") == ClauseCategory.MANDATORY}

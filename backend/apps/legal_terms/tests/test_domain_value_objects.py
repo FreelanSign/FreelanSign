@@ -1,6 +1,7 @@
 """
 TDD tests for domain value objects.
 """
+
 from apps.legal_terms.domain.value_objects.clause_category import ClauseCategory
 from apps.legal_terms.domain.value_objects.clause_content import ClauseContent
 from apps.legal_terms.domain.value_objects.rendered_clause import RenderedClause

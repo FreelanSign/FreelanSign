@@ -2,13 +2,14 @@
 from typing import Any, Dict, List
 
 import pytest
+from pytest_bdd import given, parsers, scenarios, then, when
+
 from apps.legal_terms.domain.entities.legal_profile import LegalProfile
 from apps.legal_terms.domain.entities.legal_template import LegalTemplate
 from apps.legal_terms.domain.exceptions import MandatoryClauseModificationError
 from apps.legal_terms.domain.services.legal_terms_assembler import LegalTermsAssembler
 from apps.legal_terms.domain.value_objects.clause_category import ClauseCategory
 from apps.legal_terms.domain.value_objects.clause_content import ClauseContent
-from pytest_bdd import given, parsers, scenarios, then, when
 
 # Charge tous les scénarios du feature file
 scenarios("../features/legal_terms_assembly.feature")

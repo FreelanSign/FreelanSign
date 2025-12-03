@@ -1,11 +1,12 @@
 """
 TDD tests for domain entities.
 """
+
 import pytest
 
+from apps.legal_terms.domain.entities.attached_terms import AttachedTerms
 from apps.legal_terms.domain.entities.legal_profile import LegalProfile
 from apps.legal_terms.domain.entities.legal_template import LegalTemplate
-from apps.legal_terms.domain.entities.attached_terms import AttachedTerms
 from apps.legal_terms.domain.exceptions import (
     ClauseNotFoundError,
     MandatoryClauseModificationError,

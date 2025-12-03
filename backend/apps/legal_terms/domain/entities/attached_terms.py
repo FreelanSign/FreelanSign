@@ -1,6 +1,7 @@
 """
 AttachedTerms entity - immutable snapshot of legal terms for a quote.
 """
+
 from dataclasses import dataclass
 from typing import Any
 

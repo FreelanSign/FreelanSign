@@ -1,6 +1,7 @@
 """
 Template variables value object.
 """
+
 from dataclasses import dataclass
 
 

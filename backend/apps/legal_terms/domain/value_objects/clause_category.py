@@ -1,6 +1,7 @@
 """
 Clause category enum for legal terms.
 """
+
 from enum import Enum
 
 

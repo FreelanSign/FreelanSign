@@ -1,6 +1,7 @@
 """
 TDD tests for LegalTermsAssembler domain service.
 """
+
 import pytest
 
 from apps.legal_terms.domain.entities.legal_profile import LegalProfile

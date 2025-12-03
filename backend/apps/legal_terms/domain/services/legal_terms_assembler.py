@@ -2,6 +2,7 @@
 LegalTermsAssembler domain service.
 Combines template + profile overrides to produce final clause list.
 """
+
 from typing import Any
 
 from apps.legal_terms.domain.entities.legal_profile import LegalProfile
