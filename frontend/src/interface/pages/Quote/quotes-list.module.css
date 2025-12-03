@@ -79,6 +79,12 @@
   color: var(--dark);
 }
 
+.btnAccent {
+  background: var(--accent);
+  box-shadow: 0 6px 14px rgba(255, 138, 61, 0.12);
+  color: #111;
+}
+
 /* Carte liste */
 .card {
   background: #fff;
@@ -209,4 +215,34 @@
 .pagerBtn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+/* CTA card styling */
+/* header de la card (titre + link) */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+/* petite meta under the card (count / info) */
+.cardMeta {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: #6b7280; /* gray-500 */
+}
+.cardTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--dark);
+  margin: 0 0 0.5rem 0;
+}
+
+.cardDescription {
+  color: var(--text);
+  font-size: 0.95rem;
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
 }

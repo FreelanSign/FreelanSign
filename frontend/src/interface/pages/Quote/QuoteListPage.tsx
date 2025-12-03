@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAccountStore } from '../../../infrastructure/account/accountStore';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 import styles from './quotes-list.module.css';
 
@@ -46,6 +47,7 @@ export default function QuotesListPage() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<PageResponse<QuoteItem> | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const activeAccountId = useAccountStore((state) => state.activeAccountId);
 
   useEffect(() => {
     let active = true;
@@ -126,6 +128,29 @@ export default function QuotesListPage() {
           </Link>
         </div>
       </div>
+      {activeAccountId === null && (
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>
+              Commencez votre aventure freelance
+            </h2>
+          </div>
+          <p className={styles.cardDescription}>
+            Créez votre compte professionnel en quelques minutes pour commencer
+            à générer vos devis et factures.
+          </p>
+          <Link
+            to="/onboarding-account"
+            className={`${styles.btn} ${styles.btnAccent}`}
+          >
+            Créer mon compte
+          </Link>
+          <div className={styles.cardMeta}>
+            Vous pourrez modifier ces informations à tout moment depuis votre
+            profil.
+          </div>
+        </div>
+      )}
 
       {!data || (Array.isArray(data.results) && data.results.length === 0) ? (
         <div className={styles.empty}>Aucun devis trouvé.</div>

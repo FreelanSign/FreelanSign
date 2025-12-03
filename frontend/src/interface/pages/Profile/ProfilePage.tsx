@@ -2,14 +2,15 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../app/providers/AuthProvider';
-import type { PrestationDto } from '../../../domain/catalog/types';
 import type { AccountDto } from '../../../domain/account/types';
+import type { PrestationDto } from '../../../domain/catalog/types';
 import type { UserDto } from '../../../domain/user/types';
-import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
-import { userRepository } from '../../../infrastructure/user/userRepository';
 import { accountRepository } from '../../../infrastructure/account/accountRepository';
 import { useAccountStore } from '../../../infrastructure/account/accountStore';
+import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
+import { userRepository } from '../../../infrastructure/user/userRepository';
 
+import { useRequireAccount } from '../../hooks/useRequireAccount';
 import styles from './profile-page.module.css';
 
 /**
@@ -30,6 +31,8 @@ export default function ProfilePage() {
   const [areaName, setAreaName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  useRequireAccount({ loading });
 
   // helper type-guard
   function isApiError(e: unknown): e is { response?: { status?: number } } {

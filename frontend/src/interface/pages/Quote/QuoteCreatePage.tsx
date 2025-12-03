@@ -10,21 +10,22 @@ import {
 } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
+import type { AccountDto } from '../../../domain/account/types';
 import type { PrestationDto } from '../../../domain/catalog/types';
 import type { ClientDto } from '../../../domain/client/types';
-import type { AccountDto } from '../../../domain/account/types';
 import type { UserDto } from '../../../domain/user/types';
+import { accountRepository } from '../../../infrastructure/account/accountRepository';
+import { useAccountStore } from '../../../infrastructure/account/accountStore';
 import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
 import { clientRepository } from '../../../infrastructure/client/clientRepository';
-import { accountRepository } from '../../../infrastructure/account/accountRepository';
-import { userRepository } from '../../../infrastructure/user/userRepository';
-import { useAccountStore } from '../../../infrastructure/account/accountStore';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
+import { userRepository } from '../../../infrastructure/user/userRepository';
 import ClientCreateDrawer from '../../components/client/ClientCreateDrawer';
 import Modal from '../../components/common/Modal';
 import { PdfPreviewPane } from '../../components/quote/PdfPreviewPane';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { usePdfPreview } from '../../hooks/usePdfPreview';
+import { useRequireAccount } from '../../hooks/useRequireAccount';
 import { openBlobUrlInNewTab, saveBlobUrlAs } from '../../utils/saveFile';
 import styles from './quote-edit-create.module.css';
 
@@ -144,6 +145,12 @@ export default function QuoteCreatePage() {
   const [account, setAccount] = useState<AccountDto | null>(null);
   const activeAccountId = useAccountStore((state) => state.activeAccountId);
   const [loading, setLoading] = useState(false);
+
+  // Loading initial de la page
+  const pageLoading = clients === 'loading' || prestations === 'loading';
+  // redirect si pas de compte
+  // TODO: ajouter un message d'erreur si pas de compte
+  useRequireAccount({ loading: pageLoading });
 
   // Remarque: on force le type Resolver<FormData> pour que zodResolver soit compatible
   const resolver = zodResolver(Schema) as unknown as Resolver<FormData>;

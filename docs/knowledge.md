@@ -1312,7 +1312,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── docs
 │   │   └── tests
 │   │       ├── account_header.feature.md
-│   │       └── account_store.feature.md
+│   │       ├── account_store.feature.md
+│   │       └── use_require_account.feature.md
 │   ├── eslint.config.js
 │   ├── index.html
 │   ├── nginx.conf
@@ -1439,6 +1440,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── hooks
 │   │   │   │   ├── useDebouncedValue.ts
 │   │   │   │   ├── usePdfPreview.ts
+│   │   │   │   ├── useRequireAccount.ts
 │   │   │   │   └── useThemes.ts
 │   │   │   ├── layout
 │   │   │   │   ├── main-layout.module.css
@@ -1497,7 +1499,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   └── index.css
 │   │   ├── tests
 │   │   │   ├── accountStore.test.ts
-│   │   │   └── apiClient.account-header.test.ts
+│   │   │   ├── apiClient.account-header.test.ts
+│   │   │   ├── noAccount_ProfileEditPage.test.tsx
+│   │   │   ├── noAccount_ProfilePage.test.tsx
+│   │   │   └── useRequireAccount.test.tsx
 │   │   └── vite-env.d.ts
 │   ├── tsconfig.app.json
 │   ├── tsconfig.json
@@ -1530,7 +1535,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-270 directories, 804 files
+270 directories, 809 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1603,5 +1608,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-02 12:00:48 CET**
+_Updated_: **2025-12-02 21:58:40 CET**
 <!-- END AUTO: LAST_UPDATED -->

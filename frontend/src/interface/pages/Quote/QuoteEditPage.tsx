@@ -1,21 +1,22 @@
 // src/interface/pages/QuoteEditPage.tsx
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import type { AccountDto } from '../../../domain/account/types';
 import { apiToUiQuote } from '../../../domain/quote/mappers';
 import type {
   ApiQuoteResponse,
   ApiQuoteUpdatePayload,
 } from '../../../domain/quote/types';
-import type { AccountDto } from '../../../domain/account/types';
 import type { UserDto } from '../../../domain/user/types';
-import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
-import { userRepository } from '../../../infrastructure/user/userRepository';
 import { accountRepository } from '../../../infrastructure/account/accountRepository';
 import { useAccountStore } from '../../../infrastructure/account/accountStore';
+import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
+import { userRepository } from '../../../infrastructure/user/userRepository';
 import Modal from '../../components/common/Modal';
 import { PdfPreviewPane } from '../../components/quote/PdfPreviewPane';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { usePdfPreview, type PreviewPayload } from '../../hooks/usePdfPreview';
+import { useRequireAccount } from '../../hooks/useRequireAccount';
 import { openBlobUrlInNewTab, saveBlobUrlAs } from '../../utils/saveFile';
 import styles from './quote-edit-create.module.css';
 
@@ -83,7 +84,7 @@ export default function QuoteEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [quote, setQuote] = useState<Quote | null>(null);
@@ -91,6 +92,10 @@ export default function QuoteEditPage() {
   const [user, setUser] = useState<UserDto | null>(null);
   const [account, setAccount] = useState<AccountDto | null>(null);
   const activeAccountId = useAccountStore((state) => state.activeAccountId);
+
+  // TODO: ajouter un message d'erreur si pas de compte
+  // Redirect vers l'onboarding si aucun compte après chargement
+  useRequireAccount({ loading });
 
   // --- Load user and account ---
   useEffect(() => {
