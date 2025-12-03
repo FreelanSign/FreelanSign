@@ -767,11 +767,22 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── application
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── dtos
-│   │   │   │   │   └── __init__.py
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── attach_dto.py
+│   │   │   │   │   ├── legal_profile_dto.py
+│   │   │   │   │   └── preview_dto.py
 │   │   │   │   ├── ports
-│   │   │   │   │   └── __init__.py
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── account_service.py
+│   │   │   │   │   ├── attached_terms_repository.py
+│   │   │   │   │   ├── legal_profile_repository.py
+│   │   │   │   │   ├── legal_template_repository.py
+│   │   │   │   │   └── template_renderer.py
 │   │   │   │   └── use_cases
-│   │   │   │       └── __init__.py
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── attach_terms_to_quote.py
+│   │   │   │       ├── preview_legal_terms.py
+│   │   │   │       └── update_legal_profile.py
 │   │   │   ├── apps.py
 │   │   │   ├── domain
 │   │   │   │   ├── __init__.py
@@ -799,13 +810,18 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       ├── bdd
 │   │   │       │   ├── __init__.py
 │   │   │       │   ├── features
+│   │   │       │   │   ├── attach_legal_terms_to_quote.feature
 │   │   │       │   │   └── legal_terms_assembly.feature
 │   │   │       │   └── steps
+│   │   │       │       ├── test_bdd_attach.py
 │   │   │       │       └── test_legal_terms_assembly_steps.py
 │   │   │       ├── test_app_smoke.py
 │   │   │       ├── test_domain_assembler.py
 │   │   │       ├── test_domain_entities.py
-│   │   │       └── test_domain_value_objects.py
+│   │   │       ├── test_domain_value_objects.py
+│   │   │       ├── test_use_case_attach.py
+│   │   │       ├── test_use_case_preview.py
+│   │   │       └── test_use_case_update_profile.py
 │   │   ├── quote
 │   │   │   ├── __init__.py
 │   │   │   ├── adapters
@@ -1589,7 +1605,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-289 directories, 843 files
+289 directories, 859 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1662,5 +1678,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-03 14:55:08 CET**
+_Updated_: **2025-12-03 16:01:09 CET**
 <!-- END AUTO: LAST_UPDATED -->
