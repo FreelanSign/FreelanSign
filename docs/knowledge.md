@@ -759,7 +759,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── adapters
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── persistence
-│   │   │   │   │   └── __init__.py
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── django_attached_terms_repository.py
+│   │   │   │   │   ├── django_legal_profile_repository.py
+│   │   │   │   │   ├── django_legal_template_repository.py
+│   │   │   │   │   └── models.py
 │   │   │   │   ├── rendering
 │   │   │   │   │   └── __init__.py
 │   │   │   │   └── services
@@ -805,6 +809,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── __init__.py
 │   │   │   │   └── api
 │   │   │   │       └── __init__.py
+│   │   │   ├── migrations
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   └── 0002_seed_base_fr_template.py
+│   │   │   ├── models.py
 │   │   │   └── tests
 │   │   │       ├── __init__.py
 │   │   │       ├── bdd
@@ -819,6 +828,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       ├── test_domain_assembler.py
 │   │   │       ├── test_domain_entities.py
 │   │   │       ├── test_domain_value_objects.py
+│   │   │       ├── test_persistence_repositories.py
 │   │   │       ├── test_use_case_attach.py
 │   │   │       ├── test_use_case_preview.py
 │   │   │       └── test_use_case_update_profile.py
@@ -1605,7 +1615,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-289 directories, 859 files
+290 directories, 868 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1667,6 +1677,9 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 |---|---|
 | `BrandTheme` | `apps/branding/models.py` |
 | `Client` | `apps/client/models.py` |
+| `LegalTemplateModel` | `apps/legal_terms/adapters/persistence/models.py` |
+| `LegalProfileModel` | `apps/legal_terms/adapters/persistence/models.py` |
+| `AttachedTermsModel` | `apps/legal_terms/adapters/persistence/models.py` |
 | `PaymentTerms` | `apps/quote/models.py` |
 | `Quote` | `apps/quote/models.py` |
 | `QuoteLineItem` | `apps/quote/models.py` |
@@ -1678,5 +1691,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-03 16:01:09 CET**
+_Updated_: **2025-12-03 16:37:20 CET**
 <!-- END AUTO: LAST_UPDATED -->
