@@ -776,18 +776,36 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── domain
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── entities
-│   │   │   │   │   └── __init__.py
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── attached_terms.py
+│   │   │   │   │   ├── legal_profile.py
+│   │   │   │   │   └── legal_template.py
+│   │   │   │   ├── exceptions.py
 │   │   │   │   ├── services
-│   │   │   │   │   └── __init__.py
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── legal_terms_assembler.py
 │   │   │   │   └── value_objects
-│   │   │   │       └── __init__.py
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── clause_category.py
+│   │   │   │       ├── clause_content.py
+│   │   │   │       ├── rendered_clause.py
+│   │   │   │       └── template_variables.py
 │   │   │   ├── interface
 │   │   │   │   ├── __init__.py
 │   │   │   │   └── api
 │   │   │   │       └── __init__.py
 │   │   │   └── tests
 │   │   │       ├── __init__.py
-│   │   │       └── test_app_smoke.py
+│   │   │       ├── bdd
+│   │   │       │   ├── __init__.py
+│   │   │       │   ├── features
+│   │   │       │   │   └── legal_terms_assembly.feature
+│   │   │       │   └── steps
+│   │   │       │       └── test_legal_terms_assembly_steps.py
+│   │   │       ├── test_app_smoke.py
+│   │   │       ├── test_domain_assembler.py
+│   │   │       ├── test_domain_entities.py
+│   │   │       └── test_domain_value_objects.py
 │   │   ├── quote
 │   │   │   ├── __init__.py
 │   │   │   ├── adapters
@@ -1570,7 +1588,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-286 directories, 828 files
+289 directories, 843 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1643,5 +1661,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-03 14:01:13 CET**
+_Updated_: **2025-12-03 14:54:28 CET**
 <!-- END AUTO: LAST_UPDATED -->
