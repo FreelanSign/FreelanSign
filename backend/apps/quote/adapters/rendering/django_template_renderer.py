@@ -11,7 +11,7 @@ from apps.quote.application.ports.template_renderer import TemplateRenderer
 
 
 class DjangoTemplateRenderer(TemplateRenderer):
-    def render(self, template_key: str, vm: QuoteViewModel) -> str:
+    def render(self, template_key: str, vm: QuoteViewModel, legal_terms_html: str | None = None) -> str:
         quote_map = {
             "reference": vm.meta.get("number"),
             "issue_date": vm.meta.get("date"),
@@ -69,6 +69,7 @@ class DjangoTemplateRenderer(TemplateRenderer):
             "totals_raw": totals_raw,  # ⬅️ dispo si besoin de calculs ailleurs
             "branding": vm.branding or {},
             "is_download": False,
+            "legal_terms_html": legal_terms_html,  # Phase 7: legal terms for PDF
         }
 
         # Compatibilité "vm.*" si des templates l'utilisent
