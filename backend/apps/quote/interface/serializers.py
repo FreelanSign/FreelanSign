@@ -14,6 +14,13 @@ from rest_framework.exceptions import ValidationError
 from apps.client.interface.serializers import ClientReadSerializer
 from apps.client.models import Client
 from apps.core.logging import get_logger
+from apps.legal_terms.adapters.persistence.django_attached_terms_repository import DjangoAttachedTermsRepository
+from apps.legal_terms.adapters.persistence.django_legal_profile_repository import DjangoLegalProfileRepository
+from apps.legal_terms.adapters.persistence.django_legal_template_repository import DjangoLegalTemplateRepository
+from apps.legal_terms.adapters.rendering.template_renderer import TemplateRenderer
+from apps.legal_terms.adapters.services.account_service_adapter import AccountServiceAdapter
+from apps.legal_terms.application.use_cases.attach_terms_to_quote import AttachTermsToQuoteUseCase
+from apps.legal_terms.domain.services.legal_terms_assembler import LegalTermsAssembler
 from apps.quote.adapters.persistence.django_quote_repository import DjangoQuoteRepository
 from apps.quote.adapters.reference.django_quote_reference_generator import get_quote_reference_generator
 from apps.quote.application.usecases.create_quote import CreateQuoteUseCase
@@ -337,6 +344,7 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
         Delegates all business logic (reference generation, client patch, line item creation, total calculation) to the CreateQuoteUseCase.
 
         Phase 5: Uses account from middleware (request.account)
+        Phase 6: Injects AttachTermsToQuoteUseCase (MVP: quote cannot be created without legal terms)
 
         Args:
             validated_data (dict): Pre-validated input data from the serializer.
@@ -352,7 +360,21 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
 
         client_patch = self.initial_data.get("client_update", None)
 
-        usecase = CreateQuoteUseCase(ref_generator=get_quote_reference_generator(), quote_repository=DjangoQuoteRepository())
+        # Phase 6: Instantiate AttachTermsToQuoteUseCase with dependencies
+        attach_terms_use_case = AttachTermsToQuoteUseCase(
+            profile_repository=DjangoLegalProfileRepository(),
+            template_repository=DjangoLegalTemplateRepository(),
+            attached_terms_repository=DjangoAttachedTermsRepository(),
+            account_service=AccountServiceAdapter(),
+            template_renderer=TemplateRenderer(),
+            assembler=LegalTermsAssembler(),
+        )
+
+        usecase = CreateQuoteUseCase(
+            ref_generator=get_quote_reference_generator(),
+            quote_repository=DjangoQuoteRepository(),
+            attach_terms_use_case=attach_terms_use_case,
+        )
         return usecase.execute(
             account_id=account.id, requester_id=request.user.id, validated_data=validated_data, client_patch=client_patch
         )
