@@ -768,7 +768,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   └── template_renderer.py
 │   │   │   │   └── services
-│   │   │   │       └── __init__.py
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── account_service_adapter.py
 │   │   │   ├── application
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── dtos
@@ -808,8 +809,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │       └── template_variables.py
 │   │   │   ├── interface
 │   │   │   │   ├── __init__.py
-│   │   │   │   └── api
-│   │   │   │       └── __init__.py
+│   │   │   │   ├── api
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── serializers.py
+│   │   │   │   │   └── views.py
+│   │   │   │   └── urls.py
 │   │   │   ├── migrations
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── 0001_initial.py
@@ -822,9 +826,14 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       │   ├── features
 │   │   │       │   │   ├── attach_legal_terms_to_quote.feature
 │   │   │       │   │   └── legal_terms_assembly.feature
+│   │   │       │   ├── manage_legal_profile.feature
 │   │   │       │   └── steps
 │   │   │       │       ├── test_bdd_attach.py
-│   │   │       │       └── test_legal_terms_assembly_steps.py
+│   │   │       │       ├── test_legal_terms_assembly_steps.py
+│   │   │       │       └── test_manage_legal_profile_steps.py
+│   │   │       ├── conftest.py
+│   │   │       ├── test_api_legal_profile.py
+│   │   │       ├── test_api_preview.py
 │   │   │       ├── test_app_smoke.py
 │   │   │       ├── test_domain_assembler.py
 │   │   │       ├── test_domain_entities.py
@@ -1617,7 +1626,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-290 directories, 870 files
+290 directories, 879 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1693,5 +1702,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-05 09:23:51 CET**
+_Updated_: **2025-12-05 10:10:20 CET**
 <!-- END AUTO: LAST_UPDATED -->

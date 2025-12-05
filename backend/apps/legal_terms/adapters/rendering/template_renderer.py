@@ -2,22 +2,10 @@
 TemplateRenderer adapter for rendering legal terms with variable substitution.
 """
 
-from dataclasses import dataclass
-
-from apps.legal_terms.domain.value_objects.rendered_clause import (
-    RenderedClause,
-)
+from apps.legal_terms.domain.value_objects.clause_content import ClauseContent
 from apps.legal_terms.domain.value_objects.template_variables import (
     TemplateVariables,
 )
-
-
-@dataclass(frozen=True)
-class RenderResult:
-    """Result of rendering legal terms."""
-
-    html: str
-    text: str
 
 
 class TemplateRenderer:
@@ -31,7 +19,7 @@ class TemplateRenderer:
     - No business logic, only string processing and formatting
     """
 
-    def render(self, clauses: list[RenderedClause], variables: TemplateVariables) -> RenderResult:
+    def render(self, clauses: list[ClauseContent], variables: TemplateVariables) -> tuple[str, str]:
         """
         Render clauses with variable substitution.
 
@@ -40,10 +28,10 @@ class TemplateRenderer:
             variables: Template variables for substitution
 
         Returns:
-            RenderResult with HTML and plain text representations
+            Tuple of (html, text) representations
         """
         if not clauses:
-            return RenderResult(html="", text="")
+            return ("", "")
 
         # Sort clauses by order
         sorted_clauses = sorted(clauses, key=lambda c: c.order)
@@ -71,7 +59,7 @@ class TemplateRenderer:
         html = self._wrap_html(html_parts)
         text = "\n\n".join(text_parts)
 
-        return RenderResult(html=html, text=text)
+        return (html, text)
 
     def _substitute_variables(self, content: str, variables: dict[str, str]) -> str:
         """
