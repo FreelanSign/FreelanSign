@@ -755,24 +755,96 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       └── interface
 │   │   │           └── test_prepared_email_view.py
 │   │   ├── legal_terms
+│   │   │   ├── __init__.py
 │   │   │   ├── adapters
+│   │   │   │   ├── __init__.py
 │   │   │   │   ├── persistence
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── django_attached_terms_repository.py
+│   │   │   │   │   ├── django_legal_profile_repository.py
+│   │   │   │   │   ├── django_legal_template_repository.py
+│   │   │   │   │   └── models.py
 │   │   │   │   ├── rendering
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── template_renderer.py
 │   │   │   │   └── services
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── account_service_adapter.py
+│   │   │   ├── admin.py
 │   │   │   ├── application
+│   │   │   │   ├── __init__.py
 │   │   │   │   ├── dtos
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── attach_dto.py
+│   │   │   │   │   ├── legal_profile_dto.py
+│   │   │   │   │   └── preview_dto.py
 │   │   │   │   ├── ports
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── account_service.py
+│   │   │   │   │   ├── attached_terms_repository.py
+│   │   │   │   │   ├── legal_profile_repository.py
+│   │   │   │   │   ├── legal_template_repository.py
+│   │   │   │   │   └── template_renderer.py
 │   │   │   │   └── use_cases
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── attach_terms_to_quote.py
+│   │   │   │       ├── preview_legal_terms.py
+│   │   │   │       └── update_legal_profile.py
+│   │   │   ├── apps.py
 │   │   │   ├── domain
+│   │   │   │   ├── __init__.py
 │   │   │   │   ├── entities
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── attached_terms.py
+│   │   │   │   │   ├── legal_profile.py
+│   │   │   │   │   └── legal_template.py
+│   │   │   │   ├── exceptions.py
 │   │   │   │   ├── services
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── legal_terms_assembler.py
 │   │   │   │   └── value_objects
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── clause_category.py
+│   │   │   │       ├── clause_content.py
+│   │   │   │       ├── rendered_clause.py
+│   │   │   │       └── template_variables.py
 │   │   │   ├── interface
-│   │   │   │   └── api
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── api
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── serializers.py
+│   │   │   │   │   └── views.py
+│   │   │   │   └── urls.py
 │   │   │   ├── migrations
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   └── 0002_seed_base_fr_template.py
+│   │   │   ├── models.py
 │   │   │   └── tests
-│   │   │       └── bdd
-│   │   │           └── steps
+│   │   │       ├── __init__.py
+│   │   │       ├── bdd
+│   │   │       │   ├── __init__.py
+│   │   │       │   ├── features
+│   │   │       │   │   ├── attach_legal_terms_to_quote.feature
+│   │   │       │   │   ├── legal_terms_assembly.feature
+│   │   │       │   │   └── manage_legal_profile.feature
+│   │   │       │   └── steps
+│   │   │       │       ├── test_bdd_attach.py
+│   │   │       │       ├── test_legal_terms_assembly_steps.py
+│   │   │       │       └── test_manage_legal_profile_steps.py
+│   │   │       ├── conftest.py
+│   │   │       ├── test_admin.py
+│   │   │       ├── test_api_legal_profile.py
+│   │   │       ├── test_api_preview.py
+│   │   │       ├── test_app_smoke.py
+│   │   │       ├── test_domain_assembler.py
+│   │   │       ├── test_domain_entities.py
+│   │   │       ├── test_domain_value_objects.py
+│   │   │       ├── test_persistence_repositories.py
+│   │   │       ├── test_rendering_template_renderer.py
+│   │   │       ├── test_use_case_attach.py
+│   │   │       ├── test_use_case_preview.py
+│   │   │       └── test_use_case_update_profile.py
 │   │   ├── quote
 │   │   │   ├── __init__.py
 │   │   │   ├── adapters
@@ -1556,7 +1628,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-289 directories, 811 files
+290 directories, 881 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1618,6 +1690,9 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 |---|---|
 | `BrandTheme` | `apps/branding/models.py` |
 | `Client` | `apps/client/models.py` |
+| `LegalTemplateModel` | `apps/legal_terms/adapters/persistence/models.py` |
+| `LegalProfileModel` | `apps/legal_terms/adapters/persistence/models.py` |
+| `AttachedTermsModel` | `apps/legal_terms/adapters/persistence/models.py` |
 | `PaymentTerms` | `apps/quote/models.py` |
 | `Quote` | `apps/quote/models.py` |
 | `QuoteLineItem` | `apps/quote/models.py` |
@@ -1629,5 +1704,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-05 15:07:03 CET**
+_Updated_: **2025-12-05 11:48:53 CET**
 <!-- END AUTO: LAST_UPDATED -->

@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 
 from apps.branding.domain.services.theme_normalizer import normalize_theme_dict
+from apps.legal_terms.adapters.persistence.django_attached_terms_repository import DjangoAttachedTermsRepository
 from apps.quote.application.dto.quote_inputs import LineItemInputDTO, PreviewPayloadDTO
 from apps.quote.application.ports.pdf_generator import PdfGenerator
 from apps.quote.application.ports.quote_repository import QuoteRepository
@@ -96,16 +97,30 @@ class DownloadPdf:
         # 5) générer le viewmodel (OBJET)
         vm = generate_preview(dto)
 
+        # Phase 7: Fetch legal terms for PDF
+        legal_terms_html = None
+        try:
+            attached_terms_repo = DjangoAttachedTermsRepository()
+            attached_terms = attached_terms_repo.get_by_quote(quote_id)
+            if attached_terms:
+                legal_terms_html = attached_terms.rendered_html
+                log.info("download_pdf.legal_terms_loaded quote_id=%s", quote_id)
+            else:
+                log.warning("download_pdf.no_legal_terms quote_id=%s", quote_id)
+        except Exception as e:
+            log.error("download_pdf.legal_terms_error quote_id=%s error=%s", quote_id, str(e))
+
         # 6) logs sans casser le type
         log.debug(
-            "download_pdf.before_render quote_id=%s has_branding=%s meta_keys=%s",
+            "download_pdf.before_render quote_id=%s has_branding=%s meta_keys=%s has_legal_terms=%s",
             quote_id,
             bool(getattr(vm, "branding", None)),
             list(vm.meta.keys()) if hasattr(vm, "meta") and isinstance(vm.meta, dict) else None,
+            bool(legal_terms_html),
         )
 
         # 7) rendu
-        html = self.renderer.render("quote/pdf/document.html", vm)
+        html = self.renderer.render("quote/pdf/document.html", vm, legal_terms_html=legal_terms_html)
         pdf_bytes = self.pdf.generate(html)
 
         log.info("download_pdf.done quote_id=%s, pdf_len=%s", quote_id, len(pdf_bytes))

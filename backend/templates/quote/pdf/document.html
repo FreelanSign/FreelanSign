@@ -442,6 +442,16 @@
         </tr>
       </table>
 
+      <!-- Phase 7: Legal Terms (CGV/CGU) -->
+      {% if legal_terms_html %}
+      <div class="mt-section legal-terms-section">
+        <h2 style="margin-bottom: 12px; color: var(--brand-primary);">Conditions Générales</h2>
+        <div class="legal-terms-content" style="font-size: var(--fs-small); line-height: 1.6; color: var(--text-secondary);">
+          {{ legal_terms_html|safe }}
+        </div>
+      </div>
+      {% endif %}
+
       <!-- Note optionnelle -->
       {% if meta.note %}
       <div class="mt-section">

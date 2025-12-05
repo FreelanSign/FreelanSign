@@ -35,4 +35,6 @@ urlpatterns = [
     path("api/branding/", include("apps.branding.interface.urls")),
     # Email
     path("api/", include("apps.email.interface.urls")),
+    # Legal Terms
+    path("api/legal-terms/", include("apps.legal_terms.interface.urls")),
 ]

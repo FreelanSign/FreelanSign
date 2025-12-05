@@ -9,6 +9,8 @@ from django.utils import timezone
 
 from apps.client.models import Client
 from apps.core.utils.money import cents_to_euros, euros_to_cents
+from apps.legal_terms.application.dtos.attach_dto import AttachTermsInput
+from apps.legal_terms.application.use_cases.attach_terms_to_quote import AttachTermsToQuoteUseCase
 from apps.quote.application.ports.quote_repository import QuoteRepository
 from apps.quote.application.ports.reference_gen import QuoteReferenceGeneratorPort
 from apps.quote.models import Quote, QuoteLineItem
@@ -35,9 +37,16 @@ class CreateQuoteUseCase:
     This use case remains agnostic of the persistence layer (via QuoteRepository).
     """
 
-    def __init__(self, *, ref_generator: QuoteReferenceGeneratorPort, quote_repository: QuoteRepository):
+    def __init__(
+        self,
+        *,
+        ref_generator: QuoteReferenceGeneratorPort,
+        quote_repository: QuoteRepository,
+        attach_terms_use_case: AttachTermsToQuoteUseCase,
+    ):
         self.ref_generator = ref_generator
         self.quote_repository = quote_repository
+        self.attach_terms_use_case = attach_terms_use_case
 
     @transaction.atomic
     def execute(
@@ -81,6 +90,11 @@ class CreateQuoteUseCase:
             total=total,
         )
         quote.refresh_from_db()
+
+        # Phase 6: Attach legal terms (MVP requirement: quote cannot be created without legal terms)
+        logger.info("quote.attach_legal_terms.start", extra={"quote_id": str(quote.id), "account_id": account_id})
+        self.attach_terms_use_case.execute(AttachTermsInput(quote_id=str(quote.id), account_id=account_id))
+        logger.info("quote.attach_legal_terms.done", extra={"quote_id": str(quote.id)})
 
         logger.info(
             "quote.create.finish",
