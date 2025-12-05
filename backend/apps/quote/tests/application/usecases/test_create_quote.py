@@ -7,8 +7,20 @@ from django.utils import timezone
 from pytest_mock import MockerFixture
 
 from apps.client.models import Client
+from apps.legal_terms.application.dtos.attach_dto import AttachTermsOutput
 from apps.quote.application.usecases.create_quote import CreateQuoteUseCase
 from apps.quote.models import Quote, QuoteLineItem
+
+
+def create_mock_attach_terms_use_case(mocker):
+    """Create a mock AttachTermsToQuoteUseCase that doesn't interfere with tests."""
+    mock_attach = mocker.Mock()
+    # Mock successful execution that returns a simple output
+    mock_attach.execute.return_value = AttachTermsOutput(
+        attached_terms_id="mock-terms-id",
+        template_version="1.0.0",
+    )
+    return mock_attach
 
 
 @pytest.mark.django_db
@@ -76,7 +88,14 @@ def test_create_quote_success(mocker):
 
     fake_repo.get.side_effect = lambda quote_id, requester_id: Quote.objects.get(pk=quote_id)
 
-    usecase = CreateQuoteUseCase(ref_generator=fake_ref_generator, quote_repository=fake_repo)
+    # Mock attach terms use case (Phase 6)
+    mock_attach = create_mock_attach_terms_use_case(mocker)
+
+    usecase = CreateQuoteUseCase(
+        ref_generator=fake_ref_generator,
+        quote_repository=fake_repo,
+        attach_terms_use_case=mock_attach,
+    )
 
     quote = usecase.execute(
         account_id=account.id,
@@ -168,7 +187,14 @@ def test_client_patch_forbidden(mocker):
 
     fake_repo.get.side_effect = lambda quote_id, requester_id: Quote.objects.get(pk=quote_id)
 
-    usecase = CreateQuoteUseCase(ref_generator=fake_ref_generator, quote_repository=fake_repo)
+    # Mock attach terms use case (Phase 6)
+    mock_attach = create_mock_attach_terms_use_case(mocker)
+
+    usecase = CreateQuoteUseCase(
+        ref_generator=fake_ref_generator,
+        quote_repository=fake_repo,
+        attach_terms_use_case=mock_attach,
+    )
 
     with pytest.raises(ValidationError) as execution_info:
         usecase.execute(
@@ -244,7 +270,14 @@ def test_create_quote_no_changes_to_client(mocker):
 
     fake_repo.get.side_effect = lambda quote_id, requester_id: Quote.objects.get(pk=quote_id)
 
-    usecase = CreateQuoteUseCase(ref_generator=fake_ref_generator, quote_repository=fake_repo)
+    # Mock attach terms use case (Phase 6)
+    mock_attach = create_mock_attach_terms_use_case(mocker)
+
+    usecase = CreateQuoteUseCase(
+        ref_generator=fake_ref_generator,
+        quote_repository=fake_repo,
+        attach_terms_use_case=mock_attach,
+    )
 
     # ✅ CHANGEMENT
     quote = usecase.execute(
@@ -337,7 +370,14 @@ def test_totals_are_computed(mocker):
 
     fake_repo.get.side_effect = lambda quote_id, requester_id: Quote.objects.get(pk=quote_id)
 
-    usecase = CreateQuoteUseCase(ref_generator=fake_ref_generator, quote_repository=fake_repo)
+    # Mock attach terms use case (Phase 6)
+    mock_attach = create_mock_attach_terms_use_case(mocker)
+
+    usecase = CreateQuoteUseCase(
+        ref_generator=fake_ref_generator,
+        quote_repository=fake_repo,
+        attach_terms_use_case=mock_attach,
+    )
 
     quote = usecase.execute(
         account_id=account.id,
