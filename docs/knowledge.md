@@ -765,7 +765,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── django_legal_template_repository.py
 │   │   │   │   │   └── models.py
 │   │   │   │   ├── rendering
-│   │   │   │   │   └── __init__.py
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── template_renderer.py
 │   │   │   │   └── services
 │   │   │   │       └── __init__.py
 │   │   │   ├── application
@@ -829,6 +830,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       ├── test_domain_entities.py
 │   │   │       ├── test_domain_value_objects.py
 │   │   │       ├── test_persistence_repositories.py
+│   │   │       ├── test_rendering_template_renderer.py
 │   │   │       ├── test_use_case_attach.py
 │   │   │       ├── test_use_case_preview.py
 │   │   │       └── test_use_case_update_profile.py
@@ -1615,7 +1617,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-290 directories, 868 files
+290 directories, 870 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1691,5 +1693,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-03 16:37:20 CET**
+_Updated_: **2025-12-05 09:23:51 CET**
 <!-- END AUTO: LAST_UPDATED -->
