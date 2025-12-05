@@ -44,3 +44,11 @@ class InvalidClauseOrderError(LegalTermsError):
 
     def __init__(self, message: str):
         super().__init__(message)
+
+
+class ProfileNotFoundError(LegalTermsError):
+    """Raised when a legal profile is not found."""
+
+    def __init__(self, account_id: str):
+        super().__init__(f"Legal profile not found for account: {account_id}")
+        self.account_id = account_id

@@ -33,7 +33,7 @@ class AccountServiceAdapter:
         try:
             account = Account.objects.select_related("user", "user__profile").get(id=account_id)
         except Account.DoesNotExist:
-            raise MissingTemplateVariablesError(f"Account {account_id} not found")
+            raise MissingTemplateVariablesError([f"Account {account_id}"])
 
         # Collect fields and check for missing required ones
         missing_fields = []
@@ -68,9 +68,7 @@ class AccountServiceAdapter:
 
         # If any required fields are missing, raise error
         if missing_fields:
-            raise MissingTemplateVariablesError(
-                f"Missing required fields for account {account_id}: {', '.join(missing_fields)}"
-            )
+            raise MissingTemplateVariablesError(missing_fields)
 
         return TemplateVariables(
             siret=siret,

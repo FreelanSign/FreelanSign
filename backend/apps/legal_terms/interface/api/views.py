@@ -65,7 +65,19 @@ class LegalProfileView(APIView):
 
     def _get_account_id(self, request) -> str:
         """Extract account ID from request."""
-        return str(request.user.account.id)
+        # Le middleware HasAccountContext place déjà l'account dans request.account.
+        account = getattr(request, "account", None)
+        if account is not None:
+            return str(account.id)
+
+        # Fallback de sécurité si pour une raison quelconque le middleware n'a
+        # pas injecté l'account : on prend le premier account actif de l'utilisateur.
+        account = request.user.accounts.filter(is_active=True).first()
+        if account:
+            return str(account.id)
+
+        # Aucun account disponible : mieux vaut une erreur explicite qu'un AttributeError.
+        raise ValueError("No active account found for authenticated user")
 
     def _build_update_use_case(self) -> UpdateLegalProfileUseCase:
         """Build UpdateLegalProfileUseCase with dependencies."""
@@ -179,7 +191,15 @@ class LegalTermsPreviewView(APIView):
 
     def _get_account_id(self, request) -> str:
         """Extract account ID from request."""
-        return str(request.user.account.id)
+        account = getattr(request, "account", None)
+        if account is not None:
+            return str(account.id)
+
+        account = request.user.accounts.filter(is_active=True).first()
+        if account:
+            return str(account.id)
+
+        raise ValueError("No active account found for authenticated user")
 
     def _build_preview_use_case(self) -> PreviewLegalTermsUseCase:
         """Build PreviewLegalTermsUseCase with dependencies."""

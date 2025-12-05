@@ -12,7 +12,7 @@ from apps.legal_terms.application.ports.legal_profile_repository import (
 from apps.legal_terms.application.ports.legal_template_repository import (
     LegalTemplateRepository,
 )
-from apps.legal_terms.domain.exceptions import ClauseNotFoundError
+from apps.legal_terms.domain.exceptions import ClauseNotFoundError, ProfileNotFoundError
 
 
 class UpdateLegalProfileUseCase:
@@ -34,7 +34,7 @@ class UpdateLegalProfileUseCase:
         # Get profile
         profile = self.profile_repository.get_by_account(account_id)
         if not profile:
-            raise ValueError(f"No legal profile found for account {account_id}")
+            raise ProfileNotFoundError(account_id)
 
         # Get template to validate clauses
         template = self.template_repository.get_by_id(profile.template_id)

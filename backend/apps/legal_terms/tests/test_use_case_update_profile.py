@@ -106,10 +106,12 @@ class TestUpdateLegalProfileUseCase:
         use_case = UpdateLegalProfileUseCase(profile_repo, template_repo)
 
         # Execute and verify
-        with pytest.raises(ValueError) as exc_info:
+        from apps.legal_terms.domain.exceptions import ProfileNotFoundError
+
+        with pytest.raises(ProfileNotFoundError) as exc_info:
             use_case.execute("acc-1", [])
 
-        assert "No legal profile found" in str(exc_info.value)
+        assert "acc-1" in str(exc_info.value)
 
     def test_raises_when_clause_not_found(self, mock_repositories, sample_template, sample_profile):
         """Should raise ClauseNotFoundError when updating non-existent clause."""

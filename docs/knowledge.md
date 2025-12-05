@@ -825,8 +825,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       │   ├── __init__.py
 │   │   │       │   ├── features
 │   │   │       │   │   ├── attach_legal_terms_to_quote.feature
-│   │   │       │   │   └── legal_terms_assembly.feature
-│   │   │       │   ├── manage_legal_profile.feature
+│   │   │       │   │   ├── legal_terms_assembly.feature
+│   │   │       │   │   └── manage_legal_profile.feature
 │   │   │       │   └── steps
 │   │   │       │       ├── test_bdd_attach.py
 │   │   │       │       ├── test_legal_terms_assembly_steps.py
@@ -1702,5 +1702,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-05 10:10:20 CET**
+_Updated_: **2025-12-05 10:42:02 CET**
 <!-- END AUTO: LAST_UPDATED -->
