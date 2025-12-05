@@ -78,7 +78,7 @@ class AccountPolicy:
     def validate_account_data(
         cls,
         display_name: str,
-        legal_form: str | LegalForm,
+        legal_form: str | LegalForm | None,
         legal_id: str | None = None,
         domain_id: int | None = None,
     ) -> None:
@@ -87,7 +87,9 @@ class AccountPolicy:
         Lève une exception en cas d'erreur.
         """
         cls.validate_display_name(display_name)
-        cls.validate_legal_form(legal_form)
+        # legal_form is optional, will default to "micro" in use case
+        if legal_form is not None:
+            cls.validate_legal_form(legal_form)
         cls.validate_legal_id(legal_id)
         cls.validate_domain_id(domain_id)
 

@@ -754,6 +754,25 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       │   └── test_prepared_email.py
 │   │   │       └── interface
 │   │   │           └── test_prepared_email_view.py
+│   │   ├── legal_terms
+│   │   │   ├── adapters
+│   │   │   │   ├── persistence
+│   │   │   │   ├── rendering
+│   │   │   │   └── services
+│   │   │   ├── application
+│   │   │   │   ├── dtos
+│   │   │   │   ├── ports
+│   │   │   │   └── use_cases
+│   │   │   ├── domain
+│   │   │   │   ├── entities
+│   │   │   │   ├── services
+│   │   │   │   └── value_objects
+│   │   │   ├── interface
+│   │   │   │   └── api
+│   │   │   ├── migrations
+│   │   │   └── tests
+│   │   │       └── bdd
+│   │   │           └── steps
 │   │   ├── quote
 │   │   │   ├── __init__.py
 │   │   │   ├── adapters
@@ -1294,12 +1313,14 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── knowledge.md
 │   ├── knowledge.sh
 │   ├── plans
-│   │   ├── production-ready.md
-│   │   └── suite-plan.md
+│   │   ├── legal-term-context.md
+│   │   ├── Mentions obligatoires sur un devis d’auto-entrepreneur (France).pdf
+│   │   └── production-ready.md
 │   ├── release
 │   │   ├── RELEASE_PLAN_v0.1.0.md
 │   │   └── RELEASE_PLAN_v0.2.0.md
 │   └── tmp
+│       └── errors.txt
 ├── FreelanSign.code-workspace
 ├── frontend
 │   ├── .dockerignore
@@ -1535,7 +1556,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-270 directories, 809 files
+289 directories, 811 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1608,5 +1629,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-02 21:58:40 CET**
+_Updated_: **2025-12-05 15:07:03 CET**
 <!-- END AUTO: LAST_UPDATED -->

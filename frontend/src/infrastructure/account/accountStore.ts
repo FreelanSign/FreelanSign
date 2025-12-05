@@ -38,6 +38,21 @@ export const useAccountStore = create<AccountState>()(
         try {
           const accounts = await accountRepository.list();
           set({ accounts, loading: false });
+
+          // Clear activeAccountId if it no longer exists in fetched accounts
+          const state = get();
+          if (state.activeAccountId !== null) {
+            const accountExists = accounts.some(
+              (acc) => acc.id === state.activeAccountId,
+            );
+            if (!accountExists) {
+              console.warn(
+                `Active account ${state.activeAccountId} no longer exists, clearing`,
+              );
+              set({ activeAccountId: null });
+            }
+          }
+
           get().selectFirstAccountIfNeeded();
         } catch (error) {
           console.error('Failed to fetch accounts', error);

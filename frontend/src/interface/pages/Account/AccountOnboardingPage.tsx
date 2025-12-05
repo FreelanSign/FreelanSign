@@ -64,10 +64,19 @@ export default function AccountOnboardingPage() {
       }, 500);
     } catch (err) {
       console.error('Account creation failed', err);
-      toast.error(
-        'Erreur lors de la création du compte: ' +
-          (err instanceof Error ? err.message : String(err)),
-      );
+
+      // Extract backend error message if available
+      let errorMessage = 'Erreur inconnue';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: { error?: string } } };
+        errorMessage = axiosErr.response?.data?.error || 'Erreur serveur';
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      } else {
+        errorMessage = String(err);
+      }
+
+      toast.error('Erreur lors de la création du compte: ' + errorMessage);
       throw err;
     }
   }
