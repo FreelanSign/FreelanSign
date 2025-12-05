@@ -1,8 +1,8 @@
 // src/interface/components/account/AccountDataForm.tsx
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 import type { AreaDto } from '../../../domain/catalog/types';
 
 export const AccountSchema = z.object({
@@ -190,7 +190,13 @@ export default function AccountDataForm({
       <label>
         <div className="text-sm">Domaine</div>
         <select
-          {...register('domain_id')}
+          {...register('domain_id', {
+            setValueAs: (v) => {
+              if (v === '' || v === null || v === undefined) return null;
+              const n = Number(v);
+              return Number.isNaN(n) ? null : n;
+            },
+          })}
           className="border p-2 rounded w-full"
         >
           <option value="">-- Aucune --</option>

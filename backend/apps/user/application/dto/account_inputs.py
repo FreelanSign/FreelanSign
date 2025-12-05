@@ -11,7 +11,7 @@ class CreateAccountInput:
 
     user_id: int
     display_name: str
-    legal_form: str  # Sera converti en LegalForm enum
+    legal_form: str | None = None  # Sera converti en LegalForm enum (default: micro)
     legal_id: str | None = None
     domain_id: int | None = None
     default_rate_cents: int | None = None

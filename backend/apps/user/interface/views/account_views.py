@@ -12,9 +12,13 @@ ARCHITECTURE DECISIONS:
 @since: 2025-11-26
 @version: 2.0
 """
+import logging
+
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+logger = logging.getLogger(__name__)
 
 from apps.user.adapters.persistence.django_account_repository import DjangoAccountRepository
 from apps.user.adapters.system_clock import SystemClock
@@ -24,7 +28,7 @@ from apps.user.application.usecases.create_account import CreateAccount
 from apps.user.application.usecases.deactivate_account import DeactivateAccount
 from apps.user.application.usecases.get_user_accounts import GetUserAccounts
 from apps.user.application.usecases.update_account import UpdateAccount
-from apps.user.domain.errors import DuplicateAccountNameError
+from apps.user.domain.errors import AccountPolicyError, DuplicateAccountNameError
 from apps.user.interface.permissions import IsAccountOwner
 from apps.user.interface.serializers import AccountInputSerializer, AccountOutputSerializer
 from apps.user.models.account import Account
@@ -99,24 +103,38 @@ class AccountViewSet(viewsets.ModelViewSet):
 
         Create account via use case.
         """
+        logger.info(f"[CREATE ACCOUNT] Received request.data: {request.data}")
+        logger.info(f"[CREATE ACCOUNT] User ID: {request.user.id}")
+
         # Validate input
         input_serializer = AccountInputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
 
+        logger.info(f"[CREATE ACCOUNT] Validated data: {input_serializer.validated_data}")
+
         # Create DTO for use case
         input_dto = CreateAccountInput(user_id=request.user.id, **input_serializer.validated_data)
+        logger.info(
+            f"[CREATE ACCOUNT] Created DTO: user_id={input_dto.user_id}, display_name={input_dto.display_name}, legal_form={input_dto.legal_form}, legal_id={input_dto.legal_id}"
+        )
 
         try:
             # Execute use case
             use_case = CreateAccount(repository=self.repository, clock=self.clock)
+            logger.info(f"[CREATE ACCOUNT] Executing use case...")
             account_vm = use_case.execute(input_dto)
+            logger.info(f"[CREATE ACCOUNT] Use case executed successfully, account_id={account_vm.id}")
 
             # Serialize ViewModel (DRF reads attributes directly)
             serializer = self.get_serializer(account_vm)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        except DuplicateAccountNameError as e:
+        except AccountPolicyError as e:
+            logger.error(f"[CREATE ACCOUNT] AccountPolicyError: {e}")
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"[CREATE ACCOUNT] Unexpected error: {type(e).__name__}: {e}", exc_info=True)
+            raise
 
     def update(self, request, *args, **kwargs):
         """
@@ -144,7 +162,7 @@ class AccountViewSet(viewsets.ModelViewSet):
 
         except DomainAccountNotFoundError:
             return Response({"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND)
-        except DuplicateAccountNameError as e:
+        except AccountPolicyError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, *args, **kwargs):
@@ -186,7 +204,7 @@ class AccountViewSet(viewsets.ModelViewSet):
 
         except DomainAccountNotFoundError:
             return Response({"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND)
-        except DuplicateAccountNameError as e:
+        except AccountPolicyError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
