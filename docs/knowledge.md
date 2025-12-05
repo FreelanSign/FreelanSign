@@ -770,6 +770,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── services
 │   │   │   │       ├── __init__.py
 │   │   │   │       └── account_service_adapter.py
+│   │   │   ├── admin.py
 │   │   │   ├── application
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── dtos
@@ -832,6 +833,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       │       ├── test_legal_terms_assembly_steps.py
 │   │   │       │       └── test_manage_legal_profile_steps.py
 │   │   │       ├── conftest.py
+│   │   │       ├── test_admin.py
 │   │   │       ├── test_api_legal_profile.py
 │   │   │       ├── test_api_preview.py
 │   │   │       ├── test_app_smoke.py
@@ -1626,7 +1628,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-290 directories, 879 files
+290 directories, 881 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1702,5 +1704,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-05 11:26:11 CET**
+_Updated_: **2025-12-05 11:48:53 CET**
 <!-- END AUTO: LAST_UPDATED -->
