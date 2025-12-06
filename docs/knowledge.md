@@ -1617,6 +1617,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── package.json
 ├── pnpm-lock.yaml
 ├── postgres.conf
+├── README.md
 ├── release.md
 ├── scripts
 │   ├── backup.sh
@@ -1634,7 +1635,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-293 directories, 885 files
+293 directories, 886 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1710,5 +1711,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-06 12:10:13 CET**
+_Updated_: **2025-12-06 13:00:18 CET**
 <!-- END AUTO: LAST_UPDATED -->
