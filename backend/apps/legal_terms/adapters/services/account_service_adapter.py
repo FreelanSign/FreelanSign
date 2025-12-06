@@ -59,12 +59,10 @@ class AccountServiceAdapter:
             missing_fields.append("Phone (Profile.phone)")
 
         # Address - Not yet in Account model (MVP limitation)
-        # For now, we'll use a placeholder or raise error
         # TODO: Add address field to Account model
-        address = None  # Will be set based on future Account fields
-
-        if not address:
-            missing_fields.append("Address (not yet in Account model)")
+        # For now, we use a placeholder to avoid blocking users
+        # This allows the legal terms preview to work without requiring address data
+        address = "Adresse à compléter"  # Placeholder until address field is added to Account model
 
         # If any required fields are missing, raise error
         if missing_fields:
