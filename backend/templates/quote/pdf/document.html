@@ -352,37 +352,17 @@
         </div>
       </div>
 
-      <!-- ✅ Section Client / Conditions -->
-      <div class="two-cols avoid-break">
-        <div class="col">
-          <div class="card">
-            <h3>Client</h3>
-            <div><strong>{{ client.name }}</strong></div>
-            {% if client.company %}<div class="muted">{{ client.company }}</div>{% endif %}
-            {% if client.address_line1 %}<div>{{ client.address_line1 }}</div>{% endif %}
-            {% if client.postal_code or client.city %}
-              <div>{{ client.postal_code|default_if_none:"" }} {{ client.city|default_if_none:"" }}</div>
-            {% endif %}
-            {% if client.email %}<div class="muted">{{ client.email }}</div>{% endif %}
-          </div>
-        </div>
-        <div class="col">
-          <div class="card card--accent">
-            <h3>Conditions</h3>
-            <div class="muted">
-              {{ meta.terms|default:"Conditions générales sur demande." }}
-            </div>
-            {% if meta.valid_until %}
-              <div style="margin-top:6px">
-                <strong>Validité :</strong> {{ meta.valid_until }}
-              </div>
-            {% endif %}
-            {% if meta.payment_terms %}
-              <div>
-                <strong>Règlement :</strong> {{ meta.payment_terms }}
-              </div>
-            {% endif %}
-          </div>
+      <!-- ✅ Section Client -->
+      <div class="avoid-break" style="max-width: 400px;">
+        <div class="card">
+          <h3>Client</h3>
+          <div><strong>{{ client.name }}</strong></div>
+          {% if client.company %}<div class="muted">{{ client.company }}</div>{% endif %}
+          {% if client.address_line1 %}<div>{{ client.address_line1 }}</div>{% endif %}
+          {% if client.postal_code or client.city %}
+            <div>{{ client.postal_code|default_if_none:"" }} {{ client.city|default_if_none:"" }}</div>
+          {% endif %}
+          {% if client.email %}<div class="muted">{{ client.email }}</div>{% endif %}
         </div>
       </div>
 
@@ -442,21 +422,21 @@
         </tr>
       </table>
 
-      <!-- Phase 7: Legal Terms (CGV/CGU) -->
-      {% if legal_terms_html %}
-      <div class="mt-section legal-terms-section">
-        <h2 style="margin-bottom: 12px; color: var(--brand-primary);">Conditions Générales</h2>
-        <div class="legal-terms-content" style="font-size: var(--fs-small); line-height: 1.6; color: var(--text-secondary);">
-          {{ legal_terms_html|safe }}
-        </div>
-      </div>
-      {% endif %}
-
       <!-- Note optionnelle -->
       {% if meta.note %}
       <div class="mt-section">
         <h3>Notes</h3>
         <div class="muted">{{ meta.note }}</div>
+      </div>
+      {% endif %}
+
+      <!-- Phase 7: Legal Terms (CGV/CGU) - Page 2 -->
+      {% if legal_terms_html %}
+      <div class="legal-terms-section" style="page-break-before: always; margin-top: 0;">
+        <h2 style="margin-bottom: 12px; color: var(--brand-primary);">Conditions Générales de Vente</h2>
+        <div class="legal-terms-content" style="font-size: var(--fs-small); line-height: 1.6; color: var(--text-secondary);">
+          {{ legal_terms_html|safe }}
+        </div>
       </div>
       {% endif %}
     </main>

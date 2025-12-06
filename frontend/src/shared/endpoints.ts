@@ -29,4 +29,6 @@ export const API_ENDPOINTS = {
   requestPasswordReset: 'api/auth/request-password-reset/',
   preparedEmail: (quoteId: string | number) =>
     `api/quote/${quoteId}/prepared-email`,
+  legalTermsPreview: '/api/legal-terms/preview/',
+  legalTermsProfile: '/api/legal-terms/profile/',
 } as const;

@@ -274,6 +274,17 @@ export default function QuoteDetailPage() {
         </div>
       </section>
 
+      {/* Legal Terms Info */}
+      <section className={styles.legalTermsInfo}>
+        <div className={styles.legalTermsIcon}>✓</div>
+        <div className={styles.legalTermsContent}>
+          <p className={styles.legalTermsText}>Conditions générales incluses</p>
+          <Link to="/legal-terms" className={styles.legalTermsLink}>
+            Voir mes conditions →
+          </Link>
+        </div>
+      </section>
+
       {/* Lignes */}
       <section className={styles.card}>
         <h2 className={styles.h2}>Prestations</h2>

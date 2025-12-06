@@ -1392,7 +1392,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── RELEASE_PLAN_v0.1.0.md
 │   │   └── RELEASE_PLAN_v0.2.0.md
 │   └── tmp
-│       └── errors.txt
 ├── FreelanSign.code-workspace
 ├── frontend
 │   ├── .dockerignore
@@ -1452,6 +1451,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── types.ts
 │   │   │   ├── common
 │   │   │   │   └── pagination.ts
+│   │   │   ├── legal-terms
+│   │   │   │   └── types.ts
 │   │   │   ├── quote
 │   │   │   │   ├── mappers.ts
 │   │   │   │   └── types.ts
@@ -1476,6 +1477,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── emailRepository.ts
 │   │   │   ├── http
 │   │   │   │   └── apiClient.ts
+│   │   │   ├── legal-terms
+│   │   │   │   └── legalTermsRepository.ts
 │   │   │   ├── quote
 │   │   │   │   └── quoteRepository.ts
 │   │   │   ├── storage
@@ -1553,6 +1556,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   └── ThemesListPage.tsx
 │   │   │   │   ├── dashboard.module.css
 │   │   │   │   ├── DashboardPage.tsx
+│   │   │   │   ├── LegalTerms
+│   │   │   │   │   ├── legal-terms-page.module.css
+│   │   │   │   │   └── LegalTermsPage.tsx
 │   │   │   │   ├── Login
 │   │   │   │   │   ├── LoginPage.module.css
 │   │   │   │   │   └── LoginPage.tsx
@@ -1628,7 +1634,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-290 directories, 881 files
+293 directories, 885 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1704,5 +1710,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-05 11:48:53 CET**
+_Updated_: **2025-12-06 12:10:13 CET**
 <!-- END AUTO: LAST_UPDATED -->

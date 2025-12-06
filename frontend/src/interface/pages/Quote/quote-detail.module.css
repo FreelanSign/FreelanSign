@@ -254,3 +254,67 @@
   color: #333;
   line-height: 1.5;
 }
+
+/* Legal Terms Info Banner */
+.legalTermsInfo {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-left: 4px solid #10b981;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.legalTermsIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #10b981;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+}
+
+.legalTermsContent {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.legalTermsText {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #065f46;
+  margin: 0;
+}
+
+.legalTermsLink {
+  font-size: 0.85rem;
+  color: #047857;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.legalTermsLink:hover {
+  color: #10b981;
+}
+
+.link {
+  color: var(--brand);
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
