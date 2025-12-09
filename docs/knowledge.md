@@ -460,11 +460,26 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   └── rules
 │       └── overall-guide.md
 ├── .claude
+│   ├── agents
+│   │   ├── backend-architect.md
+│   │   ├── code-reviewer.md
+│   │   ├── frontend-developer.md
+│   │   └── ui-ux-designer.md
 │   ├── commands
 │   │   ├── dev-docs-update.md
 │   │   └── dev-docs.md
+│   ├── scripts
+│   │   └── context-monitor.py
 │   ├── settings.json
-│   └── settings.local.json
+│   ├── settings.local.json
+│   └── skills
+│       └── skill-creator
+│           ├── LICENSE.txt
+│           ├── scripts
+│           │   ├── init_skill.py
+│           │   ├── package_skill.py
+│           │   └── quick_validate.py
+│           └── SKILL.md
 ├── .coverage
 ├── .dockerignore
 ├── .env
@@ -473,7 +488,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── .env.local
 ├── .github
 │   ├── CODEOWNERS
-│   ├── hooks
 │   ├── test
 │   └── workflows
 │       ├── ci.yml
@@ -1345,6 +1359,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── docker-compose.prod.yml
 ├── docker-compose.yml
 ├── docs
+│   ├── agents
+│   │   └── prompt-rgpd.md
 │   ├── architecture
 │   │   ├── architecture.md
 │   │   ├── bc_branding.md
@@ -1627,6 +1643,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── precommit.sh
 │   └── restore.sh
 ├── sonar-project.properties
+├── SPECIFICATIONS_RGPD.md
 └── typings
     └── rest_framework
         ├── __init__.pyi
@@ -1635,7 +1652,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-293 directories, 886 files
+298 directories, 898 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1711,5 +1728,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-06 13:00:18 CET**
+_Updated_: **2025-12-09 11:26:48 CET**
 <!-- END AUTO: LAST_UPDATED -->

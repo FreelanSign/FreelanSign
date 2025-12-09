@@ -7,22 +7,6 @@
 **FreelanSign**: SaaS for quotes/invoices (freelancers). Monorepo: Django backend + React/TS frontend.
 **Version**: 0.2.0 | **Main branch**: `dev`
 
-## Architecture
-
-### Clean Architecture + DDD (Backend)
-
-```
-apps/<domain>/
-├── domain/       # Pure business logic (no framework deps)
-├── application/  # Use cases, DTOs, ports
-├── adapters/     # Infrastructure (ORM, email, PDF)
-└── interface/    # API (views, serializers)
-```
-
-**Backend bounded contexts**: user, client, quote, branding, catalog, core, email
-
-**Frontend structure**: domain/ (types), infrastructure/ (repos, API), interface/ (UI, pages, hooks), app/ (router)
-
 ## Non-Negotiable
 
 1. **Clean Architecture**: Never import Django models in domain layer
@@ -32,8 +16,16 @@ apps/<domain>/
 5. **Type safety**: Strict TS, type-check before commit
 6. **TDD**: Domain/application layers must have tests
 
+## Code Style Rules
+
+### Code Formatting
+
+- No semicolons (enforced)
+- Single quotes (enforced)
+- No unnecessary curly braces (enforced)
+- 2-space indentation
+- Import order: external → internal → types
+
 ## Plan
 
 End each plan with concise unresolved questions.
-
-- Do not mention Claude Code in any Commit message, PR description or Github issues.
