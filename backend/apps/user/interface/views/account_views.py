@@ -24,9 +24,11 @@ from apps.user.adapters.persistence.django_account_repository import DjangoAccou
 from apps.user.adapters.system_clock import SystemClock
 from apps.user.application.dto.account_inputs import CreateAccountInput, UpdateAccountInput
 from apps.user.application.errors import AccountNotFoundError as DomainAccountNotFoundError
+from apps.user.application.errors import CannotDeleteAccountError
 from apps.user.application.usecases.create_account import CreateAccount
 from apps.user.application.usecases.deactivate_account import DeactivateAccount
 from apps.user.application.usecases.get_user_accounts import GetUserAccounts
+from apps.user.application.usecases.rgpd_delete_account import RGPDDeleteAccount
 from apps.user.application.usecases.update_account import UpdateAccount
 from apps.user.domain.errors import AccountPolicyError, DuplicateAccountNameError
 from apps.user.interface.permissions import IsAccountOwner
@@ -211,16 +213,19 @@ class AccountViewSet(viewsets.ModelViewSet):
         """
         DELETE /api/accounts/{id}/
 
-        Soft delete (deactivate) via use case.
+        RGPD soft delete with cascade to Clients.
+        Blocks if active Quotes exist (DRAFT, SENT, ACCEPTED).
         """
         instance = self.get_object()  # DRF handles 404 + 403
 
         try:
-            # Execute use case (soft delete)
-            use_case = DeactivateAccount(repository=self.repository, clock=self.clock)
+            # Execute RGPD delete use case (soft delete with cascade)
+            use_case = RGPDDeleteAccount()
             use_case.execute(account_id=instance.id)
 
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         except DomainAccountNotFoundError:
             return Response({"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND)
+        except CannotDeleteAccountError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
