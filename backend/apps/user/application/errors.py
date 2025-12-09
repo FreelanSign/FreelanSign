@@ -121,3 +121,17 @@ class CannotDeactivateAccountError(Exception):
     def __init__(self, account_id: int):
         self.account_id = account_id
         super().__init__(f"Cannot deactivate account {account_id}: has associated quotes")
+
+
+class CannotDeleteAccountError(UserApplicationError):
+    """Raised when trying to RGPD delete an account with active quotes."""
+
+    def __init__(self, account_id: int, reason: str = ""):
+        msg = f"Impossible de supprimer le compte {account_id}"
+        if reason:
+            msg += f": {reason}"
+        else:
+            msg += ": des devis actifs existent"
+        super().__init__(msg, code="CANNOT_DELETE_ACCOUNT")
+        self.account_id = account_id
+        self.reason = reason

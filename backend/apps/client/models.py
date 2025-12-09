@@ -4,11 +4,15 @@ import uuid
 from django.conf import settings
 from django.db import models
 
+from apps.core.models import SoftDeleteModel, TimestampedModel
 
-class Client(models.Model):
+
+class Client(TimestampedModel, SoftDeleteModel):
     """
     Simple client model for quotes.
     Keep it compact — extend later with addresses, contacts, VAT, etc.
+
+    Soft delete enabled for RGPD compliance.
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -27,9 +31,6 @@ class Client(models.Model):
     address = models.TextField(blank=True)
     vat_number = models.CharField(max_length=64, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "client_client"

@@ -255,3 +255,117 @@ class TestAccountMiddleware:
         response = api_client.get("/api/user/accounts/")
 
         assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+class TestAccountRGPDDelete:
+    """Tests for DELETE /api/user/accounts/{id}/ (RGPD soft delete)."""
+
+    def test_delete_account_rgpd_soft_delete(self, api_client, user, user_account):
+        """DELETE performs RGPD soft delete with cascade."""
+        api_client.force_authenticate(user=user)
+
+        # Create client for cascade test
+        from apps.client.models import Client
+
+        client = Client.objects.create(owner=user, account=user_account, name="Test Client")
+
+        # Delete account
+        response = api_client.delete(f"/api/user/accounts/{user_account.id}/")
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+        # Account should be soft deleted
+        assert not Account.objects.filter(id=user_account.id).exists()
+        assert Account.all_objects.filter(id=user_account.id, is_deleted=True).exists()
+
+        # Client should be soft deleted (cascade)
+        assert not Client.objects.filter(id=client.id).exists()
+        assert Client.all_objects.filter(id=client.id, is_deleted=True).exists()
+
+    def test_delete_account_blocked_with_active_quotes(self, api_client, user, user_account):
+        """DELETE blocked if active quotes exist."""
+        from django.utils import timezone
+
+        from apps.client.models import Client
+        from apps.quote.models import Quote
+
+        api_client.force_authenticate(user=user)
+
+        # Create client and active quote
+        client = Client.objects.create(owner=user, account=user_account, name="Test Client")
+        Quote.objects.create(
+            owner=user,
+            client=client,
+            account=user_account,
+            title="Test Quote",
+            reference="Q-2025-001",
+            status="DRAFT",
+            issue_date=timezone.now().date(),
+        )
+
+        # Try to delete account
+        response = api_client.delete(f"/api/user/accounts/{user_account.id}/")
+
+        # Should return 400 Bad Request
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "devis actifs existent" in response.data["error"]
+
+        # Account should NOT be deleted
+        assert Account.objects.filter(id=user_account.id).exists()
+        assert user_account.is_deleted is False
+
+    def test_delete_account_allowed_with_paid_quotes(self, api_client, user, user_account):
+        """DELETE allowed if only PAID quotes exist."""
+        from django.utils import timezone
+
+        from apps.client.models import Client
+        from apps.quote.models import Quote
+
+        api_client.force_authenticate(user=user)
+
+        # Create client and PAID quote
+        client = Client.objects.create(owner=user, account=user_account, name="Test Client")
+        Quote.objects.create(
+            owner=user,
+            client=client,
+            account=user_account,
+            title="Test Quote",
+            reference="Q-2025-001",
+            status="PAID",
+            issue_date=timezone.now().date(),
+        )
+
+        # Delete should succeed
+        response = api_client.delete(f"/api/user/accounts/{user_account.id}/")
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+        # Account should be soft deleted
+        assert not Account.objects.filter(id=user_account.id).exists()
+        assert Account.all_objects.filter(id=user_account.id, is_deleted=True).exists()
+
+    def test_delete_account_requires_ownership(self, api_client, user_account):
+        """DELETE requires account ownership."""
+        # Create different user
+        other_user = User.objects.create_user(email="other@test.com", password="pass")
+        api_client.force_authenticate(user=other_user)
+
+        # Try to delete another user's account
+        response = api_client.delete(f"/api/user/accounts/{user_account.id}/")
+
+        # Should return 403 Forbidden
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        # Account should NOT be deleted
+        assert Account.objects.filter(id=user_account.id).exists()
+
+    def test_delete_account_requires_auth(self, api_client, user_account):
+        """DELETE requires authentication."""
+        # Unauthenticated request
+        response = api_client.delete(f"/api/user/accounts/{user_account.id}/")
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+        # Account should NOT be deleted
+        assert Account.objects.filter(id=user_account.id).exists()

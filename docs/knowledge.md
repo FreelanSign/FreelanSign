@@ -461,10 +461,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │       └── overall-guide.md
 ├── .claude
 │   ├── agents
-│   │   ├── backend-architect.md
-│   │   ├── code-reviewer.md
-│   │   ├── frontend-developer.md
-│   │   └── ui-ux-designer.md
 │   ├── commands
 │   │   ├── dev-docs-update.md
 │   │   └── dev-docs.md
@@ -474,7 +470,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── settings.local.json
 │   └── skills
 │       └── skill-creator
-│           ├── LICENSE.txt
 │           ├── scripts
 │           │   ├── init_skill.py
 │           │   ├── package_skill.py
@@ -488,7 +483,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── .env.local
 ├── .github
 │   ├── CODEOWNERS
-│   ├── test
 │   └── workflows
 │       ├── ci.yml
 │       └── enforce-dev-to-main.yml
@@ -664,8 +658,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── 0002_client_account.py
 │   │   │   │   ├── 0003_migrate_client_to_account.py
 │   │   │   │   ├── 0004_alter_client_account.py
-│   │   │   │   └── 0005_update_client_index.py
+│   │   │   │   ├── 0005_update_client_index.py
+│   │   │   │   └── 0006_add_soft_delete_to_client.py
 │   │   │   ├── models.py
+│   │   │   ├── signals.py
 │   │   │   ├── tests
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── adapters
@@ -677,6 +673,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   └── test_name_policy.py
 │   │   │   │   ├── test_api_client_endpoint.py
 │   │   │   │   ├── test_client_policies.py
+│   │   │   │   ├── test_client_soft_delete.py
 │   │   │   │   └── test_create_client.py
 │   │   │   └── views.py
 │   │   ├── core
@@ -1001,6 +998,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │       ├── register_user.py
 │   │       │       ├── request_password_reset.py
 │   │       │       ├── reset_password.py
+│   │       │       ├── rgpd_delete_account.py
 │   │       │       ├── update_account.py
 │   │       │       └── update_profile.py
 │   │       ├── apps.py
@@ -1054,7 +1052,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── 0009_account.py
 │   │       │   ├── 0010_migrate_professional_to_account.py
 │   │       │   ├── 0011_cleanup_phase6.py
-│   │       │   └── 0012_add_rate_and_service_types_to_account.py
+│   │       │   ├── 0012_add_rate_and_service_types_to_account.py
+│   │       │   └── 0013_add_soft_delete_to_account.py
 │   │       ├── models
 │   │       │   ├── __init__.py
 │   │       │   ├── account.py
@@ -1089,6 +1088,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   │   ├── serializers
 │   │       │   │   │   └── test_reset_password_serializer.py
 │   │       │   │   └── test_account_api.py
+│   │       │   ├── test_account_soft_delete.py
 │   │       │   ├── test_auth_api.py
 │   │       │   ├── test_auth_logout.py
 │   │       │   ├── test_refresh_rotation.py
@@ -1360,7 +1360,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── docker-compose.yml
 ├── docs
 │   ├── agents
-│   │   └── prompt-rgpd.md
 │   ├── architecture
 │   │   ├── architecture.md
 │   │   ├── bc_branding.md
@@ -1652,7 +1651,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-298 directories, 898 files
+298 directories, 897 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1713,7 +1712,6 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 | Model | File |
 |---|---|
 | `BrandTheme` | `apps/branding/models.py` |
-| `Client` | `apps/client/models.py` |
 | `LegalTemplateModel` | `apps/legal_terms/adapters/persistence/models.py` |
 | `LegalProfileModel` | `apps/legal_terms/adapters/persistence/models.py` |
 | `AttachedTermsModel` | `apps/legal_terms/adapters/persistence/models.py` |
@@ -1728,5 +1726,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-09 11:26:48 CET**
+_Updated_: **2025-12-09 15:23:22 CET**
 <!-- END AUTO: LAST_UPDATED -->
