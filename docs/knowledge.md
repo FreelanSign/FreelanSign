@@ -681,20 +681,34 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── enums.py
 │   │   │   ├── exceptions.py
 │   │   │   ├── fields.py
+│   │   │   ├── interface
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── api
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── audit_views.py
+│   │   │   │       └── serializers.py
 │   │   │   ├── logging.py
 │   │   │   ├── managers.py
 │   │   │   ├── middleware
 │   │   │   │   └── request_logging.py
 │   │   │   ├── migrations
 │   │   │   │   ├── __init__.py
-│   │   │   │   └── 0001_initial.py
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_auditlog.py
+│   │   │   │   └── 0003_auditlog_core_audit__timesta_9f170b_idx.py
 │   │   │   ├── models
 │   │   │   │   ├── __init__.py
+│   │   │   │   ├── audit.py
 │   │   │   │   └── mixins.py
 │   │   │   ├── models.py
 │   │   │   ├── permissions.py
+│   │   │   ├── services
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── audit.py
+│   │   │   │   └── CLAUDE.md
 │   │   │   ├── tests
 │   │   │   │   ├── __init__.py
+│   │   │   │   ├── test_audit_logging.py
 │   │   │   │   ├── test_enums.py
 │   │   │   │   ├── test_mixins.py
 │   │   │   │   └── test_money.py
@@ -1652,7 +1666,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-299 directories, 897 files
+302 directories, 908 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1727,5 +1741,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-11 09:08:32 CET**
+_Updated_: **2025-12-11 15:47:23 CET**
 <!-- END AUTO: LAST_UPDATED -->

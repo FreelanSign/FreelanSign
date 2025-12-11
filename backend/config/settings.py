@@ -42,6 +42,8 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 # Security: Rotate annually, backup to AWS Secrets Manager in production
 FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY")
 
+USE_X_FORWARDED_HOST = True
+
 # --------------------------------------------------------------------------------------
 # Security settings (Production)
 # --------------------------------------------------------------------------------------
@@ -246,6 +248,7 @@ REST_FRAMEWORK = {
         "anon": "30/min",
         "auth": "10/min",  # Limite pour les endpoints d'authentification
         "catalog": "60/min",
+        "audit-logs": "100/hour",
     },
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
