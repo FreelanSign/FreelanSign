@@ -465,16 +465,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── dev-docs-update.md
 │   │   └── dev-docs.md
 │   ├── scripts
-│   │   └── context-monitor.py
 │   ├── settings.json
 │   ├── settings.local.json
 │   └── skills
 │       └── skill-creator
-│           ├── scripts
-│           │   ├── init_skill.py
-│           │   ├── package_skill.py
-│           │   └── quick_validate.py
-│           └── SKILL.md
+│           └── scripts
 ├── .coverage
 ├── .dockerignore
 ├── .env
@@ -659,7 +654,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── 0003_migrate_client_to_account.py
 │   │   │   │   ├── 0004_alter_client_account.py
 │   │   │   │   ├── 0005_update_client_index.py
-│   │   │   │   └── 0006_add_soft_delete_to_client.py
+│   │   │   │   ├── 0006_add_soft_delete_to_client.py
+│   │   │   │   └── 0007_add_field_encryption.py
 │   │   │   ├── models.py
 │   │   │   ├── signals.py
 │   │   │   ├── tests
@@ -674,14 +670,17 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── test_api_client_endpoint.py
 │   │   │   │   ├── test_client_policies.py
 │   │   │   │   ├── test_client_soft_delete.py
-│   │   │   │   └── test_create_client.py
+│   │   │   │   ├── test_create_client.py
+│   │   │   │   └── test_encryption.py
 │   │   │   └── views.py
 │   │   ├── core
 │   │   │   ├── __init__.py
 │   │   │   ├── admin.py
 │   │   │   ├── apps.py
+│   │   │   ├── CLAUDE.md
 │   │   │   ├── enums.py
 │   │   │   ├── exceptions.py
+│   │   │   ├── fields.py
 │   │   │   ├── logging.py
 │   │   │   ├── managers.py
 │   │   │   ├── middleware
@@ -1053,7 +1052,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── 0010_migrate_professional_to_account.py
 │   │       │   ├── 0011_cleanup_phase6.py
 │   │       │   ├── 0012_add_rate_and_service_types_to_account.py
-│   │       │   └── 0013_add_soft_delete_to_account.py
+│   │       │   ├── 0013_add_soft_delete_to_account.py
+│   │       │   └── 0014_add_field_encryption.py
 │   │       ├── models
 │   │       │   ├── __init__.py
 │   │       │   ├── account.py
@@ -1091,6 +1091,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── test_account_soft_delete.py
 │   │       │   ├── test_auth_api.py
 │   │       │   ├── test_auth_logout.py
+│   │       │   ├── test_encryption.py
 │   │       │   ├── test_refresh_rotation.py
 │   │       │   └── test_user_api.py
 │   │       └── urls.py
@@ -1122,6 +1123,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │           ├── packages_quote_arch.dot
 │   │           └── packages_quote_arch.png
 │   ├── Dockerfile
+│   ├── docs
+│   │   └── FIELD_ENCRYPTION.md
 │   ├── generate_diagrams.py
 │   ├── logs
 │   │   └── app.log
@@ -1400,8 +1403,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── knowledge.md
 │   ├── knowledge.sh
 │   ├── plans
-│   │   ├── legal-term-context.md
-│   │   ├── Mentions obligatoires sur un devis d’auto-entrepreneur (France).pdf
 │   │   └── production-ready.md
 │   ├── release
 │   │   ├── RELEASE_PLAN_v0.1.0.md
@@ -1651,7 +1652,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-298 directories, 897 files
+299 directories, 897 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1726,5 +1727,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-09 15:23:22 CET**
+_Updated_: **2025-12-11 09:08:32 CET**
 <!-- END AUTO: LAST_UPDATED -->
