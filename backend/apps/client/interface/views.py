@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.exceptions import ValidationError
@@ -19,7 +20,7 @@ from apps.client.application.usecases.delete_client import DeleteClient
 from apps.client.application.usecases.get_client import GetClient
 from apps.client.application.usecases.list_clients import ListClients
 from apps.client.application.usecases.update_client import UpdateClient
-from apps.client.domain.errors import ClientAlreadyExistsError
+from apps.client.domain.errors import ClientAlreadyExistsError, ClientNotFoundError
 from apps.client.interface.serializers import (
     ClientCreateInputSerializer,
     ClientListQuerySerializer,
@@ -27,6 +28,11 @@ from apps.client.interface.serializers import (
     ClientUpdateInputSerializer,
 )
 from apps.client.models import Client
+from apps.core.models.audit import AuditLog
+
+# AIDEV_NOTE: audit logging for sensitive client actions (create/ RGPD delete)
+# always use `log_audit` + `AuditLog.Action` instead of touching AuditLog.objects.create(...)
+from apps.core.services.audit import log_audit
 from apps.user.interface.permissions.account_permissions import HasAccountContext
 
 
@@ -84,6 +90,7 @@ class StandardClientViewSet(viewsets.ModelViewSet):
         return super().retrieve(request, *args, **kwargs)
 
     # --- Create ---
+    @transaction.atomic  # Rollback audit log if anything fails
     def create(self, request, *args, **kwargs):
         serializer = ClientCreateInputSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -102,6 +109,19 @@ class StandardClientViewSet(viewsets.ModelViewSet):
 
         try:
             vm = CreateClient(self.repo).execute(inp)
+
+            # AIDEV_NOTE: audit log must only be emitted if use case succeeds
+            log_audit(
+                action=AuditLog.Action.CLIENT_CREATED,
+                actor=request.user,
+                target_model="Client",
+                target_id=vm.id,
+                request=request,
+                metadata={
+                    # keep minimal
+                    "name": getattr(vm, "name", None),
+                },
+            )
         except ClientAlreadyExistsError as e:
             raise ValidationError({"name": f"Un client avec le nom '{inp.name}' existe déjà."})
 
@@ -140,6 +160,28 @@ class StandardClientViewSet(viewsets.ModelViewSet):
 
     # --- Destroy ---
     def destroy(self, request, *args, **kwargs):
-        pk = kwargs["pk"]
-        DeleteClient(self.repo).execute(DeleteClientInput(client_id=pk))
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        instance = self.get_object()  # DRF handles 404 + 403
+        audit_metadata = {
+            "name": getattr(instance, "name", None),
+            "email": getattr(instance, "email", None),
+            "phone": getattr(instance, "phone", None),
+            "address": getattr(instance, "address", None),
+            "vat_number": getattr(instance, "vat_number", None),
+        }
+
+        try:
+            DeleteClient(self.repo).execute(DeleteClientInput(client_id=instance.id))
+
+            # AIDEV_NOTE: audit log must only be emitted if use case succeeds
+            log_audit(
+                action=AuditLog.Action.CLIENT_DELETED,
+                actor=request.user,
+                target_model="Client",
+                target_id=instance.id,
+                request=request,
+                metadata=audit_metadata,
+            )
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except ClientNotFoundError:
+            return Response(status=status.HTTP_404_NOT_FOUND)

@@ -20,6 +20,11 @@ from rest_framework.response import Response
 
 logger = logging.getLogger(__name__)
 
+from apps.core.models.audit import AuditLog
+
+# AIDEV_NOTE: audot logging for sensitive account actions (create/ RGPD delete)
+# always use `log_audit` + `AuditLog.Action` instead of touching AuditLog.objects.create(...)
+from apps.core.services.audit import log_audit
 from apps.user.adapters.persistence.django_account_repository import DjangoAccountRepository
 from apps.user.adapters.system_clock import SystemClock
 from apps.user.application.dto.account_inputs import CreateAccountInput, UpdateAccountInput
@@ -127,6 +132,19 @@ class AccountViewSet(viewsets.ModelViewSet):
             account_vm = use_case.execute(input_dto)
             logger.info(f"[CREATE ACCOUNT] Use case executed successfully, account_id={account_vm.id}")
 
+            # AIDEV_NOTE: audit log must only be emitted if use case succeeds
+            log_audit(
+                action=AuditLog.Action.ACCOUNT_CREATED,
+                actor=request.user,
+                target_model="Account",
+                target_id=account_vm.id,
+                request=request,
+                metadata={
+                    # keep minimal: no encrypted data here
+                    "display_name": getattr(account_vm, "display_name", None),
+                },
+            )
+
             # Serialize ViewModel (DRF reads attributes directly)
             serializer = self.get_serializer(account_vm)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -217,11 +235,26 @@ class AccountViewSet(viewsets.ModelViewSet):
         Blocks if active Quotes exist (DRAFT, SENT, ACCEPTED).
         """
         instance = self.get_object()  # DRF handles 404 + 403
+        audit_metadata = {
+            "display_name": instance.display_name,
+            "user_id": instance.user_id,
+        }
 
         try:
             # Execute RGPD delete use case (soft delete with cascade)
             use_case = RGPDDeleteAccount()
             use_case.execute(account_id=instance.id)
+
+            # AIDEV_NOTE: audit log must only be emitted if use case succeeds
+            # DO NOT move this call before use_case.execute()
+            log_audit(
+                action=AuditLog.Action.ACCOUNT_ANONYMIZED,
+                actor=request.user,
+                target_model="Account",
+                target_id=instance.id,
+                request=request,
+                metadata=audit_metadata,
+            )
 
             return Response(status=status.HTTP_204_NO_CONTENT)
 

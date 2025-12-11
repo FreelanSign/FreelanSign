@@ -1017,21 +1017,21 @@ def export_user_data(request):
 
 ### 5.1 Backend (Priorité 1 - Critique)
 
-- [ ] **Étendre Soft Delete**
-  - [ ] Ajouter `SoftDeleteModel` à `Client` (apps/client/models.py)
-  - [ ] Ajouter `SoftDeleteModel` à `Account` (apps/user/models/account.py)
-  - [ ] Créer migration Django
+- [x] **Étendre Soft Delete**
+  - [x] Ajouter `SoftDeleteModel` à `Client` (apps/client/models.py)
+  - [x] Ajouter `SoftDeleteModel` à `Account` (apps/user/models/account.py)
+  - [x] Créer migration Django
 
-- [ ] **Chiffrement des Données Sensibles**
-  - [ ] Installer `django-fernet-fields` ou `django-cryptography`
-  - [ ] Chiffrer `Client.email`, `Client.phone`, `Client.vat_number`
-  - [ ] Chiffrer `Account.legal_id` (SIRET)
-  - [ ] Configurer `FIELD_ENCRYPTION_KEY` (secrets manager)
+- [x] **Chiffrement des Données Sensibles**
+  - [x] Installer `django-fernet-fields` ou `django-cryptography`
+  - [x] Chiffrer `Client.email`, `Client.phone`, `Client.vat_number`
+  - [x] Chiffrer `Account.legal_id` (SIRET)
+  - [x] Configurer `FIELD_ENCRYPTION_KEY` (secrets manager)
 
-- [ ] **Système d'Audit**
-  - [ ] Créer modèle `AuditLog` (apps/core/models/audit.py)
-  - [ ] Logger les actions sensibles (création/suppression compte, client)
-  - [ ] Ajouter endpoint admin pour consulter les logs
+- [x] **Système d'Audit**
+  - [x] Créer modèle `AuditLog` (apps/core/models/audit.py)
+  - [x] Logger les actions sensibles (création/suppression compte, client)
+  - [x] Ajouter endpoint admin pour consulter les logs
 
 - [ ] **Politique de Rétention**
   - [ ] Créer command `apply_retention_policy` (management command)
