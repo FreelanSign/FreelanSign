@@ -4,6 +4,7 @@ import uuid
 from django.conf import settings
 from django.db import models
 
+from apps.core.fields import EncryptedCharField, EncryptedEmailField
 from apps.core.models import SoftDeleteModel, TimestampedModel
 
 
@@ -26,10 +27,11 @@ class Client(TimestampedModel, SoftDeleteModel):
         help_text="Account owning this client.",
     )
     name = models.CharField(max_length=255)
-    email = models.EmailField(blank=True)
-    phone = models.CharField(max_length=64, blank=True)
+    # RGPD: Encrypted fields for sensitive personal data (SPECIFICATIONS_RGPD.md Section 3.1.1)
+    email = EncryptedEmailField(blank=True)
+    phone = EncryptedCharField(max_length=64, blank=True)
     address = models.TextField(blank=True)
-    vat_number = models.CharField(max_length=64, blank=True)
+    vat_number = EncryptedCharField(max_length=64, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
 
     class Meta:

@@ -33,6 +33,16 @@ DEBUG = env("DEBUG", default=False)
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 # --------------------------------------------------------------------------------------
+# Field-level encryption (RGPD compliance - SPECIFICATIONS_RGPD.md Section 3.1.1)
+# --------------------------------------------------------------------------------------
+# 32-byte Fernet key for encrypting sensitive personal data:
+# - Client: email, phone, vat_number
+# - Account: legal_id (SIRET)
+# Generate new key: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+# Security: Rotate annually, backup to AWS Secrets Manager in production
+FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY")
+
+# --------------------------------------------------------------------------------------
 # Security settings (Production)
 # --------------------------------------------------------------------------------------
 if not DEBUG:

@@ -4,6 +4,7 @@ from django.conf import settings
 from django.db import models, transaction
 from django.utils import timezone
 
+from apps.core.fields import EncryptedCharField
 from apps.core.models import SoftDeleteModel, TimestampedModel
 
 
@@ -43,7 +44,8 @@ class Account(TimestampedModel, SoftDeleteModel):
         blank=True,
         null=True,
     )
-    legal_id = models.CharField(
+    # RGPD: Encrypted field for sensitive identification data (SPECIFICATIONS_RGPD.md Section 3.1.1)
+    legal_id = EncryptedCharField(
         max_length=14,
         blank=True,
         null=True,
