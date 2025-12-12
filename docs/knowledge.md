@@ -631,6 +631,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── client_repository.py
 │   │   │   │   │   └── clock.py
 │   │   │   │   └── usecases
+│   │   │   │       ├── anonymize_client.py
 │   │   │   │       ├── create_client.py
 │   │   │   │       ├── delete_client.py
 │   │   │   │       ├── get_client.py
@@ -666,6 +667,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── conftest.py
 │   │   │   │   ├── domain
 │   │   │   │   │   └── test_name_policy.py
+│   │   │   │   ├── test_anonymize_client.py
 │   │   │   │   ├── test_api_client_endpoint.py
 │   │   │   │   ├── test_client_policies.py
 │   │   │   │   ├── test_client_soft_delete.py
@@ -691,7 +693,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── __init__.py
 │   │   │   │   └── commands
 │   │   │   │       ├── __init__.py
-│   │   │   │       └── apply_retention_policy.py
+│   │   │   │       ├── apply_retention_policy.py
+│   │   │   │       └── test_anonymization.py
 │   │   │   ├── managers.py
 │   │   │   ├── middleware
 │   │   │   │   └── request_logging.py
@@ -1008,6 +1011,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   │   ├── token_sender.py
 │   │       │   │   └── user_repository.py
 │   │       │   └── usecases
+│   │       │       ├── anonymize_account.py
 │   │       │       ├── change_password.py
 │   │       │       ├── create_account.py
 │   │       │       ├── deactivate_account.py
@@ -1108,6 +1112,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   │   │   └── test_reset_password_serializer.py
 │   │       │   │   └── test_account_api.py
 │   │       │   ├── test_account_soft_delete.py
+│   │       │   ├── test_anonymize_account.py
 │   │       │   ├── test_auth_api.py
 │   │       │   ├── test_auth_logout.py
 │   │       │   ├── test_encryption.py
@@ -1676,7 +1681,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-305 directories, 914 files
+305 directories, 920 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1751,5 +1756,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-12 14:48:35 CET**
+_Updated_: **2025-12-12 15:18:18 CET**
 <!-- END AUTO: LAST_UPDATED -->
