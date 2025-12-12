@@ -47,5 +47,14 @@ export const userRepository = {
     return data as UserDto;
   },
 
+  /**
+   * Export all user data (RGPD Article 20 - Data Portability)
+   * Returns JSON data including profile, accounts, clients, and quotes
+   */
+  async exportData(): Promise<Record<string, unknown>> {
+    const { data } = await apiClient.get(API_ENDPOINTS.exportData);
+    return data;
+  },
+
   // TODO: Add routes for reset password here instead of frontend/src/lib/api/auth.ts
 };

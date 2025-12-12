@@ -23,6 +23,60 @@ import PrestationsSelector from '../../components/profile/PrestationSelector';
 import { useRequireAccount } from '../../hooks/useRequireAccount';
 import styles from './profile-edit-page.module.css';
 
+/**
+ * Component for RGPD data export (Article 20 - Data Portability)
+ */
+function DataExportSection() {
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportData = async () => {
+    try {
+      setIsExporting(true);
+      const data = await userRepository.exportData();
+
+      // Create JSON file and trigger download
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: 'application/json',
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const timestamp = new Date().toISOString().split('T')[0];
+      link.download = `freelansign-data-export-${timestamp}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('Vos données ont été téléchargées avec succès');
+    } catch (err) {
+      console.error('Export data failed', err);
+      toast.error(
+        "Erreur lors de l'export des données: " +
+          (err instanceof Error ? err.message : String(err)),
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-gray-600">
+        Conformément au RGPD (Article 20), vous pouvez télécharger toutes vos
+        données personnelles au format JSON.
+      </p>
+      <button
+        onClick={handleExportData}
+        disabled={isExporting}
+        className={`${styles.buttonPrimary} ${isExporting ? 'opacity-50 cursor-not-allowed' : ''}`}
+      >
+        {isExporting ? 'Téléchargement en cours...' : 'Télécharger mes données'}
+      </button>
+    </div>
+  );
+}
+
 export default function ProfileEditPage() {
   const navigate = useNavigate();
   const activeAccountId = useAccountStore((state) => state.activeAccountId);
@@ -341,6 +395,11 @@ export default function ProfileEditPage() {
           />
         </Card>
       )}
+
+      {/* Données & Confidentialité (RGPD) */}
+      <Card title="Données & Confidentialité">
+        <DataExportSection />
+      </Card>
 
       {/* Buttons sticky at bottom */}
       <div className={styles.buttonContainer}>
