@@ -688,6 +688,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │       ├── audit_views.py
 │   │   │   │       └── serializers.py
 │   │   │   ├── logging.py
+│   │   │   ├── management
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── commands
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── apply_retention_policy.py
 │   │   │   ├── managers.py
 │   │   │   ├── middleware
 │   │   │   │   └── request_logging.py
@@ -711,7 +716,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── test_audit_logging.py
 │   │   │   │   ├── test_enums.py
 │   │   │   │   ├── test_mixins.py
-│   │   │   │   └── test_money.py
+│   │   │   │   ├── test_money.py
+│   │   │   │   └── test_retention_policy.py
 │   │   │   ├── utils
 │   │   │   │   ├── __init__.py
 │   │   │   │   └── money.py
@@ -1407,6 +1413,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── environment-config.md
 │   │   ├── monitoring.md
 │   │   ├── production-checklist.md
+│   │   ├── retention-policy.md
 │   │   └── vps-setup.md
 │   ├── good-practices
 │   │   ├── claud-good-habits.md
@@ -1666,7 +1673,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-302 directories, 908 files
+304 directories, 913 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1741,5 +1748,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-11 15:47:23 CET**
+_Updated_: **2025-12-12 09:08:47 CET**
 <!-- END AUTO: LAST_UPDATED -->
