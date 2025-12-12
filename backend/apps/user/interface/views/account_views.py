@@ -78,18 +78,27 @@ class AccountViewSet(viewsets.ModelViewSet):
 
         List accounts - admin sees all, regular users see only their own.
         """
+        logger.info(f"[ACCOUNT LIST] Start - user={request.user.id}")
         user = request.user
 
-        # Admin sees all accounts
-        if hasattr(user, "profile") and user.profile.role == "admin":
-            accounts = Account.objects.all()
-        else:
-            # Regular users see only their own
-            accounts = Account.objects.filter(user=user)
+        try:
+            # Admin sees all accounts
+            if hasattr(user, "profile") and user.profile.role == "admin":
+                logger.info(f"[ACCOUNT LIST] Admin mode")
+                accounts = Account.objects.all()
+            else:
+                # Regular users see only their own
+                logger.info(f"[ACCOUNT LIST] Regular user mode")
+                accounts = Account.objects.filter(user=user)
 
-        # DRF serializer reads model attributes directly
-        serializer = self.get_serializer(accounts, many=True)
-        return Response(serializer.data)
+            logger.info(f"[ACCOUNT LIST] Found {accounts.count()} accounts")
+            # DRF serializer reads model attributes directly
+            serializer = self.get_serializer(accounts, many=True)
+            logger.info(f"[ACCOUNT LIST] Serializer created, returning data")
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"[ACCOUNT LIST] Error: {type(e).__name__}: {e}", exc_info=True)
+            raise
 
     def retrieve(self, request, *args, **kwargs):
         """
@@ -100,9 +109,16 @@ class AccountViewSet(viewsets.ModelViewSet):
         2. check_object_permissions() → IsAccountOwner validates
         3. Serializer reads model attributes directly
         """
-        instance = self.get_object()  # DRF handles 404 + permission 403
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        logger.info(f"[ACCOUNT RETRIEVE] Start - user={request.user.id}, kwargs={kwargs}")
+        try:
+            instance = self.get_object()  # DRF handles 404 + permission 403
+            logger.info(f"[ACCOUNT RETRIEVE] Got instance id={instance.id}")
+            serializer = self.get_serializer(instance)
+            logger.info(f"[ACCOUNT RETRIEVE] Serializer created, returning data")
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"[ACCOUNT RETRIEVE] Error: {type(e).__name__}: {e}", exc_info=True)
+            raise
 
     def create(self, request):
         """
