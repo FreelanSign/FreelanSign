@@ -1369,6 +1369,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │       ├── jsons
 │       │   ├── areas.json
 │       │   └── prestations.json
+│       ├── migrate_encrypt_data.py
 │       └── prestations.csv
 ├── CHANGELOG.md
 ├── CLAUDE.md
