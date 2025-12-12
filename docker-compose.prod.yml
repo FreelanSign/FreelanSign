@@ -66,6 +66,50 @@ services:
     networks:
       - freelansign_network_prod
 
+  cron:
+    # RGPD retention policy CRON job (GitHub Issue #72)
+    # Runs weekly (Sunday 3am) to purge old data:
+    # - AuditLog records > 395 days (13 months)
+    # - Soft-deleted Accounts/Clients > 10 years
+    image: ghcr.io/freelansign/freelansign-backend:latest
+    container_name: freelansign_cron_prod
+    restart: always
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DEBUG=False
+      - SECRET_KEY=${SECRET_KEY}
+      - FIELD_ENCRYPTION_KEY=${FIELD_ENCRYPTION_KEY}
+      - RETENTION_POLICY_ENABLED=True
+      - RETENTION_AUDIT_LOGS_DAYS=395
+      - RETENTION_ACCOUNTING_YEARS=10
+      - SENTRY_DSN=${SENTRY_DSN}
+      - SENTRY_ENVIRONMENT=production
+    volumes:
+      - backend_logs_prod:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - freelansign_network_prod
+    # Run CRON daemon with weekly retention policy
+    # Schedule: Sunday at 3:00 AM (low-traffic period)
+    command: >
+      sh -c "
+      echo '0 3 * * 0 cd /app && python manage.py apply_retention_policy >> /app/logs/retention_policy.log 2>&1' | crontab - &&
+      crond -f -l 2
+      "
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 128M
+        reservations:
+          memory: 64M
+
   frontend:
     # REMPLACÉ: On utilise l'image buildée localement
     image: ghcr.io/freelansign/freelansign-frontend:latest

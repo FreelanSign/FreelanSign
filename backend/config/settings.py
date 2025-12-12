@@ -42,6 +42,18 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 # Security: Rotate annually, backup to AWS Secrets Manager in production
 FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY")
 
+# --------------------------------------------------------------------------------------
+# RGPD Retention Policy (SPECIFICATIONS_RGPD.md Section 3.4)
+# --------------------------------------------------------------------------------------
+# Automated data purge to comply with GDPR Article 5(1)(e) storage limitation
+# - AuditLog: 13 months (395 days) - CNIL recommendation
+# - Soft-deleted Accounts/Clients: 10 years - French accounting law (CGI Art. L.102 B)
+# Runs weekly via CRON (Sunday 3am) in production
+# Default: DISABLED (must be explicitly enabled in production)
+RETENTION_POLICY_ENABLED = env.bool("RETENTION_POLICY_ENABLED", default=False)
+RETENTION_AUDIT_LOGS_DAYS = env.int("RETENTION_AUDIT_LOGS_DAYS", default=395)  # 13 months
+RETENTION_ACCOUNTING_YEARS = env.int("RETENTION_ACCOUNTING_YEARS", default=10)
+
 USE_X_FORWARDED_HOST = True
 
 # --------------------------------------------------------------------------------------
