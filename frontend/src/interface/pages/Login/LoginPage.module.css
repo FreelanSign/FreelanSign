@@ -1,33 +1,12 @@
 /* LoginPage.module.css */
 @import 'tailwindcss' reference;
 
-/* Palette (déjà utilisée côté dashboard) */
-:global(:root) {
-  --brand: #2456c2;
-  --success: #3ccf91;
-  --accent: #ff8a3d;
-  --dark: #0d0d0d;
-  --paper: #f5f7fa;
-  --text: #222;
-  --muted: #6b7280;
-  --border: rgba(10, 10, 10, 0.08);
-}
+/* Variables définies dans Modal.css (global) */
 
-/* Wrapper pleine hauteur, centré, fond subtil */
+/* Wrapper pleine hauteur, centré, fond blanc épuré */
 .loginPage {
   @apply min-h-screen flex items-center justify-center px-6 py-10;
-  background:
-    radial-gradient(
-      1200px 600px at 12% -10%,
-      rgba(36, 86, 194, 0.08),
-      transparent 60%
-    ),
-    radial-gradient(
-      1000px 500px at 110% 12%,
-      rgba(255, 138, 61, 0.08),
-      transparent 60%
-    ),
-    var(--paper);
+  background: #ffffff;
   transition: background 200ms ease;
   box-sizing: border-box;
 }
@@ -56,16 +35,14 @@
   outline: none;
   box-shadow:
     0 12px 28px rgba(13, 13, 13, 0.08),
-    0 0 0 4px rgba(36, 86, 194, 0.1);
-  border-color: rgba(36, 86, 194, 0.25);
+    0 0 0 4px rgba(0, 200, 150, 0.1);
+  border-color: rgba(0, 200, 150, 0.25);
 }
 
 /* Titre */
 .title {
   @apply text-2xl font-semibold leading-tight;
-  font-family:
-    var(--font-family-playfair), ui-serif, Georgia, Cambria, 'Times New Roman',
-    Times, serif;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
   color: var(--dark);
   position: relative;
   margin-bottom: 0.25rem;

@@ -1,14 +1,33 @@
 /* src/interface/components/common/Modal.module.css */
+/* ━━━ Variables CSS Globales ━━━ */
+/* Charte FreelanSign: Vert (#00C896) + Orange (#E86C1D) */
 :root {
-  --brand: #2456c2;
-  --success: #3ccf91;
-  --accent: #ff8a3d;
+  /* Couleurs primaires */
+  --brand: #00c896;
+  --brand-600: #00a87e;
+  --accent: #e86c1d;
+  --accent-600: #d65f15;
+
+  /* Couleurs secondaires */
+  --success: #00c896;
+  --warning: #e86c1d;
+  --danger: #dc2626;
+
+  /* Neutrals */
   --dark: #0d0d0d;
+  --text: #222;
+  --muted: #6b7280;
   --paper: #f5f7fa;
   --sidebar-bg: #f5f7fa;
+  --input-bg: #fff;
+
+  /* Borders & shadows */
+  --border: rgba(10, 10, 10, 0.08);
+  --ring: rgba(0, 200, 150, 0.25);
+
+  /* Icons */
   --icon-bg: rgba(255, 255, 255, 0.92);
-  --icon-border: #3ccf91;
-  --text: #222;
+  --icon-border: #00c896;
 }
 
 .fs-modal-backdrop {

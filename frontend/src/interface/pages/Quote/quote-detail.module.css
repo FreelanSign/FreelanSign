@@ -1,14 +1,4 @@
-:root {
-  --brand: #2456c2;
-  --success: #3ccf91;
-  --accent: #ff8a3d;
-  --dark: #0d0d0d;
-  --paper: #f5f7fa;
-  --sidebar-bg: #f5f7fa;
-  --icon-bg: rgba(255, 255, 255, 0.92);
-  --icon-border: #3ccf91;
-  --text: #222;
-}
+/* Variables définies dans Modal.css (global) */
 
 .page {
   min-height: 100vh;
@@ -31,11 +21,11 @@
 
 /* Header bandeau */
 .header {
-  background: linear-gradient(135deg, var(--brand), #1d449a);
+  background: linear-gradient(135deg, var(--brand), var(--accent));
   color: #fff;
   padding: 20px 24px;
   border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(36, 86, 194, 0.25);
+  box-shadow: 0 6px 20px rgba(0, 200, 150, 0.25);
 }
 .title {
   font-size: 1.5rem;
@@ -169,7 +159,7 @@
   color: #fff;
 }
 .buttonPrimary:hover {
-  box-shadow: 0 6px 16px rgba(36, 86, 194, 0.35);
+  box-shadow: 0 6px 16px rgba(0, 200, 150, 0.35);
   transform: translateY(-1px);
 }
 
@@ -191,7 +181,7 @@
   cursor: not-allowed;
 }
 .buttonSuccess:not(:disabled):hover {
-  box-shadow: 0 6px 16px rgba(60, 207, 145, 0.35);
+  box-shadow: 0 6px 16px rgba(0, 200, 150, 0.35);
   transform: translateY(-1px);
 }
 

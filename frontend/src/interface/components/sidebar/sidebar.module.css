@@ -1,15 +1,4 @@
-:global(:root) {
-  /* palette (tu peux affiner) */
-  --brand: #2456c2;
-  --success: #3ccf91;
-  --accent: #ff8a3d;
-  --dark: #0d0d0d;
-  --paper: #f5f7fa;
-  --sidebar-bg: #f5f7fa; /* dusty mauve (remplace par le hex exact si tu veux) */
-  --icon-bg: rgba(255, 255, 255, 0.92);
-  --icon-border: #3ccf91;
-  --text: #222;
-}
+/* Variables définies dans Modal.css (global) */
 
 .sidebar {
   position: fixed;
@@ -36,7 +25,7 @@
   padding: 6px;
   background: var(--icon-bg);
   border: 1px solid var(--icon-border);
-  box-shadow: 0 4px 10px #3ccf91;
+  box-shadow: 0 4px 10px #00c896;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -89,8 +78,8 @@
 }
 
 .active {
-  outline: 3px solid rgba(36, 86, 194, 0.12);
-  box-shadow: 0 10px 24px rgba(36, 86, 194, 0.12);
+  outline: 3px solid rgba(0, 200, 150, 0.12);
+  box-shadow: 0 10px 24px rgba(0, 200, 150, 0.12);
   color: var(--brand);
   transform: translateY(-2px);
 }

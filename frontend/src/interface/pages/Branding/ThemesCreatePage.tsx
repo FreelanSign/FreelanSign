@@ -8,8 +8,8 @@ import ThemeForm, {
 import styles from './themes.module.css';
 
 const DEFAULT_COLORS = {
-  primary: '#2456c2',
-  secondary: '#3ccf91',
+  primary: '#00C896',
+  secondary: '#00C896',
   background: '#f5f7fa',
   text_primary: '#222222',
   text_secondary: '#666666',

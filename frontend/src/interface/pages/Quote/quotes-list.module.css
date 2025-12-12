@@ -1,12 +1,4 @@
-:root {
-  --brand: #2456c2;
-  --success: #3ccf91;
-  --accent: #ff8a3d;
-  --dark: #0d0d0d;
-  --paper: #f5f7fa;
-  --sidebar-bg: #f5f7fa;
-  --text: #222;
-}
+/* Variables définies dans Modal.css (global) */
 
 /* Coque commune (idem dashboard) */
 .page {
@@ -72,7 +64,7 @@
 .btnPrimary {
   background: var(--brand);
   color: #fff;
-  box-shadow: 0 6px 14px rgba(36, 86, 194, 0.12);
+  box-shadow: 0 6px 14px rgba(0, 200, 150, 0.12);
 }
 .btnGhost {
   background: rgba(0, 0, 0, 0.06);

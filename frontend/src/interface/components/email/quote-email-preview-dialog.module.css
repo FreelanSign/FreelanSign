@@ -94,7 +94,7 @@
 .textarea:focus {
   outline: none;
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(36, 86, 194, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 200, 150, 0.1);
 }
 
 .textareaBody {

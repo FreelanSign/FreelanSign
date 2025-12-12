@@ -1,19 +1,10 @@
-:root {
-  --brand: #2456c2;
-  --success: #3ccf91;
-  --accent: #ff8a3d;
-  --dark: #0d0d0d;
-  --paper: #f5f7fa;
-  --text: #222;
-}
-
 /* Header */
 .header {
-  background: linear-gradient(135deg, var(--brand), #1d449a);
+  background: linear-gradient(135deg, var(--brand), var(--accent));
   color: #fff;
   padding: 24px;
   border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(36, 86, 194, 0.25);
+  box-shadow: 0 6px 20px rgba(0, 200, 150, 0.25);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -263,6 +254,6 @@
 }
 
 .buttonPrimary:hover {
-  box-shadow: 0 6px 16px rgba(36, 86, 194, 0.35);
+  box-shadow: 0 6px 16px rgba(0, 200, 150, 0.35);
   transform: translateY(-1px);
 }
