@@ -143,3 +143,59 @@ class UserApiTests(APITestCase):
         res = self.client.patch(ME, data={"role": "admin"}, format="json")
         self.assertEqual(res.status_code, status.HTTP_200_OK, res.content)
         self.assertEqual(res.json()["profile"]["role"], "admin")
+
+    # ---------- Export Data (RGPD) ----------
+
+    def test_export_data_requires_auth(self):
+        """Test that export-data endpoint requires authentication"""
+        res = self.client.get("/api/user/export-data/")
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_export_data_returns_complete_user_data(self):
+        """Test that export-data returns all user data"""
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+        res = self.client.get("/api/user/export-data/")
+        self.assertEqual(res.status_code, status.HTTP_200_OK, res.content)
+
+        data = res.json()
+
+        # Check user data
+        self.assertIn("user", data)
+        self.assertEqual(data["user"]["email"], "john@example.com")
+        self.assertIn("id", data["user"])
+        self.assertIn("date_joined", data["user"])
+
+        # Check profile data
+        self.assertIn("profile", data)
+        self.assertEqual(data["profile"]["first_name"], "John")
+        self.assertEqual(data["profile"]["last_name"], "Doe")
+
+        # Check accounts, clients, quotes arrays exist
+        self.assertIn("accounts", data)
+        self.assertIn("clients", data)
+        self.assertIn("quotes", data)
+        self.assertIsInstance(data["accounts"], list)
+        self.assertIsInstance(data["clients"], list)
+        self.assertIsInstance(data["quotes"], list)
+
+    def test_export_data_logs_audit_entry(self):
+        """Test that export-data creates an audit log entry"""
+        from apps.core.models.audit import AuditLog
+
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+
+        # Count audit logs before
+        initial_count = AuditLog.objects.filter(action=AuditLog.Action.DATA_EXPORT_REQUESTED, actor=self.user).count()
+
+        res = self.client.get("/api/user/export-data/")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        # Check audit log was created
+        final_count = AuditLog.objects.filter(action=AuditLog.Action.DATA_EXPORT_REQUESTED, actor=self.user).count()
+        self.assertEqual(final_count, initial_count + 1)
+
+        # Verify audit log details
+        audit_log = AuditLog.objects.filter(action=AuditLog.Action.DATA_EXPORT_REQUESTED, actor=self.user).latest("timestamp")
+        self.assertEqual(audit_log.target_model, "User")
+        self.assertEqual(audit_log.target_id, str(self.user.id))
+        self.assertEqual(audit_log.metadata.get("export_type"), "full")

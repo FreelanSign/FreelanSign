@@ -1676,7 +1676,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-305 directories, 915 files
+305 directories, 914 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1751,5 +1751,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-12 14:31:41 CET**
+_Updated_: **2025-12-12 14:48:35 CET**
 <!-- END AUTO: LAST_UPDATED -->
