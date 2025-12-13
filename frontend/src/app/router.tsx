@@ -10,6 +10,9 @@ import ResetPasswordPage from '../interface/pages/Auth/reset-password';
 import ThemesCreatePage from '../interface/pages/Branding/ThemesCreatePage';
 import ThemesEditPage from '../interface/pages/Branding/ThemesEditPage';
 import ThemesListPage from '../interface/pages/Branding/ThemesListPage';
+import ClientsListPage from '../interface/pages/Client/ClientsListPage';
+import ClientDetailPage from '../interface/pages/Client/ClientDetailPage';
+import ClientEditPage from '../interface/pages/Client/ClientEditPage';
 import DashboardPage from '../interface/pages/DashboardPage';
 import LoginPage from '../interface/pages/Login/LoginPage';
 import ProfileEditPage from '../interface/pages/Profile/ProfileEditPage';
@@ -50,6 +53,9 @@ const router = createBrowserRouter([
       { path: 'quotes', element: <QuotesListPage /> },
       { path: '/quotes/:id', element: <QuoteDetailPage /> },
       { path: '/quotes/:id/edit/', element: <QuoteEditPage /> },
+      { path: '/clients', element: <ClientsListPage /> },
+      { path: '/clients/:id', element: <ClientDetailPage /> },
+      { path: '/clients/:id/edit', element: <ClientEditPage /> },
       { path: '/branding/themes', element: <ThemesListPage /> },
       { path: '/branding/themes/new', element: <ThemesCreatePage /> },
       { path: '/branding/themes/:id/edit', element: <ThemesEditPage /> },

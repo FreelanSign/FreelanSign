@@ -308,15 +308,15 @@ export default function QuoteCreatePage() {
     return { sub, tax, total: sub + tax };
   }, [watchedItems]);
 
-  // Charger clients — clientRepository.list() renvoie désormais toujours ClientDto[]
+  // Charger clients — clientRepository.list() renvoie désormais PageResponse<ClientDto>
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const list = await clientRepository.list();
+        const response = await clientRepository.list();
         if (!active) return;
-        // list est déjà typé ClientDto[], on l'affecte directement
-        setClients(list);
+        // Extraire results de PageResponse
+        setClients(response.results);
       } catch (e) {
         console.error('Erreur chargement clients', e);
         if (!active) return;
@@ -439,8 +439,8 @@ export default function QuoteCreatePage() {
   // Handle new client creation: refresh list + auto-select
   const handleClientCreated = async (newClient: ClientDto) => {
     try {
-      const list = await clientRepository.list();
-      setClients(list);
+      const response = await clientRepository.list();
+      setClients(response.results);
       setValue('client', String(newClient.id), {
         shouldValidate: true,
         shouldDirty: true,

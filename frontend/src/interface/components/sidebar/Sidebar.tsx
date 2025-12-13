@@ -52,6 +52,37 @@ const Sidebar: React.FC = () => {
       ),
     },
     {
+      to: '/clients',
+      label: 'Clients',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path
+            d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle
+            cx="9"
+            cy="7"
+            r="4"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
       to: '/branding/themes',
       label: 'Thèmes',
       icon: (
@@ -99,7 +130,9 @@ const Sidebar: React.FC = () => {
 
       <nav className={styles.nav} aria-label="Navigation principale">
         {items.map((it) => {
-          const active = location.pathname === it.to;
+          const active =
+            location.pathname === it.to ||
+            location.pathname.startsWith(it.to + '/');
           return (
             <Link key={it.to} to={it.to} title={it.label} aria-label={it.label}>
               <IconWrapper active={active}>{it.icon}</IconWrapper>
