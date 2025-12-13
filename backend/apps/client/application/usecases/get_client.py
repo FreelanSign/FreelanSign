@@ -14,6 +14,7 @@ class GetClient:
         return ClientViewModel(
             id=str(obj.id),
             owner_id=obj.owner_id,
+            account_id=obj.account_id,  # Phase 5
             name=obj.name,
             email=obj.email or None,
             phone=obj.phone or None,

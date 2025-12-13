@@ -1544,12 +1544,16 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   └── ThemesForm.tsx
 │   │   │   │   ├── client
 │   │   │   │   │   ├── client-create-drawer.module.css
-│   │   │   │   │   └── ClientCreateDrawer.tsx
+│   │   │   │   │   ├── client-form-fields.module.css
+│   │   │   │   │   ├── ClientCreateDrawer.tsx
+│   │   │   │   │   ├── ClientFormFields.tsx
+│   │   │   │   │   └── clientFormSchema.ts
 │   │   │   │   ├── common
 │   │   │   │   │   ├── card.module.css
 │   │   │   │   │   ├── Card.tsx
 │   │   │   │   │   ├── confirm-modal.module.css
 │   │   │   │   │   ├── ConfirmModal.tsx
+│   │   │   │   │   ├── DeleteConfirmDialog.tsx
 │   │   │   │   │   ├── Modal.css
 │   │   │   │   │   └── Modal.tsx
 │   │   │   │   ├── email
@@ -1599,6 +1603,13 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── ThemesCreatePage.tsx
 │   │   │   │   │   ├── ThemesEditPage.tsx
 │   │   │   │   │   └── ThemesListPage.tsx
+│   │   │   │   ├── Client
+│   │   │   │   │   ├── client-detail.module.css
+│   │   │   │   │   ├── client-edit.module.css
+│   │   │   │   │   ├── ClientDetailPage.tsx
+│   │   │   │   │   ├── ClientEditPage.tsx
+│   │   │   │   │   ├── clients-list.module.css
+│   │   │   │   │   └── ClientsListPage.tsx
 │   │   │   │   ├── dashboard.module.css
 │   │   │   │   ├── DashboardPage.tsx
 │   │   │   │   ├── LegalTerms
@@ -1681,7 +1692,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-305 directories, 920 files
+306 directories, 930 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1756,5 +1767,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-12 16:19:52 CET**
+_Updated_: **2025-12-13 11:17:26 CET**
 <!-- END AUTO: LAST_UPDATED -->
