@@ -4,7 +4,7 @@ from abc import abstractmethod
 from decimal import Decimal
 from typing import Any, Iterable, Protocol
 
-from apps.quote.models import Quote
+from apps.quote.models import Quote, QuoteLineItem
 
 
 class QuoteRepository(Protocol):
