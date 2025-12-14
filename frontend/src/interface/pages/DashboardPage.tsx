@@ -126,6 +126,7 @@ export default function DashboardPage() {
 
       <div className={styles.card}>
         <div className={styles.containerOverride}>
+          {/* AIDEV_NOTE : Quote latest table */}
           <DashboardLatestQuotesTable pageSize={5} />
         </div>
       </div>
