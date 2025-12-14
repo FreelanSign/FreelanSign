@@ -27,6 +27,7 @@ export const API_ENDPOINTS = {
   quotes: '/api/quotes/',
   quotePreview: '/api/quotes/preview-pdf/',
   quotePdf: (id: string | number) => `/api/quotes/${id}/pdf/`,
+  quoteMetrics: '/api/quotes/metrics/',
   requestPasswordReset: 'api/auth/request-password-reset/',
   preparedEmail: (quoteId: string | number) =>
     `api/quote/${quoteId}/prepared-email`,

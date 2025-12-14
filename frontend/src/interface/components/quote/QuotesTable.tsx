@@ -11,6 +11,7 @@ type QuoteItem = {
   issue_date?: string | null;
   total?: number | string | null;
   currency?: string | null;
+  client?: { id: string; name: string; email?: string } | null;
 };
 
 type PageResponse<T> = {
@@ -102,6 +103,9 @@ const QuotesTable: React.FC<{ pageSize?: number }> = ({ pageSize = 5 }) => {
                   Titre
                 </th>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
+                  Client
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
                   Statut
                 </th>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
@@ -124,6 +128,9 @@ const QuotesTable: React.FC<{ pageSize?: number }> = ({ pageSize = 5 }) => {
                   </td>
                   <td className="px-3 py-3 whitespace-nowrap text-gray-800">
                     {q.title}
+                  </td>
+                  <td className="px-3 py-3 whitespace-nowrap text-gray-700">
+                    {q.client?.name ?? '—'}
                   </td>
                   <td className="px-3 py-3 whitespace-nowrap">
                     <span

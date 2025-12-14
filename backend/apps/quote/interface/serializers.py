@@ -545,3 +545,25 @@ class QuoteListSerializer(serializers.ModelSerializer):
             "client",
         ]
         read_only_fields = fields
+
+
+# --------------------------------------------------------------------------------------
+# Dashboard Metrics Serializers
+# --------------------------------------------------------------------------------------
+
+
+class QuoteMonthlyMetricSerializer(serializers.Serializer):
+    """Serializer for monthly quote metrics (count + revenue)"""
+
+    month = serializers.DateField()
+    quote_count = serializers.IntegerField()
+    revenue = serializers.DecimalField(max_digits=12, decimal_places=2)
+
+
+class QuoteMetricsSerializer(serializers.Serializer):
+    """Serializer for dashboard metrics endpoint"""
+
+    total_quotes = serializers.IntegerField()
+    estimated_revenue = serializers.DecimalField(max_digits=12, decimal_places=2)
+    acceptance_rate = serializers.FloatField()
+    monthly_breakdown = QuoteMonthlyMetricSerializer(many=True)
