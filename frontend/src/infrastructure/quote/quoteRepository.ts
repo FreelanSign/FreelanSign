@@ -40,9 +40,13 @@ export const quoteRepository = {
   async list(params?: {
     page?: number;
     page_size?: number;
-    status?: string;
-    client?: string;
+
+    ordering?: string;
     search?: string;
+    status?: string[];
+    client?: string;
+    issue_date_after?: string;
+    issue_date_before?: string;
   }): Promise<PageResponse<ApiQuoteResponse>> {
     const { data } = await apiClient.get<PageResponse<ApiQuoteResponse>>(
       API_ENDPOINTS.quotes,
@@ -50,9 +54,12 @@ export const quoteRepository = {
         params: {
           page: params?.page,
           page_size: params?.page_size,
-          status: params?.status,
+          ordering: params?.ordering,
+          search: params?.search?.trim() || undefined,
           client: params?.client,
-          search: params?.search,
+          status: params?.status?.length ? params.status.join(',') : undefined,
+          issue_date_after: params?.issue_date_after,
+          issue_date_before: params?.issue_date_before,
         },
       },
     );

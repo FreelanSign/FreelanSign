@@ -8,42 +8,81 @@
   font-style: normal;
 }
 
+/* AIDEV-NOTE: Attention ces variables ne sont pas compatibles avec shadcn/ui (utilisé @utility comme en dessous pour ça)*/
 @theme {
   --font-family-playfair: 'Playfair Display', serif;
 
-  /* Vos autres variables de couleurs shadcn */
-  --color-border: 214.3 31.8% 91.4%;
-  --color-input: 214.3 31.8% 91.4%;
-  --color-ring: 222.2 84% 4.9%;
+  /* FreelanSign brand colors */
+  --color-brand-foreground: 0 0% 100%;
+
+  --color-accent-orange: 18 79% 51%;
+  --color-accent-orange-foreground: 0 0% 7%;
+
+  /* Shadcn tokens aligned with FreelanSign */
+  --color-border: 220 13% 91%;
+  --color-input: 220 13% 91%;
+  --color-ring: 166 100% 39%;
   --color-background: 0 0% 100%;
-  --color-foreground: 222.2 84% 4.9%;
+  --color-foreground: 0 0% 5%;
 
-  --color-primary: 222.2 47.4% 11.2%;
-  --color-primary-foreground: 210 40% 98%;
+  --color-primary: 166 100% 39%;
+  --color-primary-foreground: 0 0% 100%;
 
-  --color-secondary: 210 40% 96%;
-  --color-secondary-foreground: 222.2 84% 4.9%;
+  --color-secondary: 220 14% 96%;
+  --color-secondary-foreground: 0 0% 5%;
 
-  --color-muted: 210 40% 96%;
-  --color-muted-foreground: 215.4 16.3% 46.9%;
+  --color-muted: 220 14% 96%;
+  --color-muted-foreground: 220 9% 46%;
 
-  --color-accent: 210 40% 96%;
-  --color-accent-foreground: 222.2 84% 4.9%;
+  --color-accent: 220 14% 96%;
+  --color-accent-foreground: 0 0% 5%;
 
-  --color-destructive: 0 72.2% 50.6%;
-  --color-destructive-foreground: 210 40% 98%;
+  --color-destructive: 0 72% 51%;
+  --color-destructive-foreground: 0 0% 98%;
 
   --color-card: 0 0% 100%;
-  --color-card-foreground: 222.2 84% 4.9%;
+  --color-card-foreground: 0 0% 5%;
 
   --color-popover: 0 0% 100%;
-  --color-popover-foreground: 222.2 84% 4.9%;
+  --color-popover-foreground: 0 0% 5%;
 
   --radius: 0.5rem;
 }
 
+/* AIDEV-NOTE: Utility classes pour les couleurs FreelanSign */
 @utility font-playfair {
   font-family: theme(--font-family-playfair);
+}
+
+@utility bg-brand {
+  background-color: hsl(166 100% 39%);
+}
+@utility text-brand {
+  color: hsl(166 100% 39%);
+}
+@utility border-brand {
+  border-color: hsl(166 100% 39%);
+}
+@utility ring-brand {
+  --tw-ring-color: hsl(166 100% 39%);
+}
+@utility text-brand-foreground {
+  color: hsl(0 0% 100%); /* Ajout */
+}
+
+@utility bg-accent-orange {
+  background-color: hsl(18 79% 51%);
+}
+@utility text-accent-orange {
+  color: hsl(18 79% 51%);
+}
+@utility border-accent-orange {
+  /* Ajout */
+  border-color: hsl(18 79% 51%);
+}
+@utility ring-accent-orange {
+  /* Ajout */
+  --tw-ring-color: hsl(18 79% 51%);
 }
 
 /* Mode sombre */

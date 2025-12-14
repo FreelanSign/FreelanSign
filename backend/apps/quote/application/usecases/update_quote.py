@@ -96,19 +96,23 @@ class UpdateQuoteUseCase:
             logger.debug("quote.update.preserve_items", extra={"quote_id": str(quote_id)})
 
         # --- Totals ---
-        totals = self.quote_repo.recalc_totals(quote_id=quote_id)
-        discount_total = quantize_money(Decimal(str(getattr(quote, "discount_total", ZERO) or ZERO)))
-        total = quantize_money(totals["subtotal"] + totals["tax_total"] - discount_total)
-
-        self.quote_repo.save_header(
-            quote_id=quote_id,
-            fields={
-                "subtotal": totals["subtotal"],
-                "tax_total": totals["tax_total"],
-                "discount_total": discount_total,
-                "total": total,
-            },
-        )
+        # The quote repository recalculates using DB state and saves the result (subtotal, tax_total, total).
+        # We don't need to manually compute or save header again.
+        try:
+            totals = self.quote_repo.recalc_totals(quote_id=quote_id)
+            logger.debug(
+                "quote.update.recalc_totals",
+                extra={
+                    "quote_id": str(quote_id),
+                    "totals": totals,
+                },
+            )
+        except Exception as e:
+            logger.exception(
+                "quote.update.recalc_totals.failed",
+                extra={"quote_id": str(quote_id)},
+            )
+            raise e
 
         updated = self.quote_repo.get(quote_id=quote_id, requester_id=requester_id)
         logger.info(

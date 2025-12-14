@@ -4,7 +4,7 @@ from abc import abstractmethod
 from decimal import Decimal
 from typing import Any, Iterable, Protocol
 
-from apps.quote.models import Quote
+from apps.quote.models import Quote, QuoteLineItem
 
 
 class QuoteRepository(Protocol):
@@ -61,11 +61,6 @@ class QuoteRepository(Protocol):
         discount: Decimal,
         order: int,
         metadata: dict,
-    ) -> None:
-        """Add a line item to a quote."""
-        ...
-
-    @abstractmethod
-    def recalc_totals(self, *, quote_id: str) -> dict:
-        """Recalculate and return updated totals for a given quote."""
+    ) -> tuple["Quote", "QuoteLineItem"]:
+        """Add a line item to a quote and return the updated quote and line item."""
         ...

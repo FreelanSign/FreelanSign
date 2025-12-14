@@ -684,10 +684,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── fields.py
 │   │   │   ├── interface
 │   │   │   │   ├── __init__.py
-│   │   │   │   └── api
-│   │   │   │       ├── __init__.py
-│   │   │   │       ├── audit_views.py
-│   │   │   │       └── serializers.py
+│   │   │   │   ├── api
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── audit_views.py
+│   │   │   │   │   └── serializers.py
+│   │   │   │   └── pagination.py
 │   │   │   ├── logging.py
 │   │   │   ├── management
 │   │   │   │   ├── __init__.py
@@ -938,6 +939,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │       └── totals.py
 │   │   │   ├── interface
 │   │   │   │   ├── __init__.py
+│   │   │   │   ├── filter.py
 │   │   │   │   ├── permissions.py
 │   │   │   │   ├── renderers.py
 │   │   │   │   ├── serializers.py
@@ -952,7 +954,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── 0005_add_account_fk.py
 │   │   │   │   ├── 0006_migrate_to_account.py
 │   │   │   │   ├── 0007_account_not_null.py
-│   │   │   │   └── 0008_alter_quote_account.py
+│   │   │   │   ├── 0008_alter_quote_account.py
+│   │   │   │   └── 0009_quote_ix_quote_account_updated_at_and_more.py
 │   │   │   ├── models.py
 │   │   │   ├── signals.py
 │   │   │   ├── tests
@@ -1482,8 +1485,13 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   └── react.svg
 │   │   ├── components
 │   │   │   └── ui
+│   │   │       ├── badge.tsx
 │   │   │       ├── button.tsx
 │   │   │       ├── dialog.tsx
+│   │   │       ├── dropdown-menu.tsx
+│   │   │       ├── input.tsx
+│   │   │       ├── skeleton.tsx
+│   │   │       ├── table.tsx
 │   │   │       └── textarea.tsx
 │   │   ├── domain
 │   │   │   ├── account
@@ -1556,6 +1564,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── DeleteConfirmDialog.tsx
 │   │   │   │   │   ├── Modal.css
 │   │   │   │   │   └── Modal.tsx
+│   │   │   │   ├── data-table
+│   │   │   │   │   └── DataTable.tsx
 │   │   │   │   ├── email
 │   │   │   │   │   ├── quote-email-preview-dialog.module.css
 │   │   │   │   │   └── QuoteEmailPreviewDialog.tsx
@@ -1575,6 +1585,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   └── ProfessionalUserDataForm.tsx
 │   │   │   │   ├── quote
 │   │   │   │   │   ├── PdfPreviewPane.tsx
+│   │   │   │   │   ├── quote-column-components.tsx
+│   │   │   │   │   ├── quote-utils.ts
+│   │   │   │   │   ├── quotes-columns.tsx
 │   │   │   │   │   └── QuotesTable.tsx
 │   │   │   │   ├── register
 │   │   │   │   │   ├── register-form.module.css
@@ -1629,8 +1642,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── QuoteCreatePage.tsx
 │   │   │   │   │   ├── QuoteDetailPage.tsx
 │   │   │   │   │   ├── QuoteEditPage.tsx
-│   │   │   │   │   ├── QuoteListPage.tsx
-│   │   │   │   │   └── quotes-list.module.css
+│   │   │   │   │   └── QuoteListPage.tsx
 │   │   │   │   └── Register
 │   │   │   │       ├── RegisterPage.module.css
 │   │   │   │       └── RegisterPage.tsx
@@ -1692,7 +1704,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-306 directories, 930 files
+307 directories, 941 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1700,15 +1712,17 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 <!-- BEGIN AUTO: FRONTEND_PACKAGE_JSON -->
 Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
 **name**: `frontend`  •  **version**: `0.2.0`
-**scripts**: 10  •  **dependencies**: 19  •  **devDependencies**: 29
+**scripts**: 10  •  **dependencies**: 21  •  **devDependencies**: 29
 
 <details><summary>Top dependencies</summary>
 
 - @headlessui/react: ^2.2.9
 - @hookform/resolvers: ^5.2.2
 - @radix-ui/react-dialog: ^1.1.15
+- @radix-ui/react-dropdown-menu: ^2.1.16
 - @radix-ui/react-slot: ^1.2.4
 - @tailwindcss/vite: ^4.1.13
+- @tanstack/react-table: ^8.21.3
 - axios: ^1.12.2
 - class-variance-authority: ^0.7.1
 - clsx: ^2.1.1
@@ -1722,7 +1736,6 @@ Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
 - react-router-dom: ^7.9.1
 - tailwind-merge: ^3.3.1
 - tailwindcss: ^4.1.13
-- zod: ^4.1.9
 
 </details>
 
@@ -1767,5 +1780,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-13 11:17:26 CET**
+_Updated_: **2025-12-14 14:25:30 CET**
 <!-- END AUTO: LAST_UPDATED -->

@@ -518,3 +518,30 @@ class QuotePreviewPayloadSerializer(serializers.Serializer):
             normalized_lines.append(line)
         data["lines"] = normalized_lines
         return data
+
+
+# --------------------------------------------------------------------------------------
+# List serializer
+# --------------------------------------------------------------------------------------
+class ClientMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Client
+        fields = ["id", "name", "email"]
+
+
+class QuoteListSerializer(serializers.ModelSerializer):
+    client = ClientMiniSerializer(read_only=True)
+
+    class Meta:
+        model = Quote
+        fields = [
+            "id",
+            "reference",
+            "title",
+            "status",
+            "issue_date",
+            "total",
+            "updated_at",
+            "client",
+        ]
+        read_only_fields = fields
