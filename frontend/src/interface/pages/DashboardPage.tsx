@@ -1,14 +1,14 @@
+import { DashboardLatestQuotesTable } from '@/interface/components/quote/LatestQuotesTable';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/providers/AuthProvider';
+import { mapMetricsToUi } from '../../application/quote/metricsMapper';
+import type { QuoteMetricsUi } from '../../domain/quote/metricsTypes';
 import { useAccountStore } from '../../infrastructure/account/accountStore';
 import { quoteRepository } from '../../infrastructure/quote/quoteRepository';
-import { mapMetricsToUi } from '../../application/quote/metricsMapper';
 import { MetricCard } from '../components/dashboard/MetricCard';
-import { MonthlyRevenueChart } from '../components/dashboard/MonthlyRevenueChart';
 import { MonthlyQuoteCountChart } from '../components/dashboard/MonthlyQuoteCountChart';
-import QuotesTable from '../components/quote/QuotesTable';
-import type { QuoteMetricsUi } from '../../domain/quote/metricsTypes';
+import { MonthlyRevenueChart } from '../components/dashboard/MonthlyRevenueChart';
 import styles from './dashboard.module.css';
 
 export default function DashboardPage() {
@@ -126,10 +126,7 @@ export default function DashboardPage() {
 
       <div className={styles.card}>
         <div className={styles.containerOverride}>
-          <QuotesTable />
-        </div>
-        <div className={styles.cardMeta}>
-          Affichage limité — tu peux ajuster le widget depuis le dashboard.
+          <DashboardLatestQuotesTable pageSize={5} />
         </div>
       </div>
     </div>

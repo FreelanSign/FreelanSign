@@ -1,5 +1,4 @@
-import React from 'react'; // <-- important
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'; // <-- important
 import { Link } from 'react-router-dom';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 
