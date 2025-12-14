@@ -25,38 +25,33 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.core.interface.pagination import StandardResultsSetPagination
 from apps.core.logging import get_logger
 from apps.quote.adapters.pdf.playwright_generator import PlaywrightPdfGenerator  # type: ignore
-from apps.quote.adapters.persistence.django_prestation_repository import (
-    DjangoPrestationRepository,
-)
+from apps.quote.adapters.persistence.django_prestation_repository import DjangoPrestationRepository
 
 # --- NEW: Clean Arch imports (use cases + adapters) -----------------------------------
 from apps.quote.adapters.persistence.django_quote_repository import DjangoQuoteRepository  # type: ignore
 from apps.quote.adapters.rendering.django_template_renderer import DjangoTemplateRenderer  # type: ignore
 from apps.quote.adapters.rendering.pdf_context_presenter import preview_context
 from apps.quote.application.dto.quote_inputs import LineItemInputDTO, PreviewPayloadDTO
-from apps.quote.application.usecases.add_prestation_line import (
-    AddPrestationLineInput,
-    AddPrestationLineToQuote,
-)
+from apps.quote.application.usecases.add_prestation_line import AddPrestationLineInput, AddPrestationLineToQuote
 from apps.quote.application.usecases.change_status import ChangeStatus  # type: ignore
 from apps.quote.application.usecases.download_pdf import DownloadPdf  # type: ignore
 from apps.quote.application.usecases.duplicate_quote import DuplicateQuote  # type: ignore
 from apps.quote.application.usecases.generate_preview import generate_preview
 from apps.quote.application.usecases.send_quote import SendQuote  # type: ignore
+from apps.quote.interface.filter import QuoteFilter
 from apps.quote.interface.permissions import IsOwnerOrAdmin
 from apps.quote.interface.renderers import PDFRenderer
 from apps.quote.interface.serializers import (
     QuoteCreateUpdateSerializer,
+    QuoteListSerializer,
     QuotePreviewPayloadSerializer,
     QuoteSerializer,
 )
 from apps.quote.models import Quote, QuoteHistory, QuoteLineItem
-from apps.user.interface.permissions.account_permissions import (
-    HasAccountContext,
-    IsAccountOwner,
-)
+from apps.user.interface.permissions.account_permissions import HasAccountContext, IsAccountOwner
 
 logger = logging.getLogger(__name__)
 
@@ -128,14 +123,13 @@ class QuoteViewSet(viewsets.ModelViewSet):
     Views minces : délèguent au coeur applicatif (use cases).
     """
 
-    queryset = Quote.objects.all().select_related("client").prefetch_related("items")
     serializer_class = QuoteSerializer
     permission_classes = [IsOwnerOrAdmin, HasAccountContext]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
-    filterset_fields = ["status", "client", "owner"]
-    ordering_fields = ["issue_date", "total"]
-    search_fields = ["reference", "title", "metadata"]
+    filterset_class = QuoteFilter
+    ordering_fields = ["issue_date", "total", "updated_at"]
+    search_fields = ["reference", "title", "client__name", "client__email", "metadata"]
 
     # --- helpers clean ----------------------------------------------------------------
     def _repo(self) -> DjangoQuoteRepository:
@@ -188,12 +182,8 @@ class QuoteViewSet(viewsets.ModelViewSet):
         log = get_logger(__name__)
         log.debug("quote.load_theme.start professional_id=%s", professional_id)
         try:
-            from apps.branding.adapters.persistence.django_theme_repository import (
-                DjangoThemeRepository,
-            )
-            from apps.branding.application.usecases.get_theme_for_rendering import (
-                GetThemeForRenderingUseCase,
-            )
+            from apps.branding.adapters.persistence.django_theme_repository import DjangoThemeRepository
+            from apps.branding.application.usecases.get_theme_for_rendering import GetThemeForRenderingUseCase
 
             repository = DjangoThemeRepository()
             use_case = GetThemeForRenderingUseCase(theme_repository=repository)
@@ -217,21 +207,26 @@ class QuoteViewSet(viewsets.ModelViewSet):
         import logging
 
         logging.getLogger(__name__).info(f"[DEBUG] serializer_class – action: {self.action}")
+        if self.action == "list":
+            return QuoteListSerializer
         if self.action in ("create", "update", "partial_update"):
             return QuoteCreateUpdateSerializer
         return QuoteSerializer
 
     def get_queryset(self):
-        queryset = Quote.objects.select_related("client").prefetch_related(
-            Prefetch("items", queryset=QuoteLineItem.objects.select_related().order_by("order"))
-        )
+        # AIDEV_NOTE: on ne veut pas charger les lignes pour la page liste.
+        # on conditionne le chargement des lignes sur l'action
+        queryset = Quote.objects.select_related("client")
+        if self.action in ("retrieve", "update", "partial_update"):
+            queryset = queryset.prefetch_related(
+                Prefetch("items", queryset=QuoteLineItem.objects.select_related().order_by("order"))
+            )
         user = getattr(self.request, "user", None)
         account = getattr(self.request, "account", None)
 
         if user and (user.is_staff or user.is_superuser):
             return queryset
 
-        # Phase 5: Filter by account
         if account:
             return queryset.filter(account=account)
 
@@ -581,12 +576,8 @@ class QuotePreviewPdfView(APIView):
         log = get_logger(__name__)
         log.debug("quote.preview.load_theme.start professional_id=%s", professional_id)
         try:
-            from apps.branding.adapters.persistence.django_theme_repository import (
-                DjangoThemeRepository,
-            )
-            from apps.branding.application.usecases.get_theme_for_rendering import (
-                GetThemeForRenderingUseCase,
-            )
+            from apps.branding.adapters.persistence.django_theme_repository import DjangoThemeRepository
+            from apps.branding.application.usecases.get_theme_for_rendering import GetThemeForRenderingUseCase
 
             repository = DjangoThemeRepository()
             use_case = GetThemeForRenderingUseCase(theme_repository=repository)

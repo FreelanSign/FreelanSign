@@ -71,7 +71,7 @@ class DjangoQuoteRepository(QuoteRepository):
                 description=it["description"][:255],
                 qty=it["qty"],
                 unit_price=it["unit_price"],
-                tax_rate=it["tax_rate_pct"],
+                tax_rate=it.get("tax_rate", Decimal("0.00")),
                 discount=it.get("discount", Decimal("0.00")),
                 order=i,
                 metadata=it.get("metadata", {}),

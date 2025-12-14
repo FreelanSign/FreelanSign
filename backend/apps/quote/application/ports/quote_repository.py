@@ -61,11 +61,6 @@ class QuoteRepository(Protocol):
         discount: Decimal,
         order: int,
         metadata: dict,
-    ) -> None:
-        """Add a line item to a quote."""
-        ...
-
-    @abstractmethod
-    def recalc_totals(self, *, quote_id: str) -> dict:
-        """Recalculate and return updated totals for a given quote."""
+    ) -> tuple["Quote", "QuoteLineItem"]:
+        """Add a line item to a quote and return the updated quote and line item."""
         ...

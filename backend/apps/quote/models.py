@@ -152,6 +152,10 @@ class Quote(models.Model):
         indexes = [
             Index(fields=["owner", "reference"], name="ix_quote_owner_reference"),
             Index(fields=["status"], name="ix_quote_status"),
+            Index(fields=["account", "updated_at"], name="ix_quote_account_updated_at"),
+            Index(fields=["account", "issue_date"], name="ix_quote_account_issue_date"),
+            Index(fields=["account", "status"], name="ix_quote_account_status"),
+            Index(fields=["account", "reference"], name="ix_quote_account_reference"),
         ]
         ordering = ["-created_at"]
 

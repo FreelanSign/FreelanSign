@@ -16,6 +16,9 @@
 		"cursorpyright.analysis.extraPaths": [
 			"backend",
 			"backend/apps"
+		],
+		"cSpell.words": [
+			"AIDEV"
 		]
 	}
 }
