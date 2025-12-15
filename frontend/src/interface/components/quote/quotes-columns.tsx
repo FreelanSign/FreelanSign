@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { StatusPill } from './quote-column-components';
 import { formatDate, formatMoney } from './quote-utils';
+import { QuoteActionsCell } from './QuoteActionsCell';
 
 export type QuoteRow = {
   id: string;
@@ -116,33 +117,6 @@ export const quoteColumns: Array<ColumnDef<QuoteRow, unknown>> = [
   {
     id: 'actions',
     header: () => <span className="sr-only">Actions</span>,
-    cell: ({ row }) => {
-      const q = row.original;
-      return (
-        <div className="flex justify-end gap-2">
-          {/* Boutons d'action : Utilise `outline` pour rester discret, ou `ghost` si vous voulez encore moins de visibilité */}
-          <Link to={`/quotes/${q.id}`}>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="hover:bg-accent hover:text-accent-foreground"
-            >
-              Voir
-            </Button>
-          </Link>
-          <Link to={`/quotes/${q.id}/edit`}>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="hover:bg-accent hover:text-accent-foreground"
-            >
-              Éditer
-            </Button>
-          </Link>
-        </div>
-      );
-    },
+    cell: ({ row }) => <QuoteActionsCell quote={row.original} />,
   },
 ];

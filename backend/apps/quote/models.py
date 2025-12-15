@@ -13,6 +13,8 @@ from django.db.models import F, Index, Q, UniqueConstraint, Value
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
+from apps.core.models import SoftDeleteModel
+
 # Reusable decimal options for money-like fields
 DECIMAL_KWARGS = dict(max_digits=12, decimal_places=2, default=Decimal("0.00"))
 
@@ -55,10 +57,12 @@ class PaymentTerms(models.Model):
         return f"{self.name} ({self.days}d)"
 
 
-class Quote(models.Model):
+class Quote(SoftDeleteModel, models.Model):
     """
     Commercial quote document. Stores header amounts separately from line items
     to allow integrity checks and faster reads.
+
+    Soft delete enabled for RGPD compliance (10 years retention).
     """
 
     class Status(models.TextChoices):
@@ -239,6 +243,38 @@ class Quote(models.Model):
         if (self.total or Decimal("0.00")).quantize(Decimal("0.01")) != expected:
             raise ValidationError({"total": f"Total mismatch: expected {expected} but got {self.total}"})
 
+    def delete(self, hard: bool = False, using=None, keep_parents=False):
+        """
+        Soft-delete Quote with RGPD compliance.
+
+        Blocks deletion if status is active (DRAFT, SENT, ACCEPTED).
+        Allows deletion for terminated statuses (PAID, CANCELLED, EXPIRED, REJECTED).
+
+        Args:
+            hard: If True, performs hard delete (bypass soft delete)
+            using: Database alias
+            keep_parents: Standard Django delete parameter
+
+        Raises:
+            ValidationError: If Quote status is active
+        """
+        if hard:
+            return super().delete(hard=True, using=using, keep_parents=keep_parents)
+
+        # AIDEV-NOTE: Block deletion for active statuses only
+        # PAID/CANCELLED/EXPIRED/REJECTED = transaction terminated, legal retention with soft delete
+        active_statuses = [self.Status.DRAFT, self.Status.SENT, self.Status.ACCEPTED]
+        if self.status in active_statuses:
+            raise ValidationError(
+                "Impossible de supprimer le devis : le statut est actif. " "Veuillez d'abord finaliser ou annuler le devis."
+            )
+
+        # Soft-delete via SoftDeleteModel mechanism
+        if not self.is_deleted:
+            self.is_deleted = True
+            self.deleted_at = timezone.now()
+            self.save(update_fields=["is_deleted", "deleted_at"])
+
 
 class QuoteLineItem(models.Model):
     """
@@ -335,6 +371,7 @@ class QuoteHistory(models.Model):
         UPDATED = "updated", "Updated"
         SENT = "sent", "Sent"
         STATUS_CHANGED = "status_changed", "Status changed"
+        DELETED = "deleted", "Deleted"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="history", help_text="Related quote.")

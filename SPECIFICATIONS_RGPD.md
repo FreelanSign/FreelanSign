@@ -1033,20 +1033,20 @@ def export_user_data(request):
   - [x] Logger les actions sensibles (création/suppression compte, client)
   - [x] Ajouter endpoint admin pour consulter les logs
 
-- [ ] **Politique de Rétention**
-  - [ ] Créer command `apply_retention_policy` (management command)
-  - [ ] Implémenter purge automatique (13 mois logs, 10 ans comptabilité)
-  - [ ] Configurer CRON hebdomadaire
+- [x] **Politique de Rétention**
+  - [x] Créer command `apply_retention_policy` (management command)
+  - [x] Implémenter purge automatique (13 mois logs, 10 ans comptabilité)
+  - [x] Configurer CRON hebdomadaire
 
-- [ ] **Export RGPD**
-  - [ ] Créer endpoint `/api/user/export-data/` (JSON export)
-  - [ ] Tester avec utilisateur réel
-  - [ ] Ajouter bouton "Télécharger mes données" dans l'UI
+- [x] **Export RGPD**
+  - [x] Créer endpoint `/api/user/export-data/` (JSON export)
+  - [x] Tester avec utilisateur réel
+  - [x] Ajouter bouton "Télécharger mes données" dans l'UI
 
-- [ ] **Anonymisation "Droit à l'Oubli"**
-  - [ ] Créer fonction `anonymize_account_for_deletion()`
-  - [ ] Créer fonction `anonymize_client_for_deletion()`
-  - [ ] Tester sur données de dev
+- [x] **Anonymisation "Droit à l'Oubli"**
+  - [x] Créer fonction `anonymize_account_for_deletion()`
+  - [x] Créer fonction `anonymize_client_for_deletion()`
+  - [x] Tester sur données de dev
 
 ### 5.2 Backend (Priorité 2 - Fonctionnalités Futures)
 

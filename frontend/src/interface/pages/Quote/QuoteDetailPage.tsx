@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 import QuoteEmailPreviewDialog from '../../components/email/QuoteEmailPreviewDialog';
+import DeleteConfirmDialog from '../../components/common/DeleteConfirmDialog';
 import styles from './quote-detail.module.css';
 
 import { apiToUiQuoteDetail } from '../../../domain/quote/mappers';
@@ -52,11 +53,15 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function QuoteDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [quote, setQuote] = useState<UiQuoteDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   async function handleDownload() {
     try {
@@ -66,6 +71,29 @@ export default function QuoteDetailPage() {
       alert((err as Error).message || 'Erreur téléchargement PDF');
     } finally {
       setDownloading(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!id) return;
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      await quoteRepository.delete(id);
+      setShowDeleteDialog(false);
+      navigate('/quotes');
+    } catch (error: unknown) {
+      const err = error as {
+        response?: { data?: { detail?: string } };
+        message?: string;
+      };
+      const errorMsg =
+        err.response?.data?.detail ||
+        err.message ||
+        'Erreur lors de la suppression';
+      setDeleteError(errorMsg);
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -364,10 +392,71 @@ export default function QuoteDetailPage() {
         </section>
       )}
 
+      {/* Danger Zone */}
+      <section
+        className={styles.card}
+        style={{
+          borderColor: '#fca5a5',
+          backgroundColor: '#fef2f2',
+        }}
+      >
+        <h3 className={styles.h3} style={{ color: '#dc2626' }}>
+          Zone dangereuse
+        </h3>
+        <div style={{ marginTop: '12px' }}>
+          <p
+            style={{ fontSize: '14px', color: '#7f1d1d', marginBottom: '16px' }}
+          >
+            La suppression est irréversible pour les devis terminés (Payé,
+            Annulé, Expiré, Refusé).
+            {['DRAFT', 'SENT', 'ACCEPTED'].includes(quote.status) && (
+              <strong style={{ display: 'block', marginTop: '8px' }}>
+                ⚠️ La suppression est bloquée car le devis est en cours (statut:{' '}
+                {quote.status}).
+              </strong>
+            )}
+          </p>
+          <button
+            onClick={() => setShowDeleteDialog(true)}
+            disabled={['DRAFT', 'SENT', 'ACCEPTED'].includes(quote.status)}
+            className={styles.buttonDanger}
+            style={{
+              opacity: ['DRAFT', 'SENT', 'ACCEPTED'].includes(quote.status)
+                ? 0.5
+                : 1,
+              cursor: ['DRAFT', 'SENT', 'ACCEPTED'].includes(quote.status)
+                ? 'not-allowed'
+                : 'pointer',
+            }}
+            title={
+              ['DRAFT', 'SENT', 'ACCEPTED'].includes(quote.status)
+                ? 'La suppression est bloquée pour les devis en cours'
+                : 'Supprimer le devis'
+            }
+          >
+            Supprimer ce devis
+          </button>
+        </div>
+      </section>
+
       <QuoteEmailPreviewDialog
         open={showEmailDialog}
         onClose={() => setShowEmailDialog(false)}
         quoteId={quote.id}
+      />
+
+      <DeleteConfirmDialog
+        open={showDeleteDialog}
+        onClose={() => {
+          setShowDeleteDialog(false);
+          setDeleteError(null);
+        }}
+        onConfirm={handleDelete}
+        title="Supprimer le devis"
+        message={`Êtes-vous sûr de vouloir supprimer définitivement le devis "${quote.reference}" ? Cette action ne peut pas être annulée.`}
+        confirmText="Supprimer définitivement"
+        isDeleting={isDeleting}
+        errorMessage={deleteError}
       />
     </Shell>
   );
