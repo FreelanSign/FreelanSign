@@ -32,10 +32,11 @@ export const clientRepository = {
     search?: string;
     page?: number;
     page_size?: number;
+    ordering?: string;
   }): Promise<PageResponse<ClientDto>> {
     const resp = await apiClient.get(API_ENDPOINTS.clients, {
       params: {
-        ordering: 'name',
+        ordering: params?.ordering ?? 'name',
         search: params?.search ?? undefined,
         page: params?.page ?? undefined,
         page_size: params?.page_size ?? undefined,

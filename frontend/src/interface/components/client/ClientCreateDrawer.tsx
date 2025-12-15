@@ -13,12 +13,12 @@ import {
 } from '../../../components/ui/dialog';
 import type { ClientCreateDto, ClientDto } from '../../../domain/client/types';
 import { clientRepository } from '../../../infrastructure/client/clientRepository';
+import styles from './client-create-drawer.module.css';
 import ClientFormFields from './ClientFormFields';
 import {
   clientValidationSchema,
   type ClientFormData,
 } from './clientFormSchema';
-import styles from './client-create-drawer.module.css';
 
 interface ClientCreateDrawerProps {
   open: boolean;
@@ -86,9 +86,7 @@ export default function ClientCreateDrawer({
       <DialogContent className={styles.drawerContent}>
         <DialogHeader className={styles.header}>
           <DialogTitle>Nouveau client</DialogTitle>
-          <DialogDescription>
-            Créez un nouveau client pour cette facture.
-          </DialogDescription>
+          <DialogDescription>Créez un nouveau client.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={onSubmit} className={styles.form} noValidate>

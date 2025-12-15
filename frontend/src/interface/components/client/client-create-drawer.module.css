@@ -165,13 +165,13 @@
 }
 
 .buttonSubmit {
-  background-color: #3b82f6;
-  border: 1px solid #3b82f6;
+  background-color: var(--brand);
+  border: 1px solid #006754;
   color: white;
 }
 
 .buttonSubmit:hover:not(:disabled) {
-  background-color: #2563eb;
+  background-color: #006754;
 }
 
 .buttonCancel:disabled,

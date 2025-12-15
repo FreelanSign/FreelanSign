@@ -15,6 +15,7 @@ from apps.client.application.dto.client_inputs import (
     ListClientsInput,
     UpdateClientInput,
 )
+from apps.client.application.errors import RepositoryError
 from apps.client.application.usecases.create_client import CreateClient
 from apps.client.application.usecases.delete_client import DeleteClient
 from apps.client.application.usecases.get_client import GetClient
@@ -185,3 +186,7 @@ class StandardClientViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except ClientNotFoundError:
             return Response(status=status.HTTP_404_NOT_FOUND)
+        except RepositoryError as e:
+            # AIDEV-NOTE: RepositoryError from signal protection (e.g., active quotes exist)
+            # Return 400 with error message for frontend display
+            return Response({"detail": str(e.message)}, status=status.HTTP_400_BAD_REQUEST)

@@ -4,6 +4,8 @@ export type ClientDto = {
   email?: string | null;
   phone?: string | null;
   address?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 export type ClientCreateDto = {
