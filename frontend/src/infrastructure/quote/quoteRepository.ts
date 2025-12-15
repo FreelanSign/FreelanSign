@@ -129,4 +129,12 @@ export const quoteRepository = {
     );
     return data;
   },
+
+  /**
+   * Supprime un devis (soft delete avec protection statut).
+   * Bloque la suppression si statut actif (DRAFT, SENT, ACCEPTED).
+   */
+  async delete(id: string): Promise<void> {
+    await apiClient.delete(`${API_ENDPOINTS.quotes}${id}/`);
+  },
 };

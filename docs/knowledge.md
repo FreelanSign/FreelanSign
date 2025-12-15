@@ -955,7 +955,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── 0006_migrate_to_account.py
 │   │   │   │   ├── 0007_account_not_null.py
 │   │   │   │   ├── 0008_alter_quote_account.py
-│   │   │   │   └── 0009_quote_ix_quote_account_updated_at_and_more.py
+│   │   │   │   ├── 0009_quote_ix_quote_account_updated_at_and_more.py
+│   │   │   │   └── 0010_add_soft_delete_to_quote.py
 │   │   │   ├── models.py
 │   │   │   ├── signals.py
 │   │   │   ├── tests
@@ -986,6 +987,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── test_permissions.py
 │   │   │   │   ├── test_preview.py
 │   │   │   │   ├── test_quote_actions_api.py
+│   │   │   │   ├── test_quote_soft_delete.py
 │   │   │   │   └── test_serializers.py
 │   │   │   └── views.py
 │   │   └── user
@@ -1598,6 +1600,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── PdfPreviewPanel.tsx
 │   │   │   │   │   ├── quote-column-components.tsx
 │   │   │   │   │   ├── quote-utils.ts
+│   │   │   │   │   ├── QuoteActionsCell.tsx
 │   │   │   │   │   └── quotes-columns.tsx
 │   │   │   │   ├── register
 │   │   │   │   │   ├── register-form.module.css
@@ -1714,7 +1717,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-310 directories, 948 files
+310 directories, 951 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1780,7 +1783,6 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 | `LegalProfileModel` | `apps/legal_terms/adapters/persistence/models.py` |
 | `AttachedTermsModel` | `apps/legal_terms/adapters/persistence/models.py` |
 | `PaymentTerms` | `apps/quote/models.py` |
-| `Quote` | `apps/quote/models.py` |
 | `QuoteLineItem` | `apps/quote/models.py` |
 | `QuoteHistory` | `apps/quote/models.py` |
 | `Profile` | `apps/user/models/models.py` |
@@ -1790,5 +1792,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-14 19:14:15 CET**
+_Updated_: **2025-12-15 14:39:52 CET**
 <!-- END AUTO: LAST_UPDATED -->

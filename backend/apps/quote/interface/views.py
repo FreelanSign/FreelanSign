@@ -312,14 +312,25 @@ class QuoteViewSet(viewsets.ModelViewSet):
             raise
 
     def perform_destroy(self, instance: Quote):
-        instance.status = Quote.Status.CANCELLED
-        instance.save(update_fields=["status", "updated_at"])
-        QuoteHistory.objects.create(
-            quote=instance,
-            payload_snapshot={"action": "partial_delete"},
-            action=QuoteHistory.Action.UPDATED,
-            actor=getattr(self.request, "user", None),
-        )
+        """
+        Soft-delete quote with RGPD compliance.
+        Blocks deletion if status is active (DRAFT, SENT, ACCEPTED).
+        Logs deletion in QuoteHistory for audit trail.
+        """
+        try:
+            # Trigger soft delete with protection logic
+            instance.delete()
+
+            # Log deletion in QuoteHistory for audit trail
+            QuoteHistory.objects.create(
+                quote=instance,
+                payload_snapshot={"action": "soft_delete", "status": instance.status},
+                action=QuoteHistory.Action.DELETED,
+                actor=getattr(self.request, "user", None),
+            )
+        except ValidationError as e:
+            # Re-raise ValidationError to be handled by DRF exception handler
+            raise ValidationError(str(e.message) if hasattr(e, "message") else str(e))
 
     def destroy(self, request, *args, **kwargs):
         obj = self.get_object()

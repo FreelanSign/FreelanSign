@@ -35,7 +35,7 @@ export default function DeleteConfirmDialog({
       <DialogContent style={{ maxWidth: '500px' }}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{message}</DialogDescription>
+          <DialogDescription className="pt-4 pb-4">{message}</DialogDescription>
         </DialogHeader>
 
         {errorMessage && (

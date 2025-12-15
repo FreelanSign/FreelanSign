@@ -141,7 +141,8 @@
 .buttonPrimary,
 .buttonAccent,
 .buttonSuccess,
-.buttonGhost {
+.buttonGhost,
+.buttonDanger {
   padding: 10px 14px;
   border-radius: 12px;
   font-weight: 600;
@@ -192,6 +193,19 @@
 }
 .buttonGhost:hover {
   background: var(--paper);
+}
+
+.buttonDanger {
+  background: #dc2626;
+  color: #fff;
+}
+.buttonDanger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.buttonDanger:not(:disabled):hover {
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.35);
+  transform: translateY(-1px);
 }
 
 /* Empty & skeletons */
