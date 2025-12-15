@@ -86,13 +86,13 @@
   box-shadow: 0 6px 14px rgba(0, 200, 150, 0.12);
 }
 .btnIndigo {
-  background: #4f46e5; /* indigo-600 */
+  background: var(--accent); /* indigo-600 */
   box-shadow: 0 6px 14px rgba(79, 70, 229, 0.12);
 }
 .btnSuccess {
   background: var(--success);
   box-shadow: 0 6px 14px rgba(0, 200, 150, 0.12);
-  color: #06281a;
+  color: var(--brand-foreground);
 }
 .btnGhost {
   background: rgba(0, 0, 0, 0.06);

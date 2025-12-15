@@ -284,11 +284,11 @@ export default function QuotesListPage() {
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="">
               <DropdownMenuLabel className="bg-muted text-foreground">
                 Filtrer par statut
               </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-border" />
+              <DropdownMenuSeparator className="" />
               {[
                 { value: 'DRAFT', label: 'Brouillon' },
                 { value: 'SENT', label: 'Envoyé' },

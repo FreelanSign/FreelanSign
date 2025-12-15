@@ -49,13 +49,18 @@
   --radius: 0.5rem;
 }
 
+:root {
+  --brand: hsl(166 100% 39%);
+  --brand-foreground: #fff;
+}
+
 /* AIDEV-NOTE: Utility classes pour les couleurs FreelanSign */
 @utility font-playfair {
   font-family: theme(--font-family-playfair);
 }
 
 @utility bg-brand {
-  background-color: hsl(166 100% 39%);
+  background-color: var(--brand);
 }
 @utility text-brand {
   color: hsl(166 100% 39%);
@@ -67,7 +72,7 @@
   --tw-ring-color: hsl(166 100% 39%);
 }
 @utility text-brand-foreground {
-  color: hsl(0 0% 100%); /* Ajout */
+  color: var(--brand-foreground); /* Ajout */
 }
 
 @utility bg-accent-orange {
