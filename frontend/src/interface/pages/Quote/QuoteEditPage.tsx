@@ -13,7 +13,7 @@ import { useAccountStore } from '../../../infrastructure/account/accountStore';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 import { userRepository } from '../../../infrastructure/user/userRepository';
 import Modal from '../../components/common/Modal';
-import { PdfPreviewPane } from '../../components/quote/PdfPreviewPane';
+import { PdfPreviewPanel } from '../../components/quote/PdfPreviewPanel';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { usePdfPreview, type PreviewPayload } from '../../hooks/usePdfPreview';
 import { useRequireAccount } from '../../hooks/useRequireAccount';
@@ -900,7 +900,7 @@ export default function QuoteEditPage() {
         }
       >
         <div className="fs-pdf-shell">
-          <PdfPreviewPane url={pdfUrl} loading={pdfLoading} error={pdfError} />
+          <PdfPreviewPanel url={pdfUrl} loading={pdfLoading} error={pdfError} />
         </div>
       </Modal>
     </div>

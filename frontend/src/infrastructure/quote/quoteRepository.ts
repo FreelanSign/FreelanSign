@@ -7,6 +7,7 @@ import type {
   ApiQuoteUpdatePayload,
   QuoteCreatePayload, // ← déjà présent chez toi
 } from '../../domain/quote/types';
+import type { QuoteMetricsDto } from '../../domain/quote/metricsTypes';
 
 /**
  * CRUD des devis — typé avec les contrats domain/*
@@ -117,5 +118,15 @@ export const quoteRepository = {
       }
       throw error;
     }
+  },
+
+  /**
+   * Récupère les métriques dashboard (totaux, taux acceptation, évolution mensuelle)
+   */
+  async getMetrics(): Promise<QuoteMetricsDto> {
+    const { data } = await apiClient.get<QuoteMetricsDto>(
+      API_ENDPOINTS.quoteMetrics,
+    );
+    return data;
   },
 };

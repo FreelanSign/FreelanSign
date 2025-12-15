@@ -1,5 +1,5 @@
-// src/interface/components/quote/PdfPreviewPane.tsx
-export function PdfPreviewPane({
+// src/interface/components/quote/PdfPreviewPanel.tsx
+export function PdfPreviewPanel({
   url,
   loading,
   error,

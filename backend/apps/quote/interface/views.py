@@ -9,7 +9,8 @@ from textwrap import dedent
 from typing import Any, List, Optional
 
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import Count, DecimalField, Prefetch, Sum
+from django.db.models.functions import TruncMonth
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -47,6 +48,7 @@ from apps.quote.interface.renderers import PDFRenderer
 from apps.quote.interface.serializers import (
     QuoteCreateUpdateSerializer,
     QuoteListSerializer,
+    QuoteMetricsSerializer,
     QuotePreviewPayloadSerializer,
     QuoteSerializer,
 )
@@ -438,6 +440,50 @@ class QuoteViewSet(viewsets.ModelViewSet):
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         response["Cache-Control"] = "no-store"
         return response
+
+    @action(detail=False, methods=["get"], url_path="metrics")
+    def metrics(self, request):
+        """
+        Dashboard metrics endpoint
+        Returns: total quotes, estimated revenue, acceptance rate, monthly breakdown
+        """
+        log = get_logger(__name__, request)
+        log.info("quote.metrics.start")
+
+        # Filter quotes by account
+        queryset = Quote.objects.filter(account=request.account)
+
+        # Global metrics
+        total_quotes = queryset.count()
+        estimated_revenue = queryset.aggregate(total=Sum("total", output_field=DecimalField()))["total"] or Decimal("0.00")
+
+        # Acceptance rate: (ACCEPTED + PAID) / actionable quotes
+        # Exclude DRAFT, CANCELLED, EXPIRED as they weren't sent to clients
+        actionable = queryset.exclude(status__in=["DRAFT", "CANCELLED", "EXPIRED"])
+        accepted = actionable.filter(status__in=["ACCEPTED", "PAID"]).count()
+        total_actionable = actionable.count()
+        acceptance_rate = (accepted / total_actionable * 100) if total_actionable > 0 else 0
+
+        # Monthly breakdown (quotes with issue_date only)
+        monthly_data = (
+            queryset.filter(issue_date__isnull=False)
+            .annotate(month=TruncMonth("issue_date"))
+            .values("month")
+            .annotate(quote_count=Count("id"), revenue=Sum("total"))
+            .order_by("month")
+        )
+
+        # Serialize response
+        data = {
+            "total_quotes": total_quotes,
+            "estimated_revenue": estimated_revenue,
+            "acceptance_rate": acceptance_rate,
+            "monthly_breakdown": list(monthly_data),
+        }
+
+        serializer = QuoteMetricsSerializer(data)
+        log.info("quote.metrics.success total_quotes=%s", total_quotes)
+        return Response(serializer.data)
 
     # ----------------------
     # Update handlers

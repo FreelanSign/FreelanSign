@@ -1447,6 +1447,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── .env.development.local
 │   ├── .eslintrc.cjs
 │   ├── .gitignore
+│   ├── CLAUDE.md
 │   ├── components.json
 │   ├── Dockerfile
 │   ├── docs
@@ -1473,6 +1474,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── AuthProvider.tsx
 │   │   │   └── router.tsx
 │   │   ├── App.css
+│   │   ├── application
+│   │   │   └── quote
+│   │   │       └── metricsMapper.ts
 │   │   ├── assets
 │   │   │   ├── fonts
 │   │   │   │   ├── FiraCode-Bold.ttf
@@ -1487,6 +1491,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   └── ui
 │   │   │       ├── badge.tsx
 │   │   │       ├── button.tsx
+│   │   │       ├── card.tsx
 │   │   │       ├── dialog.tsx
 │   │   │       ├── dropdown-menu.tsx
 │   │   │       ├── input.tsx
@@ -1508,6 +1513,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── types.ts
 │   │   │   ├── quote
 │   │   │   │   ├── mappers.ts
+│   │   │   │   ├── metricsTypes.ts
 │   │   │   │   └── types.ts
 │   │   │   ├── types.ts
 │   │   │   └── user
@@ -1564,6 +1570,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── DeleteConfirmDialog.tsx
 │   │   │   │   │   ├── Modal.css
 │   │   │   │   │   └── Modal.tsx
+│   │   │   │   ├── dashboard
+│   │   │   │   │   ├── MetricCard.tsx
+│   │   │   │   │   ├── MonthlyQuoteCountChart.tsx
+│   │   │   │   │   └── MonthlyRevenueChart.tsx
 │   │   │   │   ├── data-table
 │   │   │   │   │   └── DataTable.tsx
 │   │   │   │   ├── email
@@ -1584,11 +1594,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── ProfessionalInfoForm.tsx
 │   │   │   │   │   └── ProfessionalUserDataForm.tsx
 │   │   │   │   ├── quote
-│   │   │   │   │   ├── PdfPreviewPane.tsx
+│   │   │   │   │   ├── LatestQuotesTable.tsx
+│   │   │   │   │   ├── PdfPreviewPanel.tsx
 │   │   │   │   │   ├── quote-column-components.tsx
 │   │   │   │   │   ├── quote-utils.ts
-│   │   │   │   │   ├── quotes-columns.tsx
-│   │   │   │   │   └── QuotesTable.tsx
+│   │   │   │   │   └── quotes-columns.tsx
 │   │   │   │   ├── register
 │   │   │   │   │   ├── register-form.module.css
 │   │   │   │   │   └── RegisterForm.tsx
@@ -1704,7 +1714,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-307 directories, 941 files
+310 directories, 948 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1712,7 +1722,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 <!-- BEGIN AUTO: FRONTEND_PACKAGE_JSON -->
 Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
 **name**: `frontend`  •  **version**: `0.2.0`
-**scripts**: 10  •  **dependencies**: 21  •  **devDependencies**: 29
+**scripts**: 10  •  **dependencies**: 22  •  **devDependencies**: 29
 
 <details><summary>Top dependencies</summary>
 
@@ -1734,8 +1744,8 @@ Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
 - react-hook-form: ^7.62.0
 - react-hot-toast: ^2.6.0
 - react-router-dom: ^7.9.1
+- recharts: ^3.5.1
 - tailwind-merge: ^3.3.1
-- tailwindcss: ^4.1.13
 
 </details>
 
@@ -1780,5 +1790,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-14 14:25:30 CET**
+_Updated_: **2025-12-14 19:14:15 CET**
 <!-- END AUTO: LAST_UPDATED -->
