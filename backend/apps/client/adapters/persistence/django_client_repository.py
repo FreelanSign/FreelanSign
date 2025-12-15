@@ -77,8 +77,22 @@ class DjangoClientRepository(ClientRepository):
             raise RepositoryError("Erreur technique lors du listing des clients", original_error=e)
 
     def delete(self, client_id: str) -> None:
+        """
+        Soft-delete client with RGPD compliance.
+        Triggers model's delete() method which:
+        - Sets is_deleted=True and deleted_at=now()
+        - Fires pre_save signal that blocks deletion if active quotes exist
+        """
         try:
-            Client.objects.filter(id=client_id).delete()
+            client = Client.objects.get(id=client_id)
+            client.delete()  # Triggers soft delete + protection signal
+        except Client.DoesNotExist:
+            # Client doesn't exist or already deleted - idempotent operation
+            logger.warning("Client %s not found for deletion (already deleted?)", client_id)
+        except ValueError as e:
+            # Signal raised ValueError for protection (e.g., active quotes exist)
+            logger.warning("Deletion blocked for client %s: %s", client_id, str(e))
+            raise RepositoryError(str(e), original_error=e)
         except Exception as e:
             logger.exception("Erreur delete client %s", client_id)
             raise RepositoryError("Erreur technique lors de la suppression du client", original_error=e)

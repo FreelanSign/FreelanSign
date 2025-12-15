@@ -103,7 +103,7 @@ export function DataTable<TData>({
       ) : null}
 
       {/* Conteneur de la Table (avec une ombre douce pour la mise en évidence) */}
-      <div className="rounded-lg border border-border bg-card shadow-lg overflow-hidden">
+      <div className="rounded-lg bg-white border border-border bg-card shadow-lg overflow-hidden">
         <Table>
           <TableHeader className="bg-muted/50 border-b border-border">
             {table.getHeaderGroups().map((hg) => (

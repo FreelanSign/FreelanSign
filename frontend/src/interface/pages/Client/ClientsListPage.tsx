@@ -1,13 +1,52 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import type { SortingState } from '@tanstack/react-table';
+import { Plus, Search, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
+import {
+  createClientColumns,
+  type ClientRow,
+} from '@/interface/components/client/client-columns';
+import {
+  DataTable,
+  type DataTableState,
+} from '@/interface/components/data-table/DataTable';
+import ClientCreateDrawer from '../../components/client/ClientCreateDrawer';
+
 import type { ClientDto } from '../../../domain/client/types';
 import {
   clientRepository,
   type PageResponse,
 } from '../../../infrastructure/client/clientRepository';
-import ClientCreateDrawer from '../../components/client/ClientCreateDrawer';
-import DeleteConfirmDialog from '../../components/common/DeleteConfirmDialog';
-import styles from './clients-list.module.css';
+
+/**
+ * AIDEV-NOTE: Allowed ordering fields for client list (backend ordering_fields).
+ * - name
+ * - created_at
+ */
+const ALLOWED_ORDERING = new Set(['name', 'created_at'] as const);
+type AllowedOrdering = 'name' | 'created_at';
+
+function orderingToSorting(ordering: string | null): SortingState {
+  const raw = ordering ?? 'name';
+  const desc = raw.startsWith('-');
+  const field = (desc ? raw.slice(1) : raw) as string;
+  if (!ALLOWED_ORDERING.has(field as AllowedOrdering))
+    return [{ id: 'name', desc: false }];
+  return [{ id: field, desc }];
+}
+
+function sortingToOrdering(sorting: SortingState): string {
+  const first = sorting[0];
+  if (!first) return 'name';
+  const field = String(first.id);
+  if (!ALLOWED_ORDERING.has(field as AllowedOrdering)) return 'name';
+  return `${first.desc ? '-' : ''}${field}`;
+}
 
 type ColumnPrefs = {
   email: boolean;
@@ -24,44 +63,62 @@ const DEFAULT_COLUMNS: ColumnPrefs = {
 const STORAGE_KEY = 'freelansign_client_columns_v1';
 
 export default function ClientsListPage() {
-  const [page, setPage] = useState<number>(1);
-  const [pageSize] = useState<number>(20);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const page = useMemo(
+    () => Number(searchParams.get('page') ?? '1'),
+    [searchParams],
+  );
+  const pageSize = useMemo(
+    () => Number(searchParams.get('page_size') ?? '20'),
+    [searchParams],
+  );
+  const ordering = useMemo(
+    () => searchParams.get('ordering') ?? 'name',
+    [searchParams],
+  );
+
+  const search = useMemo(
+    () => searchParams.get('search') ?? '',
+    [searchParams],
+  );
+  const [searchInput, setSearchInput] = useState(search);
+
+  // Column preferences from localStorage
+  const [columnPrefs, setColumnPrefs] = useState<ColumnPrefs>(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return DEFAULT_COLUMNS;
+      }
+    }
+    return DEFAULT_COLUMNS;
+  });
+
+  // Data state
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<PageResponse<ClientDto> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-
-  const [columnPrefs, setColumnPrefs] = useState<ColumnPrefs>(DEFAULT_COLUMNS);
-
+  // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [clientToDelete, setClientToDelete] = useState<ClientDto | null>(null);
-  const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  // Load column preferences from localStorage
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        setColumnPrefs(JSON.parse(stored));
-      } catch {
-        setColumnPrefs(DEFAULT_COLUMNS);
-      }
-    }
-  }, []);
-
-  // Debounce search input
+  // Debounced search (500ms)
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      setPage(1); // Reset to page 1 on search
+      const params = new URLSearchParams(searchParams);
+      if (searchInput) {
+        params.set('search', searchInput);
+      } else {
+        params.delete('search');
+      }
+      params.set('page', '1'); // Reset to page 1 on search
+      setSearchParams(params, { replace: true });
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchInput, searchParams, setSearchParams]);
 
   // Fetch clients
   useEffect(() => {
@@ -71,9 +128,10 @@ export default function ClientsListPage() {
       setError(null);
       try {
         const res = await clientRepository.list({
-          search: debouncedSearch || undefined,
+          search: search || undefined,
           page,
           page_size: pageSize,
+          ordering,
         });
         if (!active) return;
         setData(res);
@@ -89,12 +147,25 @@ export default function ClientsListPage() {
     return () => {
       active = false;
     };
-  }, [page, pageSize, debouncedSearch]);
+  }, [page, pageSize, ordering, search]);
 
-  const next = data?.next ? () => setPage((p) => p + 1) : undefined;
-  const prev = data?.previous
-    ? () => setPage((p) => Math.max(1, p - 1))
-    : undefined;
+  // DataTable state management
+  const tableState: DataTableState = useMemo(
+    () => ({
+      pageIndex: page - 1, // 0-based
+      pageSize,
+      sorting: orderingToSorting(ordering),
+    }),
+    [page, pageSize, ordering],
+  );
+
+  const handleStateChange = (next: DataTableState) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('page', String(next.pageIndex + 1)); // 1-based
+    params.set('page_size', String(next.pageSize));
+    params.set('ordering', sortingToOrdering(next.sorting));
+    setSearchParams(params, { replace: true });
+  };
 
   const toggleColumn = (col: keyof ColumnPrefs) => {
     const updated = { ...columnPrefs, [col]: !columnPrefs[col] };
@@ -106,9 +177,10 @@ export default function ClientsListPage() {
     // Refresh list
     try {
       const res = await clientRepository.list({
-        search: debouncedSearch || undefined,
+        search: search || undefined,
         page,
         page_size: pageSize,
+        ordering,
       });
       setData(res);
     } catch {
@@ -116,240 +188,155 @@ export default function ClientsListPage() {
     }
   };
 
-  const openDeleteDialog = (client: ClientDto) => {
-    setClientToDelete(client);
-    setDeleteDialogOpen(true);
-    setDeleteError(null);
+  const clearSearch = () => {
+    setSearchInput('');
   };
 
-  const handleDelete = async () => {
-    if (!clientToDelete) return;
+  // Map ClientDto to ClientRow
+  const rows: ClientRow[] = useMemo(() => {
+    if (!data?.results) return [];
+    return data.results.map((client) => ({
+      id: client.id,
+      name: client.name,
+      email: client.email,
+      phone: client.phone,
+      address: client.address,
+      created_at: client.created_at,
+    }));
+  }, [data]);
 
-    setDeleting(true);
-    setDeleteError(null);
-    try {
-      await clientRepository.delete(clientToDelete.id);
-      setDeleteDialogOpen(false);
-      setClientToDelete(null);
-      // Refresh list
-      const res = await clientRepository.list({
-        search: debouncedSearch || undefined,
-        page,
-        page_size: pageSize,
-      });
-      setData(res);
-    } catch (err: unknown) {
-      const error = err as { response?: { data?: { detail?: string } } };
-      const detail = error.response?.data?.detail;
-      if (detail && detail.includes('devis actifs')) {
-        setDeleteError(
-          "Impossible de supprimer ce client car il a des devis actifs. Veuillez d'abord supprimer ou archiver ses devis.",
-        );
-      } else {
-        setDeleteError('Erreur lors de la suppression du client.');
-      }
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className={styles.page}>
-      <div className={styles.inner}>{children}</div>
-    </div>
+  const columns = useMemo(
+    () => createClientColumns(columnPrefs),
+    [columnPrefs],
   );
 
-  if (loading) {
-    return (
-      <Shell>
-        <div className={styles.skel + ' ' + styles.skelHeader} />
-        <div className={styles.card}>
-          <div className={styles.skel + ' ' + styles.skelItem} />
-          <div className={styles.skel + ' ' + styles.skelItem} />
-          <div className={styles.skel + ' ' + styles.skelItem} />
-        </div>
-      </Shell>
-    );
-  }
-
-  if (error) {
-    return (
-      <Shell>
-        <div className={styles.headerRow}>
-          <h1 className={styles.title}>Mes clients</h1>
-        </div>
-        <div className={styles.error}>Erreur : {error}</div>
-      </Shell>
-    );
-  }
-
   return (
-    <Shell>
-      <div className={styles.headerRow}>
-        <h1 className={styles.title}>Mes clients</h1>
-        <div className={styles.actions}>
-          <button
+    <div className="container mx-auto py-6 px-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Mes clients</h1>
+          <p className="text-muted-foreground mt-1">
+            Gérez vos clients et leurs informations
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button
             onClick={() => setDrawerOpen(true)}
-            className={`${styles.btn} ${styles.btnPrimary}`}
+            className="bg-brand text-white hover:bg-brand-hover"
           >
-            + Nouveau client
-          </button>
+            <Plus className="mr-2 h-4 w-4" />
+            Nouveau client
+          </Button>
         </div>
       </div>
 
-      {/* Search & Column Selector */}
-      <div className={styles.controls}>
-        <input
-          type="search"
-          placeholder="Rechercher par nom ou email..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className={styles.searchInput}
-        />
-        <div className={styles.columnSelector}>
-          <span className={styles.columnLabel}>Colonnes :</span>
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={true}
-              disabled={true}
-              style={{ cursor: 'not-allowed' }}
-            />
-            Nom (obligatoire)
-          </label>
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={columnPrefs.email}
-              onChange={() => toggleColumn('email')}
-            />
-            Email
-          </label>
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={columnPrefs.phone}
-              onChange={() => toggleColumn('phone')}
-            />
-            Téléphone
-          </label>
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={columnPrefs.address}
-              onChange={() => toggleColumn('address')}
-            />
-            Adresse
-          </label>
-        </div>
-      </div>
-
-      {!data || (Array.isArray(data.results) && data.results.length === 0) ? (
-        <div className={styles.empty}>
-          Aucun client trouvé.
-          {!searchTerm && (
-            <>
-              <br />
-              <button
-                onClick={() => setDrawerOpen(true)}
-                className={`${styles.btn} ${styles.btnPrimary}`}
-                style={{ marginTop: '12px' }}
-              >
-                Créer mon premier client
-              </button>
-            </>
+      {/* Toolbar: Search + Column Preferences */}
+      <div className="bg-white rounded-lg border border-border bg-card p-4 mb-6 space-y-4">
+        {/* Search */}
+        <div className="relative">
+          <Search className=" border-0 absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Rechercher par nom ou email..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="pl-10 pr-10"
+          />
+          {searchInput && (
+            <button
+              onClick={clearSearch}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
           )}
         </div>
-      ) : (
-        <div className={styles.card}>
-          <div className={styles.tableWrapper}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Nom</th>
-                  {columnPrefs.email && <th>Email</th>}
-                  {columnPrefs.phone && <th>Téléphone</th>}
-                  {columnPrefs.address && <th>Adresse</th>}
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.results.map((client) => (
-                  <tr key={client.id}>
-                    <td className={styles.nameCell}>{client.name}</td>
-                    {columnPrefs.email && <td>{client.email || '—'}</td>}
-                    {columnPrefs.phone && <td>{client.phone || '—'}</td>}
-                    {columnPrefs.address && <td>{client.address || '—'}</td>}
-                    <td className={styles.actionsCell}>
-                      <Link
-                        to={`/clients/${client.id}`}
-                        className={styles.link}
-                      >
-                        Voir
-                      </Link>
-                      <Link
-                        to={`/clients/${client.id}/edit`}
-                        className={styles.link}
-                      >
-                        Éditer
-                      </Link>
-                      <button
-                        onClick={() => openDeleteDialog(client)}
-                        className={styles.linkButton}
-                      >
-                        Supprimer
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
 
-          {/* Pagination */}
-          <div className={styles.pagination}>
-            <div>
-              Page {page} — {data?.count ?? '—'} clients
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={prev}
-                disabled={!prev}
-                className={styles.pagerBtn}
-              >
-                Précédent
-              </button>
-              <button
-                onClick={next}
-                disabled={!next}
-                className={styles.pagerBtn}
-              >
-                Suivant
-              </button>
-            </div>
+        {/* Column Preferences */}
+        <div className="flex items-center gap-4 flex-wrap">
+          <span className="text-sm font-medium">Colonnes affichées :</span>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 text-sm cursor-not-allowed opacity-60">
+              <input
+                type="checkbox"
+                checked={true}
+                disabled={true}
+                className="rounded cursor-not-allowed"
+              />
+              Nom (obligatoire)
+            </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={columnPrefs.email}
+                onChange={() => toggleColumn('email')}
+                className="rounded cursor-pointer"
+              />
+              Email
+            </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={columnPrefs.phone}
+                onChange={() => toggleColumn('phone')}
+                className="rounded cursor-pointer"
+              />
+              Téléphone
+            </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={columnPrefs.address}
+                onChange={() => toggleColumn('address')}
+                className="rounded cursor-pointer"
+              />
+              Adresse
+            </label>
           </div>
         </div>
-      )}
 
+        {/* Active filters badge */}
+        {(search ||
+          Object.values(columnPrefs).filter((v) => !v).length > 0) && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {search && (
+              <Badge variant="secondary" className="gap-1">
+                Recherche: {search}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => {
+                    setSearchInput('');
+                  }}
+                />
+              </Badge>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* DataTable */}
+      <DataTable
+        columns={columns}
+        data={rows}
+        rowCount={data?.count ?? 0}
+        state={tableState}
+        onStateChange={handleStateChange}
+        isLoading={loading}
+        errorMessage={error}
+        emptyMessage={
+          search
+            ? 'Aucun client trouvé pour cette recherche.'
+            : 'Aucun client. Créez votre premier client !'
+        }
+      />
+
+      {/* Create Drawer */}
       <ClientCreateDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         onClientCreated={handleClientCreated}
       />
-
-      <DeleteConfirmDialog
-        open={deleteDialogOpen}
-        onClose={() => {
-          setDeleteDialogOpen(false);
-          setClientToDelete(null);
-          setDeleteError(null);
-        }}
-        onConfirm={handleDelete}
-        title="Supprimer le client"
-        message={`Êtes-vous sûr de vouloir supprimer le client "${clientToDelete?.name}" ? Cette action est irréversible.`}
-        isDeleting={deleting}
-        errorMessage={deleteError}
-      />
-    </Shell>
+    </div>
   );
 }

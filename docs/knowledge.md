@@ -1559,8 +1559,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── branding
 │   │   │   │   │   └── ThemesForm.tsx
 │   │   │   │   ├── client
+│   │   │   │   │   ├── client-columns.tsx
 │   │   │   │   │   ├── client-create-drawer.module.css
 │   │   │   │   │   ├── client-form-fields.module.css
+│   │   │   │   │   ├── ClientActionsCell.tsx
 │   │   │   │   │   ├── ClientCreateDrawer.tsx
 │   │   │   │   │   ├── ClientFormFields.tsx
 │   │   │   │   │   └── clientFormSchema.ts
@@ -1634,7 +1636,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── client-edit.module.css
 │   │   │   │   │   ├── ClientDetailPage.tsx
 │   │   │   │   │   ├── ClientEditPage.tsx
-│   │   │   │   │   ├── clients-list.module.css
 │   │   │   │   │   └── ClientsListPage.tsx
 │   │   │   │   ├── dashboard.module.css
 │   │   │   │   ├── DashboardPage.tsx
@@ -1717,7 +1718,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-310 directories, 951 files
+310 directories, 952 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1792,5 +1793,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-15 14:39:52 CET**
+_Updated_: **2025-12-15 15:52:48 CET**
 <!-- END AUTO: LAST_UPDATED -->

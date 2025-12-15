@@ -1,5 +1,6 @@
 // frontend/src/interface/components/common/DeleteConfirmDialog.tsx
 
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -32,58 +33,35 @@ export default function DeleteConfirmDialog({
 }: DeleteConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent style={{ maxWidth: '500px' }}>
+      <DialogContent className="max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription className="pt-4 pb-4">{message}</DialogDescription>
         </DialogHeader>
 
         {errorMessage && (
-          <div
-            style={{
-              padding: '12px',
-              borderRadius: '6px',
-              backgroundColor: '#fee',
-              color: '#c33',
-              fontSize: '14px',
-            }}
-          >
+          <div className="p-3 rounded-md bg-red-50 text-red-800 text-sm">
             {errorMessage}
           </div>
         )}
 
-        <DialogFooter style={{ marginTop: '16px' }}>
-          <button
+        <DialogFooter className="mt-4">
+          <Button
             type="button"
+            variant="outline"
             onClick={onClose}
             disabled={isDeleting}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '6px',
-              border: '1px solid #ddd',
-              background: 'white',
-              cursor: isDeleting ? 'not-allowed' : 'pointer',
-              opacity: isDeleting ? 0.6 : 1,
-            }}
           >
             Annuler
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="destructive"
             onClick={onConfirm}
             disabled={isDeleting}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '6px',
-              border: 'none',
-              background: '#dc2626',
-              color: 'white',
-              cursor: isDeleting ? 'not-allowed' : 'pointer',
-              opacity: isDeleting ? 0.6 : 1,
-            }}
           >
             {isDeleting ? 'Suppression...' : confirmText}
-          </button>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
