@@ -1639,20 +1639,19 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   └── ClientsListPage.tsx
 │   │   │   │   ├── dashboard.module.css
 │   │   │   │   ├── DashboardPage.tsx
+│   │   │   │   ├── Legal
+│   │   │   │   │   ├── legal-page.module.css
+│   │   │   │   │   ├── PrivacyPolicyPage.tsx
+│   │   │   │   │   └── TermsOfServicePage.tsx
 │   │   │   │   ├── LegalTerms
-│   │   │   │   │   ├── legal-terms-page.module.css
 │   │   │   │   │   └── LegalTermsPage.tsx
 │   │   │   │   ├── Login
 │   │   │   │   │   ├── LoginPage.module.css
 │   │   │   │   │   └── LoginPage.tsx
 │   │   │   │   ├── Profile
-│   │   │   │   │   ├── profile-edit-page.module.css
-│   │   │   │   │   ├── profile-page.module.css
 │   │   │   │   │   ├── ProfileEditPage.tsx
 │   │   │   │   │   └── ProfilePage.tsx
 │   │   │   │   ├── Quote
-│   │   │   │   │   ├── quote-detail.module.css
-│   │   │   │   │   ├── quote-edit-create.module.css
 │   │   │   │   │   ├── QuoteCreatePage.tsx
 │   │   │   │   │   ├── QuoteDetailPage.tsx
 │   │   │   │   │   ├── QuoteEditPage.tsx
@@ -1718,7 +1717,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-310 directories, 952 files
+311 directories, 950 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1726,7 +1725,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 <!-- BEGIN AUTO: FRONTEND_PACKAGE_JSON -->
 Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
 **name**: `frontend`  •  **version**: `0.2.0`
-**scripts**: 10  •  **dependencies**: 22  •  **devDependencies**: 29
+**scripts**: 10  •  **dependencies**: 24  •  **devDependencies**: 29
 
 <details><summary>Top dependencies</summary>
 
@@ -1734,6 +1733,8 @@ Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
 - @hookform/resolvers: ^5.2.2
 - @radix-ui/react-dialog: ^1.1.15
 - @radix-ui/react-dropdown-menu: ^2.1.16
+- @radix-ui/react-label: ^2.1.8
+- @radix-ui/react-select: ^2.2.6
 - @radix-ui/react-slot: ^1.2.4
 - @tailwindcss/vite: ^4.1.13
 - @tanstack/react-table: ^8.21.3
@@ -1748,8 +1749,6 @@ Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
 - react-hook-form: ^7.62.0
 - react-hot-toast: ^2.6.0
 - react-router-dom: ^7.9.1
-- recharts: ^3.5.1
-- tailwind-merge: ^3.3.1
 
 </details>
 
@@ -1793,5 +1792,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-12-15 15:52:48 CET**
+_Updated_: **2025-12-22 18:19:42 CET**
 <!-- END AUTO: LAST_UPDATED -->

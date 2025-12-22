@@ -3,7 +3,20 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 import QuoteEmailPreviewDialog from '../../components/email/QuoteEmailPreviewDialog';
 import DeleteConfirmDialog from '../../components/common/DeleteConfirmDialog';
-import styles from './quote-detail.module.css';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import { apiToUiQuoteDetail } from '../../../domain/quote/mappers';
 import type {
@@ -32,23 +45,6 @@ function useIntlFormatters(currency: string | null | undefined) {
     [],
   );
   return { money, date };
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const s = (status ?? '').toLowerCase();
-  const map: Record<string, string> = {
-    draft: styles.badgeNeutral,
-    sent: styles.badgeInfo,
-    accepted: styles.badgeSuccess,
-    rejected: styles.badgeDanger,
-    refused: styles.badgeDanger,
-    expired: styles.badgeWarning,
-    paid: styles.badgeSuccess,
-    cancelled: styles.badgeNeutral,
-    canceled: styles.badgeNeutral,
-  };
-  const cls = map[s] ?? styles.badgeNeutral;
-  return <span className={`${styles.badge} ${cls}`}>{status}</span>;
 }
 
 export default function QuoteDetailPage() {
@@ -152,9 +148,9 @@ export default function QuoteDetailPage() {
   if (loading) {
     return (
       <Shell>
-        <div className={styles.skeletonHeader} />
-        <div className={styles.skeletonCard} />
-        <div className={styles.skeletonTable} />
+        <Skeleton className="h-32 w-full rounded-lg" />
+        <Skeleton className="h-64 w-full rounded-lg" />
+        <Skeleton className="h-96 w-full rounded-lg" />
       </Shell>
     );
   }
@@ -162,10 +158,10 @@ export default function QuoteDetailPage() {
   if (error) {
     return (
       <Shell>
-        <div className="text-red-600">Erreur : {error}</div>
-        <Link to="/quotes" className={styles.buttonGhost}>
-          ← Retour à la liste
-        </Link>
+        <div className="text-destructive">Erreur : {error}</div>
+        <Button variant="ghost" asChild>
+          <Link to="/quotes">← Retour à la liste</Link>
+        </Button>
       </Shell>
     );
   }
@@ -174,9 +170,9 @@ export default function QuoteDetailPage() {
     return (
       <Shell>
         <div>Aucun devis à afficher.</div>
-        <Link to="/quotes" className={styles.buttonGhost}>
-          ← Retour à la liste
-        </Link>
+        <Button variant="ghost" asChild>
+          <Link to="/quotes">← Retour à la liste</Link>
+        </Button>
       </Shell>
     );
   }
@@ -188,246 +184,279 @@ export default function QuoteDetailPage() {
 
   return (
     <Shell>
-      <header className={styles.header}>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className={styles.title}>
-                {quote.reference} — {quote.title}
-              </h1>
-              <StatusBadge status={quote.status} />
-            </div>
-            <p className={styles.meta}>
-              Émis le{' '}
-              {quote.issue_date ? date.format(new Date(quote.issue_date)) : '—'}
-              {quote.valid_until ? (
-                <>
-                  {' '}
-                  • Valide jusqu’au {date.format(new Date(quote.valid_until))}
-                </>
-              ) : null}
-            </p>
+      <header className="flex items-start justify-between p-6 rounded-lg bg-gradient-to-r from-brand to-accent-orange text-white shadow-lg">
+        <div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold">
+              {quote.reference} — {quote.title}
+            </h1>
+            <Badge className="bg-white/20 text-white border-white/30">
+              {quote.status}
+            </Badge>
           </div>
+          <p className="text-sm text-white/90 mt-2">
+            Émis le{' '}
+            {quote.issue_date ? date.format(new Date(quote.issue_date)) : '—'}
+            {quote.valid_until ? (
+              <> • Valide jusqu'au {date.format(new Date(quote.valid_until))}</>
+            ) : null}
+          </p>
+        </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Link to="/quotes" className={styles.buttonGhost}>
-              ← Retour
-            </Link>
-            <Link
-              to={`/quotes/${quote.id}/edit`}
-              className={styles.buttonPrimary}
-            >
-              Éditer
-            </Link>
-            <button
-              onClick={handleDownload}
-              disabled={downloading}
-              className={styles.buttonAccent}
-              title="Télécharger le devis (PDF)"
-            >
-              {downloading ? 'Téléchargement en cours...' : 'Télécharger (PDF)'}
-            </button>
-            <button
-              className={styles.buttonSuccess}
-              onClick={() => setShowEmailDialog(true)}
-            >
-              Préparer email
-            </button>
-          </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="ghost"
+            className="text-white hover:bg-white/20"
+            asChild
+          >
+            <Link to="/quotes">← Retour</Link>
+          </Button>
+          <Button className="bg-white text-brand hover:bg-white/90" asChild>
+            <Link to={`/quotes/${quote.id}/edit`}>Éditer</Link>
+          </Button>
+          <Button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="bg-white text-accent-orange hover:bg-white/90"
+            title="Télécharger le devis (PDF)"
+          >
+            {downloading ? 'Téléchargement en cours...' : 'Télécharger (PDF)'}
+          </Button>
+          <Button
+            className="bg-white text-brand hover:bg-white/90"
+            onClick={() => setShowEmailDialog(true)}
+          >
+            Préparer email
+          </Button>
         </div>
       </header>
 
       {/* Infos Client & Devis */}
-      <section className={styles.card}>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <h2 className={styles.h2}>Client</h2>
-            <div className={styles.kv}>
-              <span>Nom</span>
-              <strong>{quote.client?.name || '—'}</strong>
+      <Card className="shadow-sm">
+        <CardContent className="pt-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h2 className="text-lg font-semibold mb-4 text-gray-900">
+                Client
+              </h2>
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Nom</span>
+                  <strong className="text-gray-900">
+                    {quote.client?.name || '—'}
+                  </strong>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Email</span>
+                  <strong className="text-gray-900">
+                    {quote.client?.email ? (
+                      <a
+                        className="text-brand hover:underline"
+                        href={`mailto:${quote.client.email}`}
+                      >
+                        {quote.client.email}
+                      </a>
+                    ) : (
+                      '—'
+                    )}
+                  </strong>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Téléphone</span>
+                  <strong className="text-gray-900">
+                    {quote.client?.phone ? (
+                      <a
+                        className="text-brand hover:underline"
+                        href={`tel:${quote.client.phone}`}
+                      >
+                        {quote.client.phone}
+                      </a>
+                    ) : (
+                      '—'
+                    )}
+                  </strong>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">N° TVA</span>
+                  <strong className="text-gray-900">
+                    {quote.client?.vat_number || '—'}
+                  </strong>
+                </div>
+                <address className="text-sm text-gray-900 not-italic">
+                  {addressLines.length
+                    ? addressLines.map((l, i) => <div key={i}>{l}</div>)
+                    : '—'}
+                </address>
+              </div>
             </div>
-            <div className={styles.kv}>
-              <span>Email</span>
-              <strong>
-                {quote.client?.email ? (
-                  <a
-                    className={styles.link}
-                    href={`mailto:${quote.client.email}`}
-                  >
-                    {quote.client.email}
-                  </a>
-                ) : (
-                  '—'
-                )}
-              </strong>
-            </div>
-            <div className={styles.kv}>
-              <span>Téléphone</span>
-              <strong>
-                {quote.client?.phone ? (
-                  <a className={styles.link} href={`tel:${quote.client.phone}`}>
-                    {quote.client.phone}
-                  </a>
-                ) : (
-                  '—'
-                )}
-              </strong>
-            </div>
-            <div className={styles.kv}>
-              <span>N° TVA</span>
-              <strong>{quote.client?.vat_number || '—'}</strong>
-            </div>
-            <address className={styles.address}>
-              {addressLines.length
-                ? addressLines.map((l, i) => <div key={i}>{l}</div>)
-                : '—'}
-            </address>
-          </div>
 
-          <div>
-            <h2 className={styles.h2}>Détails</h2>
-            <div className={styles.kv}>
-              <span>Référence</span>
-              <strong>{quote.reference}</strong>
-            </div>
-            <div className={styles.kv}>
-              <span>Statut</span>
-              <strong className="capitalize">{quote.status}</strong>
-            </div>
-            <div className={styles.kv}>
-              <span>Devise</span>
-              <strong>{quote.currency ?? 'EUR'}</strong>
+            <div>
+              <h2 className="text-lg font-semibold mb-4 text-gray-900">
+                Détails
+              </h2>
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Référence</span>
+                  <strong className="text-gray-900">{quote.reference}</strong>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Statut</span>
+                  <strong className="text-gray-900 capitalize">
+                    {quote.status}
+                  </strong>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Devise</span>
+                  <strong className="text-gray-900">
+                    {quote.currency ?? 'EUR'}
+                  </strong>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {/* Legal Terms Info */}
-      <section className={styles.legalTermsInfo}>
-        <div className={styles.legalTermsIcon}>✓</div>
-        <div className={styles.legalTermsContent}>
-          <p className={styles.legalTermsText}>Conditions générales incluses</p>
-          <Link to="/legal-terms" className={styles.legalTermsLink}>
+      <div className="flex gap-3 p-4 rounded-lg bg-brand/10 border border-brand/20">
+        <div className="w-6 h-6 rounded-full bg-brand text-brand-foreground flex items-center justify-center flex-shrink-0">
+          ✓
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-brand">
+            Conditions générales incluses
+          </p>
+          <Link
+            to="/legal-terms"
+            className="text-xs text-brand hover:underline"
+          >
             Voir mes conditions →
           </Link>
         </div>
-      </section>
+      </div>
 
       {/* Lignes */}
-      <section className={styles.card}>
-        <h2 className={styles.h2}>Prestations</h2>
-        {!quote.line_items || quote.line_items.length === 0 ? (
-          <div className={styles.empty}>Aucune ligne de devis.</div>
-        ) : (
-          <div className={styles.tableWrapper}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Prestation</th>
-                  <th className="text-right">Qté</th>
-                  <th className="text-right">PU HT</th>
-                  <th className="text-right">TVA</th>
-                  <th className="text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {quote.line_items.map((l) => {
-                  const total =
-                    l.total ??
-                    (l.pre_tax_total ?? l.quantity * l.unit_price) +
-                      (l.tax_amount ?? 0);
-                  return (
-                    <tr key={String(l.id)}>
-                      <td>
-                        <div className="font-medium">{l.designation}</div>
-                        {l.description ? (
-                          <div className={styles.desc}>{l.description}</div>
-                        ) : null}
-                      </td>
-                      <td className="text-right">{l.quantity}</td>
-                      <td className="text-right">
-                        {money.format(l.unit_price)}
-                      </td>
-                      <td className="text-right">
-                        {((l.tax_rate ?? 0) * 100).toFixed(2)}%
-                      </td>
-                      <td className="text-right">{money.format(total)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colSpan={4} className="text-right">
-                    Sous-total
-                  </td>
-                  <td className="text-right">{money.format(computed!.sub)}</td>
-                </tr>
-                <tr>
-                  <td colSpan={4} className="text-right">
-                    TVA
-                  </td>
-                  <td className="text-right">
-                    {money.format(computed!.taxes)}
-                  </td>
-                </tr>
-                <tr>
-                  <td colSpan={4} className={`${styles.totalLabel} text-right`}>
-                    Total
-                  </td>
-                  <td className={`${styles.totalValue} text-right`}>
-                    {money.format(computed!.total)}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        )}
-      </section>
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle>Prestations</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!quote.line_items || quote.line_items.length === 0 ? (
+            <div className="text-center py-6 text-muted-foreground">
+              Aucune ligne de devis.
+            </div>
+          ) : (
+            <div className="rounded-lg border border-border bg-card shadow-lg overflow-hidden">
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow className="hover:bg-muted/50">
+                    <TableHead>Prestation</TableHead>
+                    <TableHead className="text-right">Qté</TableHead>
+                    <TableHead className="text-right">PU HT</TableHead>
+                    <TableHead className="text-right">TVA</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {quote.line_items.map((l) => {
+                    const total =
+                      l.total ??
+                      (l.pre_tax_total ?? l.quantity * l.unit_price) +
+                        (l.tax_amount ?? 0);
+                    return (
+                      <TableRow
+                        key={String(l.id)}
+                        className="hover:bg-accent/50"
+                      >
+                        <TableCell>
+                          <div className="font-medium">{l.designation}</div>
+                          {l.description ? (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {l.description}
+                            </div>
+                          ) : null}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {l.quantity}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {money.format(l.unit_price)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {((l.tax_rate ?? 0) * 100).toFixed(2)}%
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {money.format(total)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+                <TableFooter>
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-right">
+                      Sous-total
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {money.format(computed!.sub)}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-right">
+                      TVA
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {money.format(computed!.taxes)}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-right font-bold">
+                      Total
+                    </TableCell>
+                    <TableCell className="text-right font-bold text-lg">
+                      {money.format(computed!.total)}
+                    </TableCell>
+                  </TableRow>
+                </TableFooter>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {!!quote.note && (
-        <section className={styles.card}>
-          <h3 className={styles.h3}>Notes</h3>
-          <p className={styles.prose}>{quote.note}</p>
-        </section>
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Notes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">
+              {quote.note}
+            </p>
+          </CardContent>
+        </Card>
       )}
 
       {/* Danger Zone */}
-      <section
-        className={styles.card}
-        style={{
-          borderColor: '#fca5a5',
-          backgroundColor: '#fef2f2',
-        }}
-      >
-        <h3 className={styles.h3} style={{ color: '#dc2626' }}>
-          Zone dangereuse
-        </h3>
-        <div style={{ marginTop: '12px' }}>
-          <p
-            style={{ fontSize: '14px', color: '#7f1d1d', marginBottom: '16px' }}
-          >
+      <Card className="border-destructive/50 bg-destructive/5">
+        <CardHeader>
+          <CardTitle className="text-destructive">Zone dangereuse</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-destructive/80 mb-4">
             La suppression est irréversible pour les devis terminés (Payé,
             Annulé, Expiré, Refusé).
             {['DRAFT', 'SENT', 'ACCEPTED'].includes(quote.status) && (
-              <strong style={{ display: 'block', marginTop: '8px' }}>
+              <strong className="block mt-2 text-destructive">
                 ⚠️ La suppression est bloquée car le devis est en cours (statut:{' '}
                 {quote.status}).
               </strong>
             )}
           </p>
-          <button
+          <Button
+            variant="destructive"
             onClick={() => setShowDeleteDialog(true)}
             disabled={['DRAFT', 'SENT', 'ACCEPTED'].includes(quote.status)}
-            className={styles.buttonDanger}
-            style={{
-              opacity: ['DRAFT', 'SENT', 'ACCEPTED'].includes(quote.status)
-                ? 0.5
-                : 1,
-              cursor: ['DRAFT', 'SENT', 'ACCEPTED'].includes(quote.status)
-                ? 'not-allowed'
-                : 'pointer',
-            }}
             title={
               ['DRAFT', 'SENT', 'ACCEPTED'].includes(quote.status)
                 ? 'La suppression est bloquée pour les devis en cours'
@@ -435,9 +464,9 @@ export default function QuoteDetailPage() {
             }
           >
             Supprimer ce devis
-          </button>
-        </div>
-      </section>
+          </Button>
+        </CardContent>
+      </Card>
 
       <QuoteEmailPreviewDialog
         open={showEmailDialog}
