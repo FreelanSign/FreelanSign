@@ -1,6 +1,20 @@
 // src/interface/pages/QuoteEditPage.tsx
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+
 import type { AccountDto } from '../../../domain/account/types';
 import { apiToUiQuote } from '../../../domain/quote/mappers';
 import type {
@@ -404,459 +418,490 @@ export default function QuoteEditPage() {
   if (loading || !quote) {
     return (
       <div className="grid gap-6">
-        <div className={styles.skeletonHeader} />
-        <div className={styles.skeletonCard} />
+        <div className="h-32 bg-muted/50 rounded-lg animate-pulse" />
+        <div className="h-96 bg-muted/50 rounded-lg animate-pulse" />
       </div>
     );
   }
   return (
-    <div className="grid gap-6">
-      <header className={styles.header}>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className={styles.title}>
-              Éditer le devis — {quote.reference}
-            </h1>
-            <p className={styles.meta}>
-              Modifiez les informations puis enregistrez.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className={styles.buttonGhost}
-              onClick={() => setPreviewOpen(true)}
-            >
-              Aperçu
-            </button>
-            <Link to={`/quotes/${quote.id}`} className={styles.buttonGhost}>
-              Annuler
-            </Link>
-            <button
-              className={styles.buttonPrimary}
-              onClick={handleSubmit}
-              disabled={saving}
-            >
-              {saving ? 'Enregistrement…' : 'Enregistrer'}
-            </button>
-          </div>
+    <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+      <header className="flex items-start justify-between p-6 rounded-lg bg-gradient-to-r from-brand to-accent-orange text-white shadow-lg">
+        <div>
+          <h1 className="text-2xl font-bold">
+            Éditer le devis — {quote.reference}
+          </h1>
+          <p className="text-sm opacity-95 mt-1">
+            Modifiez les informations puis enregistrez.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-white hover:bg-white/20"
+            onClick={() => setPreviewOpen(true)}
+          >
+            Aperçu
+          </Button>
+          <Button
+            variant="ghost"
+            className="text-white hover:bg-white/20"
+            asChild
+          >
+            <Link to={`/quotes/${quote.id}`}>Annuler</Link>
+          </Button>
+          <Button
+            className="bg-white text-brand hover:bg-white/90"
+            onClick={handleSubmit}
+            disabled={saving}
+          >
+            {saving ? 'Enregistrement…' : 'Enregistrer'}
+          </Button>
         </div>
       </header>
 
-      {error && <div className={styles.errorBox}>⚠️ {error}</div>}
+      {error && (
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
+          ⚠️ {error}
+        </div>
+      )}
 
-      <form onSubmit={handleSubmit} className="grid gap-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Bloc Devis */}
-        <section className={styles.card}>
-          <h2 className={styles.h2}>Devis</h2>
-          <div className={styles.formGrid}>
-            <label className={styles.label}>
-              <span>Référence</span>
-              <input
-                className={styles.input}
-                value={quote.reference}
-                disabled
-                placeholder="FS-2025-001"
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Titre</span>
-              <input
-                className={styles.input}
-                value={quote.title}
-                onChange={(e) => setField('title', e.target.value)}
-                placeholder="Site vitrine 5 pages"
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Statut</span>
-              <select
-                className={styles.input}
-                value={quote.status}
-                onChange={(e) => setField('status', e.target.value)}
-              >
-                <option value="DRAFT">draft</option>
-                <option value="SENT">sent</option>
-                <option value="ACCEPTED">accepted</option>
-                <option value="REJECTED">refused</option>
-                <option value="EXPIRED">expired</option>
-                <option value="PAID">paid</option>
-              </select>
-            </label>
-            <label className={styles.label}>
-              <span>Devise</span>
-              <input
-                className={styles.input}
-                value={quote.currency ?? 'EUR'}
-                onChange={(e) => setField('currency', e.target.value)}
-                placeholder="EUR"
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Date d’émission</span>
-              <input
-                type="date"
-                className={styles.input}
-                value={quote.issue_date ?? ''}
-                onChange={(e) => setField('issue_date', e.target.value || null)}
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Date de validité</span>
-              <input
-                type="date"
-                className={styles.input}
-                value={quote.due_date ?? ''}
-                onChange={(e) => setField('due_date', e.target.value || null)}
-              />
-            </label>
-          </div>
-          <div className={styles.formGrid}>
-            <label className={styles.labelCol}>
-              <span>Notes</span>
-              <textarea
-                className={styles.textarea}
-                value={quote.notes ?? ''}
-                onChange={(e) => setField('notes', e.target.value)}
-                rows={3}
-                placeholder="Informations complémentaires visibles par le client…"
-              />
-            </label>
-            <label className={styles.labelCol}>
-              <span>Conditions</span>
-              <textarea
-                className={styles.textarea}
-                value={quote.terms ?? ''}
-                onChange={(e) => setField('terms', e.target.value)}
-                rows={3}
-                placeholder="Modalités de paiement, délais, pénalités, etc."
-              />
-            </label>
-          </div>
-        </section>
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Devis</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="reference">Référence</Label>
+                <Input
+                  id="reference"
+                  value={quote.reference}
+                  disabled
+                  placeholder="FS-2025-001"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="title">Titre</Label>
+                <Input
+                  id="title"
+                  value={quote.title}
+                  onChange={(e) => setField('title', e.target.value)}
+                  placeholder="Site vitrine 5 pages"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="status">Statut</Label>
+                <Select
+                  value={quote.status}
+                  onValueChange={(val) => setField('status', val)}
+                >
+                  <SelectTrigger id="status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DRAFT">draft</SelectItem>
+                    <SelectItem value="SENT">sent</SelectItem>
+                    <SelectItem value="ACCEPTED">accepted</SelectItem>
+                    <SelectItem value="REJECTED">refused</SelectItem>
+                    <SelectItem value="EXPIRED">expired</SelectItem>
+                    <SelectItem value="PAID">paid</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="currency">Devise</Label>
+                <Input
+                  id="currency"
+                  value={quote.currency ?? 'EUR'}
+                  onChange={(e) => setField('currency', e.target.value)}
+                  placeholder="EUR"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="issue_date">Date d'émission</Label>
+                <Input
+                  id="issue_date"
+                  type="date"
+                  value={quote.issue_date ?? ''}
+                  onChange={(e) =>
+                    setField('issue_date', e.target.value || null)
+                  }
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="due_date">Date de validité</Label>
+                <Input
+                  id="due_date"
+                  type="date"
+                  value={quote.due_date ?? ''}
+                  onChange={(e) => setField('due_date', e.target.value || null)}
+                />
+              </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={quote.notes ?? ''}
+                  onChange={(e) => setField('notes', e.target.value)}
+                  rows={3}
+                  placeholder="Informations complémentaires visibles par le client…"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="terms">Conditions</Label>
+                <Textarea
+                  id="terms"
+                  value={quote.terms ?? ''}
+                  onChange={(e) => setField('terms', e.target.value)}
+                  rows={3}
+                  placeholder="Modalités de paiement, délais, pénalités, etc."
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Bloc Client */}
-        <section className={styles.card}>
-          <h2 className={styles.h2}>Client</h2>
-          <div className={styles.formGrid}>
-            <label className={styles.label}>
-              <span>Nom</span>
-              <input
-                className={styles.input}
-                value={quote.client?.name ?? ''}
-                onChange={(e) => setClient('name', e.target.value)}
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Email</span>
-              <input
-                type="email"
-                className={styles.input}
-                value={quote.client?.email ?? ''}
-                onChange={(e) => setClient('email', e.target.value)}
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Entreprise</span>
-              <input
-                className={styles.input}
-                value={quote.client?.company ?? ''}
-                onChange={(e) => setClient('company', e.target.value)}
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Adresse (ligne 1)</span>
-              <input
-                className={styles.input}
-                value={quote.client?.address_line1 ?? ''}
-                onChange={(e) => setClient('address_line1', e.target.value)}
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Adresse (ligne 2)</span>
-              <input
-                className={styles.input}
-                value={quote.client?.address_line2 ?? ''}
-                onChange={(e) => setClient('address_line2', e.target.value)}
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Ville</span>
-              <input
-                className={styles.input}
-                value={quote.client?.city ?? ''}
-                onChange={(e) => setClient('city', e.target.value)}
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Code postal</span>
-              <input
-                className={styles.input}
-                value={quote.client?.postal_code ?? ''}
-                onChange={(e) => setClient('postal_code', e.target.value)}
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Pays</span>
-              <input
-                className={styles.input}
-                value={quote.client?.country ?? ''}
-                onChange={(e) => setClient('country', e.target.value)}
-              />
-            </label>
-          </div>
-        </section>
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Client</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="client_name">Nom</Label>
+                <Input
+                  id="client_name"
+                  value={quote.client?.name ?? ''}
+                  onChange={(e) => setClient('name', e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="client_email">Email</Label>
+                <Input
+                  id="client_email"
+                  type="email"
+                  value={quote.client?.email ?? ''}
+                  onChange={(e) => setClient('email', e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="client_company">Entreprise</Label>
+                <Input
+                  id="client_company"
+                  value={quote.client?.company ?? ''}
+                  onChange={(e) => setClient('company', e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="client_address1">Adresse (ligne 1)</Label>
+                <Input
+                  id="client_address1"
+                  value={quote.client?.address_line1 ?? ''}
+                  onChange={(e) => setClient('address_line1', e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="client_address2">Adresse (ligne 2)</Label>
+                <Input
+                  id="client_address2"
+                  value={quote.client?.address_line2 ?? ''}
+                  onChange={(e) => setClient('address_line2', e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="client_city">Ville</Label>
+                <Input
+                  id="client_city"
+                  value={quote.client?.city ?? ''}
+                  onChange={(e) => setClient('city', e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="client_postal">Code postal</Label>
+                <Input
+                  id="client_postal"
+                  value={quote.client?.postal_code ?? ''}
+                  onChange={(e) => setClient('postal_code', e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="client_country">Pays</Label>
+                <Input
+                  id="client_country"
+                  value={quote.client?.country ?? ''}
+                  onChange={(e) => setClient('country', e.target.value)}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <section className={styles.card}>
-          <div
-            className="flex items-center justify-between"
-            style={{ marginBottom: '16px' }}
-          >
-            <h2 className={styles.h2}>Lignes</h2>
-            <button
-              type="button"
-              onClick={addLine}
-              className={styles.buttonAccent}
-            >
-              + Ajouter
-            </button>
-          </div>
-
-          {quote.line_items.length === 0 ? (
-            <div className={styles.empty}>Aucune ligne</div>
-          ) : (
-            <>
-              <div style={{ display: 'grid', gap: '12px' }}>
-                {quote.line_items.map((l, i) => {
-                  const base = l.quantity * l.unit_price;
-                  const tot = base * (1 + (l.tax_rate ?? 0));
-                  return (
-                    <div
-                      key={i}
-                      style={{
-                        padding: '16px',
-                        border: '1px solid rgba(13,13,13,0.1)',
-                        borderRadius: '8px',
-                        background: '#fff',
-                        display: 'grid',
-                        gap: '12px',
-                      }}
-                    >
+        <Card className="shadow-sm">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Lignes</CardTitle>
+              <Button
+                type="button"
+                onClick={addLine}
+                className="bg-accent-orange text-white hover:bg-accent-orange/90"
+              >
+                + Ajouter
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {quote.line_items.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground">
+                Aucune ligne
+              </div>
+            ) : (
+              <>
+                <div style={{ display: 'grid', gap: '12px' }}>
+                  {quote.line_items.map((l, i) => {
+                    const base = l.quantity * l.unit_price;
+                    const tot = base * (1 + (l.tax_rate ?? 0));
+                    return (
                       <div
+                        key={i}
                         style={{
-                          display: 'flex',
-                          gap: '12px',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <span
-                          style={{
-                            minWidth: '32px',
-                            height: '32px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            background: '#f0f4ff',
-                            borderRadius: '6px',
-                            fontWeight: '600',
-                            fontSize: '0.9rem',
-                            color: 'var(--brand)',
-                          }}
-                        >
-                          {i + 1}
-                        </span>
-
-                        <input
-                          className={styles.input}
-                          value={l.designation}
-                          onChange={(e) =>
-                            updateLine(i, { designation: e.target.value })
-                          }
-                          placeholder="Prestation"
-                          style={{ flex: 1 }}
-                        />
-
-                        <button
-                          type="button"
-                          onClick={() => removeLine(i)}
-                          style={{
-                            padding: '8px 12px',
-                            border: '1px solid rgba(13,13,13,0.1)',
-                            borderRadius: '6px',
-                            background: '#fff',
-                            cursor: 'pointer',
-                            fontSize: '0.85rem',
-                          }}
-                        >
-                          ✕
-                        </button>
-                      </div>
-
-                      <input
-                        className={styles.input}
-                        value={l.description ?? ''}
-                        onChange={(e) =>
-                          updateLine(i, { description: e.target.value })
-                        }
-                        placeholder="Description (optionnel)"
-                      />
-
-                      <div
-                        style={{
+                          padding: '16px',
+                          border: '1px solid rgba(13,13,13,0.1)',
+                          borderRadius: '8px',
+                          background: '#fff',
                           display: 'grid',
-                          gridTemplateColumns:
-                            'repeat(auto-fit, minmax(100px, 1fr))',
                           gap: '12px',
                         }}
                       >
-                        <label style={{ display: 'grid', gap: '4px' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
-                            Quantité
-                          </span>
-                          <input
-                            className={styles.input}
-                            type="number"
-                            min={0}
-                            step="1"
-                            value={l.quantity}
-                            onChange={(e) =>
-                              updateLine(i, {
-                                quantity: Number(e.target.value),
-                              })
-                            }
-                          />
-                        </label>
-
-                        <label style={{ display: 'grid', gap: '4px' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
-                            Prix unitaire
-                          </span>
-                          <div
-                            style={{ display: 'flex', alignItems: 'stretch' }}
-                          >
-                            <input
-                              className={styles.input}
-                              type="number"
-                              min={0}
-                              step="0.01"
-                              value={l.unit_price}
-                              onChange={(e) =>
-                                updateLine(i, {
-                                  unit_price: Number(e.target.value),
-                                })
-                              }
-                              style={{
-                                borderTopRightRadius: 0,
-                                borderBottomRightRadius: 0,
-                                borderRight: 'none',
-                              }}
-                            />
-                            <span
-                              style={{
-                                padding: '0 12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                border: '1px solid rgba(13,13,13,0.12)',
-                                borderTopRightRadius: '12px',
-                                borderBottomRightRadius: '12px',
-                                background: '#f8fafc',
-                                fontSize: '0.9rem',
-                              }}
-                            >
-                              €
-                            </span>
-                          </div>
-                        </label>
-
-                        <label style={{ display: 'grid', gap: '4px' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
-                            TVA
-                          </span>
-                          <select
-                            className={styles.input}
-                            value={(l.tax_rate ?? 0).toString()}
-                            onChange={(e) =>
-                              updateLine(i, {
-                                tax_rate: Number(e.target.value),
-                              })
-                            }
-                          >
-                            <option value="0">0%</option>
-                            <option value="0.055">5,5%</option>
-                            <option value="0.1">10%</option>
-                            <option value="0.2">20%</option>
-                          </select>
-                        </label>
-
-                        <div style={{ display: 'grid', gap: '4px' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
-                            Total TTC
-                          </span>
-                          <div
+                        <div
+                          style={{
+                            display: 'flex',
+                            gap: '12px',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <span
                             style={{
-                              padding: '12px 16px',
-                              background: '#f8fafc',
-                              borderRadius: '12px',
+                              minWidth: '32px',
+                              height: '32px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: '#f0f4ff',
+                              borderRadius: '6px',
                               fontWeight: '600',
-                              fontSize: '1rem',
+                              fontSize: '0.9rem',
+                              color: 'var(--brand)',
                             }}
                           >
-                            {money.format(tot)}
+                            {i + 1}
+                          </span>
+
+                          <Input
+                            value={l.designation}
+                            onChange={(e) =>
+                              updateLine(i, { designation: e.target.value })
+                            }
+                            placeholder="Prestation"
+                            style={{ flex: 1 }}
+                          />
+
+                          <button
+                            type="button"
+                            onClick={() => removeLine(i)}
+                            style={{
+                              padding: '8px 12px',
+                              border: '1px solid rgba(13,13,13,0.1)',
+                              borderRadius: '6px',
+                              background: '#fff',
+                              cursor: 'pointer',
+                              fontSize: '0.85rem',
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+
+                        <Input
+                          value={l.description ?? ''}
+                          onChange={(e) =>
+                            updateLine(i, { description: e.target.value })
+                          }
+                          placeholder="Description (optionnel)"
+                        />
+
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns:
+                              'repeat(auto-fit, minmax(100px, 1fr))',
+                            gap: '12px',
+                          }}
+                        >
+                          <label style={{ display: 'grid', gap: '4px' }}>
+                            <span
+                              style={{ fontSize: '0.75rem', color: '#666' }}
+                            >
+                              Quantité
+                            </span>
+                            <Input
+                              type="number"
+                              min={0}
+                              step="1"
+                              value={l.quantity}
+                              onChange={(e) =>
+                                updateLine(i, {
+                                  quantity: Number(e.target.value),
+                                })
+                              }
+                            />
+                          </label>
+
+                          <label style={{ display: 'grid', gap: '4px' }}>
+                            <span
+                              style={{ fontSize: '0.75rem', color: '#666' }}
+                            >
+                              Prix unitaire
+                            </span>
+                            <div
+                              style={{ display: 'flex', alignItems: 'stretch' }}
+                            >
+                              <Input
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                value={l.unit_price}
+                                onChange={(e) =>
+                                  updateLine(i, {
+                                    unit_price: Number(e.target.value),
+                                  })
+                                }
+                                style={{
+                                  borderTopRightRadius: 0,
+                                  borderBottomRightRadius: 0,
+                                  borderRight: 'none',
+                                }}
+                              />
+                              <span
+                                style={{
+                                  padding: '0 12px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  border: '1px solid rgba(13,13,13,0.12)',
+                                  borderTopRightRadius: '12px',
+                                  borderBottomRightRadius: '12px',
+                                  background: '#f8fafc',
+                                  fontSize: '0.9rem',
+                                }}
+                              >
+                                €
+                              </span>
+                            </div>
+                          </label>
+
+                          <label style={{ display: 'grid', gap: '4px' }}>
+                            <span
+                              style={{ fontSize: '0.75rem', color: '#666' }}
+                            >
+                              TVA
+                            </span>
+                            <Select
+                              value={(l.tax_rate ?? 0).toString()}
+                              onValueChange={(val) =>
+                                updateLine(i, {
+                                  tax_rate: Number(val),
+                                })
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="0">0%</SelectItem>
+                                <SelectItem value="0.055">5,5%</SelectItem>
+                                <SelectItem value="0.1">10%</SelectItem>
+                                <SelectItem value="0.2">20%</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </label>
+
+                          <div style={{ display: 'grid', gap: '4px' }}>
+                            <span
+                              style={{ fontSize: '0.75rem', color: '#666' }}
+                            >
+                              Total TTC
+                            </span>
+                            <div
+                              style={{
+                                padding: '12px 16px',
+                                background: '#f8fafc',
+                                borderRadius: '12px',
+                                fontWeight: '600',
+                                fontSize: '1rem',
+                              }}
+                            >
+                              {money.format(tot)}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
 
-              <div
-                style={{
-                  marginTop: '16px',
-                  padding: '16px',
-                  background: '#f8fafc',
-                  borderRadius: '8px',
-                  display: 'grid',
-                  gap: '8px',
-                }}
-              >
-                <div
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
-                >
-                  <span>Sous-total HT</span>
-                  <strong>{money.format(totals.sub)}</strong>
-                </div>
-                <div
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
-                >
-                  <span>TVA</span>
-                  <strong>{money.format(totals.tax)}</strong>
-                </div>
                 <div
                   style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    paddingTop: '8px',
-                    borderTop: '2px solid rgba(13,13,13,0.1)',
-                    fontSize: '1.1rem',
+                    marginTop: '16px',
+                    padding: '16px',
+                    background: '#f8fafc',
+                    borderRadius: '8px',
+                    display: 'grid',
+                    gap: '8px',
                   }}
                 >
-                  <strong>Total TTC</strong>
-                  <strong>{money.format(totals.total)}</strong>
+                  <div
+                    style={{ display: 'flex', justifyContent: 'space-between' }}
+                  >
+                    <span>Sous-total HT</span>
+                    <strong>{money.format(totals.sub)}</strong>
+                  </div>
+                  <div
+                    style={{ display: 'flex', justifyContent: 'space-between' }}
+                  >
+                    <span>TVA</span>
+                    <strong>{money.format(totals.tax)}</strong>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      paddingTop: '8px',
+                      borderTop: '2px solid rgba(13,13,13,0.1)',
+                      fontSize: '1.1rem',
+                    }}
+                  >
+                    <strong>Total TTC</strong>
+                    <strong>{money.format(totals.total)}</strong>
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
-        </section>
+              </>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Actions bas de page (fallback submit) */}
         <div className="flex items-center gap-2">
-          <button className={styles.buttonPrimary} disabled={saving}>
+          <Button disabled={saving}>
             {saving ? 'Enregistrement…' : 'Enregistrer'}
-          </button>
-          <Link to={`/quotes/${quote.id}`} className={styles.buttonGhost}>
-            Annuler
-          </Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link to={`/quotes/${quote.id}`}>Annuler</Link>
+          </Button>
         </div>
       </form>
       <Modal
