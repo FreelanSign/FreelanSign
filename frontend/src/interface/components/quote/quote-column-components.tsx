@@ -32,7 +32,7 @@ export function StatusPill({ status }: { status: string }) {
       variant = 'info';
       label = 'Envoyé';
       customClasses =
-        'bg-accent-orange text-accent-orange-foreground hover:bg-accent-orange/90';
+        'bg-accent-orange text-brand-foreground hover:bg-accent-orange/90';
       break;
     case 'REJECTED':
       // Utilisation du rouge de destruction

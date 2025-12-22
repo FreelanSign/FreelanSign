@@ -89,10 +89,8 @@ export function DashboardLatestQuotesTable({ pageSize = 5 }: Props) {
     <section className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">
-            Derniers devis
-          </h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-lg font-semibold text-black">Derniers devis</h2>
+          <p className="text-sm text-black">
             Les {pageSize} devis les plus récents
           </p>
         </div>

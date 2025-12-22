@@ -24,6 +24,8 @@ import QuotesListPage from '../interface/pages/Quote/QuoteListPage';
 import RegisterPage from '../interface/pages/Register/RegisterPage';
 import AccountOnboardingPage from '../interface/pages/Account/AccountOnboardingPage';
 import LegalTermsPage from '../interface/pages/LegalTerms/LegalTermsPage';
+import TermsOfServicePage from '../interface/pages/Legal/TermsOfServicePage';
+import PrivacyPolicyPage from '../interface/pages/Legal/PrivacyPolicyPage';
 import { useAuth } from './providers/AuthProvider';
 
 /** Route protégée très simple */
@@ -38,6 +40,8 @@ const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/dashboard" replace /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/register', element: <RegisterPage /> },
+  { path: '/cgu', element: <TermsOfServicePage /> },
+  { path: '/confidentialite', element: <PrivacyPolicyPage /> },
   {
     element: (
       <Protected>

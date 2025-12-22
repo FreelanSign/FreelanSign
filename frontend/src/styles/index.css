@@ -13,38 +13,38 @@
   --font-family-playfair: 'Playfair Display', serif;
 
   /* FreelanSign brand colors */
-  --color-brand-foreground: 0 0% 100%;
+  --color-brand-foreground: hsl(0 0% 100%);
 
-  --color-accent-orange: 18 79% 51%;
-  --color-accent-orange-foreground: 0 0% 7%;
+  --color-accent-orange: hsl(18 79% 51%);
+  --color-accent-orange-foreground: hsl(0 0% 7%);
 
   /* Shadcn tokens aligned with FreelanSign */
-  --color-border: 220 13% 91%;
-  --color-input: 220 13% 91%;
-  --color-ring: 166 100% 39%;
-  --color-background: 0 0% 100%;
-  --color-foreground: 0 0% 5%;
+  --color-border: hsl(220 13% 91%);
+  --color-input: hsl(220 13% 91%);
+  --color-ring: hsl(166 100% 39%);
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(0 0% 5%);
 
-  --color-primary: 166 100% 39%;
-  --color-primary-foreground: 0 0% 100%;
+  --color-primary: hsl(166 100% 39%);
+  --color-primary-foreground: hsl(0 0% 100%);
 
-  --color-secondary: 220 14% 96%;
-  --color-secondary-foreground: 0 0% 5%;
+  --color-secondary: hsl(220 14% 96%);
+  --color-secondary-foreground: hsl(0 0% 5%);
 
-  --color-muted: 220 14% 96%;
-  --color-muted-foreground: 220 9% 46%;
+  --color-muted: hsl(220 14% 96%);
+  --color-muted-foreground: hsl(220 9% 46%);
 
-  --color-accent: 220 14% 96%;
-  --color-accent-foreground: 0 0% 5%;
+  --color-accent: hsl(220 14% 96%);
+  --color-accent-foreground: hsl(0 0% 5%);
 
-  --color-destructive: 0 72% 51%;
-  --color-destructive-foreground: 0 0% 98%;
+  --color-destructive: hsl(0 72% 51%);
+  --color-destructive-foreground: hsl(0 0% 98%);
 
-  --color-card: 0 0% 100%;
-  --color-card-foreground: 0 0% 5%;
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(0 0% 5%);
 
-  --color-popover: 0 0% 100%;
-  --color-popover-foreground: 0 0% 5%;
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(0 0% 5%);
 
   --radius: 0.5rem;
 }
@@ -97,19 +97,25 @@
   color: hsl(18 79% 51%);
 }
 @utility border-accent-orange {
-  /* Ajout */
   border-color: hsl(18 79% 51%);
 }
 @utility ring-accent-orange {
-  /* Ajout */
   --tw-ring-color: hsl(18 79% 51%);
+}
+@utility from-brand {
+  --tw-gradient-from: hsl(166 100% 39%) var(--tw-gradient-from-position);
+  --tw-gradient-to: hsl(166 100% 39% / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+@utility to-accent-orange {
+  --tw-gradient-to: hsl(18 79% 51%) var(--tw-gradient-to-position);
 }
 
 /* Mode sombre */
 @media (prefers-color-scheme: dark) {
   @theme {
-    --color-background: 222.2 84% 4.9%;
-    --color-foreground: 210 40% 98%;
+    --color-background: hsl(222.2 84% 4.9%);
+    --color-foreground: hsl(210 40% 98%);
     /* Ajoutez vos autres couleurs sombres... */
   }
 }

@@ -2,6 +2,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+
 import type { AccountDto } from '../../../domain/account/types';
 import type { AreaDto } from '../../../domain/catalog/types';
 import type { UserDto } from '../../../domain/user/types';
@@ -13,15 +25,12 @@ import { userRepository } from '../../../infrastructure/user/userRepository';
 import AccountDataForm, {
   type AccountFormValues,
 } from '../../components/account/AccountDataForm';
-import { Card } from '../../components/common/Card';
-import { ConfirmModal } from '../../components/common/ConfirmModal';
 import PersonalUserDataForm, {
   type PersonalUserFormValues,
 } from '../../components/profile/PersonalUserDataForm';
 import PrestationsSelector from '../../components/profile/PrestationSelector';
 
 import { useRequireAccount } from '../../hooks/useRequireAccount';
-import styles from './profile-edit-page.module.css';
 
 /**
  * Component for RGPD data export (Article 20 - Data Portability)
@@ -62,17 +71,17 @@ function DataExportSection() {
 
   return (
     <div className="space-y-4">
-      <p className="text-gray-600">
+      <p className="text-sm text-muted-foreground">
         Conformément au RGPD (Article 20), vous pouvez télécharger toutes vos
         données personnelles au format JSON.
       </p>
-      <button
+      <Button
         onClick={handleExportData}
         disabled={isExporting}
-        className={`${styles.buttonPrimary} ${isExporting ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className="bg-brand text-brand-foreground hover:bg-brand/90"
       >
         {isExporting ? 'Téléchargement en cours...' : 'Télécharger mes données'}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -90,19 +99,19 @@ export default function ProfileEditPage() {
   const [showCancelModal, setShowCancelModal] = useState(false);
 
   // Draft values kept locally until Save All
-  // include both default_rate_cents and tjm_eur to avoid any casts later
   type AccountDraftType = Partial<
     AccountFormValues & { default_rate_cents?: number; tjm_eur?: number }
   >;
   const [accountDraft, setAccountDraft] = useState<AccountDraftType>({});
   const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>([]);
 
-  // NEW: profile draft tracked so Save All can persist profile + pro
+  // Profile draft tracked so Save All can persist profile + pro
   const [profileDraft, setProfileDraft] = useState<
     Partial<PersonalUserFormValues>
   >({});
 
   useRequireAccount({ loading });
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -156,19 +165,17 @@ export default function ProfileEditPage() {
       display_name: values.display_name ?? null,
       legal_form: values.legal_form ?? null,
       domain_id: values.domain_id ?? null,
-      // use undefined (not null) to match the state's tjm_eur type
       tjm_eur: values.tjm_eur ?? undefined,
       legal_id: values.legal_id ?? null,
     }));
   }
 
-  // called when domain_id changes (immediate) => update local draft and re-fetch prestations in PrestationsSelector (it uses domaine prop)
+  // called when domain_id changes (immediate) => update local draft and re-fetch prestations
   function handleDomainChange(domain_id: number | null) {
     setAccountDraft((d) => ({ ...d, domain_id }));
-    // NOTE: we DON'T persist to backend here (single save), but PrestationsSelector will get updated domaine prop
   }
 
-  // Save payload type (avoid any)
+  // Save payload type
   type SavePayload = {
     display_name?: string;
     legal_form?: string | null;
@@ -251,10 +258,9 @@ export default function ProfileEditPage() {
         const normalized = normalizeProfile(profileDraft ?? {});
         await userRepository.updateMe({ profile: normalized });
 
-        // re-fetch me to update local user state (and to keep canonical source)
+        // re-fetch me to update local user state
         const me = await userRepository.getMe();
         setUser(me);
-        // ensure profileDraft reflect canonical state (avoid drift)
         setProfileDraft(me?.profile ?? {});
       }
 
@@ -312,126 +318,155 @@ export default function ProfileEditPage() {
   }
 
   if (loading) {
-    return <div className={styles.loading}>Chargement…</div>;
+    return (
+      <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div className="h-96 bg-muted/50 rounded-lg animate-pulse" />
+      </div>
+    );
   }
 
   return (
-    <div className="grid gap-6">
+    <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
       {/* Informations personnelles */}
-      <Card title="Informations personnelles">
-        <PersonalUserDataForm
-          initialValues={user?.profile ?? {}}
-          onSave={async (vals) => {
-            // keep individual save available (backwards compatible)
-            await userRepository.updateMe({
-              profile: normalizeProfile(vals),
-            });
-            const me = await userRepository.getMe();
-            setUser(me);
-            setProfileDraft(me?.profile ?? {});
-            toast.success('Informations personnelles mises à jour');
-          }}
-          onCancel={() => navigate('/profile')}
-          onChange={(vals) => setProfileDraft(vals)}
-          showButtons={false}
-        />
+      <Card className="shadow-sm border border-border">
+        <CardHeader>
+          <CardTitle>Informations personnelles</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PersonalUserDataForm
+            initialValues={user?.profile ?? {}}
+            onSave={async (vals) => {
+              // keep individual save available (backwards compatible)
+              await userRepository.updateMe({
+                profile: normalizeProfile(vals),
+              });
+              const me = await userRepository.getMe();
+              setUser(me);
+              setProfileDraft(me?.profile ?? {});
+              toast.success('Informations personnelles mises à jour');
+            }}
+            onCancel={() => navigate('/profile')}
+            onChange={(vals) => setProfileDraft(vals)}
+            showButtons={false}
+          />
+        </CardContent>
       </Card>
 
       {/* Compte professionnel */}
-      <Card title="Compte professionnel">
-        {account === 'loading' ? (
-          <div className="text-gray-500">Chargement…</div>
-        ) : account ? (
-          <AccountDataForm
-            initialValues={{
-              display_name: account.display_name ?? null,
-              legal_form: account.legal_form ?? null,
-              domain_id: account.domain_id ?? null,
-              default_rate_cents: account.default_rate_cents ?? undefined,
-              legal_id: account.legal_id ?? null,
-            }}
-            areas={areas}
-            onSave={async (payload) => {
-              if (!activeAccountId) return;
-              await accountRepository.update(activeAccountId, {
-                display_name: payload.display_name ?? '',
-                legal_form: payload.legal_form ?? null,
-                domain_id: payload.domain_id ?? null,
-                legal_id: payload.legal_id ?? null,
-                default_rate_cents: payload.default_rate_cents ?? null,
-              });
-              const acc = await accountRepository.retrieve(activeAccountId);
-              setAccount(acc ?? null);
-              setSelectedServiceIds(acc?.service_type_ids ?? []);
-            }}
-            onDomainChange={handleDomainChange}
-            onChange={(vals) => handleAccountValuesChange(vals)}
-            onCancel={() => navigate('/profile')}
-            showButtons={false}
-          />
-        ) : (
-          <div>
-            <p className="text-gray-600">
-              Vous n'avez pas encore de compte professionnel.
-            </p>
-            <button
-              onClick={() => navigate('/onboarding-account')}
-              className="underline text-blue-600 mt-2 hover:text-blue-800"
-            >
-              Commencer l'onboarding
-            </button>
-          </div>
-        )}
+      <Card className="shadow-sm border border-border">
+        <CardHeader>
+          <CardTitle>Compte professionnel</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {account === 'loading' ? (
+            <div className="text-muted-foreground">Chargement…</div>
+          ) : account ? (
+            <AccountDataForm
+              initialValues={{
+                display_name: account.display_name ?? null,
+                legal_form: account.legal_form ?? null,
+                domain_id: account.domain_id ?? null,
+                default_rate_cents: account.default_rate_cents ?? undefined,
+                legal_id: account.legal_id ?? null,
+              }}
+              areas={areas}
+              onSave={async (payload) => {
+                if (!activeAccountId) return;
+                await accountRepository.update(activeAccountId, {
+                  display_name: payload.display_name ?? '',
+                  legal_form: payload.legal_form ?? null,
+                  domain_id: payload.domain_id ?? null,
+                  legal_id: payload.legal_id ?? null,
+                  default_rate_cents: payload.default_rate_cents ?? null,
+                });
+                const acc = await accountRepository.retrieve(activeAccountId);
+                setAccount(acc ?? null);
+                setSelectedServiceIds(acc?.service_type_ids ?? []);
+              }}
+              onDomainChange={handleDomainChange}
+              onChange={(vals) => handleAccountValuesChange(vals)}
+              onCancel={() => navigate('/profile')}
+              showButtons={false}
+            />
+          ) : (
+            <div>
+              <p className="text-muted-foreground">
+                Vous n'avez pas encore de compte professionnel.
+              </p>
+              <button
+                onClick={() => navigate('/onboarding-account')}
+                className="underline text-brand mt-2 hover:text-brand/80"
+              >
+                Commencer l'onboarding
+              </button>
+            </div>
+          )}
+        </CardContent>
       </Card>
 
       {/* Services proposés */}
       {account && account !== 'loading' && (
-        <Card title="Services proposés">
-          <PrestationsSelector
-            accountId={account.id}
-            domaine={accountDraft.domain_id ?? account.domain_id ?? null}
-            selected={selectedServiceIds}
-            onChange={setSelectedServiceIds}
-          />
+        <Card className="shadow-sm border border-border">
+          <CardHeader>
+            <CardTitle>Services proposés</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PrestationsSelector
+              accountId={account.id}
+              domaine={accountDraft.domain_id ?? account.domain_id ?? null}
+              selected={selectedServiceIds}
+              onChange={setSelectedServiceIds}
+            />
+          </CardContent>
         </Card>
       )}
 
       {/* Données & Confidentialité (RGPD) */}
-      <Card title="Données & Confidentialité">
-        <DataExportSection />
+      <Card className="shadow-sm border border-border">
+        <CardHeader>
+          <CardTitle>Données & Confidentialité</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DataExportSection />
+        </CardContent>
       </Card>
 
       {/* Buttons sticky at bottom */}
-      <div className={styles.buttonContainer}>
-        <button
-          onClick={handleCancel}
-          className={styles.buttonGhost}
-          disabled={saving}
-        >
+      <div className="sticky bottom-0 z-10 flex justify-end gap-2 p-4 bg-white border-t border-border shadow-lg">
+        <Button variant="outline" onClick={handleCancel} disabled={saving}>
           Annuler
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={handleSaveAll}
-          className={styles.buttonPrimary}
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
           disabled={saving}
         >
           {saving ? 'Enregistrement…' : 'Enregistrer'}
-        </button>
+        </Button>
       </div>
 
       {/* Toast notifications */}
       <Toaster position="top-right" />
 
       {/* Cancel confirmation modal */}
-      <ConfirmModal
-        open={showCancelModal}
-        title="Annuler les modifications ?"
-        message="Les modifications non enregistrées seront perdues."
-        confirmText="Abandonner les modifications"
-        cancelText="Continuer l'édition"
-        onConfirm={handleConfirmCancel}
-        onCancel={() => setShowCancelModal(false)}
-      />
+      <Dialog open={showCancelModal} onOpenChange={setShowCancelModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Annuler les modifications ?</DialogTitle>
+            <DialogDescription>
+              Les modifications non enregistrées seront perdues.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCancelModal(false)}>
+              Continuer l'édition
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmCancel}>
+              Abandonner les modifications
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

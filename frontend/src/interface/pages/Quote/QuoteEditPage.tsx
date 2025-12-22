@@ -18,7 +18,6 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { usePdfPreview, type PreviewPayload } from '../../hooks/usePdfPreview';
 import { useRequireAccount } from '../../hooks/useRequireAccount';
 import { openBlobUrlInNewTab, saveBlobUrlAs } from '../../utils/saveFile';
-import styles from './quote-edit-create.module.css';
 
 type QuoteLine = {
   id?: string | number;

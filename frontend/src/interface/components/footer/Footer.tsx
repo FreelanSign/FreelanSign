@@ -27,12 +27,12 @@ export default function Footer() {
           <a href="#" onClick={handleNotAvailable} className={styles.link}>
             Support
           </a>
-          <a href="#" onClick={handleNotAvailable} className={styles.link}>
+          <Link to="/cgu" className={styles.link}>
             CGU
-          </a>
-          <a href="#" onClick={handleNotAvailable} className={styles.link}>
+          </Link>
+          <Link to="/confidentialite" className={styles.link}>
             Confidentialité
-          </a>
+          </Link>
         </div>
 
         <div className={styles.column}>

@@ -10,6 +10,28 @@ import {
 } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+
 import type { AccountDto } from '../../../domain/account/types';
 import type { PrestationDto } from '../../../domain/catalog/types';
 import type { ClientDto } from '../../../domain/client/types';
@@ -27,7 +49,6 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { usePdfPreview } from '../../hooks/usePdfPreview';
 import { useRequireAccount } from '../../hooks/useRequireAccount';
 import { openBlobUrlInNewTab, saveBlobUrlAs } from '../../utils/saveFile';
-import styles from './quote-edit-create.module.css';
 
 /* ---------- zod schema ---------- */
 const ItemSchema = z.object({
@@ -66,7 +87,6 @@ type QuoteItemPayload = {
 type QuotePayload = {
   client: string;
   title: string;
-  //reference: string;
   currency: string;
   language: string;
   issue_date: string;
@@ -74,16 +94,6 @@ type QuotePayload = {
   payment_terms_text?: string | null;
   items: QuoteItemPayload[];
 };
-
-// deprecated:
-// type ProfessionalMeDto = {
-//   id: number;
-//   name?: string;
-//   email?: string;
-//   siret?: string;
-//   tjm_cents?: number | null;
-//   service_types: number[];
-// };
 
 /* ---------- small utility helpers ---------- */
 
@@ -104,21 +114,6 @@ function todayISO(): string {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
     .toISOString()
     .slice(0, 10);
-}
-
-/** Extract message from various error shapes (FieldError-like or simple string) */
-function extractErrorMessage(err: unknown): string | undefined {
-  if (!err) return undefined;
-  if (typeof err === 'string') return err;
-  if (typeof err === 'object' && err !== null) {
-    const e = err as Record<string, unknown>;
-    if ('message' in e) {
-      const m = e.message;
-      return typeof m === 'string' ? m : String(m ?? '');
-    }
-    if ('toString' in e) return String(e);
-  }
-  return undefined;
 }
 
 /** Type guard minimal pour détecter un objet d'erreur axios-like */
@@ -148,20 +143,12 @@ export default function QuoteCreatePage() {
 
   // Loading initial de la page
   const pageLoading = clients === 'loading' || prestations === 'loading';
-  // redirect si pas de compte
-  // TODO: ajouter un message d'erreur si pas de compte
   useRequireAccount({ loading: pageLoading });
 
   // Remarque: on force le type Resolver<FormData> pour que zodResolver soit compatible
   const resolver = zodResolver(Schema) as unknown as Resolver<FormData>;
 
-  const {
-    register,
-    control,
-    handleSubmit,
-    setValue,
-    formState: { errors, isSubmitting },
-  } = useForm<FormData>({
+  const form = useForm<FormData>({
     resolver,
     defaultValues: {
       currency: 'EUR',
@@ -180,7 +167,14 @@ export default function QuoteCreatePage() {
     },
   });
 
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = form;
   const { fields, append, remove } = useFieldArray({ control, name: 'items' });
+
   const watchedItems = useWatch({ control, name: 'items' }) as
     | FormData['items']
     | undefined;
@@ -191,10 +185,6 @@ export default function QuoteCreatePage() {
   const watchedTitle = useWatch({ control, name: 'title' }) as
     | string
     | undefined;
-  // deprecated:
-  // const watchedReference = useWatch({ control, name: 'reference' }) as
-  //   | string
-  //   | undefined;
   const watchedLanguage = useWatch({ control, name: 'language' }) as
     | string
     | undefined;
@@ -208,6 +198,7 @@ export default function QuoteCreatePage() {
     control,
     name: 'payment_terms_text',
   }) as string | undefined;
+
   const money = useMoneyFormatter(watchedCurrency);
 
   // ----- Build du payload de preview -----
@@ -241,7 +232,6 @@ export default function QuoteCreatePage() {
       currency: watchedCurrency || 'EUR',
       language: watchedLanguage || 'fr',
       title: watchedTitle || 'Undefined Devis',
-      //reference: watchedReference || 'Undefined PREVIEW',
     };
 
     const lines =
@@ -250,7 +240,6 @@ export default function QuoteCreatePage() {
         description: null,
         quantity: Number(item.qty ?? 0),
         unit_price: Number(item.unit_price ?? 0),
-        // backend attend une facturation (0.2 => 20%)
         tax_rate:
           typeof item.tax_rate === 'number'
             ? Number(item.tax_rate) / 100
@@ -271,7 +260,6 @@ export default function QuoteCreatePage() {
     watchedCurrency,
     watchedLanguage,
     watchedTitle,
-    //watchedReference,
   ]);
 
   // On évite de spammer l'API : debounce 500ms
@@ -282,6 +270,7 @@ export default function QuoteCreatePage() {
     error: pdfError,
     refresh: refreshPdf,
   } = usePdfPreview(debouncedPreviewPayload, previewOpen);
+
   useEffect(() => {
     if (previewOpen) {
       refreshPdf();
@@ -308,14 +297,13 @@ export default function QuoteCreatePage() {
     return { sub, tax, total: sub + tax };
   }, [watchedItems]);
 
-  // Charger clients — clientRepository.list() renvoie désormais PageResponse<ClientDto>
+  // Charger clients
   useEffect(() => {
     let active = true;
     (async () => {
       try {
         const response = await clientRepository.list();
         if (!active) return;
-        // Extraire results de PageResponse
         setClients(response.results);
       } catch (e) {
         console.error('Erreur chargement clients', e);
@@ -327,12 +315,12 @@ export default function QuoteCreatePage() {
       active = false;
     };
   }, []);
+
   // Charger les prestations liées au compte professionnel
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        // 1) Fetch user and account in parallel
         const [userData, accountData] = await Promise.all([
           userRepository.getMe(),
           activeAccountId
@@ -346,13 +334,11 @@ export default function QuoteCreatePage() {
 
         const ids = accountData?.service_type_ids ?? [];
 
-        // s'il n'y a rien de lié -> vide explicite (et un message UI sympa)
         if (!ids.length) {
           if (active) setPrestations([]);
           return;
         }
 
-        // 2) catalogue filtré sur ces IDs
         const list = await catalogRepository.listPrestations({ ids });
         if (!active) return;
         setPrestations(list);
@@ -411,7 +397,6 @@ export default function QuoteCreatePage() {
     return typeof w === 'number' && w > 0 ? w : 1;
   }
 
-  // ---- accessors Prestation
   function getPrestationName(p: PrestationDto): string {
     const o = p as unknown as Record<string, unknown>;
     return pickString(o, ['name', 'label', 'title']) ?? `Prestation #${p.id}`;
@@ -419,15 +404,12 @@ export default function QuoteCreatePage() {
 
   function getPrestationPrice(p: PrestationDto): number | undefined {
     const o = p as unknown as Record<string, unknown>;
-    // explicit cents → euros
     const cents = pickNumber(o, ['price_cents', 'default_rate_cents']);
     if (typeof cents === 'number') return cents / 100;
 
-    // values already in EUR (string or number)
     const eur = pickMoney(o, ['default_rate_eur', 'price_eur', 'price']);
     if (typeof eur === 'number') return eur;
 
-    // last fallbacks
     return pickNumber(o, ['default_price', 'default_rate']);
   }
 
@@ -450,7 +432,6 @@ export default function QuoteCreatePage() {
     }
   };
 
-  // Typage correct pour la fonction de submit attendu par react-hook-form
   const onSubmit: SubmitHandler<FormData> = async (values) => {
     setLoading(true);
     try {
@@ -459,11 +440,9 @@ export default function QuoteCreatePage() {
           ? values.valid_until
           : undefined;
 
-      // Build strongly-typed payload
       const payload: QuotePayload = {
         client: values.client,
         title: values.title,
-        //reference: values.reference,
         currency: values.currency,
         language: values.language,
         issue_date: values.issue_date,
@@ -508,483 +487,529 @@ export default function QuoteCreatePage() {
 
   if (clients === 'loading' || prestations === 'loading') {
     return (
-      <div className="grid gap-6">
-        <div className={styles.skeletonHeader} />
-        <div className={styles.skeletonCard} />
+      <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+        <div className="h-32 bg-muted/50 rounded-lg animate-pulse" />
+        <div className="h-96 bg-muted/50 rounded-lg animate-pulse" />
       </div>
     );
   }
 
   return (
-    <div className="grid gap-6">
-      {/* Header */}
-      <header className={styles.header}>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className={styles.title}>Créer un nouveau devis</h1>
-            <p className={styles.meta}>
-              Remplissez les informations ci-dessous pour générer un devis.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className={styles.buttonGhost}
-              onClick={() => setPreviewOpen(true)}
-            >
-              Aperçu
-            </button>
-            <Link to="/dashboard" className={styles.buttonGhost}>
-              Annuler
-            </Link>
-            <button
-              type="button"
-              className={styles.buttonPrimary}
-              onClick={handleSubmit(onSubmit)}
-              disabled={isSubmitting || loading}
-            >
-              {isSubmitting || loading ? 'Création…' : 'Créer le devis'}
-            </button>
-          </div>
+    <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+      {/* Header gradient avec actions */}
+      <header className="flex flex-col sm:flex-row items-start justify-between gap-4 p-6 rounded-lg bg-gradient-to-r from-brand to-accent-orange text-white shadow-lg">
+        <div>
+          <h1 className="text-2xl font-bold">Créer un nouveau devis</h1>
+          <p className="text-sm opacity-95 mt-1">
+            Remplissez les informations ci-dessous pour générer un devis.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+            onClick={() => setPreviewOpen(true)}
+          >
+            Aperçu
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+          >
+            <Link to="/dashboard">Annuler</Link>
+          </Button>
+          <Button
+            type="button"
+            className="bg-white text-brand hover:bg-white/90"
+            onClick={handleSubmit(onSubmit)}
+            disabled={isSubmitting || loading}
+          >
+            {isSubmitting || loading ? 'Création…' : 'Créer le devis'}
+          </Button>
         </div>
       </header>
 
       {/* Erreurs globales */}
-      {/*{(errors.client || errors.title || errors.reference || errors.items) && (*/}
       {(errors.client || errors.title || errors.items) && (
-        <div className={styles.errorBox}>
-          ⚠️{' '}
-          {[
-            extractErrorMessage(errors.client),
-            extractErrorMessage(errors.title),
-            //extractErrorMessage(errors.reference),
-            extractErrorMessage(errors.items),
-          ]
-            .filter(Boolean)
-            .join(' • ')}
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
+          <p className="font-semibold">⚠️ Erreurs de validation</p>
+          <ul className="mt-2 space-y-1 text-sm">
+            {errors.client && <li>{String(errors.client.message)}</li>}
+            {errors.title && <li>{String(errors.title.message)}</li>}
+            {errors.items && <li>{String(errors.items.message)}</li>}
+          </ul>
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6">
-        {/* Bloc Client */}
-        <section className={styles.card}>
-          <div
-            className="flex items-center justify-between"
-            style={{ marginBottom: '16px' }}
-          >
-            <h2 className={styles.h2}>Client</h2>
-            <button
-              type="button"
-              onClick={() => setClientDrawerOpen(true)}
-              className={styles.buttonAccent}
-            >
-              + Nouveau client
-            </button>
-          </div>
-          <div className={styles.formGrid}>
-            <label className={styles.label}>
-              <span>Client *</span>
-              {clients === null ? (
-                <div className={styles.errorBox}>
-                  Erreur lors du chargement des clients.
+      <Form {...form}>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Bloc Client */}
+          <Card className="shadow-sm border border-border">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Client</CardTitle>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setClientDrawerOpen(true)}
+                >
+                  + Nouveau client
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={control}
+                name="client"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client *</FormLabel>
+                    <FormControl>
+                      {clients === null ? (
+                        <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+                          Erreur lors du chargement des clients
+                        </div>
+                      ) : (
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="— Sélectionner un client —" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {clients.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>
+                                {c.name} {c.email ? `(${c.email})` : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Bloc Devis */}
+          <Card className="shadow-sm border border-border">
+            <CardHeader>
+              <CardTitle>Informations du devis</CardTitle>
+            </CardHeader>
+            <CardContent className="grid md:grid-cols-2 gap-4">
+              <FormField
+                control={control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Titre *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Site vitrine 5 pages" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={control}
+                name="currency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Devise</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="EUR" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={control}
+                name="language"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Langue</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="fr" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={control}
+                name="issue_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date d'émission *</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={control}
+                name="valid_until"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Valable jusqu'au</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="md:col-span-2">
+                <FormField
+                  control={control}
+                  name="payment_terms_text"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Conditions de paiement</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          rows={3}
+                          placeholder="Ex: Paiement à 30 jours fin de mois"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Bloc Prestations */}
+          <Card className="shadow-sm border border-border">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Prestations</CardTitle>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    append({
+                      description: 'Nouvelle prestation',
+                      qty: 1,
+                      unit_price: 0.0,
+                      tax_rate: 20.0,
+                      discount: 0.0,
+                    })
+                  }
+                >
+                  + Ajouter
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {fields.length === 0 ? (
+                <div className="text-center text-muted-foreground py-8">
+                  Aucune prestation
                 </div>
               ) : (
-                <select {...register('client')} className={styles.input}>
-                  <option value="">— Sélectionner un client —</option>
-                  {clients.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} {c.email ? `(${c.email})` : ''}
-                    </option>
+                <>
+                  {fields.map((field, idx) => (
+                    <Card key={field.id} className="border border-border/50">
+                      <CardContent className="p-4 space-y-3">
+                        {/* Row 1: Index + Select + Remove */}
+                        <div className="flex items-center gap-3">
+                          <Badge
+                            variant="outline"
+                            className="w-8 h-8 flex items-center justify-center bg-brand/10 text-brand border-brand/20"
+                          >
+                            {idx + 1}
+                          </Badge>
+
+                          <FormField
+                            control={control}
+                            name={`items.${idx}.prestation_id`}
+                            render={({ field: prestField }) => (
+                              <FormItem className="flex-1">
+                                <FormControl>
+                                  {prestations === null ? (
+                                    <div className="rounded-lg border border-destructive bg-destructive/10 p-2 text-sm text-destructive">
+                                      Erreur chargement
+                                    </div>
+                                  ) : (
+                                    <Select
+                                      value={prestField.value?.toString() ?? ''}
+                                      onValueChange={(val) => {
+                                        const id = val
+                                          ? Number(val)
+                                          : undefined;
+                                        prestField.onChange(id);
+                                        setValue(
+                                          `items.${idx}.prestation_id`,
+                                          id,
+                                          {
+                                            shouldValidate: true,
+                                            shouldDirty: true,
+                                          },
+                                        );
+
+                                        if (!id) return;
+
+                                        const p = prestations.find(
+                                          (pp) => pp.id === id,
+                                        );
+                                        if (!p) return;
+
+                                        const name = getPrestationName(p);
+                                        const taxRate = getPrestationTaxRate(p);
+                                        const weight =
+                                          getPrestationWeightDays(p);
+
+                                        const tjm = account?.default_rate_cents
+                                          ? account.default_rate_cents / 100
+                                          : undefined;
+                                        const fallbackDayRate =
+                                          getPrestationPrice(p);
+                                        const dayRate =
+                                          typeof tjm === 'number'
+                                            ? tjm
+                                            : typeof fallbackDayRate ===
+                                                'number'
+                                              ? fallbackDayRate
+                                              : undefined;
+                                        const unit =
+                                          typeof dayRate === 'number'
+                                            ? dayRate * weight
+                                            : undefined;
+
+                                        if (name)
+                                          setValue(
+                                            `items.${idx}.description`,
+                                            name,
+                                            {
+                                              shouldDirty: true,
+                                            },
+                                          );
+                                        if (typeof taxRate === 'number')
+                                          setValue(
+                                            `items.${idx}.tax_rate`,
+                                            taxRate,
+                                            {
+                                              shouldDirty: true,
+                                            },
+                                          );
+                                        if (typeof unit === 'number')
+                                          setValue(
+                                            `items.${idx}.unit_price`,
+                                            unit,
+                                            {
+                                              shouldDirty: true,
+                                            },
+                                          );
+                                      }}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="— Choisir une prestation —" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {prestations.map((p) => (
+                                          <SelectItem
+                                            key={p.id}
+                                            value={p.id.toString()}
+                                          >
+                                            {getPrestationName(p)}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  )}
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => remove(idx)}
+                          >
+                            ✕
+                          </Button>
+                        </div>
+
+                        {/* Row 2: Description */}
+                        <FormField
+                          control={control}
+                          name={`items.${idx}.description`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input {...field} placeholder="Description" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Row 3: Grid Qty, Prix, TVA, Remise */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          <FormField
+                            control={control}
+                            name={`items.${idx}.qty`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  Quantité
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    {...field}
+                                    onChange={(e) =>
+                                      field.onChange(Number(e.target.value))
+                                    }
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={control}
+                            name={`items.${idx}.unit_price`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  Prix HT
+                                </FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      {...field}
+                                      className="pr-8"
+                                      onChange={(e) =>
+                                        field.onChange(Number(e.target.value))
+                                      }
+                                    />
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                                      €
+                                    </span>
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={control}
+                            name={`items.${idx}.tax_rate`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  TVA (%)
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    {...field}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      field.onChange(
+                                        val === '' ? undefined : Number(val),
+                                      );
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={control}
+                            name={`items.${idx}.discount`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  Remise (%)
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    {...field}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      field.onChange(
+                                        val === '' ? undefined : Number(val),
+                                      );
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
                   ))}
-                </select>
-              )}
-              {errors.client && (
-                <small className={styles.errorBox}>
-                  {extractErrorMessage(errors.client)}
-                </small>
-              )}
-            </label>
-          </div>
-        </section>
 
-        {/* Bloc Devis */}
-        <section className={styles.card}>
-          <h2 className={styles.h2}>Informations du devis</h2>
-          <div className={styles.formGrid}>
-            <label className={styles.label}>
-              <span>Titre *</span>
-              <input
-                {...register('title')}
-                className={styles.input}
-                placeholder="Site vitrine 5 pages"
-              />
-              {errors.title && (
-                <small className={styles.errorBox}>
-                  {extractErrorMessage(errors.title)}
-                </small>
-              )}
-            </label>
-
-            <label className={styles.label}>
-              <span>Devise</span>
-              <input
-                {...register('currency')}
-                className={styles.input}
-                placeholder="EUR"
-              />
-            </label>
-
-            <label className={styles.label}>
-              <span>Langue</span>
-              <input
-                {...register('language')}
-                className={styles.input}
-                placeholder="fr"
-              />
-            </label>
-
-            <label className={styles.label}>
-              <span>Date d'émission *</span>
-              <input
-                type="date"
-                {...register('issue_date')}
-                className={styles.input}
-              />
-              {errors.issue_date && (
-                <small className={styles.errorBox}>
-                  {extractErrorMessage(errors.issue_date)}
-                </small>
-              )}
-            </label>
-
-            <label className={styles.label}>
-              <span>Valable jusqu'au</span>
-              <input
-                type="date"
-                {...register('valid_until')}
-                className={styles.input}
-              />
-            </label>
-          </div>
-
-          <div className={styles.formGrid}>
-            <label className={styles.labelCol}>
-              <span>Conditions de paiement</span>
-              <textarea
-                {...register('payment_terms_text')}
-                className={styles.textarea}
-                rows={3}
-                placeholder="Ex: Paiement à 30 jours fin de mois"
-              />
-            </label>
-          </div>
-        </section>
-
-        {/* Bloc Prestations */}
-        <section className={styles.card}>
-          <div
-            className="flex items-center justify-between"
-            style={{ marginBottom: '16px' }}
-          >
-            <h2 className={styles.h2}>Prestations</h2>
-            <button
-              type="button"
-              onClick={() =>
-                append({
-                  description: 'Nouvelle prestation',
-                  qty: 1,
-                  unit_price: 0.0,
-                  tax_rate: 20.0,
-                  discount: 0.0,
-                })
-              }
-              className={styles.buttonAccent}
-            >
-              + Ajouter
-            </button>
-          </div>
-
-          {fields.length === 0 ? (
-            <div className={styles.empty}>Aucune prestation</div>
-          ) : (
-            <>
-              <div style={{ display: 'grid', gap: '12px' }}>
-                {fields.map((field, index) => {
-                  const prestReg = register(`items.${index}.prestation_id`, {
-                    valueAsNumber: true,
-                  });
-
-                  return (
-                    <div
-                      key={field.id}
-                      style={{
-                        padding: '16px',
-                        border: '1px solid rgba(13,13,13,0.1)',
-                        borderRadius: '8px',
-                        background: '#fff',
-                        display: 'grid',
-                        gap: '12px',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '12px',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <span
-                          style={{
-                            minWidth: '32px',
-                            height: '32px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            background: '#f0f4ff',
-                            borderRadius: '6px',
-                            fontWeight: '600',
-                            fontSize: '0.9rem',
-                            color: 'var(--brand)',
-                          }}
-                        >
-                          {index + 1}
-                        </span>
-
-                        {prestations === null ? (
-                          <div className={styles.errorBox} style={{ flex: 1 }}>
-                            Erreur de chargement
-                          </div>
-                        ) : (
-                          <select
-                            {...prestReg}
-                            className={styles.input}
-                            style={{ flex: 1 }}
-                            onChange={(e) => {
-                              prestReg.onChange(e);
-                              const id = e.target.value
-                                ? Number(e.target.value)
-                                : undefined;
-
-                              setValue(`items.${index}.prestation_id`, id, {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                              });
-
-                              if (!id) return;
-
-                              const p = prestations.find((pp) => pp.id === id);
-                              if (!p) return;
-
-                              const name = getPrestationName(p);
-                              const taxRate = getPrestationTaxRate(p);
-                              const weight = getPrestationWeightDays(p);
-
-                              const tjm = account?.default_rate_cents
-                                ? account.default_rate_cents / 100
-                                : undefined;
-                              const fallbackDayRate = getPrestationPrice(p);
-                              const dayRate =
-                                typeof tjm === 'number'
-                                  ? tjm
-                                  : typeof fallbackDayRate === 'number'
-                                    ? fallbackDayRate
-                                    : undefined;
-                              const unit =
-                                typeof dayRate === 'number'
-                                  ? dayRate * weight
-                                  : undefined;
-
-                              if (name)
-                                setValue(`items.${index}.description`, name, {
-                                  shouldDirty: true,
-                                });
-                              if (typeof taxRate === 'number')
-                                setValue(`items.${index}.tax_rate`, taxRate, {
-                                  shouldDirty: true,
-                                });
-                              if (typeof unit === 'number')
-                                setValue(`items.${index}.unit_price`, unit, {
-                                  shouldDirty: true,
-                                });
-                            }}
-                          >
-                            <option value="">— Choisir une prestation —</option>
-                            {prestations.map((p) => (
-                              <option key={p.id} value={p.id}>
-                                {getPrestationName(p)}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => remove(index)}
-                          style={{
-                            padding: '8px 12px',
-                            border: '1px solid rgba(13,13,13,0.1)',
-                            borderRadius: '6px',
-                            background: '#fff',
-                            cursor: 'pointer',
-                            fontSize: '0.85rem',
-                          }}
-                        >
-                          ✕
-                        </button>
-                      </div>
-
-                      <input
-                        {...register(`items.${index}.description`)}
-                        className={styles.input}
-                        placeholder="Description"
-                      />
-
-                      <div
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns:
-                            'repeat(auto-fit, minmax(100px, 1fr))',
-                          gap: '12px',
-                        }}
-                      >
-                        <label style={{ display: 'grid', gap: '4px' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
-                            Quantité
-                          </span>
-                          <input
-                            className={styles.input}
-                            type="number"
-                            step="0.01"
-                            {...register(`items.${index}.qty`, {
-                              valueAsNumber: true,
-                            })}
-                          />
-                        </label>
-
-                        <label style={{ display: 'grid', gap: '4px' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
-                            Prix unitaire HT
-                          </span>
-                          <div
-                            style={{ display: 'flex', alignItems: 'stretch' }}
-                          >
-                            <input
-                              className={styles.input}
-                              type="number"
-                              step="0.01"
-                              {...register(`items.${index}.unit_price`, {
-                                valueAsNumber: true,
-                              })}
-                              style={{
-                                borderTopRightRadius: 0,
-                                borderBottomRightRadius: 0,
-                                borderRight: 'none',
-                              }}
-                            />
-                            <span
-                              style={{
-                                padding: '0 12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                border: '1px solid rgba(13,13,13,0.12)',
-                                borderTopRightRadius: '12px',
-                                borderBottomRightRadius: '12px',
-                                background: '#f8fafc',
-                                fontSize: '0.9rem',
-                              }}
-                            >
-                              €
-                            </span>
-                          </div>
-                        </label>
-
-                        <label style={{ display: 'grid', gap: '4px' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
-                            TVA (%)
-                          </span>
-                          <input
-                            className={styles.input}
-                            type="number"
-                            step="0.01"
-                            {...register(`items.${index}.tax_rate`, {
-                              valueAsNumber: true,
-                            })}
-                          />
-                        </label>
-
-                        <label style={{ display: 'grid', gap: '4px' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
-                            Remise (%)
-                          </span>
-                          <input
-                            className={styles.input}
-                            type="number"
-                            step="0.01"
-                            {...register(`items.${index}.discount`, {
-                              valueAsNumber: true,
-                            })}
-                          />
-                        </label>
-                      </div>
+                  {/* Totaux */}
+                  <div className="mt-4 p-4 rounded-lg bg-muted/50 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Sous-total HT</span>
+                      <strong>{money.format(totals.sub)}</strong>
                     </div>
-                  );
-                })}
-              </div>
-              {/* Récapitulatif Totaux */}
-              <div
-                style={{
-                  marginTop: '16px',
-                  padding: '16px',
-                  background: '#f8fafc',
-                  borderRadius: '8px',
-                  display: 'grid',
-                  gap: '8px',
-                }}
-              >
-                <div
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
-                >
-                  <span>Sous-total HT</span>
-                  <strong>{money.format(totals.sub)}</strong>
-                </div>
 
-                <div
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
-                >
-                  <span>TVA</span>
-                  <strong>{money.format(totals.tax)}</strong>
-                </div>
+                    <div className="flex justify-between text-sm">
+                      <span>TVA</span>
+                      <strong>{money.format(totals.tax)}</strong>
+                    </div>
 
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    paddingTop: '8px',
-                    borderTop: '2px solid rgba(13,13,13,0.1)',
-                    fontSize: '1.1rem',
-                  }}
-                >
-                  <strong>Total TTC</strong>
-                  <strong>{money.format(totals.total)}</strong>
-                </div>
-              </div>
-            </>
-          )}
-        </section>
-        {/* Actions bas de page */}
-        <div className="flex items-center gap-2">
-          <button
-            type="submit"
-            className={styles.buttonPrimary}
-            disabled={isSubmitting || loading}
-          >
-            {isSubmitting || loading ? 'Création…' : 'Créer le devis'}
-          </button>
-          <Link to="/dashboard" className={styles.buttonGhost}>
-            Annuler
-          </Link>
-        </div>
-      </form>
+                    <div className="flex justify-between pt-2 border-t border-border text-base font-semibold">
+                      <span>Total TTC</span>
+                      <strong>{money.format(totals.total)}</strong>
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Actions bas de page */}
+          <div className="flex items-center gap-2">
+            <Button
+              type="submit"
+              className="bg-brand text-brand-foreground hover:bg-brand/90"
+              disabled={isSubmitting || loading}
+            >
+              {isSubmitting || loading ? 'Création…' : 'Créer le devis'}
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/dashboard">Annuler</Link>
+            </Button>
+          </div>
+        </form>
+      </Form>
+
+      {/* Modal Preview PDF (garder existant) */}
       <Modal
         open={previewOpen}
         onClose={() => setPreviewOpen(false)}
@@ -1028,6 +1053,8 @@ export default function QuoteCreatePage() {
           <PdfPreviewPanel url={pdfUrl} loading={pdfLoading} error={pdfError} />
         </div>
       </Modal>
+
+      {/* Client Drawer (garder existant) */}
       <ClientCreateDrawer
         open={clientDrawerOpen}
         onClose={() => setClientDrawerOpen(false)}

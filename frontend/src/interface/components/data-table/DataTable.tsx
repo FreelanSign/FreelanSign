@@ -177,16 +177,15 @@ export function DataTable<TData>({
           ) : (
             <>
               Affichage de l'élément{' '}
-              <span className="font-semibold text-foreground">
+              <span className="font-semibold text-black">
                 {Math.min(state.pageIndex * state.pageSize + 1, rowCount)}
               </span>
               {' à '}
-              <span className="font-semibold text-foreground">
+              <span className="font-semibold text-black">
                 {Math.min((state.pageIndex + 1) * state.pageSize, rowCount)}
               </span>
               {' sur '}
-              <span className="font-semibold text-foreground">{rowCount}</span>
-              {' devis'}
+              <span className="font-semibold text-black">{rowCount}</span>
             </>
           )}
         </div>
@@ -195,15 +194,14 @@ export function DataTable<TData>({
           {/* Indicateur de page (optionnel mais utile) */}
           <div className="text-sm font-medium text-muted-foreground hidden sm:block">
             Page{' '}
-            <span className="text-foreground font-semibold">
+            <span className="text-black font-semibold">
               {state.pageIndex + 1}
             </span>{' '}
-            sur{' '}
-            <span className="text-foreground font-semibold">{pageCount}</span>
+            sur <span className="text-black font-semibold">{pageCount}</span>
           </div>
 
           <Button
-            variant="outline"
+            variant="default"
             size="sm"
             className="gap-1 border-input hover:bg-accent"
             onClick={() =>
@@ -218,7 +216,7 @@ export function DataTable<TData>({
             Précédent
           </Button>
           <Button
-            variant="outline"
+            variant="default"
             size="sm"
             className="gap-1 border-input hover:bg-accent"
             onClick={() =>

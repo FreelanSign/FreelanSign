@@ -1,6 +1,11 @@
 // src/interface/pages/ProfilePage.tsx
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { useAuth } from '../../../app/providers/AuthProvider';
 import type { AccountDto } from '../../../domain/account/types';
 import type { PrestationDto } from '../../../domain/catalog/types';
@@ -11,7 +16,6 @@ import { catalogRepository } from '../../../infrastructure/catalog/catalogReposi
 import { userRepository } from '../../../infrastructure/user/userRepository';
 
 import { useRequireAccount } from '../../hooks/useRequireAccount';
-import styles from './profile-page.module.css';
 
 /**
  * Page profil: affiche user.profile + professional (si présent)
@@ -102,7 +106,8 @@ export default function ProfilePage() {
     };
   }, [navigate, activeAccountId]);
 
-  if (loading) return <div>Chargement du profil…</div>;
+  if (loading)
+    return <div className="text-center py-8">Chargement du profil…</div>;
 
   const fullName = user
     ? `${user.profile?.first_name || ''} ${user.profile?.last_name || ''}`.trim() ||
@@ -110,86 +115,97 @@ export default function ProfilePage() {
     : 'Utilisateur';
 
   return (
-    <div className="grid gap-6">
+    <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
       {/* Compact User Header */}
-      <header className={styles.header}>
-        <div className={styles.avatarWrap}>
+      <header className="flex flex-col sm:flex-row items-center gap-4 p-6 bg-white rounded-lg border border-border shadow-sm">
+        <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-border">
           <img
             src={user?.profile?.avatar_url || '/img/default-avatar.jpeg'}
             alt="Avatar"
-            className={styles.avatarImg}
+            className="object-cover w-full h-full"
           />
         </div>
-        <div className={styles.headerContent}>
-          <h1 className={styles.userName}>{fullName}</h1>
-          <div className={styles.meta}>
-            <span className={styles.metaItem}>
-              {user?.email || authUser?.email || '—'}
-            </span>
-            {user?.profile?.phone && (
-              <span className={styles.metaItem}>{user.profile.phone}</span>
-            )}
+        <div className="flex-1 text-center sm:text-left">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 font-playfair">
+            {fullName}
+          </h1>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 text-sm text-muted-foreground mt-1">
+            <span>{user?.email || authUser?.email || '—'}</span>
+            {user?.profile?.phone && <span>{user.profile.phone}</span>}
           </div>
         </div>
-        <button
+        <Button
           onClick={() => navigate('/profile/edit')}
-          className={`${styles.buttonPrimary} ${styles.editButton}`}
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
         >
           Modifier
-        </button>
+        </Button>
       </header>
 
       {/* Professional Info Card */}
       {account && account !== 'loading' && (
-        <section className={styles.card}>
-          <h2 className={styles.h2}>
-            {account.display_name || 'Structure professionnelle'}
-            {account.legal_form && (
-              <span className={`${styles.badge} ${styles.badgeInfo}`}>
-                {account.legal_form}
-              </span>
-            )}
-          </h2>
+        <Card className="shadow-sm border border-border">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {account.display_name || 'Structure professionnelle'}
+              {account.legal_form && (
+                <Badge variant="secondary">{account.legal_form}</Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Domaine</span>
+              <strong className="text-sm">{areaName || '—'}</strong>
+            </div>
 
-          <div className={styles.kv}>
-            <span>Domaine</span>
-            <strong>{areaName || '—'}</strong>
-          </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">TJM</span>
+              <strong className="text-sm">
+                {account.default_rate_cents
+                  ? `${(account.default_rate_cents / 100).toFixed(2)} €`
+                  : '—'}
+              </strong>
+            </div>
 
-          <div className={styles.kv}>
-            <span>TJM</span>
-            <strong>
-              {account.default_rate_cents
-                ? `${(account.default_rate_cents / 100).toFixed(2)} €`
-                : '—'}
-            </strong>
-          </div>
-
-          <div className={styles.kv}>
-            <span>SIRET</span>
-            <strong>{account.legal_id || '—'}</strong>
-          </div>
-        </section>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">SIRET</span>
+              <strong className="text-sm">{account.legal_id || '—'}</strong>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Services Card */}
       {account && account !== 'loading' && (
-        <section className={styles.card}>
-          <h2 className={styles.h2}>Prestations</h2>
-          {prestations === 'loading' ? (
-            <p className={styles.emptyServices}>Chargement des prestations…</p>
-          ) : prestations && prestations.length > 0 ? (
-            <div className={styles.servicesGrid}>
-              {prestations.map((p) => (
-                <span key={p.id} className={styles.chip}>
-                  {p.name || p.title || p.label || 'Service'}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className={styles.emptyServices}>Aucune prestation configurée</p>
-          )}
-        </section>
+        <Card className="shadow-sm border border-border">
+          <CardHeader>
+            <CardTitle>Prestations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {prestations === 'loading' ? (
+              <p className="text-muted-foreground">
+                Chargement des prestations…
+              </p>
+            ) : prestations && prestations.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {prestations.map((p) => (
+                  <Badge
+                    key={p.id}
+                    variant="outline"
+                    className="bg-brand/10 text-brand border-brand/20"
+                  >
+                    {p.name || p.title || p.label || 'Service'}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">
+                Aucune prestation configurée
+              </p>
+            )}
+          </CardContent>
+        </Card>
       )}
     </div>
   );
