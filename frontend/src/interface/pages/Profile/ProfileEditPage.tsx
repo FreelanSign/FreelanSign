@@ -1,4 +1,4 @@
-// src/interface/pages/ProfileEditPage.tsx
+// src/interface/pages/Profile/ProfileEditPage.tsx
 import { useEffect, useMemo, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -30,6 +30,7 @@ import PersonalUserDataForm, {
 } from '../../components/profile/PersonalUserDataForm';
 import PrestationsSelector from '../../components/profile/PrestationSelector';
 
+import { Briefcase, PencilLine, ShieldCheck } from 'lucide-react';
 import { useRequireAccount } from '../../hooks/useRequireAccount';
 
 /**
@@ -78,9 +79,10 @@ function DataExportSection() {
       <Button
         onClick={handleExportData}
         disabled={isExporting}
-        className="bg-brand text-brand-foreground hover:bg-brand/90"
+        variant="outline"
+        className="w-full sm:w-auto"
       >
-        {isExporting ? 'Téléchargement en cours...' : 'Télécharger mes données'}
+        {isExporting ? 'Téléchargement...' : 'Télécharger mes données'}
       </Button>
     </div>
   );
@@ -159,21 +161,34 @@ export default function ProfileEditPage() {
   }, [navigate, activeAccountId]);
 
   // called by AccountDataForm watch - update local draft and domain_id used to fetch prestations
-  function handleAccountValuesChange(values: AccountFormValues) {
-    setAccountDraft((prev) => ({
-      ...prev,
-      display_name: values.display_name ?? null,
-      legal_form: values.legal_form ?? null,
-      domain_id: values.domain_id ?? null,
-      tjm_eur: values.tjm_eur ?? undefined,
-      legal_id: values.legal_id ?? null,
-    }));
-  }
+  const handleAccountValuesChange = useMemo(
+    () => (values: AccountFormValues) => {
+      setAccountDraft((prev) => ({
+        ...prev,
+        display_name: values.display_name ?? null,
+        legal_form: values.legal_form ?? null,
+        domain_id: values.domain_id ?? null,
+        tjm_eur: values.tjm_eur ?? undefined,
+        legal_id: values.legal_id ?? null,
+      }));
+    },
+    [],
+  );
+
+  const handleProfileDraftChange = useMemo(
+    () => (vals: PersonalUserFormValues) => {
+      setProfileDraft(vals);
+    },
+    [],
+  );
 
   // called when domain_id changes (immediate) => update local draft and re-fetch prestations
-  function handleDomainChange(domain_id: number | null) {
-    setAccountDraft((d) => ({ ...d, domain_id }));
-  }
+  const handleDomainChange = useMemo(
+    () => (domain_id: number | null) => {
+      setAccountDraft((d) => ({ ...d, domain_id }));
+    },
+    [],
+  );
 
   // Save payload type
   type SavePayload = {
@@ -325,144 +340,234 @@ export default function ProfileEditPage() {
     );
   }
 
+  const fullName = user
+    ? `${user.profile?.first_name || ''} ${user.profile?.last_name || ''}`.trim() ||
+      'Votre Profil'
+    : 'Votre Profil';
+
   return (
-    <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-      {/* Informations personnelles */}
-      <Card className="shadow-sm border border-border">
-        <CardHeader>
-          <CardTitle>Informations personnelles</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PersonalUserDataForm
-            initialValues={user?.profile ?? {}}
-            onSave={async (vals) => {
-              // keep individual save available (backwards compatible)
-              await userRepository.updateMe({
-                profile: normalizeProfile(vals),
-              });
-              const me = await userRepository.getMe();
-              setUser(me);
-              setProfileDraft(me?.profile ?? {});
-              toast.success('Informations personnelles mises à jour');
-            }}
-            onCancel={() => navigate('/profile')}
-            onChange={(vals) => setProfileDraft(vals)}
-            showButtons={false}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Compte professionnel */}
-      <Card className="shadow-sm border border-border">
-        <CardHeader>
-          <CardTitle>Compte professionnel</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {account === 'loading' ? (
-            <div className="text-muted-foreground">Chargement…</div>
-          ) : account ? (
-            <AccountDataForm
-              initialValues={{
-                display_name: account.display_name ?? null,
-                legal_form: account.legal_form ?? null,
-                domain_id: account.domain_id ?? null,
-                default_rate_cents: account.default_rate_cents ?? undefined,
-                legal_id: account.legal_id ?? null,
-              }}
-              areas={areas}
-              onSave={async (payload) => {
-                if (!activeAccountId) return;
-                await accountRepository.update(activeAccountId, {
-                  display_name: payload.display_name ?? '',
-                  legal_form: payload.legal_form ?? null,
-                  domain_id: payload.domain_id ?? null,
-                  legal_id: payload.legal_id ?? null,
-                  default_rate_cents: payload.default_rate_cents ?? null,
-                });
-                const acc = await accountRepository.retrieve(activeAccountId);
-                setAccount(acc ?? null);
-                setSelectedServiceIds(acc?.service_type_ids ?? []);
-              }}
-              onDomainChange={handleDomainChange}
-              onChange={(vals) => handleAccountValuesChange(vals)}
-              onCancel={() => navigate('/profile')}
-              showButtons={false}
-            />
-          ) : (
-            <div>
-              <p className="text-muted-foreground">
-                Vous n'avez pas encore de compte professionnel.
-              </p>
-              <button
-                onClick={() => navigate('/onboarding-account')}
-                className="underline text-brand mt-2 hover:text-brand/80"
-              >
-                Commencer l'onboarding
-              </button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Services proposés */}
-      {account && account !== 'loading' && (
-        <Card className="shadow-sm border border-border">
-          <CardHeader>
-            <CardTitle>Services proposés</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PrestationsSelector
-              accountId={account.id}
-              domaine={accountDraft.domain_id ?? account.domain_id ?? null}
-              selected={selectedServiceIds}
-              onChange={setSelectedServiceIds}
-            />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Données & Confidentialité (RGPD) */}
-      <Card className="shadow-sm border border-border">
-        <CardHeader>
-          <CardTitle>Données & Confidentialité</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataExportSection />
-        </CardContent>
-      </Card>
-
-      {/* Buttons sticky at bottom */}
-      <div className="sticky bottom-0 z-10 flex justify-end gap-2 p-4 bg-white border-t border-border shadow-lg">
-        <Button variant="outline" onClick={handleCancel} disabled={saving}>
-          Annuler
-        </Button>
-        <Button
-          onClick={handleSaveAll}
-          className="bg-brand text-brand-foreground hover:bg-brand/90"
-          disabled={saving}
-        >
-          {saving ? 'Enregistrement…' : 'Enregistrer'}
-        </Button>
+    <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-8 pb-32">
+      {/* Breadcrumb / Title */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span
+            className="cursor-pointer hover:text-brand transition-colors"
+            onClick={() => navigate('/profile')}
+          >
+            Profil
+          </span>
+          <span>/</span>
+          <span className="text-foreground font-medium">Édition</span>
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight font-playfair">
+          Paramètres du profil
+        </h1>
       </div>
 
-      {/* Toast notifications */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Profile Summary / Header Card */}
+        <div className="lg:col-span-12">
+          <header className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-white rounded-xl border border-border shadow-sm">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-muted shadow-inner bg-muted/20">
+                <img
+                  src={
+                    profileDraft.avatar_url ||
+                    user?.profile?.avatar_url ||
+                    '/img/default-avatar.jpeg'
+                  }
+                  alt="Avatar"
+                  className="object-cover w-full h-full"
+                />
+              </div>
+            </div>
+
+            <div className="flex-1 text-center sm:text-left space-y-1">
+              <h2 className="text-2xl font-bold font-playfair">{fullName}</h2>
+              <p className="text-sm text-muted-foreground">
+                {user?.email || '—'}
+              </p>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleCancel}
+                disabled={saving}
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={handleSaveAll}
+                className="bg-brand text-white hover:bg-brand-dark shadow-sm"
+                disabled={saving || !isDirty}
+              >
+                {saving ? 'Enregistrement…' : 'Enregistrer'}
+              </Button>
+            </div>
+          </header>
+        </div>
+
+        {/* Main Content Areas */}
+        <div className="lg:col-span-8 space-y-8">
+          {/* Informations personnelles */}
+          <Card className="shadow-none border border-border overflow-hidden">
+            <CardHeader className="bg-muted/30 border-b border-border/50 py-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <PencilLine className="h-4 w-4 text-brand" />
+                Informations personnelles
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <PersonalUserDataForm
+                initialValues={user?.profile ?? {}}
+                onCancel={() => navigate('/profile')}
+                onChange={handleProfileDraftChange}
+                showButtons={false}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Compte professionnel */}
+          <Card className="shadow-none border border-border overflow-hidden">
+            <CardHeader className="bg-muted/30 border-b border-border/50 py-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Briefcase className="h-4 w-4 text-brand" />
+                Structure professionnelle
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {account === 'loading' ? (
+                <div className="flex items-center justify-center py-8 animate-pulse text-muted-foreground italic">
+                  Chargement des données professionnelles...
+                </div>
+              ) : account ? (
+                <AccountDataForm
+                  initialValues={{
+                    display_name: account.display_name ?? null,
+                    legal_form: account.legal_form ?? null,
+                    domain_id: account.domain_id ?? null,
+                    default_rate_cents: account.default_rate_cents ?? undefined,
+                    legal_id: account.legal_id ?? null,
+                  }}
+                  areas={areas}
+                  onDomainChange={handleDomainChange}
+                  onChange={(vals) => handleAccountValuesChange(vals)}
+                  showButtons={false}
+                />
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-muted-foreground mb-4">
+                    Vous n'avez pas encore de compte professionnel.
+                  </p>
+                  <Button
+                    onClick={() => navigate('/onboarding-account')}
+                    variant="outline"
+                  >
+                    Commencer l'onboarding
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar content */}
+        <div className="lg:col-span-4 space-y-8">
+          {/* Services proposés */}
+          {account && account !== 'loading' && (
+            <Card className="shadow-none border border-border overflow-hidden">
+              <CardHeader className="bg-muted/30 border-b border-border/50 py-4">
+                <CardTitle className="text-base">
+                  Prestations proposées
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <PrestationsSelector
+                  accountId={account.id}
+                  domaine={accountDraft.domain_id ?? account.domain_id ?? null}
+                  selected={selectedServiceIds}
+                  onChange={setSelectedServiceIds}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Données & Confidentialité */}
+          <Card className="shadow-none border border-border">
+            <CardHeader className="bg-muted/30 border-b border-border/50 py-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-orange-600" />
+                Sécurité & Données
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <DataExportSection />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Floating Action Bar */}
+      {isDirty && (
+        <footer className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[min(calc(100%-2rem),40rem)] bg-white/95 backdrop-blur-md border border-border p-3 rounded-2xl shadow-2xl flex items-center justify-between gap-4 animate-in slide-in-from-bottom-4 duration-300">
+          <div className="flex items-center gap-3 pl-2">
+            <div className="w-2 h-2 rounded-full bg-brand animate-pulse" />
+            <span
+              className="text-sm font-medium
+            "
+            >
+              Modifications non enregistrées
+            </span>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              disabled={saving}
+            >
+              Annuler
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSaveAll}
+              className="bg-brand text-white hover:bg-brand-dark px-6"
+              disabled={saving}
+            >
+              {saving ? 'Enregistrement…' : 'Tout enregistrer'}
+            </Button>
+          </div>
+        </footer>
+      )}
+
       <Toaster position="top-right" />
 
-      {/* Cancel confirmation modal */}
+      {/* Cancel Confirmation Modal */}
       <Dialog open={showCancelModal} onOpenChange={setShowCancelModal}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Annuler les modifications ?</DialogTitle>
-            <DialogDescription>
-              Les modifications non enregistrées seront perdues.
+            <DialogTitle>Abandonner les modifications ?</DialogTitle>
+            <DialogDescription className="pt-2">
+              Attention, vous avez des modifications en cours. Si vous quittez
+              cette page maintenant, vos changements seront définitivement
+              perdus.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCancelModal(false)}>
+          <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowCancelModal(false)}
+              className="flex-1"
+            >
               Continuer l'édition
             </Button>
-            <Button variant="destructive" onClick={handleConfirmCancel}>
-              Abandonner les modifications
+            <Button
+              variant="destructive"
+              className="flex-1"
+              onClick={handleConfirmCancel}
+            >
+              Abandonner
             </Button>
           </DialogFooter>
         </DialogContent>

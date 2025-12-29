@@ -30,6 +30,13 @@ const CardTitle = ({
   />
 );
 
+const CardDescription = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) => (
+  <p className={cn('text-sm text-muted-foreground', className)} {...props} />
+);
+
 const CardContent = ({
   className,
   ...props
@@ -37,4 +44,18 @@ const CardContent = ({
   <div className={cn('p-6 pt-0', className)} {...props} />
 );
 
-export { Card, CardHeader, CardTitle, CardContent };
+const CardFooter = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={cn('flex items-center p-6 pt-0', className)} {...props} />
+);
+
+export {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+};

@@ -15,6 +15,7 @@ import { useAccountStore } from '../../../infrastructure/account/accountStore';
 import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
 import { userRepository } from '../../../infrastructure/user/userRepository';
 
+import { Briefcase, Mail, PencilLine, Phone } from 'lucide-react';
 import { useRequireAccount } from '../../hooks/useRequireAccount';
 
 /**
@@ -116,92 +117,113 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-      {/* Compact User Header */}
-      <header className="flex flex-col sm:flex-row items-center gap-4 p-6 bg-white rounded-lg border border-border shadow-sm">
-        <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-border">
-          <img
-            src={user?.profile?.avatar_url || '/img/default-avatar.jpeg'}
-            alt="Avatar"
-            className="object-cover w-full h-full"
-          />
+      {/* Header Profil */}
+      <header className="flex flex-col sm:flex-row items-center gap-6 p-8 bg-white rounded-xl border border-border shadow-sm">
+        <div className="relative group">
+          <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-muted shadow-inner">
+            <img
+              src={user?.profile?.avatar_url || '/img/default-avatar.jpeg'}
+              alt="Avatar"
+              className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
+            />
+          </div>
         </div>
-        <div className="flex-1 text-center sm:text-left">
+
+        <div className="flex-1 text-center sm:text-left space-y-1">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 font-playfair">
             {fullName}
           </h1>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 text-sm text-muted-foreground mt-1">
-            <span>{user?.email || authUser?.email || '—'}</span>
-            {user?.profile?.phone && <span>{user.profile.phone}</span>}
+          <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-x-4 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <Mail className="h-3.5 w-3.5" />{' '}
+              {user?.email || authUser?.email || '—'}
+            </span>
+            {user?.profile?.phone && (
+              <span className="flex items-center gap-1.5">
+                <Phone className="h-3.5 w-3.5" /> {user.profile.phone}
+              </span>
+            )}
           </div>
         </div>
+
         <Button
           onClick={() => navigate('/profile/edit')}
-          className="bg-brand text-brand-foreground hover:bg-brand/90"
+          className="btn-add-client"
         >
+          <PencilLine className="mr-2 h-4 w-4" />
           Modifier
         </Button>
       </header>
 
-      {/* Professional Info Card */}
+      {/* Carte Informations Pro */}
       {account && account !== 'loading' && (
-        <Card className="shadow-sm border border-border">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <Card className="shadow-sm border border-border overflow-hidden">
+          <CardHeader className="bg-muted/30 border-b border-border/50 py-4">
+            <CardTitle className="text-base flex items-center gap-3">
+              <Briefcase className="h-4 w-4 text-brand" />
               {account.display_name || 'Structure professionnelle'}
               {account.legal_form && (
-                <Badge variant="secondary">{account.legal_form}</Badge>
+                <Badge variant="tag" className="ml-1">
+                  {account.legal_form}
+                </Badge>
               )}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Domaine</span>
-              <strong className="text-sm">{areaName || '—'}</strong>
+          <CardContent className="py-2 px-6">
+            <div className="info-row">
+              <span className="info-label">Domaine d'activité</span>
+              <span className="info-value">{areaName || '—'}</span>
             </div>
 
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">TJM</span>
-              <strong className="text-sm">
+            <div className="info-row">
+              <span className="info-label">Tarif Journalier (TJM)</span>
+              <span className="info-value text-brand">
                 {account.default_rate_cents
                   ? `${(account.default_rate_cents / 100).toFixed(2)} €`
                   : '—'}
-              </strong>
+              </span>
             </div>
 
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">SIRET</span>
-              <strong className="text-sm">{account.legal_id || '—'}</strong>
+            <div className="info-row">
+              <span className="info-label">Numéro SIRET</span>
+              <span className="info-value tracking-wider font-mono">
+                {account.legal_id || '—'}
+              </span>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Services Card */}
+      {/* Carte Prestations */}
       {account && account !== 'loading' && (
         <Card className="shadow-sm border border-border">
-          <CardHeader>
-            <CardTitle>Prestations</CardTitle>
+          <CardHeader className="py-4 border-b border-border/30">
+            <CardTitle className="text-base">
+              Prestations au catalogue
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             {prestations === 'loading' ? (
-              <p className="text-muted-foreground">
-                Chargement des prestations…
-              </p>
+              <div className="flex items-center gap-2 text-muted-foreground italic text-sm">
+                <span className="animate-pulse">
+                  Chargement des services...
+                </span>
+              </div>
             ) : prestations && prestations.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {prestations.map((p) => (
                   <Badge
                     key={p.id}
                     variant="outline"
-                    className="bg-brand/10 text-brand border-brand/20"
+                    className="bg-brand/5 text-brand border-brand/20 px-3 py-1 font-medium"
                   >
                     {p.name || p.title || p.label || 'Service'}
                   </Badge>
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground">
-                Aucune prestation configurée
+              <p className="text-sm text-muted-foreground italic">
+                Aucune prestation configurée pour ce profil.
               </p>
             )}
           </CardContent>

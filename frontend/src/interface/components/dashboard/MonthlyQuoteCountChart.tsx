@@ -1,13 +1,13 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
 } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { MonthlyMetricUi } from '../../../domain/quote/metricsTypes';
 
 type Props = { data: MonthlyMetricUi[] };
@@ -22,18 +22,50 @@ export function MonthlyQuoteCountChart({ data }: Props) {
   }));
 
   return (
-    <Card>
+    <Card className="shadow-none border border-border">
       <CardHeader>
-        <CardTitle>Nombre de devis mensuels</CardTitle>
+        <CardTitle className="text-base font-semibold">
+          Volume d'activité
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" />
-            <XAxis dataKey="month" className="text-xs" />
-            <YAxis className="text-xs" />
-            <Tooltip />
-            <Bar dataKey="count" fill="#10b981" />
+          <BarChart
+            data={chartData}
+            margin={{ top: 5, right: 10, left: 10, bottom: 0 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              vertical={false}
+              className="stroke-muted"
+            />
+            <XAxis
+              dataKey="month"
+              className="text-[10px] text-muted-foreground"
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              className="text-[10px] text-muted-foreground"
+              axisLine={false}
+              tickLine={false}
+              allowDecimals={false}
+            />
+            <Tooltip
+              cursor={{ fill: 'hsl(166 100% 39% / 0.05)' }}
+              contentStyle={{
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+              }}
+              formatter={(value) => [value, 'Nombre de devis']}
+            />
+            <Bar
+              dataKey="count"
+              fill="hsl(166 100% 39%)"
+              radius={[4, 4, 0, 0]}
+              barSize={32}
+            />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

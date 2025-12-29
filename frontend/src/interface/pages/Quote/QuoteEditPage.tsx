@@ -13,7 +13,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Briefcase,
+  Calendar,
+  ChevronLeft,
+  Eye,
+  FileText,
+  List,
+  PlusCircle,
+  Save,
+  Trash2,
+  User,
+} from 'lucide-react';
 
 import type { AccountDto } from '../../../domain/account/types';
 import { apiToUiQuote } from '../../../domain/quote/mappers';
@@ -417,48 +430,76 @@ export default function QuoteEditPage() {
 
   if (loading || !quote) {
     return (
-      <div className="grid gap-6">
-        <div className="h-32 bg-muted/50 rounded-lg animate-pulse" />
-        <div className="h-96 bg-muted/50 rounded-lg animate-pulse" />
+      <div className="container mx-auto py-8 px-4 max-w-7xl space-y-8">
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid gap-6">
+          <Skeleton className="h-48 w-full rounded-xl" />
+          <Skeleton className="h-96 w-full rounded-xl" />
+        </div>
       </div>
     );
   }
+
   return (
-    <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-      <header className="flex items-start justify-between p-6 rounded-lg bg-gradient-to-r from-brand to-accent-orange text-white shadow-lg">
-        <div>
-          <h1 className="text-2xl font-bold">
-            Éditer le devis — {quote.reference}
+    <div className="container mx-auto py-8 px-4 space-y-8 max-w-7xl animate-in fade-in duration-500">
+      {/* Header Row */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border/60">
+        <div className="space-y-1">
+          <button
+            onClick={() => navigate(`/quotes/${id}`)}
+            className="flex items-center text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-brand transition-colors mb-2 group"
+          >
+            <ChevronLeft className="mr-1 h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
+            Retour au devis
+          </button>
+          <h1 className="text-3xl font-bold tracking-tight font-playfair">
+            Édition du devis
           </h1>
-          <p className="text-sm opacity-95 mt-1">
-            Modifiez les informations puis enregistrez.
+          <p className="text-muted-foreground">
+            Référence{' '}
+            <span className="text-brand font-semibold">{quote.reference}</span>{' '}
+            — Modifiez les détails et enregistrez vos changements.
           </p>
         </div>
-        <div className="flex gap-2">
+
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
-            variant="ghost"
-            className="text-white hover:bg-white/20"
+            variant="outline"
+            size="sm"
+            className="h-9 px-4 font-bold text-xs uppercase tracking-wider"
             onClick={() => setPreviewOpen(true)}
           >
-            Aperçu
+            <Eye className="mr-2 h-4 w-4" />
+            Aperçu PDF
           </Button>
           <Button
             variant="ghost"
-            className="text-white hover:bg-white/20"
+            size="sm"
+            className="h-9 px-4 font-bold text-xs uppercase tracking-wider"
             asChild
           >
             <Link to={`/quotes/${quote.id}`}>Annuler</Link>
           </Button>
           <Button
-            className="bg-white text-brand hover:bg-white/90"
+            className="h-9 px-6 bg-brand text-white hover:bg-brand-dark shadow-sm font-bold text-xs uppercase tracking-wider"
             onClick={handleSubmit}
             disabled={saving}
           >
-            {saving ? 'Enregistrement…' : 'Enregistrer'}
+            {saving ? (
+              <>Enregistrement…</>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Enregistrer
+              </>
+            )}
           </Button>
         </div>
-      </header>
+      </div>
 
       {error && (
         <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
@@ -466,441 +507,527 @@ export default function QuoteEditPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Bloc Devis */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>Devis</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="reference">Référence</Label>
-                <Input
-                  id="reference"
-                  value={quote.reference}
-                  disabled
-                  placeholder="FS-2025-001"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="title">Titre</Label>
-                <Input
-                  id="title"
-                  value={quote.title}
-                  onChange={(e) => setField('title', e.target.value)}
-                  placeholder="Site vitrine 5 pages"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="status">Statut</Label>
-                <Select
-                  value={quote.status}
-                  onValueChange={(val) => setField('status', val)}
-                >
-                  <SelectTrigger id="status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="DRAFT">draft</SelectItem>
-                    <SelectItem value="SENT">sent</SelectItem>
-                    <SelectItem value="ACCEPTED">accepted</SelectItem>
-                    <SelectItem value="REJECTED">refused</SelectItem>
-                    <SelectItem value="EXPIRED">expired</SelectItem>
-                    <SelectItem value="PAID">paid</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="currency">Devise</Label>
-                <Input
-                  id="currency"
-                  value={quote.currency ?? 'EUR'}
-                  onChange={(e) => setField('currency', e.target.value)}
-                  placeholder="EUR"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="issue_date">Date d'émission</Label>
-                <Input
-                  id="issue_date"
-                  type="date"
-                  value={quote.issue_date ?? ''}
-                  onChange={(e) =>
-                    setField('issue_date', e.target.value || null)
-                  }
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="due_date">Date de validité</Label>
-                <Input
-                  id="due_date"
-                  type="date"
-                  value={quote.due_date ?? ''}
-                  onChange={(e) => setField('due_date', e.target.value || null)}
-                />
-              </div>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={quote.notes ?? ''}
-                  onChange={(e) => setField('notes', e.target.value)}
-                  rows={3}
-                  placeholder="Informations complémentaires visibles par le client…"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="terms">Conditions</Label>
-                <Textarea
-                  id="terms"
-                  value={quote.terms ?? ''}
-                  onChange={(e) => setField('terms', e.target.value)}
-                  rows={3}
-                  placeholder="Modalités de paiement, délais, pénalités, etc."
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            {/* Bloc Devis */}
+            <Card className="shadow-none border border-border bg-white">
+              <CardHeader className="border-b border-border/50 bg-muted/20">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-md bg-brand/10 text-brand">
+                    <FileText size={18} />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-semibold">
+                      Détails du devis
+                    </CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                      Informations générales et dates de validité
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid gap-6">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="reference"
+                        className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Référence (Auto)
+                      </Label>
+                      <Input
+                        id="reference"
+                        value={quote.reference}
+                        disabled
+                        className="bg-muted/30 font-mono text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="title"
+                        className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Titre du devis
+                      </Label>
+                      <Input
+                        id="title"
+                        value={quote.title}
+                        onChange={(e) => setField('title', e.target.value)}
+                        placeholder="Ex: Refonte du site web"
+                        className="h-10"
+                      />
+                    </div>
+                  </div>
 
-        {/* Bloc Client */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>Client</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="client_name">Nom</Label>
-                <Input
-                  id="client_name"
-                  value={quote.client?.name ?? ''}
-                  onChange={(e) => setClient('name', e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="client_email">Email</Label>
-                <Input
-                  id="client_email"
-                  type="email"
-                  value={quote.client?.email ?? ''}
-                  onChange={(e) => setClient('email', e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="client_company">Entreprise</Label>
-                <Input
-                  id="client_company"
-                  value={quote.client?.company ?? ''}
-                  onChange={(e) => setClient('company', e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="client_address1">Adresse (ligne 1)</Label>
-                <Input
-                  id="client_address1"
-                  value={quote.client?.address_line1 ?? ''}
-                  onChange={(e) => setClient('address_line1', e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="client_address2">Adresse (ligne 2)</Label>
-                <Input
-                  id="client_address2"
-                  value={quote.client?.address_line2 ?? ''}
-                  onChange={(e) => setClient('address_line2', e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="client_city">Ville</Label>
-                <Input
-                  id="client_city"
-                  value={quote.client?.city ?? ''}
-                  onChange={(e) => setClient('city', e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="client_postal">Code postal</Label>
-                <Input
-                  id="client_postal"
-                  value={quote.client?.postal_code ?? ''}
-                  onChange={(e) => setClient('postal_code', e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="client_country">Pays</Label>
-                <Input
-                  id="client_country"
-                  value={quote.client?.country ?? ''}
-                  onChange={(e) => setClient('country', e.target.value)}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="status"
+                        className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Statut
+                      </Label>
+                      <Select
+                        value={quote.status}
+                        onValueChange={(val) => setField('status', val)}
+                      >
+                        <SelectTrigger id="status" className="h-10">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="DRAFT">Brouillon</SelectItem>
+                          <SelectItem value="SENT">Envoyé</SelectItem>
+                          <SelectItem value="ACCEPTED">Accepté</SelectItem>
+                          <SelectItem value="REJECTED">Refusé</SelectItem>
+                          <SelectItem value="EXPIRED">Expiré</SelectItem>
+                          <SelectItem value="PAID">Payé</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="currency"
+                        className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Devise
+                      </Label>
+                      <Input
+                        id="currency"
+                        value={quote.currency ?? 'EUR'}
+                        onChange={(e) => setField('currency', e.target.value)}
+                        placeholder="EUR"
+                        className="h-10"
+                      />
+                    </div>
+                  </div>
 
-        <Card className="shadow-sm">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Lignes</CardTitle>
-              <Button
-                type="button"
-                onClick={addLine}
-                className="bg-accent-orange text-white hover:bg-accent-orange/90"
-              >
-                + Ajouter
-              </Button>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="issue_date"
+                        className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Date d'émission
+                      </Label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="issue_date"
+                          type="date"
+                          value={quote.issue_date ?? ''}
+                          className="pl-9 h-10"
+                          onChange={(e) =>
+                            setField('issue_date', e.target.value || null)
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="due_date"
+                        className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Valable jusqu'au
+                      </Label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="due_date"
+                          type="date"
+                          value={quote.due_date ?? ''}
+                          className="pl-9 h-10"
+                          onChange={(e) =>
+                            setField('due_date', e.target.value || null)
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Bloc Client */}
+            <Card className="shadow-none border border-border bg-white">
+              <CardHeader className="border-b border-border/50 bg-muted/20">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-md bg-brand/10 text-brand">
+                    <User size={18} />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-semibold">
+                      Client
+                    </CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                      Coordonnées du destinataire
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="client_name"
+                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Nom / Raison sociale
+                    </Label>
+                    <Input
+                      id="client_name"
+                      value={quote.client?.name ?? ''}
+                      onChange={(e) => setClient('name', e.target.value)}
+                      className="h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="client_email"
+                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Email de contact
+                    </Label>
+                    <Input
+                      id="client_email"
+                      type="email"
+                      value={quote.client?.email ?? ''}
+                      onChange={(e) => setClient('email', e.target.value)}
+                      className="h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="client_company"
+                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Entreprise (facultatif)
+                    </Label>
+                    <Input
+                      id="client_company"
+                      value={quote.client?.company ?? ''}
+                      onChange={(e) => setClient('company', e.target.value)}
+                      className="h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="client_address1"
+                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Adresse
+                    </Label>
+                    <Input
+                      id="client_address1"
+                      value={quote.client?.address_line1 ?? ''}
+                      onChange={(e) =>
+                        setClient('address_line1', e.target.value)
+                      }
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-6 md:grid-cols-3 mt-6">
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="client_postal"
+                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      CP
+                    </Label>
+                    <Input
+                      id="client_postal"
+                      value={quote.client?.postal_code ?? ''}
+                      onChange={(e) => setClient('postal_code', e.target.value)}
+                      className="h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="client_city"
+                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Ville
+                    </Label>
+                    <Input
+                      id="client_city"
+                      value={quote.client?.city ?? ''}
+                      onChange={(e) => setClient('city', e.target.value)}
+                      className="h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="client_country"
+                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Pays
+                    </Label>
+                    <Input
+                      id="client_country"
+                      value={quote.client?.country ?? ''}
+                      onChange={(e) => setClient('country', e.target.value)}
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-8">
+            {/* Colonne latérale: Notes & Conditions */}
+            <Card className="shadow-none border border-border bg-white h-full">
+              <CardHeader className="border-b border-border/50 bg-muted/20">
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                  Informations Légales
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-6">
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="notes"
+                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                  >
+                    Notes publiques
+                  </Label>
+                  <Textarea
+                    id="notes"
+                    value={quote.notes ?? ''}
+                    onChange={(e) => setField('notes', e.target.value)}
+                    rows={6}
+                    className="resize-none"
+                    placeholder="Visibles par le client sur le PDF…"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="terms"
+                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                  >
+                    Conditions de vente
+                  </Label>
+                  <Textarea
+                    id="terms"
+                    value={quote.terms ?? ''}
+                    onChange={(e) => setField('terms', e.target.value)}
+                    rows={6}
+                    className="resize-none"
+                    placeholder="Paiement, délais, pénalités…"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Bloc Lignes */}
+        <Card className="shadow-none border border-border bg-white overflow-hidden">
+          <CardHeader className="border-b border-border/50 bg-muted/20 flex flex-row items-center justify-between py-4">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-md bg-brand/10 text-brand">
+                <List size={18} />
+              </div>
+              <CardTitle className="text-lg font-semibold leading-none">
+                Prestations
+              </CardTitle>
             </div>
+            <Button
+              type="button"
+              size="sm"
+              onClick={addLine}
+              className="bg-brand text-white hover:bg-brand-dark"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Ajouter une ligne
+            </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {quote.line_items.length === 0 ? (
-              <div className="text-center py-6 text-muted-foreground">
-                Aucune ligne
+              <div className="text-center py-12">
+                <Briefcase className="mx-auto h-12 w-12 text-muted-foreground/20 mb-4" />
+                <p className="text-muted-foreground text-sm font-medium">
+                  Votre devis ne contient aucune ligne de prestation.
+                </p>
+                <Button variant="link" onClick={addLine} className="text-brand">
+                  Commencez par en ajouter une.
+                </Button>
               </div>
             ) : (
-              <>
-                <div style={{ display: 'grid', gap: '12px' }}>
-                  {quote.line_items.map((l, i) => {
-                    const base = l.quantity * l.unit_price;
-                    const tot = base * (1 + (l.tax_rate ?? 0));
-                    return (
-                      <div
-                        key={i}
-                        style={{
-                          padding: '16px',
-                          border: '1px solid rgba(13,13,13,0.1)',
-                          borderRadius: '8px',
-                          background: '#fff',
-                          display: 'grid',
-                          gap: '12px',
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: 'flex',
-                            gap: '12px',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <span
-                            style={{
-                              minWidth: '32px',
-                              height: '32px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              background: '#f0f4ff',
-                              borderRadius: '6px',
-                              fontWeight: '600',
-                              fontSize: '0.9rem',
-                              color: 'var(--brand)',
-                            }}
-                          >
-                            {i + 1}
-                          </span>
-
-                          <Input
-                            value={l.designation}
-                            onChange={(e) =>
-                              updateLine(i, { designation: e.target.value })
-                            }
-                            placeholder="Prestation"
-                            style={{ flex: 1 }}
-                          />
-
-                          <button
-                            type="button"
-                            onClick={() => removeLine(i)}
-                            style={{
-                              padding: '8px 12px',
-                              border: '1px solid rgba(13,13,13,0.1)',
-                              borderRadius: '6px',
-                              background: '#fff',
-                              cursor: 'pointer',
-                              fontSize: '0.85rem',
-                            }}
-                          >
-                            ✕
-                          </button>
+              <div className="divide-y divide-border/50">
+                {quote.line_items.map((l, i) => {
+                  const base = l.quantity * l.unit_price;
+                  const tot = base * (1 + (l.tax_rate ?? 0));
+                  return (
+                    <div
+                      key={i}
+                      className="p-6 hover:bg-muted/5 transition-colors group relative"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="h-8 w-8 rounded-full bg-brand/5 border border-brand/10 text-brand flex items-center justify-center text-xs font-bold shrink-0 mt-1">
+                          {i + 1}
                         </div>
 
-                        <Input
-                          value={l.description ?? ''}
-                          onChange={(e) =>
-                            updateLine(i, { description: e.target.value })
-                          }
-                          placeholder="Description (optionnel)"
-                        />
+                        <div className="flex-1 space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="md:col-span-2">
+                              <Input
+                                value={l.designation}
+                                onChange={(e) =>
+                                  updateLine(i, { designation: e.target.value })
+                                }
+                                placeholder="Désignation du service"
+                                className="h-10 font-semibold"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <Input
+                                value={l.description ?? ''}
+                                onChange={(e) =>
+                                  updateLine(i, { description: e.target.value })
+                                }
+                                placeholder="Description détaillée (optionnel)"
+                                className="h-10 text-muted-foreground"
+                              />
+                            </div>
+                          </div>
 
-                        <div
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns:
-                              'repeat(auto-fit, minmax(100px, 1fr))',
-                            gap: '12px',
-                          }}
-                        >
-                          <label style={{ display: 'grid', gap: '4px' }}>
-                            <span
-                              style={{ fontSize: '0.75rem', color: '#666' }}
-                            >
-                              Quantité
-                            </span>
-                            <Input
-                              type="number"
-                              min={0}
-                              step="1"
-                              value={l.quantity}
-                              onChange={(e) =>
-                                updateLine(i, {
-                                  quantity: Number(e.target.value),
-                                })
-                              }
-                            />
-                          </label>
-
-                          <label style={{ display: 'grid', gap: '4px' }}>
-                            <span
-                              style={{ fontSize: '0.75rem', color: '#666' }}
-                            >
-                              Prix unitaire
-                            </span>
-                            <div
-                              style={{ display: 'flex', alignItems: 'stretch' }}
-                            >
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                Quantité
+                              </Label>
                               <Input
                                 type="number"
                                 min={0}
-                                step="0.01"
-                                value={l.unit_price}
+                                value={l.quantity}
                                 onChange={(e) =>
                                   updateLine(i, {
-                                    unit_price: Number(e.target.value),
+                                    quantity: Number(e.target.value),
                                   })
                                 }
-                                style={{
-                                  borderTopRightRadius: 0,
-                                  borderBottomRightRadius: 0,
-                                  borderRight: 'none',
-                                }}
+                                className="h-9"
                               />
-                              <span
-                                style={{
-                                  padding: '0 12px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  border: '1px solid rgba(13,13,13,0.12)',
-                                  borderTopRightRadius: '12px',
-                                  borderBottomRightRadius: '12px',
-                                  background: '#f8fafc',
-                                  fontSize: '0.9rem',
-                                }}
-                              >
-                                €
-                              </span>
                             </div>
-                          </label>
-
-                          <label style={{ display: 'grid', gap: '4px' }}>
-                            <span
-                              style={{ fontSize: '0.75rem', color: '#666' }}
-                            >
-                              TVA
-                            </span>
-                            <Select
-                              value={(l.tax_rate ?? 0).toString()}
-                              onValueChange={(val) =>
-                                updateLine(i, {
-                                  tax_rate: Number(val),
-                                })
-                              }
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="0">0%</SelectItem>
-                                <SelectItem value="0.055">5,5%</SelectItem>
-                                <SelectItem value="0.1">10%</SelectItem>
-                                <SelectItem value="0.2">20%</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </label>
-
-                          <div style={{ display: 'grid', gap: '4px' }}>
-                            <span
-                              style={{ fontSize: '0.75rem', color: '#666' }}
-                            >
-                              Total TTC
-                            </span>
-                            <div
-                              style={{
-                                padding: '12px 16px',
-                                background: '#f8fafc',
-                                borderRadius: '12px',
-                                fontWeight: '600',
-                                fontSize: '1rem',
-                              }}
-                            >
-                              {money.format(tot)}
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                Prix unitaire HT
+                              </Label>
+                              <div className="relative">
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  value={l.unit_price}
+                                  onChange={(e) =>
+                                    updateLine(i, {
+                                      unit_price: Number(e.target.value),
+                                    })
+                                  }
+                                  className="h-9 pr-8"
+                                />
+                                <span className="absolute right-3 top-2.5 text-[10px] text-muted-foreground font-bold">
+                                  €
+                                </span>
+                              </div>
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                TVA
+                              </Label>
+                              <Select
+                                value={(l.tax_rate ?? 0).toString()}
+                                onValueChange={(val) =>
+                                  updateLine(i, { tax_rate: Number(val) })
+                                }
+                              >
+                                <SelectTrigger className="h-9">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="0">
+                                    0% (Exonéré)
+                                  </SelectItem>
+                                  <SelectItem value="0.055">5,5%</SelectItem>
+                                  <SelectItem value="0.1">10%</SelectItem>
+                                  <SelectItem value="0.2">20%</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-1.5 text-right">
+                              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                Total TTC
+                              </Label>
+                              <div className="h-9 flex items-center justify-end font-bold text-brand">
+                                {money.format(tot)}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
 
-                <div
-                  style={{
-                    marginTop: '16px',
-                    padding: '16px',
-                    background: '#f8fafc',
-                    borderRadius: '8px',
-                    display: 'grid',
-                    gap: '8px',
-                  }}
-                >
-                  <div
-                    style={{ display: 'flex', justifyContent: 'space-between' }}
-                  >
-                    <span>Sous-total HT</span>
-                    <strong>{money.format(totals.sub)}</strong>
-                  </div>
-                  <div
-                    style={{ display: 'flex', justifyContent: 'space-between' }}
-                  >
-                    <span>TVA</span>
-                    <strong>{money.format(totals.tax)}</strong>
-                  </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      paddingTop: '8px',
-                      borderTop: '2px solid rgba(13,13,13,0.1)',
-                      fontSize: '1.1rem',
-                    }}
-                  >
-                    <strong>Total TTC</strong>
-                    <strong>{money.format(totals.total)}</strong>
-                  </div>
-                </div>
-              </>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeLine(i)}
+                          className="text-muted-foreground/40 hover:text-destructive hover:bg-destructive/5 shrink-0"
+                        >
+                          <Trash2 size={18} />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
+
+            {/* Récapitulatif Final */}
+            <div className="p-6 bg-muted/20 border-t border-border/50">
+              <div className="flex flex-col items-end space-y-2">
+                <div className="flex justify-between w-full max-w-[300px] text-sm text-muted-foreground">
+                  <span>Total HT</span>
+                  <span className="font-semibold">
+                    {money.format(totals.sub)}
+                  </span>
+                </div>
+                <div className="flex justify-between w-full max-w-[300px] text-sm text-muted-foreground">
+                  <span>TVA</span>
+                  <span className="font-semibold">
+                    {money.format(totals.tax)}
+                  </span>
+                </div>
+                <div className="flex justify-between w-full max-w-[300px] text-xl font-bold text-brand pt-2 border-t border-border">
+                  <span>Total TTC</span>
+                  <span>{money.format(totals.total)}</span>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Actions bas de page (fallback submit) */}
-        <div className="flex items-center gap-2">
-          <Button disabled={saving}>
-            {saving ? 'Enregistrement…' : 'Enregistrer'}
+        {/* Actions bas de page flottantes ou fixes */}
+        <div className="flex items-center justify-end gap-3 pt-6 border-t border-border/30">
+          <Button
+            variant="ghost"
+            className="font-bold text-xs uppercase tracking-widest text-muted-foreground"
+            asChild
+          >
+            <Link to={`/quotes/${quote.id}`}>Abandonner les modifications</Link>
           </Button>
-          <Button variant="ghost" asChild>
-            <Link to={`/quotes/${quote.id}`}>Annuler</Link>
+          <Button
+            className="bg-brand text-white hover:bg-brand-dark px-8 h-10 font-bold text-xs uppercase tracking-widest shadow-md"
+            onClick={handleSubmit}
+            disabled={saving}
+          >
+            {saving ? (
+              <>Enregistrement…</>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Mettre à jour le devis
+              </>
+            )}
           </Button>
         </div>
       </form>

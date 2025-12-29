@@ -1,8 +1,8 @@
 // src/interface/components/profile/PersonalUserDataForm.tsx
-import { useEffect } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -62,10 +62,15 @@ export default function PersonalUserDataForm({
 
   // notify parent on every change
   const watched = watch();
+  const watchedStr = JSON.stringify(watched);
+  const lastWatchedStr = useRef(watchedStr);
+
   useEffect(() => {
-    if (onChange) onChange(watched as PersonalUserFormValues);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(watched)]);
+    if (onChange && watchedStr !== lastWatchedStr.current) {
+      lastWatchedStr.current = watchedStr;
+      onChange(watched as PersonalUserFormValues);
+    }
+  }, [watchedStr, watched, onChange]);
 
   async function onSubmit(values: PersonalUserFormValues) {
     if (onSave) {
@@ -76,61 +81,77 @@ export default function PersonalUserDataForm({
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-        <FormField
-          control={control}
-          name="first_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Prénom</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value ?? ''} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            control={control}
+            name="first_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Prénom</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value ?? ''}
+                    placeholder="Votre prénom"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={control}
-          name="last_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nom</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value ?? ''} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={control}
+            name="last_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nom</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value ?? ''}
+                    placeholder="Votre nom"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <FormField
-          control={control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Téléphone</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value ?? ''} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            control={control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Téléphone</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value ?? ''}
+                    placeholder="Ex: 06 12 34 56 78"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={control}
-          name="birthday"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Date de naissance</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} value={field.value ?? ''} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={control}
+            name="birthday"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Date de naissance</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} value={field.value ?? ''} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <FormField
           control={control}
@@ -139,7 +160,11 @@ export default function PersonalUserDataForm({
             <FormItem>
               <FormLabel>Avatar (URL)</FormLabel>
               <FormControl>
-                <Input {...field} value={field.value ?? ''} />
+                <Input
+                  {...field}
+                  value={field.value ?? ''}
+                  placeholder="https://votre-image.com/avatar.jpg"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

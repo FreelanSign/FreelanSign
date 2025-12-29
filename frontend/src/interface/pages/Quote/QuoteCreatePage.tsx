@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
+import { PlusCircle, Trash2 } from 'lucide-react';
 import type { AccountDto } from '../../../domain/account/types';
 import type { PrestationDto } from '../../../domain/catalog/types';
 import type { ClientDto } from '../../../domain/client/types';
@@ -497,7 +498,7 @@ export default function QuoteCreatePage() {
   return (
     <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
       {/* Header gradient avec actions */}
-      <header className="flex flex-col sm:flex-row items-start justify-between gap-4 p-6 rounded-lg bg-gradient-to-r from-brand to-accent-orange text-white shadow-lg">
+      <header className="flex flex-col sm:flex-row items-start justify-between gap-4 p-6 rounded-lg bg-[#e86c1d] from-brand to-accent-orange text-white shadow-lg">
         <div>
           <h1 className="text-2xl font-bold">Créer un nouveau devis</h1>
           <p className="text-sm opacity-95 mt-1">
@@ -505,24 +506,20 @@ export default function QuoteCreatePage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button asChild variant="cancel" className="">
+            <Link to="/dashboard">Annuler</Link>
+          </Button>
           <Button
             type="button"
-            variant="outline"
-            className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+            variant="preview"
             onClick={() => setPreviewOpen(true)}
           >
             Aperçu
           </Button>
           <Button
-            asChild
-            variant="outline"
-            className="bg-white/10 border-white/30 text-white hover:bg-white/20"
-          >
-            <Link to="/dashboard">Annuler</Link>
-          </Button>
-          <Button
             type="button"
-            className="bg-white text-brand hover:bg-white/90"
+            className=""
+            variant="create"
             onClick={handleSubmit(onSubmit)}
             disabled={isSubmitting || loading}
           >
@@ -547,15 +544,16 @@ export default function QuoteCreatePage() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Bloc Client */}
           <Card className="shadow-sm border border-border">
-            <CardHeader>
+            <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle>Client</CardTitle>
+                <CardTitle className="text-lg font-semibold">Client</CardTitle>
                 <Button
                   type="button"
-                  variant="outline"
+                  className="btn-add-client hover:btn-add-client-hover h-8 text-xs px-3 flex items-center gap-2"
                   onClick={() => setClientDrawerOpen(true)}
                 >
-                  + Nouveau client
+                  <PlusCircle className="h-3.5 w-3.5" />
+                  Nouveau client
                 </Button>
               </div>
             </CardHeader>
@@ -576,7 +574,7 @@ export default function QuoteCreatePage() {
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="border-input focus:ring-2 focus:ring-brand/50 focus:border-brand transition-all">
                             <SelectValue placeholder="— Sélectionner un client —" />
                           </SelectTrigger>
                           <SelectContent>
@@ -696,12 +694,14 @@ export default function QuoteCreatePage() {
 
           {/* Bloc Prestations */}
           <Card className="shadow-sm border border-border">
-            <CardHeader>
+            <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle>Prestations</CardTitle>
+                <CardTitle className="text-lg font-semibold">
+                  Prestations
+                </CardTitle>
                 <Button
                   type="button"
-                  variant="outline"
+                  className="btn-add-item"
                   onClick={() =>
                     append({
                       description: 'Nouvelle prestation',
@@ -712,7 +712,8 @@ export default function QuoteCreatePage() {
                     })
                   }
                 >
-                  + Ajouter
+                  <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
+                  Ajouter
                 </Button>
               </div>
             </CardHeader>
@@ -728,10 +729,7 @@ export default function QuoteCreatePage() {
                       <CardContent className="p-4 space-y-3">
                         {/* Row 1: Index + Select + Remove */}
                         <div className="flex items-center gap-3">
-                          <Badge
-                            variant="outline"
-                            className="w-8 h-8 flex items-center justify-center bg-brand/10 text-brand border-brand/20"
-                          >
+                          <Badge className="badge-index text-xs">
                             {idx + 1}
                           </Badge>
 
@@ -817,7 +815,7 @@ export default function QuoteCreatePage() {
                                           );
                                       }}
                                     >
-                                      <SelectTrigger>
+                                      <SelectTrigger className="focus:ring-brand/50 focus:border-brand">
                                         <SelectValue placeholder="— Choisir une prestation —" />
                                       </SelectTrigger>
                                       <SelectContent>
@@ -837,13 +835,14 @@ export default function QuoteCreatePage() {
                             )}
                           />
 
+                          {/* Bouton supprimer stylisé */}
                           <Button
                             type="button"
-                            variant="outline"
                             size="icon"
+                            className="btn-remove-item" // Utilitaire personnalisé
                             onClick={() => remove(idx)}
                           >
-                            ✕
+                            <Trash2 className="h-4 w-4" />{' '}
                           </Button>
                         </div>
 

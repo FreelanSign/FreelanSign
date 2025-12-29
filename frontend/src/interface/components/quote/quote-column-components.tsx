@@ -21,43 +21,39 @@ export function StatusPill({ status }: { status: string }) {
   switch (s) {
     case 'ACCEPTED':
     case 'PAID':
-      // Utilisation du vert de marque (Primary) pour le succès
       variant = 'default';
       label = s === 'ACCEPTED' ? 'Accepté' : 'Payé';
       customClasses =
-        'bg-brand text-brand-foreground text-white hover:bg-green-600';
+        'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100 shadow-none';
       break;
     case 'SENT':
-      // Utilisation de l'orange d'accent
       variant = 'info';
       label = 'Envoyé';
       customClasses =
-        'bg-accent-orange text-brand-foreground hover:bg-accent-orange/90';
+        'bg-orange-50 text-orange-700 border-orange-100 hover:bg-orange-100 shadow-none';
       break;
     case 'REJECTED':
-      // Utilisation du rouge de destruction
       variant = 'destructive';
       label = 'Refusé';
       customClasses =
-        'bg-red-500 text-red-foreground text-white hover:bg-red-600';
+        'bg-red-50 text-red-700 border-red-100 hover:bg-red-100 shadow-none';
       break;
     case 'EXPIRED':
-      // Gris pour expiré, moins alarmant que 'rejected'
       variant = 'expired';
       label = 'Expiré';
       customClasses =
-        'bg-gray-400 text-white hover:bg-gray-500 hover:text-gray-900';
+        'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 shadow-none';
       break;
     case 'DRAFT':
-      // Secondaire/Gris clair pour brouillon
       variant = 'secondary';
       label = 'Brouillon';
       customClasses =
-        'bg-gray-200 text-secondary-foreground hover:bg-secondary/80 border border-border';
+        'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100 shadow-none';
       break;
     default:
       label = s;
       variant = 'secondary';
+      customClasses = 'shadow-none';
   }
 
   return (

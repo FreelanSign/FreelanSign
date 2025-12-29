@@ -1,22 +1,36 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
-import QuoteEmailPreviewDialog from '../../components/email/QuoteEmailPreviewDialog';
 import DeleteConfirmDialog from '../../components/common/DeleteConfirmDialog';
+import QuoteEmailPreviewDialog from '../../components/email/QuoteEmailPreviewDialog';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
+import {
+  AlertTriangle,
+  Calendar,
+  ChevronLeft,
+  CreditCard,
+  Download,
+  Edit,
+  ExternalLink,
+  FileText,
+  Info,
+  Mail,
+  MessageSquare,
+  Trash2,
+  User,
+} from 'lucide-react';
+import { StatusPill } from '../../components/quote/quote-column-components';
 
 import { apiToUiQuoteDetail } from '../../../domain/quote/mappers';
 import type {
@@ -141,39 +155,61 @@ export default function QuoteDetailPage() {
     return { sub, taxes, total };
   }, [quote]);
 
-  const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className="grid gap-6">{children}</div>
-  );
-
   if (loading) {
     return (
-      <Shell>
-        <Skeleton className="h-32 w-full rounded-lg" />
-        <Skeleton className="h-64 w-full rounded-lg" />
-        <Skeleton className="h-96 w-full rounded-lg" />
-      </Shell>
+      <div className="container mx-auto py-8 px-4 max-w-7xl space-y-8">
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <Skeleton className="h-48 rounded-xl" />
+          <Skeleton className="h-48 rounded-xl" />
+        </div>
+        <Skeleton className="h-96 w-full rounded-xl" />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Shell>
-        <div className="text-destructive">Erreur : {error}</div>
-        <Button variant="ghost" asChild>
-          <Link to="/quotes">← Retour à la liste</Link>
+      <div className="container mx-auto py-12 px-4 max-w-md text-center">
+        <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-destructive/10 text-destructive mb-6">
+          <AlertTriangle size={32} />
+        </div>
+        <h1 className="text-xl font-bold mb-2 font-playfair">
+          Erreur de chargement
+        </h1>
+        <p className="text-muted-foreground text-sm mb-6">{error}</p>
+        <Button variant="outline" asChild>
+          <Link to="/quotes">
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            Retour à la liste
+          </Link>
         </Button>
-      </Shell>
+      </div>
     );
   }
 
   if (!quote) {
     return (
-      <Shell>
-        <div>Aucun devis à afficher.</div>
-        <Button variant="ghost" asChild>
-          <Link to="/quotes">← Retour à la liste</Link>
+      <div className="container mx-auto py-12 px-4 max-w-md text-center">
+        <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-muted text-muted-foreground mb-6">
+          <FileText size={32} />
+        </div>
+        <h1 className="text-xl font-bold mb-2 font-playfair">
+          Devis introuvable
+        </h1>
+        <p className="text-muted-foreground text-sm mb-6">
+          Le devis demandé n'existe pas ou vous n'y avez pas accès.
+        </p>
+        <Button variant="outline" asChild>
+          <Link to="/quotes">
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            Retour à la liste
+          </Link>
         </Button>
-      </Shell>
+      </div>
     );
   }
 
@@ -183,290 +219,343 @@ export default function QuoteDetailPage() {
     .filter(Boolean);
 
   return (
-    <Shell>
-      <header className="flex items-start justify-between p-6 rounded-lg bg-gradient-to-r from-brand to-accent-orange text-white shadow-lg">
-        <div>
+    <div className="container mx-auto py-8 px-4 space-y-8 max-w-7xl animate-in fade-in duration-500">
+      {/* Header Row */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border/60">
+        <div className="space-y-1">
+          <button
+            onClick={() => navigate('/quotes')}
+            className="flex items-center text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-brand transition-colors mb-2 group"
+          >
+            <ChevronLeft className="mr-1 h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
+            Retour à la liste
+          </button>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">
-              {quote.reference} — {quote.title}
+            <h1 className="text-3xl font-bold tracking-tight font-playfair">
+              {quote.reference}
             </h1>
-            <Badge className="bg-white/20 text-white border-white/30">
-              {quote.status}
-            </Badge>
+            <StatusPill status={quote.status} />
           </div>
-          <p className="text-sm text-white/90 mt-2">
-            Émis le{' '}
-            {quote.issue_date ? date.format(new Date(quote.issue_date)) : '—'}
-            {quote.valid_until ? (
-              <> • Valide jusqu'au {date.format(new Date(quote.valid_until))}</>
-            ) : null}
+          <p className="text-muted-foreground">
+            {quote.title} — Émis le{' '}
+            <span className="font-medium">
+              {quote.issue_date ? date.format(new Date(quote.issue_date)) : '—'}
+            </span>
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
-            variant="ghost"
-            className="text-white hover:bg-white/20"
-            asChild
-          >
-            <Link to="/quotes">← Retour</Link>
-          </Button>
-          <Button className="bg-white text-brand hover:bg-white/90" asChild>
-            <Link to={`/quotes/${quote.id}/edit`}>Éditer</Link>
-          </Button>
-          <Button
+            variant="outline"
+            size="sm"
             onClick={handleDownload}
             disabled={downloading}
-            className="bg-white text-accent-orange hover:bg-white/90"
-            title="Télécharger le devis (PDF)"
+            className="h-9 px-4 font-bold text-xs uppercase tracking-wider"
           >
-            {downloading ? 'Téléchargement en cours...' : 'Télécharger (PDF)'}
+            <Download className="mr-2 h-4 w-4" />
+            {downloading ? 'Export...' : 'PDF'}
           </Button>
           <Button
-            className="bg-white text-brand hover:bg-white/90"
+            variant="outline"
+            size="sm"
+            className="h-9 px-4 font-bold text-xs uppercase tracking-wider"
             onClick={() => setShowEmailDialog(true)}
           >
-            Préparer email
+            <Mail className="mr-2 h-4 w-4" />
+            Envoyer
           </Button>
-        </div>
-      </header>
-
-      {/* Infos Client & Devis */}
-      <Card className="shadow-sm">
-        <CardContent className="pt-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h2 className="text-lg font-semibold mb-4 text-gray-900">
-                Client
-              </h2>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Nom</span>
-                  <strong className="text-gray-900">
-                    {quote.client?.name || '—'}
-                  </strong>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Email</span>
-                  <strong className="text-gray-900">
-                    {quote.client?.email ? (
-                      <a
-                        className="text-brand hover:underline"
-                        href={`mailto:${quote.client.email}`}
-                      >
-                        {quote.client.email}
-                      </a>
-                    ) : (
-                      '—'
-                    )}
-                  </strong>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Téléphone</span>
-                  <strong className="text-gray-900">
-                    {quote.client?.phone ? (
-                      <a
-                        className="text-brand hover:underline"
-                        href={`tel:${quote.client.phone}`}
-                      >
-                        {quote.client.phone}
-                      </a>
-                    ) : (
-                      '—'
-                    )}
-                  </strong>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">N° TVA</span>
-                  <strong className="text-gray-900">
-                    {quote.client?.vat_number || '—'}
-                  </strong>
-                </div>
-                <address className="text-sm text-gray-900 not-italic">
-                  {addressLines.length
-                    ? addressLines.map((l, i) => <div key={i}>{l}</div>)
-                    : '—'}
-                </address>
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-lg font-semibold mb-4 text-gray-900">
-                Détails
-              </h2>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Référence</span>
-                  <strong className="text-gray-900">{quote.reference}</strong>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Statut</span>
-                  <strong className="text-gray-900 capitalize">
-                    {quote.status}
-                  </strong>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Devise</span>
-                  <strong className="text-gray-900">
-                    {quote.currency ?? 'EUR'}
-                  </strong>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Legal Terms Info */}
-      <div className="flex gap-3 p-4 rounded-lg bg-brand/10 border border-brand/20">
-        <div className="w-6 h-6 rounded-full bg-brand text-brand-foreground flex items-center justify-center flex-shrink-0">
-          ✓
-        </div>
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-brand">
-            Conditions générales incluses
-          </p>
-          <Link
-            to="/legal-terms"
-            className="text-xs text-brand hover:underline"
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-9 px-4 font-bold text-xs uppercase tracking-wider text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={() => setShowDeleteDialog(true)}
+            disabled={['ACCEPTED', 'PAID'].includes(quote.status)}
           >
-            Voir mes conditions →
-          </Link>
+            <Trash2 className="mr-2 h-4 w-4" />
+            Supprimer
+          </Button>
+          <div className="h-6 w-px bg-border/60 mx-1 hidden sm:block" />
+          <Button
+            className="h-9 px-6 bg-brand text-white hover:bg-brand-dark shadow-sm font-bold text-xs uppercase tracking-wider"
+            asChild
+          >
+            <Link to={`/quotes/${quote.id}/edit`}>
+              <Edit className="mr-2 h-4 w-4" />
+              Modifier
+            </Link>
+          </Button>
         </div>
       </div>
 
-      {/* Lignes */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle>Prestations</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!quote.line_items || quote.line_items.length === 0 ? (
-            <div className="text-center py-6 text-muted-foreground">
-              Aucune ligne de devis.
-            </div>
-          ) : (
-            <div className="rounded-lg border border-border bg-card shadow-lg overflow-hidden">
+      {/* Grid Infos */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          {/* Card Client */}
+          <Card className="shadow-none border border-border bg-white overflow-hidden">
+            <CardHeader className="border-b border-border/50 bg-muted/20 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-md bg-brand/10 text-brand">
+                  <User size={18} />
+                </div>
+                <CardTitle className="text-lg font-semibold">
+                  Destinataire
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
+                      Nom du client
+                    </p>
+                    <p className="text-sm font-semibold">
+                      {quote.client?.name || '—'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
+                      Coordonnées
+                    </p>
+                    <div className="space-y-1">
+                      {quote.client?.email && (
+                        <a
+                          href={`mailto:${quote.client.email}`}
+                          className="text-sm text-brand hover:underline flex items-center gap-1.5"
+                        >
+                          <Mail size={12} />
+                          {quote.client.email}
+                        </a>
+                      )}
+                      {quote.client?.phone && (
+                        <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                          <ExternalLink size={12} />
+                          {quote.client.phone}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
+                      Adresse de facturation
+                    </p>
+                    <div className="text-sm text-muted-foreground not-italic leading-relaxed">
+                      {addressLines.length
+                        ? addressLines.map((l, i) => <div key={i}>{l}</div>)
+                        : '—'}
+                    </div>
+                  </div>
+                  {quote.client?.vat_number && (
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
+                        Numéro de TVA
+                      </p>
+                      <p className="text-sm font-mono text-muted-foreground bg-muted/50 inline-block px-1.5 py-0.5 rounded">
+                        {quote.client.vat_number}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Table Prestations */}
+          <Card className="shadow-none border border-border bg-white overflow-hidden">
+            <CardHeader className="border-b border-border/50 bg-muted/20 pb-0">
+              <div className="flex items-center gap-2 py-4">
+                <div className="p-2 rounded-md bg-brand/10 text-brand">
+                  <FileText size={18} />
+                </div>
+                <CardTitle className="text-lg font-semibold">
+                  Prestations & Services
+                </CardTitle>
+              </div>
               <Table>
-                <TableHeader className="bg-muted/50">
-                  <TableRow className="hover:bg-muted/50">
-                    <TableHead>Prestation</TableHead>
-                    <TableHead className="text-right">Qté</TableHead>
-                    <TableHead className="text-right">PU HT</TableHead>
-                    <TableHead className="text-right">TVA</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent border-b border-border/50">
+                    <TableHead className="h-10 py-3 text-[11px] font-bold text-muted-foreground uppercase tracking-wider pl-6">
+                      Désignation
+                    </TableHead>
+                    <TableHead className="h-10 py-3 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">
+                      Qté
+                    </TableHead>
+                    <TableHead className="h-10 py-3 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">
+                      PU HT
+                    </TableHead>
+                    <TableHead className="h-10 py-3 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">
+                      TVA
+                    </TableHead>
+                    <TableHead className="h-10 py-3 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right pr-6">
+                      Total HT
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
-                  {quote.line_items.map((l) => {
-                    const total =
-                      l.total ??
-                      (l.pre_tax_total ?? l.quantity * l.unit_price) +
-                        (l.tax_amount ?? 0);
-                    return (
-                      <TableRow
-                        key={String(l.id)}
-                        className="hover:bg-accent/50"
-                      >
-                        <TableCell>
-                          <div className="font-medium">{l.designation}</div>
-                          {l.description ? (
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {l.description}
-                            </div>
-                          ) : null}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {l.quantity}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {money.format(l.unit_price)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {((l.tax_rate ?? 0) * 100).toFixed(2)}%
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {money.format(total)}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-                <TableFooter>
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-right">
-                      Sous-total
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {money.format(computed!.sub)}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-right">
-                      TVA
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {money.format(computed!.taxes)}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-right font-bold">
-                      Total
-                    </TableCell>
-                    <TableCell className="text-right font-bold text-lg">
-                      {money.format(computed!.total)}
-                    </TableCell>
-                  </TableRow>
-                </TableFooter>
               </Table>
-            </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableBody>
+                  {quote.line_items?.map((l) => (
+                    <TableRow
+                      key={String(l.id)}
+                      className="hover:bg-muted/5 group"
+                    >
+                      <TableCell className="py-4 pl-6 align-top">
+                        <div className="font-semibold text-sm group-hover:text-brand transition-colors">
+                          {l.designation}
+                        </div>
+                        {l.description && (
+                          <div className="text-xs text-muted-foreground mt-1.5 leading-relaxed max-w-sm">
+                            {l.description}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-4 text-right align-top text-sm">
+                        {l.quantity}
+                      </TableCell>
+                      <TableCell className="py-4 text-right align-top text-sm">
+                        {money.format(l.unit_price)}
+                      </TableCell>
+                      <TableCell className="py-4 text-right align-top text-sm text-muted-foreground font-medium">
+                        {((l.tax_rate ?? 0) * 100).toFixed(0)}%
+                      </TableCell>
+                      <TableCell className="py-4 text-right align-top pr-6 font-bold text-sm">
+                        {money.format(
+                          l.pre_tax_total ?? l.quantity * l.unit_price,
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {/* Totaux Section */}
+              <div className="p-6 bg-muted/20 border-t border-border/50">
+                <div className="flex flex-col items-end space-y-2">
+                  <div className="flex justify-between w-full max-w-[280px] text-sm text-muted-foreground">
+                    <span>Sous-total HT</span>
+                    <span className="font-semibold">
+                      {money.format(computed!.sub)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between w-full max-w-[280px] text-sm text-muted-foreground">
+                    <span>Total TVA</span>
+                    <span className="font-semibold">
+                      {money.format(computed!.taxes)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between w-full max-w-[280px] text-xl font-bold text-brand pt-2 border-t border-border mt-1">
+                    <span>Total TTC</span>
+                    <span>{money.format(computed!.total)}</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-8">
+          {/* Card Validity */}
+          <Card className="shadow-none border border-border bg-white">
+            <CardHeader className="border-b border-border/50 bg-muted/20 pb-3">
+              <CardTitle className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                Dates & Validité
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-6">
+              <div className="flex items-start gap-3">
+                <Calendar className="h-5 w-5 text-brand shrink-0" />
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">
+                    Émission
+                  </p>
+                  <p className="text-sm font-medium">
+                    {quote.issue_date
+                      ? date.format(new Date(quote.issue_date))
+                      : '—'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Info className="h-5 w-5 text-brand shrink-0" />
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">
+                    Validité
+                  </p>
+                  <p className="text-sm font-medium">
+                    {quote.valid_until ? (
+                      <span
+                        className={
+                          new Date(quote.valid_until) < new Date()
+                            ? 'text-destructive'
+                            : ''
+                        }
+                      >
+                        Jusqu'au {date.format(new Date(quote.valid_until))}
+                      </span>
+                    ) : (
+                      'Non spécifiée'
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <CreditCard className="h-5 w-5 text-brand shrink-0" />
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">
+                    Devise
+                  </p>
+                  <p className="text-sm font-medium">
+                    {quote.currency ?? 'EUR'}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Notes Card */}
+          {quote.note && (
+            <Card className="shadow-none border border-border bg-white">
+              <CardHeader className="border-b border-border/50 bg-muted/20 pb-3">
+                <div className="flex items-center gap-2">
+                  <MessageSquare size={16} className="text-brand" />
+                  <CardTitle className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Notes publiques
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <p className="text-sm text-muted-foreground italic leading-relaxed">
+                  "{quote.note}"
+                </p>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
 
-      {!!quote.note && (
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>Notes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">
-              {quote.note}
+          {/* Legal CTA */}
+          <div className="p-6 rounded-xl border border-brand/20 bg-brand/5 space-y-3">
+            <div className="flex items-center gap-2 text-brand font-bold text-xs uppercase tracking-wider">
+              <Info size={14} />
+              <span>Conditions Générales</span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Ce devis est soumis à vos conditions générales de vente
+              configurées dans votre profil professionnel.
             </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Danger Zone */}
-      <Card className="border-destructive/50 bg-destructive/5">
-        <CardHeader>
-          <CardTitle className="text-destructive">Zone dangereuse</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-destructive/80 mb-4">
-            La suppression est irréversible pour les devis terminés (Payé,
-            Annulé, Expiré, Refusé).
-            {['DRAFT', 'SENT', 'ACCEPTED'].includes(quote.status) && (
-              <strong className="block mt-2 text-destructive">
-                ⚠️ La suppression est bloquée car le devis est en cours (statut:{' '}
-                {quote.status}).
-              </strong>
-            )}
-          </p>
-          <Button
-            variant="destructive"
-            onClick={() => setShowDeleteDialog(true)}
-            disabled={['DRAFT', 'SENT', 'ACCEPTED'].includes(quote.status)}
-            title={
-              ['DRAFT', 'SENT', 'ACCEPTED'].includes(quote.status)
-                ? 'La suppression est bloquée pour les devis en cours'
-                : 'Supprimer le devis'
-            }
-          >
-            Supprimer ce devis
-          </Button>
-        </CardContent>
-      </Card>
+            <Button
+              variant="link"
+              className="p-0 h-auto text-brand text-xs font-bold uppercase tracking-widest"
+              asChild
+            >
+              <Link to="/legal-terms">Consulter mes CGV →</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
 
       <QuoteEmailPreviewDialog
         open={showEmailDialog}
@@ -487,6 +576,6 @@ export default function QuoteDetailPage() {
         isDeleting={isDeleting}
         errorMessage={deleteError}
       />
-    </Shell>
+    </div>
   );
 }

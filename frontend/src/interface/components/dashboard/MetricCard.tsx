@@ -1,24 +1,47 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 type MetricCardProps = {
   title: string;
   value: string | number;
   subtitle?: string;
   icon?: React.ReactNode;
+  className?: string;
 };
 
-export function MetricCard({ title, value, subtitle, icon }: MetricCardProps) {
+export function MetricCard({
+  title,
+  value,
+  subtitle,
+  icon,
+  className,
+}: MetricCardProps) {
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          {icon && <div className="text-gray-400">{icon}</div>}
+    <Card
+      className={cn(
+        'shadow-none border border-border overflow-hidden',
+        className,
+      )}
+    >
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            {title}
+          </p>
+          {icon && (
+            <div className="p-2 rounded-lg bg-brand/10 text-brand">{icon}</div>
+          )}
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {subtitle && <p className="text-xs text-gray-600 mt-1">{subtitle}</p>}
+        <div className="space-y-1">
+          <div className="text-3xl font-bold tracking-tight text-brand">
+            {value}
+          </div>
+          {subtitle && (
+            <p className="text-xs text-muted-foreground font-medium">
+              {subtitle}
+            </p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

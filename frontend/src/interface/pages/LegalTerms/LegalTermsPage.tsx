@@ -94,7 +94,7 @@ export default function LegalTermsPage() {
       </header>
 
       <div className="flex gap-3 p-4 rounded-lg bg-brand/10 border border-brand/20">
-        <div className="w-6 h-6 rounded-full bg-brand text-brand-foreground flex items-center justify-center flex-shrink-0">
+        <div className="w-6 h-6 rounded-full bg-brand text-brand-foreground flex items-center justify-center shrink-0">
           ✓
         </div>
         <div className="space-y-1">
@@ -135,7 +135,7 @@ export default function LegalTermsPage() {
                 </CardHeader>
                 <CardContent>
                   <div
-                    className="prose prose-sm max-w-none"
+                    className="rich-text"
                     dangerouslySetInnerHTML={{ __html: clause.body }}
                   />
                 </CardContent>
@@ -151,7 +151,7 @@ export default function LegalTermsPage() {
         </CardHeader>
         <CardContent>
           <div
-            className="prose prose-sm max-w-none"
+            className="rich-text"
             dangerouslySetInnerHTML={{ __html: preview.rendered_html }}
           />
         </CardContent>

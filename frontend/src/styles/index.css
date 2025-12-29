@@ -12,49 +12,44 @@
 @theme {
   --font-family-playfair: 'Playfair Display', serif;
 
-  /* FreelanSign brand colors */
-  --color-brand-foreground: hsl(0 0% 100%);
-
+  /* Couleurs FreelanSign */
+  --color-brand: hsl(166 100% 39%);
+  --color-brand-dark: hsl(166 100% 25%);
   --color-accent-orange: hsl(18 79% 51%);
-  --color-accent-orange-foreground: hsl(0 0% 7%);
 
-  /* Shadcn tokens aligned with FreelanSign */
-  --color-border: hsl(220 13% 91%);
-  --color-input: hsl(220 13% 91%);
-  --color-ring: hsl(166 100% 39%);
+  /* Shadcn Tokens */
   --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(0 0% 5%);
+  --color-foreground: hsl(222.2 84% 4.9%);
 
   --color-primary: hsl(166 100% 39%);
-  --color-primary-foreground: hsl(0 0% 100%);
+  --color-primary-foreground: hsl(210 40% 98%);
 
-  --color-secondary: hsl(220 14% 96%);
-  --color-secondary-foreground: hsl(0 0% 5%);
+  --color-secondary: hsl(210 40% 96.1%);
+  --color-secondary-foreground: hsl(222.2 47.4% 11.2%);
 
-  --color-muted: hsl(220 14% 96%);
-  --color-muted-foreground: hsl(220 9% 46%);
+  --color-muted: hsl(210 40% 96.1%);
+  --color-muted-foreground: hsl(215.4 16.3% 46.9%);
 
-  --color-accent: hsl(220 14% 96%);
-  --color-accent-foreground: hsl(0 0% 5%);
+  --color-accent: hsl(210 40% 96.1%);
+  --color-accent-foreground: hsl(222.2 47.4% 11.2%);
 
-  --color-destructive: hsl(0 72% 51%);
-  --color-destructive-foreground: hsl(0 0% 98%);
+  --color-destructive: hsl(0 84.2% 60.2%);
+  --color-destructive-foreground: hsl(210 40% 98%);
 
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(0 0% 5%);
+  --color-border: hsl(214.3 31.8% 91.4%);
+  --color-input: hsl(214.3 31.8% 91.4%);
+  --color-ring: hsl(166 100% 39%);
 
   --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(0 0% 5%);
+  --color-popover-foreground: hsl(222.2 84% 4.9%);
 
-  --radius: 0.5rem;
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(222.2 84% 4.9%);
 }
 
 :root {
   --brand: hsl(166 100% 39%);
-  --brand-hover: #006754;
-  --brand-text-hover: ##000000;
-  --brand-foreground: #fff;
-  --bg-card: #fff;
+  --brand-hover: hsl(166 100% 25%);
 }
 
 /* AIDEV-NOTE: Utility classes pour les couleurs FreelanSign */
@@ -86,9 +81,6 @@
 @utility ring-brand {
   --tw-ring-color: hsl(166 100% 39%);
 }
-@utility text-brand-foreground {
-  color: var(--brand-foreground); /* Ajout */
-}
 
 @utility bg-accent-orange {
   background-color: hsl(18 79% 51%);
@@ -111,6 +103,135 @@
   --tw-gradient-to: hsl(18 79% 51%) var(--tw-gradient-to-position);
 }
 
+/* Create button */
+@utility btn-create {
+  @apply bg-white text-[#c2410c] font-bold shadow-md transition-all hover:bg-orange-50 hover:-translate-y-0.5;
+}
+
+@utility btn-cancel {
+  @apply bg-transparent text-white/90 font-medium hover:text-white hover:underline underline-offset-4;
+}
+
+@utility btn-preview {
+  @apply bg-white/10 text-white border border-white/40 backdrop-blur-sm transition-all hover:bg-white/20 hover:border-white;
+}
+
+@utility btn-add-client {
+  background-color: transparent !important;
+  color: hsl(166 100% 30%) !important;
+  border: 1px solid hsl(166 100% 39%) !important;
+  @apply h-8 px-3 text-xs font-medium transition-colors hover:bg-[hsl(166,100%,96%)]! hover:text-[hsl(166,100%,25%)]!;
+}
+
+/* Correction de l'accolade manquante ici */
+@utility select-brand-focus {
+  &:focus {
+    border-color: hsl(166 100% 39%) !important;
+    --tw-ring-color: hsl(166 100% 39% / 0.5) !important;
+  }
+}
+
+/* Bouton Ajouter Prestation (Même logique que Nouveau Client) */
+@utility btn-add-item {
+  background-color: transparent !important;
+  color: var(--brand) !important;
+  border: 1px solid var(--brand) !important;
+  @apply h-8 px-3 text-xs font-bold transition-all hover:bg-[hsl(166,100%,96%)]! shadow-sm;
+}
+
+/* Bouton Supprimer (Rouge au survol uniquement) */
+@utility btn-remove-item {
+  /* On force le gris par défaut pour casser le vert */
+  background-color: transparent !important;
+  color: #64748b !important; /* Slate 500 */
+  border: 1px solid #e2e8f0 !important; /* Border Slate 200 */
+
+  @apply h-8 w-8 transition-all duration-200;
+}
+
+@utility btn-remove-item-hover {
+  background-color: #fef2f2 !important; /* Red 50 */
+  color: #ef4444 !important; /* Red 500 */
+  border-color: #fee2e2 !important; /* Red 200 */
+}
+
+/* Badge d'index (Vert doux) */
+@utility badge-index {
+  @apply w-8 h-8 flex items-center justify-center rounded-full bg-[hsl(166,100%,94%)] text-brand font-bold border border-brand/20;
+}
+
+/* Ligne d'information type Dashboard */
+@utility info-row {
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100% !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+@utility info-label {
+  color: #64748b;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+@utility info-value {
+  color: #0f172a;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: right;
+  flex-grow: 1;
+  margin-left: 1rem;
+}
+
+/* Rich Text / Legal Terms Styling */
+@utility rich-text {
+  & h1,
+  & h2,
+  & h3,
+  & h4 {
+    @apply font-semibold mt-6 mb-2 text-gray-900;
+  }
+  & h1 {
+    @apply text-2xl;
+  }
+  & h2 {
+    @apply text-xl;
+  }
+  & h3 {
+    @apply text-lg;
+  }
+  & p {
+    @apply mb-3 leading-relaxed text-gray-600 text-sm;
+  }
+  & ul,
+  & ol {
+    @apply mb-4 ml-5 list-disc text-sm text-gray-600;
+  }
+  & li {
+    @apply mb-1;
+  }
+  & strong {
+    @apply font-semibold text-gray-900;
+  }
+}
+
+/*-----------------*/
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
 /* Mode sombre */
 @media (prefers-color-scheme: dark) {
   @theme {
@@ -118,9 +239,4 @@
     --color-foreground: hsl(210 40% 98%);
     /* Ajoutez vos autres couleurs sombres... */
   }
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
 }
