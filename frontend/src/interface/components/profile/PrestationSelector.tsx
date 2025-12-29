@@ -1,4 +1,6 @@
 // src/interface/components/profile/PrestationsSelector.tsx
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import axios from 'axios';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { PrestationDto } from '../../../domain/catalog/types';
@@ -193,67 +195,73 @@ export default function PrestationsSelector({
 
   return (
     <div className="grid gap-4">
-      {/* Barre de recherche */}
-      <div>
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Rechercher un service..."
-          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-          aria-label="Rechercher une prestation"
-        />
-      </div>
+      {/* Barre de recherche & Filtres */}
+      <div className="space-y-3">
+        <div className="relative">
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher un service..."
+            className="pl-3"
+            aria-label="Rechercher une prestation"
+          />
+        </div>
 
-      {/* Filtre par domaine */}
-      <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
-        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+        <div className="flex items-center space-x-2 px-1">
           <input
+            id="domain-filter"
             type="checkbox"
             checked={applyDomaineFilter}
             onChange={(e) => setApplyDomaineFilter(e.target.checked)}
-            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+            className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
           />
-          <span className="font-medium">Filtrer par domaine professionnel</span>
-        </label>
+          <Label
+            htmlFor="domain-filter"
+            className="text-xs font-medium cursor-pointer"
+          >
+            Filtrer par domaine professionnel
+          </Label>
+        </div>
       </div>
 
       {/* Avertissement si des prestations hors domaine sont sélectionnées */}
       {outOfDomainCount > 0 && (
-        <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4 text-sm text-yellow-900">
-          <div className="flex items-start gap-3">
-            <span className="text-lg">⚠️</span>
-            <div>
-              <strong className="font-semibold">Attention :</strong> Vous avez
-              sélectionné {outOfDomainCount} prestation
-              {outOfDomainCount > 1 ? 's' : ''} en dehors de votre domaine
-              principal.
-              {domaine && (
-                <div className="mt-1 text-xs text-yellow-800">
-                  Décochez "Filtrer par domaine professionnel" pour voir toutes
-                  vos sélections.
-                </div>
-              )}
-            </div>
+        <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 text-xs text-orange-800">
+          <div className="flex items-start gap-2">
+            <span className="shrink-0">⚠️</span>
+            <p>
+              <span className="font-semibold">Note :</span> {outOfDomainCount}{' '}
+              service{outOfDomainCount > 1 ? 's' : ''} hors domaine sélectionné
+              {outOfDomainCount > 1 ? 's' : ''}.
+              {domaine &&
+                !applyDomaineFilter &&
+                ' Ils sont affichés en orange.'}
+            </p>
           </div>
         </div>
       )}
 
-      {/* Liste des prestations */}
-      <div>
+      {/* Liste des prestations avec hauteur maximale et scroll */}
+      <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
         {loading ? (
-          <div className="text-center py-8 text-gray-500">
-            Chargement des prestations…
+          <div className="flex flex-col gap-2">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-16 w-full bg-muted/50 animate-pulse rounded-lg"
+              />
+            ))}
           </div>
         ) : prestations === null ? (
-          <div className="text-center py-8 text-red-500">
+          <div className="text-center py-8 text-destructive text-sm italic">
             Impossible de charger les prestations.
           </div>
         ) : displayedWithWarnings.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground text-sm italic">
             Aucune prestation disponible.
           </div>
         ) : (
-          <div className="grid gap-2">
+          <div className="flex flex-col gap-2">
             {displayedWithWarnings.map((p) => {
               const title =
                 getStringField(p, 'name', 'title') ?? `Service #${p.id}`;
@@ -269,40 +277,42 @@ export default function PrestationsSelector({
               return (
                 <label
                   key={p.id}
-                  className={`grid grid-cols-[auto_1fr_auto] gap-4 items-start p-3 border rounded-lg transition-all cursor-pointer ${
-                    p.isOutOfDomain
-                      ? 'border-orange-300 bg-orange-50 hover:bg-orange-100'
-                      : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                  className={`flex items-start gap-3 p-3 border rounded-lg transition-all cursor-pointer group ${
+                    checked
+                      ? 'border-brand bg-brand/5'
+                      : p.isOutOfDomain
+                        ? 'border-orange-200 bg-orange-50/30 hover:bg-orange-50'
+                        : 'border-border hover:bg-muted/50'
                   }`}
                 >
-                  {/* Checkbox */}
                   <input
                     type="checkbox"
                     checked={checked}
                     onChange={() => toggleSelect(p.id)}
-                    className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
                   />
 
-                  {/* Nom + Description */}
-                  <div className="min-w-0">
-                    <div className="font-semibold text-gray-900 flex items-center gap-2 flex-wrap">
-                      {title}
-                      {p.isOutOfDomain && (
-                        <span className="text-xs px-2 py-0.5 bg-orange-200 text-orange-800 rounded-full font-normal">
-                          Hors domaine
-                        </span>
-                      )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="text-sm font-semibold truncate group-hover:text-brand transition-colors">
+                        {title}
+                      </span>
+                      <span className="text-xs font-bold whitespace-nowrap">
+                        {typeof priceCents === 'number'
+                          ? `${(priceCents / 100).toFixed(2).replace('.', ',')}€`
+                          : '—'}
+                      </span>
                     </div>
                     {desc && (
-                      <div className="text-sm text-gray-600 mt-1">{desc}</div>
+                      <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
+                        {desc}
+                      </p>
                     )}
-                  </div>
-
-                  {/* Prix */}
-                  <div className="text-right text-gray-900 font-medium whitespace-nowrap">
-                    {typeof priceCents === 'number'
-                      ? `${(priceCents / 100).toFixed(2).replace('.', ',')} €`
-                      : '—'}
+                    {p.isOutOfDomain && (
+                      <span className="inline-block mt-1 text-[10px] uppercase tracking-wider font-bold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded">
+                        Hors domaine
+                      </span>
+                    )}
                   </div>
                 </label>
               );

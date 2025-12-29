@@ -223,13 +223,10 @@ export default function QuotesListPage() {
             </Link>
           </Button>
           {/* Bouton Nouveau devis - utilise la couleur de marque */}
-          <Button
-            asChild
-            className="bg-brand text-brand-foreground shadow-md hover:bg-brand/90 hover:shadow-lg transition-all duration-150 ease-in-out"
-          >
+          <Button asChild className="btn-add-client gap-2 shadow-sm">
             <Link to="/quotes/new">
               <Plus className="h-4 w-4 mr-2" />
-              Nouveau devis
+              <span>Nouveau devis</span>
             </Link>
           </Button>
         </div>
@@ -285,7 +282,7 @@ export default function QuotesListPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="">
-              <DropdownMenuLabel className="bg-muted text-foreground">
+              <DropdownMenuLabel className="dropdown-label-section">
                 Filtrer par statut
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="" />

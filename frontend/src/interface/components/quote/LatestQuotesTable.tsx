@@ -1,6 +1,6 @@
 // src/interface/pages/Dashboard/components/DashboardLatestQuotesTable.tsx
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -45,6 +45,7 @@ type Props = {
 };
 
 export function DashboardLatestQuotesTable({ pageSize = 5 }: Props) {
+  const navigate = useNavigate();
   const activeAccountId = useAccountStore((s) => s.activeAccountId);
 
   const [loading, setLoading] = useState(true);
@@ -86,26 +87,7 @@ export function DashboardLatestQuotesTable({ pageSize = 5 }: Props) {
   const rows = data?.results ?? [];
 
   return (
-    <section className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">
-            Derniers devis
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Les {pageSize} devis les plus récents
-          </p>
-        </div>
-
-        <Button
-          asChild
-          variant="outline"
-          className="border-input hover:bg-accent"
-        >
-          <Link to="/quotes">Voir tout</Link>
-        </Button>
-      </div>
-
+    <section className="space-y-4">
       {/* Zone d'erreur (même style que DataTable) */}
       {error ? (
         <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive-foreground/90">
@@ -116,27 +98,27 @@ export function DashboardLatestQuotesTable({ pageSize = 5 }: Props) {
         </div>
       ) : null}
 
-      {/* Conteneur tableau (même look que DataTable) */}
-      <div className="rounded-lg border border-border bg-card shadow-lg overflow-hidden">
+      {/* Conteneur tableau */}
+      <div className="overflow-hidden">
         <Table>
-          <TableHeader className="bg-muted/50 border-b border-border">
-            <TableRow className="hover:bg-muted/50">
-              <TableHead className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+          <TableHeader className="bg-muted/30">
+            <TableRow className="hover:bg-transparent border-b border-border/50">
+              <TableHead className="py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-wider pl-6">
                 Référence
               </TableHead>
-              <TableHead className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              <TableHead className="py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                 Client
               </TableHead>
-              <TableHead className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              <TableHead className="py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                 Statut
               </TableHead>
-              <TableHead className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              <TableHead className="py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                 Date
               </TableHead>
-              <TableHead className="text-sm font-semibold text-muted-foreground uppercase tracking-wider text-right">
+              <TableHead className="py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">
                 Total
               </TableHead>
-              <TableHead className="text-sm font-semibold text-muted-foreground uppercase tracking-wider text-right">
+              <TableHead className="py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right pr-6">
                 Actions
               </TableHead>
             </TableRow>
@@ -170,16 +152,16 @@ export function DashboardLatestQuotesTable({ pageSize = 5 }: Props) {
                     key={q.id}
                     className="hover:bg-accent/50 transition-colors"
                   >
-                    <TableCell>
+                    <TableCell className="pl-6 font-medium">
                       <Link
                         to={`/quotes/${q.id}`}
-                        className="font-medium hover:underline hover:text-brand"
+                        className="hover:text-brand transition-colors"
                       >
                         {q.reference || '—'}
                       </Link>
                     </TableCell>
 
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-muted-foreground text-sm font-medium">
                       {clientName}
                     </TableCell>
 
@@ -195,28 +177,26 @@ export function DashboardLatestQuotesTable({ pageSize = 5 }: Props) {
                       {formatMoney(q.total, q.currency ?? 'EUR')}
                     </TableCell>
 
-                    <TableCell className="text-right">
+                    <TableCell className="text-right pr-6">
                       <div className="flex justify-end gap-2">
-                        <Link to={`/quotes/${q.id}`}>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="hover:bg-accent hover:text-accent-foreground"
-                          >
-                            Voir
-                          </Button>
-                        </Link>
-                        <Link to={`/quotes/${q.id}/edit`}>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="hover:bg-accent hover:text-accent-foreground"
-                          >
-                            Éditer
-                          </Button>
-                        </Link>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 text-[11px] font-bold hover:text-brand"
+                          onClick={() => navigate(`/quotes/${q.id}`)}
+                        >
+                          VOIR
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 text-[11px] font-bold hover:text-brand"
+                          onClick={() => navigate(`/quotes/${q.id}/edit`)}
+                        >
+                          ÉDITER
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -227,10 +207,20 @@ export function DashboardLatestQuotesTable({ pageSize = 5 }: Props) {
         </Table>
       </div>
 
-      {/* Footer léger optionnel */}
+      {/* Footer léger */}
       {!loading && !error && data ? (
-        <div className="text-xs text-muted-foreground">
-          Affichage : {Math.min(rows.length, pageSize)} / {data.count}
+        <div className="px-6 py-3 border-t border-border/50 flex items-center justify-between">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
+            Affichage : {Math.min(rows.length, pageSize)} / {data.count}
+          </p>
+          <Button
+            variant="link"
+            size="sm"
+            className="h-auto p-0 text-brand text-[11px] font-bold"
+            asChild
+          >
+            <Link to="/quotes">VOIR TOUT LE CATALOGUE →</Link>
+          </Button>
         </div>
       ) : null}
     </section>

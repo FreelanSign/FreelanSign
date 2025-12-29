@@ -46,12 +46,7 @@ export default function DeleteConfirmDialog({
         )}
 
         <DialogFooter className="mt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            disabled={isDeleting}
-          >
+          <Button type="button" onClick={onClose} disabled={isDeleting}>
             Annuler
           </Button>
           <Button

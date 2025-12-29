@@ -1,9 +1,27 @@
 // src/interface/components/account/AccountDataForm.tsx
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import type { AreaDto } from '../../../domain/catalog/types';
+
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export const AccountSchema = z.object({
   display_name: z.string().optional().nullable(),
@@ -70,25 +88,25 @@ export default function AccountDataForm({
   const init: Partial<AccountFormValues & { default_rate_cents?: number }> =
     initialValues ?? {};
 
-  const { register, handleSubmit, formState, reset, watch } =
-    useForm<AccountFormValues>({
-      resolver: zodResolver(AccountSchema),
-      defaultValues: {
-        display_name: init.display_name ?? null,
-        legal_form: init.legal_form ?? null,
-        domain_id:
-          typeof init.domain_id === 'number'
-            ? init.domain_id
-            : (init.domain_id ?? null),
-        tjm_eur:
-          typeof init.default_rate_cents === 'number'
-            ? init.default_rate_cents / 100
-            : (init.tjm_eur ?? null),
-        legal_id: init.legal_id ?? null,
-        service_types: normalizeToNumberArray(init.service_types),
-      },
-    });
+  const form = useForm<AccountFormValues>({
+    resolver: zodResolver(AccountSchema),
+    defaultValues: {
+      display_name: init.display_name ?? null,
+      legal_form: init.legal_form ?? null,
+      domain_id:
+        typeof init.domain_id === 'number'
+          ? init.domain_id
+          : (init.domain_id ?? null),
+      tjm_eur:
+        typeof init.default_rate_cents === 'number'
+          ? init.default_rate_cents / 100
+          : (init.tjm_eur ?? null),
+      legal_id: init.legal_id ?? null,
+      service_types: normalizeToNumberArray(init.service_types),
+    },
+  });
 
+  const { control, handleSubmit, watch, reset, formState } = form;
   const [submitError, setSubmitError] = useState<string | null>(null);
   const isSubmitting = formState.isSubmitting;
 
@@ -97,7 +115,6 @@ export default function AccountDataForm({
 
   useEffect(() => {
     if (!onDomainChange) return;
-
     const raw: unknown = domainIdWatched;
 
     let parsed: number | null;
@@ -106,7 +123,6 @@ export default function AccountDataForm({
     } else if (typeof raw === 'number') {
       parsed = Number.isNaN(raw) ? null : raw;
     } else if (typeof raw === 'string') {
-      // empty string -> null, otherwise parse to number (fallback to null if NaN)
       if (raw.trim() === '') {
         parsed = null;
       } else {
@@ -118,15 +134,19 @@ export default function AccountDataForm({
     }
 
     onDomainChange(parsed);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [domainIdWatched]);
+  }, [domainIdWatched, onDomainChange]);
 
   // watch whole form and notify parent on changes (draft)
   const watched = watch();
+  const watchedStr = JSON.stringify(watched);
+  const lastWatchedStr = useRef(watchedStr);
+
   useEffect(() => {
-    if (onChange) onChange(watched as AccountFormValues);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(watched)]);
+    if (onChange && watchedStr !== lastWatchedStr.current) {
+      lastWatchedStr.current = watchedStr;
+      onChange(watched as AccountFormValues);
+    }
+  }, [watchedStr, watched, onChange]);
 
   async function internalOnSubmit(values: AccountFormValues) {
     setSubmitError(null);
@@ -164,120 +184,165 @@ export default function AccountDataForm({
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(internalOnSubmit)}
-      className="grid gap-3"
-      noValidate
-    >
-      <label>
-        <div className="text-sm">Nom structure</div>
-        <input
-          {...register('display_name')}
-          className="border p-2 rounded w-full"
-          placeholder="Nom de votre structure"
-        />
-      </label>
-
-      <label>
-        <div className="text-sm">Statut juridique</div>
-        <input
-          {...register('legal_form')}
-          className="border p-2 rounded w-full"
-          placeholder="Ex: micro, eurl, sasu..."
-        />
-      </label>
-
-      <label>
-        <div className="text-sm">Domaine</div>
-        <select
-          {...register('domain_id', {
-            setValueAs: (v) => {
-              if (v === '' || v === null || v === undefined) return null;
-              const n = Number(v);
-              return Number.isNaN(n) ? null : n;
-            },
-          })}
-          className="border p-2 rounded w-full"
-        >
-          <option value="">-- Aucune --</option>
-          {Array.isArray(areas) && areas.length > 0 ? (
-            areas.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name ?? a.slug ?? `Area ${a.id}`}
-              </option>
-            ))
-          ) : (
-            <option value="">
-              {areas == null
-                ? 'Chargement impossible'
-                : 'Aucune area disponible'}
-            </option>
+    <Form {...form}>
+      <form
+        onSubmit={handleSubmit(internalOnSubmit)}
+        className="grid gap-4"
+        noValidate
+      >
+        <FormField
+          control={control}
+          name="display_name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nom structure</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ''}
+                  placeholder="Nom de votre structure"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
-        </select>
-      </label>
-
-      <label>
-        <div className="text-sm">TJM (EUR)</div>
-        <input
-          type="number"
-          step="0.01"
-          {...register('tjm_eur', { valueAsNumber: true })}
-          className="border p-2 rounded w-full"
-          placeholder="Ex: 450.00"
         />
-      </label>
 
-      <label>
-        <div className="text-sm">Numéro pro (SIRET / TVA)</div>
-        <input
-          {...register('legal_id')}
-          className="border p-2 rounded w-full"
+        <FormField
+          control={control}
+          name="legal_form"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Statut juridique</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ''}
+                  placeholder="Ex: micro, eurl, sasu..."
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </label>
 
-      {submitError && (
-        <p className="text-sm text-red-600 mt-1">Erreur: {submitError}</p>
-      )}
+        <FormField
+          control={control}
+          name="domain_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Domaine</FormLabel>
+              <Select
+                onValueChange={(val) =>
+                  field.onChange(val ? Number(val) : null)
+                }
+                value={field.value ? String(field.value) : ''}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="-- Aucune --" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="null">-- Aucune --</SelectItem>
+                  {Array.isArray(areas) &&
+                    areas.map((a) => (
+                      <SelectItem key={a.id} value={String(a.id)}>
+                        {a.name ?? a.slug ?? `Area ${a.id}`}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      {showButtons && (
-        <div className="flex gap-3 mt-2">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="bg-blue-600 text-white rounded px-3 py-2 disabled:opacity-50"
-          >
-            {isSubmitting ? 'En cours…' : submitLabel}
-          </button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            control={control}
+            name="tjm_eur"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>TJM (EUR)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    {...field}
+                    value={field.value ?? ''}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === '' ? null : Number(e.target.value),
+                      )
+                    }
+                    placeholder="Ex: 450.00"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-          <button
-            type="button"
-            onClick={() => onCancel && onCancel()}
-            className="bg-gray-200 rounded px-3 py-2"
-          >
-            Annuler
-          </button>
-
-          <button
-            type="button"
-            onClick={() =>
-              reset({
-                display_name: init.display_name ?? null,
-                legal_form: init.legal_form ?? null,
-                domain_id: init.domain_id ?? null,
-                tjm_eur:
-                  typeof init.default_rate_cents === 'number'
-                    ? init.default_rate_cents / 100
-                    : (init.tjm_eur ?? null),
-                legal_id: init.legal_id ?? null,
-                service_types: normalizeToNumberArray(init.service_types),
-              })
-            }
-            className="bg-white border rounded px-3 py-2"
-          >
-            Réinitialiser
-          </button>
+          <FormField
+            control={control}
+            name="legal_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Numéro pro (SIRET / TVA)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value ?? ''}
+                    placeholder="Ex: 123 456 789 00012"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
-      )}
-    </form>
+
+        {submitError && (
+          <p className="text-sm text-destructive mt-1">Erreur: {submitError}</p>
+        )}
+
+        {showButtons && (
+          <div className="flex gap-3 mt-2">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'En cours…' : submitLabel}
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onCancel && onCancel()}
+            >
+              Annuler
+            </Button>
+
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() =>
+                reset({
+                  display_name: init.display_name ?? null,
+                  legal_form: init.legal_form ?? null,
+                  domain_id: init.domain_id ?? null,
+                  tjm_eur:
+                    typeof init.default_rate_cents === 'number'
+                      ? init.default_rate_cents / 100
+                      : (init.tjm_eur ?? null),
+                  legal_id: init.legal_id ?? null,
+                  service_types: normalizeToNumberArray(init.service_types),
+                })
+              }
+            >
+              Réinitialiser
+            </Button>
+          </div>
+        )}
+      </form>
+    </Form>
   );
 }

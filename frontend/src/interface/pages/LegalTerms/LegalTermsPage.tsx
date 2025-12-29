@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import type { LegalTermsPreviewDto } from '../../../domain/legal-terms/types';
 import { legalTermsRepository } from '../../../infrastructure/legal-terms/legalTermsRepository';
 import { useRequireAccount } from '../../hooks/useRequireAccount';
-import styles from './legal-terms-page.module.css';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function LegalTermsPage() {
   const [preview, setPreview] = useState<LegalTermsPreviewDto | null>(null);
@@ -40,89 +44,118 @@ export default function LegalTermsPage() {
     };
   }, []);
 
-  if (loading) return <div>Chargement des conditions générales…</div>;
-
-  if (error) {
+  if (loading) {
     return (
-      <div className={styles.errorContainer}>
-        <div className={styles.errorCard}>
-          <h2 className={styles.errorTitle}>Erreur</h2>
-          <p className={styles.errorText}>{error}</p>
-          <button
-            onClick={() => navigate('/profile/edit')}
-            className={styles.buttonPrimary}
-          >
-            Compléter mon profil
-          </button>
-        </div>
+      <div className="grid gap-6">
+        <Skeleton className="h-20 w-full rounded-lg" />
+        <Skeleton className="h-32 w-full rounded-lg" />
+        <Skeleton className="h-96 w-full rounded-lg" />
       </div>
     );
   }
 
-  if (!preview) return <div>Aucune condition générale disponible.</div>;
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="text-destructive">Erreur</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">{error}</p>
+            <Button onClick={() => navigate('/profile/edit')}>
+              Compléter mon profil
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!preview) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">
+          Aucune condition générale disponible.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-6">
-      <header className={styles.header}>
-        <h1 className={styles.title}>Conditions Générales de Vente</h1>
-        <span className={styles.version}>
+      <header className="flex items-start justify-between mb-6">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 font-playfair">
+          Conditions Générales de Vente
+        </h1>
+        <Badge variant="secondary" className="text-xs">
           Version {preview.template_version}
-        </span>
+        </Badge>
       </header>
 
-      <section className={styles.infoBanner}>
-        <div className={styles.infoBannerIcon}>✓</div>
-        <div>
-          <p className={styles.infoBannerText}>
+      <div className="flex gap-3 p-4 rounded-lg bg-brand/10 border border-brand/20">
+        <div className="w-6 h-6 rounded-full bg-brand text-brand-foreground flex items-center justify-center shrink-0">
+          ✓
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-brand">
             Ces conditions sont automatiquement attachées à tous vos devis.
           </p>
-          <p className={styles.infoBannerSubtext}>
+          <p className="text-xs text-muted-foreground">
             Les variables (SIRET, adresse, etc.) sont substituées
             automatiquement.
           </p>
         </div>
-      </section>
+      </div>
 
-      <section className={styles.card}>
-        <h2 className={styles.h2}>Clauses ({preview.clauses.length})</h2>
-        <div className={styles.clausesList}>
-          {preview.clauses.map((clause) => (
-            <div key={clause.identifier} className={styles.clauseCard}>
-              <div className={styles.clauseHeader}>
-                <h3 className={styles.clauseTitle}>{clause.title}</h3>
-                <div className={styles.badgeGroup}>
-                  {clause.is_mandatory && (
-                    <span
-                      className={`${styles.badge} ${styles.badgeMandatory}`}
-                    >
-                      Obligatoire
-                    </span>
-                  )}
-                  {clause.was_customized && (
-                    <span
-                      className={`${styles.badge} ${styles.badgeCustomized}`}
-                    >
-                      Personnalisée
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div
-                className={styles.clauseBody}
-                dangerouslySetInnerHTML={{ __html: clause.body }}
-              />
-            </div>
-          ))}
-        </div>
-      </section>
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle>Clauses ({preview.clauses.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {preview.clauses.map((clause) => (
+              <Card key={clause.identifier} className="shadow-sm">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <CardTitle className="text-lg">{clause.title}</CardTitle>
+                    <div className="flex gap-2">
+                      {clause.is_mandatory && (
+                        <Badge className="bg-destructive/10 text-destructive">
+                          Obligatoire
+                        </Badge>
+                      )}
+                      {clause.was_customized && (
+                        <Badge className="bg-accent-orange/10 text-accent-orange">
+                          Personnalisée
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    className="rich-text"
+                    dangerouslySetInnerHTML={{ __html: clause.body }}
+                  />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-      <section className={styles.card}>
-        <h2 className={styles.h2}>Aperçu complet</h2>
-        <div
-          className={styles.preview}
-          dangerouslySetInnerHTML={{ __html: preview.rendered_html }}
-        />
-      </section>
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle>Aperçu complet</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div
+            className="rich-text"
+            dangerouslySetInnerHTML={{ __html: preview.rendered_html }}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

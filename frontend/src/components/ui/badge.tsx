@@ -21,6 +21,7 @@ const badgeVariants = cva(
           'border-transparent bg-[#e86c1d] text-white shadow hover:bg-[#d65f15]',
         info: 'border-[#00c896] bg-[#00c896]/10 text-[#00a87e] hover:bg-[#00c896]/20',
         expired: 'border-gray-300 bg-gray-100 text-gray-600 hover:bg-gray-200',
+        tag: 'border-brand/20 bg-brand/5 text-brand hover:bg-brand/10',
       },
     },
     defaultVariants: {
