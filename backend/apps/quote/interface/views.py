@@ -602,11 +602,64 @@ class QuotePreviewPdfView(APIView):
         except Exception as e:
             return Response({"code": "QUOTE_PREVIEW_VALIDATION", "detail": str(e)}, status=422)
 
+        # AIDEV-NOTE: Phase 3 - Fetch legal terms for preview PDF (#87)
+        legal_terms_html = None
+        try:
+            from apps.legal_terms.adapters.persistence.django_legal_profile_repository import (
+                DjangoLegalProfileRepository,
+            )
+            from apps.legal_terms.adapters.persistence.django_legal_template_repository import (
+                DjangoLegalTemplateRepository,
+            )
+            from apps.legal_terms.adapters.rendering.template_renderer import TemplateRenderer as LegalTermsRenderer
+            from apps.legal_terms.adapters.services.account_service import AccountServiceAdapter
+            from apps.legal_terms.application.dtos.preview_dto import PreviewLegalTermsInput
+            from apps.legal_terms.application.use_cases.preview_legal_terms import PreviewLegalTermsUseCase
+            from apps.legal_terms.domain.services.legal_terms_assembler import LegalTermsAssembler
+
+            log = get_logger(__name__)
+
+            # Get account_id from user
+            account_id = request.user.account.id if hasattr(request.user, "account") else None
+            if account_id:
+                log.debug("quote.preview.legal_terms_fetch.start account_id=%s", account_id)
+
+                # Build use case
+                use_case = PreviewLegalTermsUseCase(
+                    profile_repository=DjangoLegalProfileRepository(),
+                    template_repository=DjangoLegalTemplateRepository(),
+                    account_service=AccountServiceAdapter(),
+                    template_renderer=LegalTermsRenderer(),
+                    assembler=LegalTermsAssembler(),
+                )
+
+                # Execute
+                output = use_case.execute(PreviewLegalTermsInput(account_id=account_id))
+                legal_terms_html = output.rendered_html
+
+                log.info(
+                    "quote.preview.legal_terms_loaded account_id=%s html_length=%s",
+                    account_id,
+                    len(legal_terms_html) if legal_terms_html else 0,
+                )
+            else:
+                log.warning("quote.preview.no_account_id user_id=%s", request.user.id)
+        except Exception as e:
+            log = get_logger(__name__)
+            log.warning(
+                "quote.preview.legal_terms_error user_id=%s error=%s",
+                request.user.id,
+                str(e),
+                exc_info=True,
+            )
+            # Continue without legal terms instead of failing the entire preview
+
         # Adapters: PDF Preview Renderer
         renderer = DjangoTemplateRenderer()
         pdfgen = PlaywrightPdfGenerator()
         try:
-            html = renderer.render("quote/pdf/preview.html", vm)
+            # Use document.html template (same as download) with legal terms
+            html = renderer.render("quote/pdf/document.html", vm, legal_terms_html=legal_terms_html)
             pdf_bytes = pdfgen.generate(html)
         except Exception as e:
             return Response({"code": "QUOTE_PREVIEW_RENDERING", "detail": str(e)}, status=503)
