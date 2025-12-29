@@ -92,9 +92,26 @@ class CreateQuoteUseCase:
         quote.refresh_from_db()
 
         # Phase 6: Attach legal terms (MVP requirement: quote cannot be created without legal terms)
+        # AIDEV-NOTE: Diagnostic logs added to debug legal terms generation issue (#87)
         logger.info("quote.attach_legal_terms.start", extra={"quote_id": str(quote.id), "account_id": account_id})
-        self.attach_terms_use_case.execute(AttachTermsInput(quote_id=str(quote.id), account_id=account_id))
-        logger.info("quote.attach_legal_terms.done", extra={"quote_id": str(quote.id)})
+        try:
+            attach_output = self.attach_terms_use_case.execute(AttachTermsInput(quote_id=str(quote.id), account_id=account_id))
+            logger.info(
+                "quote.attach_legal_terms.done",
+                extra={
+                    "quote_id": str(quote.id),
+                    "attached_terms_id": str(attach_output.attached_terms_id) if attach_output else "NONE",
+                    "template_version": attach_output.template_version if attach_output else "NONE",
+                },
+            )
+        except Exception as e:
+            logger.error(
+                "quote.attach_legal_terms.failed",
+                extra={"quote_id": str(quote.id), "account_id": account_id, "error": str(e)},
+                exc_info=True,
+            )
+            # Re-raise to fail the transaction
+            raise
 
         logger.info(
             "quote.create.finish",

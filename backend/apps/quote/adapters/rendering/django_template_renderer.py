@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from types import SimpleNamespace
 
 from django.template.loader import render_to_string
@@ -9,9 +10,18 @@ from django.template.loader import render_to_string
 from apps.quote.application.dto.quote_viewmodels import QuoteViewModel
 from apps.quote.application.ports.template_renderer import TemplateRenderer
 
+log = logging.getLogger(__name__)
+
 
 class DjangoTemplateRenderer(TemplateRenderer):
     def render(self, template_key: str, vm: QuoteViewModel, legal_terms_html: str | None = None) -> str:
+        # AIDEV-NOTE: Diagnostic logs added to debug legal terms generation issue (#87)
+        log.debug(
+            "renderer.render.start template=%s has_legal_terms=%s legal_terms_length=%s",
+            template_key,
+            legal_terms_html is not None,
+            len(legal_terms_html) if legal_terms_html else 0,
+        )
         quote_map = {
             "reference": vm.meta.get("number"),
             "issue_date": vm.meta.get("date"),
@@ -83,4 +93,11 @@ class DjangoTemplateRenderer(TemplateRenderer):
             branding=ctx["branding"],
             quote=SimpleNamespace(**quote_map),
         )
+
+        # AIDEV-NOTE: Log context to confirm legal_terms_html is passed to template
+        log.debug(
+            "renderer.render.context_prepared has_legal_terms_in_ctx=%s",
+            "legal_terms_html" in ctx and ctx["legal_terms_html"] is not None,
+        )
+
         return render_to_string(template_key, ctx)
