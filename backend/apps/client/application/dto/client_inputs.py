@@ -9,7 +9,14 @@ class CreateClientInput:
     name: str
     email: Optional[str] = None
     phone: Optional[str] = None
-    address: Optional[str] = None
+    address: Optional[str] = None  # LEGACY - will be removed after migration
+    # Structured address fields
+    address_line1: Optional[str] = None
+    address_line2: Optional[str] = None
+    city: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: Optional[str] = None
+    company: Optional[str] = None
     vat_number: Optional[str] = None
     metadata: dict | None = None
 
@@ -20,7 +27,14 @@ class UpdateClientInput:
     name: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
-    address: Optional[str] = None
+    address: Optional[str] = None  # LEGACY - will be removed after migration
+    # Structured address fields
+    address_line1: Optional[str] = None
+    address_line2: Optional[str] = None
+    city: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: Optional[str] = None
+    company: Optional[str] = None
     vat_number: Optional[str] = None
     metadata: dict | None = None
 

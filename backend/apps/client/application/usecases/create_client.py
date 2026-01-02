@@ -7,6 +7,7 @@ from apps.client.domain.policies.client_policies import (
     ensure_unique_name_within_owner,
     normalize_email,
     normalize_phone_number,
+    validate_country_code,
 )
 
 
@@ -22,13 +23,21 @@ class CreateClient:
 
         phone = normalize_phone_number(inp.phone or None)
         email = normalize_email(inp.email or None)
+        country = validate_country_code(inp.country or None)
         data = {
             "owner_id": inp.owner_id,
             "account_id": inp.account_id,  # Phase 5
             "name": name,
             "email": email,
             "phone": phone,
-            "address": inp.address or "",
+            "address": inp.address or "",  # LEGACY
+            # Structured address fields
+            "address_line1": inp.address_line1 or "",
+            "address_line2": inp.address_line2 or "",
+            "city": inp.city or "",
+            "postal_code": inp.postal_code or "",
+            "country": country,
+            "company": inp.company or "",
             "vat_number": inp.vat_number or "",
             "metadata": inp.metadata or {},
         }
@@ -43,7 +52,14 @@ class CreateClient:
             name=obj.name,
             email=obj.email or None,
             phone=obj.phone or None,
-            address=obj.address or None,
+            address=obj.address or None,  # LEGACY
+            # Structured address fields
+            address_line1=obj.address_line1 or None,
+            address_line2=obj.address_line2 or None,
+            city=obj.city or None,
+            postal_code=obj.postal_code or None,
+            country=obj.country or None,
+            company=obj.company or None,
             vat_number=obj.vat_number or None,
             metadata=obj.metadata or {},
             created_at=obj.created_at.isoformat(),
