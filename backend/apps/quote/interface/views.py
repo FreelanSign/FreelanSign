@@ -176,31 +176,31 @@ class QuoteViewSet(viewsets.ModelViewSet):
                     return str(meta[key]).upper()
         return None
 
-    def _load_theme(self, professional_id) -> dict | None:
+    def _load_theme(self, account_id) -> dict | None:
         """
-        Load active theme for a professional.
+        Load active theme for an account.
         Returns None if branding module is not available or no active theme is found.
         """
         log = get_logger(__name__)
-        log.debug("quote.load_theme.start professional_id=%s", professional_id)
+        log.debug("quote.load_theme.start account_id=%s", account_id)
         try:
             from apps.branding.adapters.persistence.django_theme_repository import DjangoThemeRepository
             from apps.branding.application.usecases.get_theme_for_rendering import GetThemeForRenderingUseCase
 
             repository = DjangoThemeRepository()
             use_case = GetThemeForRenderingUseCase(theme_repository=repository)
-            theme = use_case.execute(professional_id=professional_id)
+            theme = use_case.execute(account_id=account_id)
             if theme:
                 log.debug("quote.load_theme.done theme_name=%s", theme.get("name", None))
                 log.debug("quote.load_theme theme data=%s", theme)
             else:
-                log.error("quote.load_theme.failure professional_id=%s", professional_id)
+                log.error("quote.load_theme.failure account_id=%s", account_id)
             return theme
         except ImportError:
-            log.error("quote.load_theme.skipped_no_branding_module professional_id=%s", professional_id)
+            log.error("quote.load_theme.skipped_no_branding_module account_id=%s", account_id)
             return None
         except Exception:
-            log.exception("quote.load_theme.skipped_unexpected_error professional_id=%s", professional_id)
+            log.exception("quote.load_theme.skipped_unexpected_error account_id=%s", account_id)
             return None
 
     # ----------------------------------------------------------------------------------
@@ -434,9 +434,11 @@ class QuoteViewSet(viewsets.ModelViewSet):
         vat_exempt, default_rate = self._owner_vat_config_from_user(request.user)
         client_country = self._client_country_from_model(quote.client)
 
-        theme = self._load_theme(request.user.id)
-        if theme:
-            logger.debug("quote.download_pdf.theme_loaded theme_name=%s", theme.get("name", None))
+        theme = None
+        if hasattr(request, "account") and request.account:
+            theme = self._load_theme(request.account.id)
+            if theme:
+                logger.debug("quote.download_pdf.theme_loaded theme_name=%s", theme.get("name", None))
 
         uc = DownloadPdf(repo=self._repo(), renderer=self._renderer(), pdf=self._pdf(), theme_loader=self._load_theme)
         pdf_bytes = uc.execute(
@@ -554,16 +556,18 @@ class QuotePreviewPdfView(APIView):
         vat_exempt, default_rate = QuoteViewSet._owner_vat_config_from_user(self, request.user)
         client_country = self._client_country_from_payload(data.get("client"))
 
-        branding = self._load_theme(request.user.id)
-        if branding:
-            log = get_logger(__name__)
-            log.debug(
-                "quote.preview.branding_loaded professional_id=%s, has_theme=%s, theme_id=%s, theme_name=%s",
-                request.user.id,
-                bool(branding),
-                branding.get("id") if isinstance(branding, dict) else None,
-                branding.get("name") if isinstance(branding, dict) else None,
-            )
+        branding = None
+        if hasattr(request, "account") and request.account:
+            branding = self._load_theme(request.account.id)
+            if branding:
+                log = get_logger(__name__)
+                log.debug(
+                    "quote.preview.branding_loaded account_id=%s, has_theme=%s, theme_id=%s, theme_name=%s",
+                    request.account.id,
+                    bool(branding),
+                    branding.get("id") if isinstance(branding, dict) else None,
+                    branding.get("name") if isinstance(branding, dict) else None,
+                )
 
         # Mapper payload -> DTO (tax_rate en %)
         from decimal import Decimal as D
@@ -602,11 +606,64 @@ class QuotePreviewPdfView(APIView):
         except Exception as e:
             return Response({"code": "QUOTE_PREVIEW_VALIDATION", "detail": str(e)}, status=422)
 
+        # AIDEV-NOTE: Phase 3 - Fetch legal terms for preview PDF (#87)
+        legal_terms_html = None
+        try:
+            from apps.legal_terms.adapters.persistence.django_legal_profile_repository import (
+                DjangoLegalProfileRepository,
+            )
+            from apps.legal_terms.adapters.persistence.django_legal_template_repository import (
+                DjangoLegalTemplateRepository,
+            )
+            from apps.legal_terms.adapters.rendering.template_renderer import TemplateRenderer as LegalTermsRenderer
+            from apps.legal_terms.adapters.services.account_service import AccountServiceAdapter
+            from apps.legal_terms.application.dtos.preview_dto import PreviewLegalTermsInput
+            from apps.legal_terms.application.use_cases.preview_legal_terms import PreviewLegalTermsUseCase
+            from apps.legal_terms.domain.services.legal_terms_assembler import LegalTermsAssembler
+
+            log = get_logger(__name__)
+
+            # Get account_id from user
+            account_id = request.user.account.id if hasattr(request.user, "account") else None
+            if account_id:
+                log.debug("quote.preview.legal_terms_fetch.start account_id=%s", account_id)
+
+                # Build use case
+                use_case = PreviewLegalTermsUseCase(
+                    profile_repository=DjangoLegalProfileRepository(),
+                    template_repository=DjangoLegalTemplateRepository(),
+                    account_service=AccountServiceAdapter(),
+                    template_renderer=LegalTermsRenderer(),
+                    assembler=LegalTermsAssembler(),
+                )
+
+                # Execute
+                output = use_case.execute(PreviewLegalTermsInput(account_id=account_id))
+                legal_terms_html = output.rendered_html
+
+                log.info(
+                    "quote.preview.legal_terms_loaded account_id=%s html_length=%s",
+                    account_id,
+                    len(legal_terms_html) if legal_terms_html else 0,
+                )
+            else:
+                log.warning("quote.preview.no_account_id user_id=%s", request.user.id)
+        except Exception as e:
+            log = get_logger(__name__)
+            log.warning(
+                "quote.preview.legal_terms_error user_id=%s error=%s",
+                request.user.id,
+                str(e),
+                exc_info=True,
+            )
+            # Continue without legal terms instead of failing the entire preview
+
         # Adapters: PDF Preview Renderer
         renderer = DjangoTemplateRenderer()
         pdfgen = PlaywrightPdfGenerator()
         try:
-            html = renderer.render("quote/pdf/preview.html", vm)
+            # Use document.html template (same as download) with legal terms
+            html = renderer.render("quote/pdf/document.html", vm, legal_terms_html=legal_terms_html)
             pdf_bytes = pdfgen.generate(html)
         except Exception as e:
             return Response({"code": "QUOTE_PREVIEW_RENDERING", "detail": str(e)}, status=503)
@@ -625,33 +682,33 @@ class QuotePreviewPdfView(APIView):
                 return str(val).upper()
         return None
 
-    def _load_theme(self, professional_id) -> dict | None:
+    def _load_theme(self, account_id) -> dict | None:
         """
-        Load active theme for a professional.
+        Load active theme for an account.
         Returns None if branding module is not available or no active theme is found.
         """
         log = get_logger(__name__)
-        log.debug("quote.preview.load_theme.start professional_id=%s", professional_id)
+        log.debug("quote.preview.load_theme.start account_id=%s", account_id)
         try:
             from apps.branding.adapters.persistence.django_theme_repository import DjangoThemeRepository
             from apps.branding.application.usecases.get_theme_for_rendering import GetThemeForRenderingUseCase
 
             repository = DjangoThemeRepository()
             use_case = GetThemeForRenderingUseCase(theme_repository=repository)
-            theme = use_case.execute(professional_id=professional_id)
+            theme = use_case.execute(account_id=account_id)
             if theme:
                 log.debug(
-                    "quote.theme.load.success professional_id=%s, theme_id=%s, theme_name=%s",
-                    professional_id,
+                    "quote.theme.load.success account_id=%s, theme_id=%s, theme_name=%s",
+                    account_id,
                     theme.get("id") if isinstance(theme, dict) else None,
                     theme.get("name") if isinstance(theme, dict) else None,
                 )
             else:
-                log.debug("quote.theme.load.failure professional_id=%s", professional_id)
+                log.debug("quote.theme.load.failure account_id=%s", account_id)
             return theme
         except ImportError:
-            log.debug("quote.theme.load.skipped_no_branding_module professional_id=%s", professional_id)
+            log.debug("quote.theme.load.skipped_no_branding_module account_id=%s", account_id)
             return None
         except Exception as e:
-            log.debug("quote.theme.load.skipped_unexpected_error professional_id=%s, error=%s", professional_id, str(e))
+            log.debug("quote.theme.load.skipped_unexpected_error account_id=%s, error=%s", account_id, str(e))
             return None

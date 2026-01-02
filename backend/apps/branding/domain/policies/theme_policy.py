@@ -25,13 +25,13 @@ def validate_single_active_theme(existing_active_count: int, is_activating: bool
         raise ThemePolicyError("Only one theme can be active at a time per professional. Deactivate another theme first.")
 
 
-def validate_theme_ownership(theme_professional_id: int | str, requester_professional_id: int | str) -> None:
+def validate_theme_ownership(theme_account_id: int | str, requester_account_id: int | str) -> None:
     """
     Ensure the theme belongs to the requester.
 
     Args:
-        theme_professional_id: The ID of the professional who owns the theme.
-        requester_professional_id: The ID of the professional making the request.
+        theme_account_id: The ID of the professional who owns the theme.
+        requester_account_id: The ID of the professional making the request.
     """
-    if theme_professional_id != requester_professional_id:
+    if theme_account_id != requester_account_id:
         raise ThemePolicyError("You can only modify themes you own.")

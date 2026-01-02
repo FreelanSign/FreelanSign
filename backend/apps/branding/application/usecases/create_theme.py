@@ -54,7 +54,7 @@ class CreateThemeUseCase:
 
         # 3. Check active theme policy
         if dto.is_active:
-            existing_themes = self.theme_repository.list_themes(professional_id=dto.professional_id)
+            existing_themes = self.theme_repository.list_themes(account_id=dto.account_id)
             active_count = sum(1 for t in existing_themes if t.is_active)
             validate_single_active_theme(active_count, is_activating=True)
 
@@ -63,13 +63,13 @@ class CreateThemeUseCase:
         if dto.logo_file:
             logo_path = self.logo_storage.save_logo(
                 file=dto.logo_file,
-                professional_id=str(dto.professional_id),
+                account_id=str(dto.account_id),
                 theme_name=dto.name,
             )
 
         # 5. Create theme via repository
         theme = self.theme_repository.create_theme(
-            professional_id=dto.professional_id,
+            account_id=dto.account_id,
             name=dto.name,
             is_active=dto.is_active,
             colors=colors.to_dict(),
@@ -85,7 +85,7 @@ class CreateThemeUseCase:
         """Convert repository result to view model."""
         return ThemeViewModel(
             id=theme.id,
-            professional_id=theme.professional_id,
+            account_id=theme.account_id,
             name=theme.name,
             is_active=theme.is_active,
             colors=theme.colors,

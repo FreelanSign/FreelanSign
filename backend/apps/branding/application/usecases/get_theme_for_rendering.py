@@ -18,12 +18,12 @@ class GetThemeForRenderingUseCase:
     def __init__(self, theme_repository: ThemeRepository):
         self.theme_repository = theme_repository
 
-    def execute(self, *, professional_id: UUID) -> dict:
+    def execute(self, *, account_id: UUID) -> dict:
         """
         Get active theme or fallback to default theme.
 
         Args:
-            professional_id: The ID of the professional to get the theme for.
+            account_id: The ID of the account to get the theme for.
 
         Returns:
             A dictionary ready for template rendering with keys :
@@ -33,7 +33,7 @@ class GetThemeForRenderingUseCase:
                 - typography: dict
                 - spacing: dict
         """
-        theme = self.theme_repository.get_active_theme(professional_id=professional_id)
+        theme = self.theme_repository.get_active_theme(account_id=account_id)
         if theme is None:
             # Return default theme
             return self._default_theme()

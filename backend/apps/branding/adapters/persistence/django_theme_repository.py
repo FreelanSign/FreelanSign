@@ -10,62 +10,62 @@ from apps.branding.models import BrandTheme
 class DjangoThemeRepository:
     """Django ORM implementation of the ThemeRepository."""
 
-    def get_by_id(self, *, theme_id: int | str, professional_id: int | str) -> BrandTheme:
+    def get_by_id(self, *, theme_id: int | str, account_id: int | str) -> BrandTheme:
         """
-        Get a theme by ID, ensuring it belongs to the specified professional.
+        Get a theme by ID, ensuring it belongs to the specified account.
 
         Args:
             theme_id: The ID of the theme to get.
-            professional_id: The ID of the professional who owns the theme.
+            account_id: The ID of the account who owns the theme.
 
         Returns:
             The theme if found, otherwise None.
 
         Raises:
             ThemeNotFoundError: If the theme is not found.
-            ThemeOwnershipError: If the theme is not owned by the professional.
+            ThemeOwnershipError: If the theme is not owned by the account.
         """
         try:
             theme = BrandTheme.objects.get(id=theme_id)
         except ObjectDoesNotExist:
             raise ThemeNotFoundError(f"Theme {theme_id} not found")
 
-        if theme.professional_id != professional_id:
-            raise ThemeOwnershipError(f"Theme {theme_id} does not belong to professional {professional_id}")
+        if theme.account_id != account_id:
+            raise ThemeOwnershipError(f"Theme {theme_id} does not belong to account {account_id}")
 
         return theme
 
-    def get_active_theme(self, *, professional_id) -> BrandTheme | None:
+    def get_active_theme(self, *, account_id) -> BrandTheme | None:
         """
-        Get the active theme for a professional.
+        Get the active theme for an account.
 
         Args:
-            professional_id: The ID of the professional to get the active theme for.
+            account_id: The ID of the account to get the active theme for.
 
         Returns:
             The active theme if found, otherwise None.
         """
         try:
-            return BrandTheme.objects.get(professional_id=professional_id, is_active=True)
+            return BrandTheme.objects.get(account_id=account_id, is_active=True)
         except ObjectDoesNotExist:
             return None
 
-    def list_themes(self, *, professional_id) -> list[BrandTheme]:
+    def list_themes(self, *, account_id) -> list[BrandTheme]:
         """
-        List all themes for a professional.
+        List all themes for an account.
 
         Args:
-            professional_id: The ID of the professional to list the themes for.
+            account_id: The ID of the account to list the themes for.
 
         Returns:
             A list of themes.
         """
-        return BrandTheme.objects.filter(professional_id=professional_id)
+        return BrandTheme.objects.filter(account_id=account_id)
 
     def create_theme(
         self,
         *,
-        professional_id,
+        account_id,
         name: str,
         is_active: bool,
         colors: dict,
@@ -74,10 +74,10 @@ class DjangoThemeRepository:
         logo_path: str | None = None,
     ) -> BrandTheme:
         """
-        Create a new theme for a professional.
+        Create a new theme for an account.
 
         Args:
-            professional_id: The ID of the professional to create the theme for.
+            account_id: The ID of the account to create the theme for.
             name: The name of the theme.
             is_active: Whether the theme is active.
             colors: The color palette of the theme.
@@ -89,7 +89,7 @@ class DjangoThemeRepository:
             The created theme.
         """
         theme = BrandTheme.objects.create(
-            professional_id=professional_id,
+            account_id=account_id,
             name=name,
             is_active=is_active,
             colors=colors,
@@ -108,7 +108,7 @@ class DjangoThemeRepository:
         self,
         *,
         theme_id: int | str,
-        professional_id,
+        account_id,
         name: str,
         is_active: bool,
         colors: dict,
@@ -117,11 +117,11 @@ class DjangoThemeRepository:
         logo_path: str | None = None,
     ) -> BrandTheme:
         """
-        Update an existing theme for a professional.
+        Update an existing theme for an account.
 
         Args:
             theme_id: The ID of the theme to update.
-            professional_id: The ID of the professional who owns the theme.
+            account_id: The ID of the account who owns the theme.
             name: The name of the theme.
             is_active: Whether the theme is active.
             colors: The color palette of the theme.
@@ -134,9 +134,9 @@ class DjangoThemeRepository:
 
         Raises:
             ThemeNotFoundError: If the theme is not found.
-            ThemeOwnershipError: If the theme is not owned by the professional.
+            ThemeOwnershipError: If the theme is not owned by the account.
         """
-        theme = self.get_by_id(theme_id=theme_id, professional_id=professional_id)
+        theme = self.get_by_id(theme_id=theme_id, account_id=account_id)
 
         updated_fields = []
         if name is not None:
@@ -164,19 +164,19 @@ class DjangoThemeRepository:
 
         return theme
 
-    def delete_theme(self, *, theme_id: int | str, professional_id) -> None:
+    def delete_theme(self, *, theme_id: int | str, account_id) -> None:
         """
-        Delete a theme for a professional.
+        Delete a theme for an account.
 
         Args:
             theme_id: The ID of the theme to delete.
-            professional_id: The ID of the professional who owns the theme.
+            account_id: The ID of the account who owns the theme.
 
         Raises:
             ThemeNotFoundError: If the theme is not found.
-            ThemeOwnershipError: If the theme is not owned by the professional.
+            ThemeOwnershipError: If the theme is not owned by the account.
         """
-        theme = self.get_by_id(theme_id=theme_id, professional_id=professional_id)
+        theme = self.get_by_id(theme_id=theme_id, account_id=account_id)
         theme.delete()
 
         # Delete logo if exists
@@ -187,42 +187,42 @@ class DjangoThemeRepository:
                 # Log error but continue
                 pass
 
-    def activate_theme(self, *, theme_id: int | str, professional_id: int | str) -> BrandTheme:
+    def activate_theme(self, *, theme_id: int | str, account_id: int | str) -> BrandTheme:
         """
-        Activate a theme for a professional.
+        Activate a theme for an account.
 
         Args:
             theme_id: The ID of the theme to activate.
-            professional_id: The ID of the professional who owns the theme.
+            account_id: The ID of the account who owns the theme.
 
         Returns:
             The activated theme.
         """
-        BrandTheme.objects.filter(professional_id=professional_id, is_active=True).update(is_active=False)
-        BrandTheme.objects.filter(id=theme_id, professional_id=professional_id).update(is_active=True)
-        return BrandTheme.objects.get(id=theme_id, professional_id=professional_id)
+        BrandTheme.objects.filter(account_id=account_id, is_active=True).update(is_active=False)
+        BrandTheme.objects.filter(id=theme_id, account_id=account_id).update(is_active=True)
+        return BrandTheme.objects.get(id=theme_id, account_id=account_id)
 
-    def deactivate_theme(self, *, theme_id: int | str, professional_id: int | str) -> BrandTheme:
+    def deactivate_theme(self, *, theme_id: int | str, account_id: int | str) -> BrandTheme:
         """
-        Deactivate a theme for a professional.
+        Deactivate a theme for an account.
 
         Args:
             theme_id: The ID of the theme to deactivate.
-            professional_id: The ID of the professional who owns the theme.
+            account_id: The ID of the account who owns the theme.
 
         Returns:
             The deactivated theme.
         """
-        obj = BrandTheme.objects.get(id=theme_id, professional_id=professional_id)
+        obj = BrandTheme.objects.get(id=theme_id, account_id=account_id)
         obj.is_active = False
         obj.save(update_fields=["is_active", "updated_at"])
         return obj
 
-    def deactivate_all_themes(self, *, professional_id: int | str) -> None:
+    def deactivate_all_themes(self, *, account_id: int | str) -> None:
         """
-        Deactivate all themes for a professional.
+        Deactivate all themes for an account.
 
         Args:
-            professional_id: The ID of the professional who owns the themes.
+            account_id: The ID of the account who owns the themes.
         """
-        BrandTheme.objects.filter(professional_id=professional_id, is_active=True).update(is_active=False)
+        BrandTheme.objects.filter(account_id=account_id, is_active=True).update(is_active=False)

@@ -11,13 +11,13 @@ from django.core.files.storage import default_storage
 class DjangoLogoStorage:
     """Django file storage implementation of the LogoStorage."""
 
-    def save_logo(self, *, file, professional_id: str, theme_name: str) -> str:
+    def save_logo(self, *, file, account_id: str, theme_name: str) -> str:
         """
         Save a logo file and return its path.
 
         Args:
             file: The uploaded file object.
-            professional_id: The ID of the professional who owns the logo.
+            account_id: The ID of the professional who owns the logo.
             theme_name: The name of the theme that the logo belongs to.
 
         Returns:
@@ -26,7 +26,7 @@ class DjangoLogoStorage:
         # Sanitize theme name for file system
         safe_theme_name = self._sanitize_filename(theme_name)
 
-        # Generate file path : branding/logos/YYYY/MM/professional_id/theme_name_original.ext
+        # Generate file path : branding/logos/YYYY/MM/account_id/theme_name_original.ext
         from datetime import datetime
 
         now = datetime.now()
@@ -38,7 +38,7 @@ class DjangoLogoStorage:
         ext = Path(original_name).suffix
 
         # Build file path
-        file_path = f"branding/logos/{year}/{month}/{professional_id}/{safe_theme_name}{ext}"
+        file_path = f"branding/logos/{year}/{month}/{account_id}/{safe_theme_name}{ext}"
 
         # Save file using Django storage
         saved_path = default_storage.save(file_path, file)

@@ -24,6 +24,7 @@ export type ThemeListItem = {
   id: string | number;
   name: string;
   is_active: boolean;
+  colors: Record<string, string>;
   logo_url: string | null;
   updated_at: string;
 };

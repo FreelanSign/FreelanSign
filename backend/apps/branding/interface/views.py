@@ -57,14 +57,14 @@ class ThemeListCreateView(APIView):
     )
     def get(self, request):
         """List all themes for the authenticated user."""
-        professional_id = request.account.id  # Phase 5.3: account context
+        account_id = request.account.id  # Phase 5.3: account context
 
         # Initialize dependencies
         repository = DjangoThemeRepository()
         use_case = ListThemesUseCase(theme_repository=repository)
 
         # Execute use case
-        themes = use_case.execute(professional_id=professional_id)
+        themes = use_case.execute(account_id=account_id)
 
         # Serialize and return
         serializer = ThemeListItemSerializer([t.to_dict() for t in themes], many=True)
@@ -81,7 +81,7 @@ class ThemeListCreateView(APIView):
         serializer = CreateThemeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        professional_id = request.account.id  # Phase 5.3: account context
+        account_id = request.account.id  # Phase 5.3: account context
 
         # Initialize dependencies
         repository = DjangoThemeRepository()
@@ -90,7 +90,7 @@ class ThemeListCreateView(APIView):
 
         # Prepare DTO
         dto = CreateThemeDTO(
-            professional_id=professional_id,
+            account_id=account_id,
             name=serializer.validated_data["name"],
             is_active=serializer.validated_data.get("is_active", False),
             colors=serializer.validated_data["colors"],
@@ -135,7 +135,7 @@ class ThemeDetailView(APIView):
 
     def get(self, request, theme_id):
         """Retrieve a specific theme."""
-        professional_id = request.account.id  # Phase 5.3: account context
+        account_id = request.account.id  # Phase 5.3: account context
 
         # Initialize dependencies
         repository = DjangoThemeRepository()
@@ -143,12 +143,12 @@ class ThemeDetailView(APIView):
         try:
             # Convert theme_id to UUID
             theme_uuid = UUID(theme_id) if isinstance(theme_id, str) else theme_id
-            theme = repository.get_by_id(theme_id=theme_uuid, professional_id=professional_id)
+            theme = repository.get_by_id(theme_id=theme_uuid, account_id=account_id)
 
             # Manual conversion to dict for serialization
             theme_dict = {
                 "id": str(theme.id),
-                "professional_id": str(theme.professional_id),
+                "account_id": str(theme.account_id),
                 "name": theme.name,
                 "is_active": theme.is_active,
                 "colors": theme.colors,
@@ -174,7 +174,7 @@ class ThemeDetailView(APIView):
         serializer = UpdateThemeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        professional_id = request.account.id  # Phase 5.3: account context
+        account_id = request.account.id  # Phase 5.3: account context
 
         # Initialize dependencies
         repository = DjangoThemeRepository()
@@ -188,7 +188,7 @@ class ThemeDetailView(APIView):
             # Prepare DTO
             dto = UpdateThemeDTO(
                 theme_id=theme_uuid,
-                professional_id=professional_id,
+                account_id=account_id,
                 name=serializer.validated_data.get("name"),
                 is_active=serializer.validated_data.get("is_active"),
                 colors=serializer.validated_data.get("colors"),
@@ -215,7 +215,7 @@ class ThemeDetailView(APIView):
 
     def delete(self, request, theme_id):
         """Delete a specific theme."""
-        professional_id = request.account.id  # Phase 5.3: account context
+        account_id = request.account.id  # Phase 5.3: account context
 
         # Initialize dependencies
         repository = DjangoThemeRepository()
@@ -227,7 +227,7 @@ class ThemeDetailView(APIView):
             theme_uuid = UUID(theme_id) if isinstance(theme_id, str) else theme_id
 
             # Prepare DTO
-            dto = DeleteThemeDTO(theme_id=theme_uuid, professional_id=professional_id)
+            dto = DeleteThemeDTO(theme_id=theme_uuid, account_id=account_id)
 
             # Execute use case
             use_case.execute(dto)
@@ -257,14 +257,14 @@ class ActiveThemeView(APIView):
 
     def get(self, request):
         """Get the active theme for the authenticated user."""
-        professional_id = request.account.id  # Phase 5.3: account context
+        account_id = request.account.id  # Phase 5.3: account context
 
         # Initialize dependencies
         repository = DjangoThemeRepository()
         use_case = GetActiveThemeUseCase(theme_repository=repository)
 
         # Execute use case
-        theme_vm = use_case.execute(professional_id=professional_id)
+        theme_vm = use_case.execute(account_id=account_id)
 
         if theme_vm is None:
             return Response({"message": "No active theme found."}, status=status.HTTP_404_NOT_FOUND)
@@ -288,7 +288,7 @@ class ActivateThemeView(APIView):
     )
     def post(self, request, theme_id):
         """Activate a specific theme."""
-        professional_id = request.account.id  # Phase 5.3: account context
+        account_id = request.account.id  # Phase 5.3: account context
 
         # Initialize dependencies
         repository = DjangoThemeRepository()
@@ -299,7 +299,7 @@ class ActivateThemeView(APIView):
             theme_uuid = UUID(theme_id) if isinstance(theme_id, str) else theme_id
 
             # Prepare DTO
-            dto = ActivateThemeDTO(theme_id=theme_uuid, professional_id=professional_id)
+            dto = ActivateThemeDTO(theme_id=theme_uuid, account_id=account_id)
 
             # Execute use case
             theme_vm = use_case.execute(dto)
@@ -330,7 +330,7 @@ class DeactivateThemeView(APIView):
     )
     def post(self, request, theme_id):
         """Deactivate a specific theme."""
-        professional_id = request.account.id  # Phase 5.3: account context
+        account_id = request.account.id  # Phase 5.3: account context
 
         # Initialize dependencies
         repository = DjangoThemeRepository()
@@ -341,7 +341,7 @@ class DeactivateThemeView(APIView):
             theme_uuid = UUID(theme_id) if isinstance(theme_id, str) else theme_id
 
             # Prepare DTO
-            dto = DeactivateThemeDTO(theme_id=theme_uuid, professional_id=professional_id)
+            dto = DeactivateThemeDTO(theme_id=theme_uuid, account_id=account_id)
 
             # Execute use case
             theme_vm = use_case.execute(dto)

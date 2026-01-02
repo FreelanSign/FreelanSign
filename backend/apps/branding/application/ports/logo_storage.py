@@ -10,13 +10,13 @@ class LogoStorage(Protocol):
     Concrete implementations (Django ORM) live in adapters/persistence.
     """
 
-    def save_logo(self, *, file, professional_id: str, theme_name: str) -> str:
+    def save_logo(self, *, file, account_id: str, theme_name: str) -> str:
         """
         Save a logo file and return its path/URL.
 
         Args:
             file: The logo file to save.
-            professional_id: The ID of the professional who owns the logo.
+            account_id: The ID of the professional who owns the logo.
             theme_name: The name of the theme that the logo belongs to.
 
         Returns:
@@ -24,11 +24,11 @@ class LogoStorage(Protocol):
         """
         ...
 
-    def delete_logo(self, *, professional_id: str, theme_name: str) -> None:
+    def delete_logo(self, *, account_id: str, theme_name: str) -> None:
         """
         Delete a logo file.
         Args:
-            professional_id: The ID of the professional who owns the logo.
+            account_id: The ID of the professional who owns the logo.
             theme_name: The name of the theme that the logo belongs to.
         """
         ...

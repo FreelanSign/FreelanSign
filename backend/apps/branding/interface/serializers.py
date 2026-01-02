@@ -92,7 +92,7 @@ class ThemeSerializer(serializers.Serializer):
     """Serializer for theme response."""
 
     id = serializers.UUIDField(read_only=True)
-    professional_id = serializers.UUIDField(read_only=True)
+    account_id = serializers.UUIDField(read_only=True)
     name = serializers.CharField()
     is_active = serializers.BooleanField()
     colors = ColorPaletteSerializer()
@@ -109,6 +109,7 @@ class ThemeListItemSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField()
     is_active = serializers.BooleanField()
+    colors = ColorPaletteSerializer()
     logo_url = serializers.CharField(allow_null=True)
     updated_at = serializers.DateTimeField(read_only=True)
 
@@ -117,11 +118,11 @@ class DeactivateThemeSerializer(serializers.Serializer):
     """Serializer for deactivating a theme."""
 
     theme_id = serializers.UUIDField(required=True)
-    professional_id = serializers.UUIDField(required=True)
+    account_id = serializers.UUIDField(required=True)
 
 
 class ActivateThemeSerializer(serializers.Serializer):
     """Serializer for activating a theme."""
 
     theme_id = serializers.UUIDField(required=True)
-    professional_id = serializers.UUIDField(required=True)
+    account_id = serializers.UUIDField(required=True)

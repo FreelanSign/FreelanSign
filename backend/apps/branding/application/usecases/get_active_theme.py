@@ -11,12 +11,12 @@ class GetActiveThemeUseCase:
     def __init__(self, theme_repository: ThemeRepository):
         self.theme_repository = theme_repository
 
-    def execute(self, professional_id: int | str) -> ThemeViewModel | None:
+    def execute(self, account_id: int | str) -> ThemeViewModel | None:
         """
         Get the active theme for a professional.
 
         Args:
-            professional_id: The ID of the professional to get the active theme for.
+            account_id: The ID of the professional to get the active theme for.
 
         Returns:
             The active theme view model if found, otherwise None.
@@ -24,13 +24,13 @@ class GetActiveThemeUseCase:
         Raises:
             RepositoryError: If the theme retrieval fails.
         """
-        theme = self.theme_repository.get_active_theme(professional_id=professional_id)
+        theme = self.theme_repository.get_active_theme(account_id=account_id)
         if theme is None:
             return None
 
         return ThemeViewModel(
             id=theme.id,
-            professional_id=theme.professional_id,
+            account_id=theme.account_id,
             name=theme.name,
             is_active=theme.is_active,
             colors=theme.colors,

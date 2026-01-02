@@ -10,7 +10,7 @@ from uuid import UUID
 class CreateThemeDTO:
     """DTO for creating a new theme."""
 
-    professional_id: int | str
+    account_id: int | str
     name: str
     is_active: bool
     colors: dict
@@ -24,7 +24,7 @@ class UpdateThemeDTO:
     """DTO for updating an existing theme."""
 
     theme_id: UUID | str  # Changed from int | str to UUID | str
-    professional_id: int | str
+    account_id: int | str
     name: str | None = None
     is_active: bool | None = None
     colors: dict | None = None
@@ -38,7 +38,7 @@ class GetThemeDTO:
     """DTO for retrieving a theme."""
 
     theme_id: UUID | str  # Changed from UUID to UUID | str for consistency
-    professional_id: int | str
+    account_id: int | str
 
 
 @dataclass(frozen=True)
@@ -46,14 +46,14 @@ class DeleteThemeDTO:
     """DTO for deleting a theme."""
 
     theme_id: UUID | str  # Changed from int | str to UUID | str
-    professional_id: int | str
+    account_id: int | str
 
 
 @dataclass(frozen=True)
 class ListThemesDTO:
     """DTO for listing themes."""
 
-    professional_id: int | str
+    account_id: int | str
 
 
 @dataclass(frozen=True)
@@ -61,7 +61,7 @@ class ActivateThemeDTO:
     """DTO for activating a theme."""
 
     theme_id: UUID | str  # Changed from int | str to UUID | str
-    professional_id: int | str
+    account_id: int | str
 
 
 @dataclass(frozen=True)
@@ -69,4 +69,4 @@ class DeactivateThemeDTO:
     """DTO for deactivating a theme."""
 
     theme_id: UUID | str  # Changed from int | str to UUID | str
-    professional_id: int | str
+    account_id: int | str

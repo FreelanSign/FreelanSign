@@ -98,17 +98,29 @@ class DownloadPdf:
         vm = generate_preview(dto)
 
         # Phase 7: Fetch legal terms for PDF
+        # AIDEV-NOTE: Diagnostic logs added to debug legal terms generation issue (#87)
         legal_terms_html = None
         try:
             attached_terms_repo = DjangoAttachedTermsRepository()
+            log.debug("download_pdf.legal_terms_fetch.start quote_id=%s", quote_id)
             attached_terms = attached_terms_repo.get_by_quote(quote_id)
             if attached_terms:
                 legal_terms_html = attached_terms.rendered_html
-                log.info("download_pdf.legal_terms_loaded quote_id=%s", quote_id)
+                log.info(
+                    "download_pdf.legal_terms_loaded quote_id=%s html_length=%s html_preview=%s",
+                    quote_id,
+                    len(legal_terms_html) if legal_terms_html else 0,
+                    legal_terms_html[:100] if legal_terms_html else "EMPTY",
+                )
             else:
-                log.warning("download_pdf.no_legal_terms quote_id=%s", quote_id)
+                log.warning("download_pdf.no_legal_terms quote_id=%s attached_terms_is_none=True", quote_id)
         except Exception as e:
-            log.error("download_pdf.legal_terms_error quote_id=%s error=%s", quote_id, str(e))
+            log.error(
+                "download_pdf.legal_terms_error quote_id=%s error=%s",
+                quote_id,
+                str(e),
+                exc_info=True,
+            )
 
         # 6) logs sans casser le type
         log.debug(
