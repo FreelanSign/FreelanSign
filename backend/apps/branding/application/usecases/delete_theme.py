@@ -28,10 +28,10 @@ class DeleteThemeUseCase:
             RepositoryError: If the theme deletion fails.
         """
         # 1. Get existing theme
-        theme = self.theme_repository.get_by_id(theme_id=dto.theme_id, professional_id=dto.professional_id)
+        theme = self.theme_repository.get_by_id(theme_id=dto.theme_id, account_id=dto.account_id)
 
         # 2. Validate ownership
-        validate_theme_ownership(theme_professional_id=theme.professional_id, requester_professional_id=dto.professional_id)
+        validate_theme_ownership(theme_account_id=theme.account_id, requester_account_id=dto.account_id)
 
         # 3. Prevent deleting active theme
         if theme.is_active:
@@ -46,4 +46,4 @@ class DeleteThemeUseCase:
                 pass
 
         # 5. Delete theme via repository
-        self.theme_repository.delete_theme(theme_id=dto.theme_id, professional_id=dto.professional_id)
+        self.theme_repository.delete_theme(theme_id=dto.theme_id, account_id=dto.account_id)

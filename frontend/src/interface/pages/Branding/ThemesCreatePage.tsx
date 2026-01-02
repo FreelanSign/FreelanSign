@@ -1,17 +1,18 @@
 // pages/branding/ThemeCreatePage.tsx
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, Palette, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { themeRepository } from '../../../infrastructure/branding/themeRepository';
 import ThemeForm, {
   type ThemeFormData,
 } from '../../components/branding/ThemesForm';
-import styles from './themes.module.css';
 
 const DEFAULT_COLORS = {
   primary: '#00C896',
   secondary: '#00C896',
-  background: '#f5f7fa',
-  text_primary: '#222222',
+  background: '#ffffff', // Locked: always white for professional docs
+  text_primary: '#222222', // Locked: always near-black for readability
   text_secondary: '#666666',
   border: '#e5e7eb',
   highlight: '#ff8a3d',
@@ -81,26 +82,40 @@ export default function ThemeCreatePage() {
   }
 
   return (
-    <div className="grid gap-6">
-      <div className={styles.headerRow}>
-        <div>
-          <h1 className={styles.title}>Créer un nouveau thème</h1>
-          <p className={styles.headerSubtitle}>
-            Personnalisez l'apparence de vos documents avec un thème sur mesure
+    <div className="container mx-auto max-w-7xl py-8 space-y-10 animate-in fade-in duration-700">
+      {/* Header Section */}
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-gray-100">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 text-muted-foreground mb-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              asChild
+              className="h-8 w-8 -ml-2 rounded-full"
+            >
+              <Link to="/branding/themes">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <span className="text-xs font-bold uppercase tracking-widest">
+              Configuration visuelle
+            </span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 font-playfair flex items-center gap-3">
+            Créer un nouveau thème
+            <Sparkles className="h-6 w-6 text-brand/40" />
+          </h1>
+          <p className="text-muted-foreground text-sm flex items-center gap-2">
+            <Palette className="h-4 w-4 text-brand" />
+            Définissez l'identité unique de vos documents professionnels
           </p>
         </div>
-        <Link
-          to="/branding/themes"
-          className={`${styles.btn} ${styles.btnGhost}`}
-        >
-          ← Retour
-        </Link>
-      </div>
+      </section>
 
       <ThemeForm
         initialData={initialData}
         onSubmit={handleSubmit}
-        submitLabel="✨ Créer le thème"
+        submitLabel="Créer le template"
         isLoading={loading}
         error={error}
       />

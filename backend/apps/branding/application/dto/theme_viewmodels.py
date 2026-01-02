@@ -9,7 +9,7 @@ class ThemeViewModel:
     """View model for theme presentation."""
 
     id: int | str
-    professional_id: int | str
+    account_id: int | str
     name: str
     is_active: bool
     colors: dict
@@ -23,7 +23,7 @@ class ThemeViewModel:
         """Convert to dictionary for JSON serialization."""
         return {
             "id": self.id,
-            "professional_id": self.professional_id,
+            "account_id": self.account_id,
             "name": self.name,
             "is_active": self.is_active,
             "colors": self.colors,
@@ -42,6 +42,7 @@ class ThemeListItemViewModel:
     id: int | str
     name: str
     is_active: bool
+    colors: dict
     logo_url: str | None
     updated_at: str
 
@@ -51,6 +52,7 @@ class ThemeListItemViewModel:
             "id": self.id,
             "name": self.name,
             "is_active": self.is_active,
+            "colors": self.colors,
             "logo_url": self.logo_url,
             "updated_at": self.updated_at,
         }
