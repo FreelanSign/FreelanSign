@@ -84,6 +84,16 @@ export function uiToUpdatePayload(q: UiQuote): ApiQuoteUpdatePayload {
     client_update: {
       name: q.client?.name ?? '',
       email: q.client?.email ?? '',
+      phone: q.client?.phone ?? null,
+      address: q.client?.address ?? null,
+      // Structured address fields
+      address_line1: q.client?.address_line1 ?? null,
+      address_line2: q.client?.address_line2 ?? null,
+      city: q.client?.city ?? null,
+      postal_code: q.client?.postal_code ?? null,
+      country: q.client?.country ?? null,
+      company: q.client?.company ?? null,
+      vat_number: q.client?.vat_number ?? null,
     },
   };
 
@@ -152,6 +162,13 @@ export function apiToUiQuoteDetail(
           email: api.client.email ?? null,
           phone: api.client.phone ?? null,
           address: api.client.address ?? null,
+          // Structured address fields
+          address_line1: api.client.address_line1 ?? null,
+          address_line2: api.client.address_line2 ?? null,
+          city: api.client.city ?? null,
+          postal_code: api.client.postal_code ?? null,
+          country: api.client.country ?? null,
+          company: api.client.company ?? null,
           vat_number: api.client.vat_number ?? null,
           metadata: api.client.metadata ?? null,
         }

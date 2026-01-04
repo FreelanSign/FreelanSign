@@ -47,3 +47,15 @@
   font-size: 0.75rem;
   margin-top: 0.25rem;
 }
+
+.addressGrid {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .addressGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -76,23 +76,132 @@ export default function ClientFormFields({
       </div>
 
       <div className={styles.field}>
-        <label htmlFor="address" className={styles.label}>
-          Adresse
+        <label htmlFor="company" className={styles.label}>
+          Entreprise
         </label>
-        <textarea
-          id="address"
-          placeholder="123 Rue Example, 75001 Paris"
-          {...register('address')}
-          className={styles.textarea}
-          rows={3}
-          aria-invalid={!!errors.address}
-          aria-describedby={errors.address ? 'address-error' : undefined}
+        <input
+          id="company"
+          type="text"
+          placeholder="Nom de l'entreprise"
+          {...register('company')}
+          className={styles.input}
+          aria-invalid={!!errors.company}
+          aria-describedby={errors.company ? 'company-error' : undefined}
         />
-        {errors.address && (
-          <small id="address-error" className={styles.error}>
-            {errors.address.message}
+        {errors.company && (
+          <small id="company-error" className={styles.error}>
+            {errors.company.message}
           </small>
         )}
+      </div>
+
+      <div className={styles.field}>
+        <label htmlFor="address_line1" className={styles.label}>
+          Adresse
+        </label>
+        <input
+          id="address_line1"
+          type="text"
+          placeholder="123 Rue Example"
+          {...register('address_line1')}
+          className={styles.input}
+          aria-invalid={!!errors.address_line1}
+          aria-describedby={
+            errors.address_line1 ? 'address_line1-error' : undefined
+          }
+        />
+        {errors.address_line1 && (
+          <small id="address_line1-error" className={styles.error}>
+            {errors.address_line1.message}
+          </small>
+        )}
+      </div>
+
+      <div className={styles.field}>
+        <label htmlFor="address_line2" className={styles.label}>
+          Complément d&apos;adresse
+        </label>
+        <input
+          id="address_line2"
+          type="text"
+          placeholder="Bâtiment, Étage, Appartement"
+          {...register('address_line2')}
+          className={styles.input}
+          aria-invalid={!!errors.address_line2}
+          aria-describedby={
+            errors.address_line2 ? 'address_line2-error' : undefined
+          }
+        />
+        {errors.address_line2 && (
+          <small id="address_line2-error" className={styles.error}>
+            {errors.address_line2.message}
+          </small>
+        )}
+      </div>
+
+      <div className={styles.addressGrid}>
+        <div className={styles.field}>
+          <label htmlFor="postal_code" className={styles.label}>
+            Code postal
+          </label>
+          <input
+            id="postal_code"
+            type="text"
+            placeholder="75001"
+            {...register('postal_code')}
+            className={styles.input}
+            aria-invalid={!!errors.postal_code}
+            aria-describedby={
+              errors.postal_code ? 'postal_code-error' : undefined
+            }
+          />
+          {errors.postal_code && (
+            <small id="postal_code-error" className={styles.error}>
+              {errors.postal_code.message}
+            </small>
+          )}
+        </div>
+
+        <div className={styles.field}>
+          <label htmlFor="city" className={styles.label}>
+            Ville
+          </label>
+          <input
+            id="city"
+            type="text"
+            placeholder="Paris"
+            {...register('city')}
+            className={styles.input}
+            aria-invalid={!!errors.city}
+            aria-describedby={errors.city ? 'city-error' : undefined}
+          />
+          {errors.city && (
+            <small id="city-error" className={styles.error}>
+              {errors.city.message}
+            </small>
+          )}
+        </div>
+
+        <div className={styles.field}>
+          <label htmlFor="country" className={styles.label}>
+            Pays
+          </label>
+          <input
+            id="country"
+            type="text"
+            placeholder="FR"
+            maxLength={2}
+            {...register('country')}
+            className={styles.input}
+            aria-invalid={!!errors.country}
+            aria-describedby={errors.country ? 'country-error' : undefined}
+          />
+          {errors.country && (
+            <small id="country-error" className={styles.error}>
+              {errors.country.message}
+            </small>
+          )}
+        </div>
       </div>
     </>
   );

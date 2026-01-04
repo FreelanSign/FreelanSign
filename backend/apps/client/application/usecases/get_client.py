@@ -19,6 +19,13 @@ class GetClient:
             email=obj.email or None,
             phone=obj.phone or None,
             address=obj.address or None,
+            # Structured address fields
+            address_line1=obj.address_line1 or None,
+            address_line2=obj.address_line2 or None,
+            city=obj.city or None,
+            postal_code=obj.postal_code or None,
+            country=obj.country or None,
+            company=obj.company or None,
             vat_number=obj.vat_number or None,
             metadata=obj.metadata or {},
             created_at=obj.created_at.isoformat(),

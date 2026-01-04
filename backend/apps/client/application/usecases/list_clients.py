@@ -18,6 +18,13 @@ class ListClients:
                 email=o.email or None,
                 phone=o.phone or None,
                 address=o.address or None,
+                # Structured address fields
+                address_line1=o.address_line1 or None,
+                address_line2=o.address_line2 or None,
+                city=o.city or None,
+                postal_code=o.postal_code or None,
+                country=o.country or None,
+                company=o.company or None,
                 vat_number=o.vat_number or None,
                 metadata=o.metadata or {},
                 created_at=o.created_at.isoformat(),

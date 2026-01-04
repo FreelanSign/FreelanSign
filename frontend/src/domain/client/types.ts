@@ -13,6 +13,13 @@ export type ClientCreateDto = {
   email?: string;
   phone?: string;
   address?: string;
+  // Structured address fields
+  address_line1?: string;
+  address_line2?: string;
+  city?: string;
+  postal_code?: string;
+  country?: string;
+  company?: string;
 };
 
 export type ClientValidationError = {
@@ -29,6 +36,13 @@ export type ApiClient = {
   email?: string | null;
   phone?: string | null;
   address?: string | null;
+  // Structured address fields
+  address_line1?: string | null;
+  address_line2?: string | null;
+  city?: string | null;
+  postal_code?: string | null;
+  country?: string | null;
+  company?: string | null;
   vat_number?: string | null;
   metadata?: Record<string, unknown> | null;
 };
@@ -40,6 +54,13 @@ export type UiClient = {
   email?: string | null;
   phone?: string | null;
   address?: string | null;
+  // Structured address fields
+  address_line1?: string | null;
+  address_line2?: string | null;
+  city?: string | null;
+  postal_code?: string | null;
+  country?: string | null;
+  company?: string | null;
   vat_number?: string | null;
   metadata?: Record<string, unknown> | null;
 };

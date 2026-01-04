@@ -60,12 +60,15 @@ type ClientInfo = {
   id?: string; // UUID renvoyé par l'API
   name: string;
   email?: string | null;
+  phone?: string | null;
+  address?: string | null;
   company?: string | null;
   address_line1?: string | null;
   address_line2?: string | null;
   city?: string | null;
   postal_code?: string | null;
   country?: string | null;
+  vat_number?: string | null;
 };
 
 type Quote = {
@@ -380,7 +383,16 @@ export default function QuoteEditPage() {
       client_update: {
         name: q.client?.name ?? '',
         email: q.client?.email ?? '',
-        // ajoute ici phone/address/vat_number/metadata si supportés côté Client
+        phone: q.client?.phone ?? null,
+        address: q.client?.address ?? null,
+        // Structured address fields
+        address_line1: q.client?.address_line1 ?? null,
+        address_line2: q.client?.address_line2 ?? null,
+        city: q.client?.city ?? null,
+        postal_code: q.client?.postal_code ?? null,
+        country: q.client?.country ?? null,
+        company: q.client?.company ?? null,
+        vat_number: q.client?.vat_number ?? null,
       },
     };
 
