@@ -34,6 +34,13 @@ class ClientCreateInputSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
     phone = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=64)
     address = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    # Structured address fields
+    address_line1 = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=255)
+    address_line2 = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=255)
+    city = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=100)
+    postal_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=20)
+    country = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2)
+    company = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=255)
     vat_number = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=64)
     metadata = serializers.DictField(required=False, allow_empty=True)
 
@@ -52,6 +59,12 @@ class ClientCreateInputSerializer(serializers.Serializer):
             email=data.get("email"),
             phone=data.get("phone"),
             address=data.get("address"),
+            address_line1=data.get("address_line1"),
+            address_line2=data.get("address_line2"),
+            city=data.get("city"),
+            postal_code=data.get("postal_code"),
+            country=data.get("country"),
+            company=data.get("company"),
             vat_number=data.get("vat_number"),
             metadata=data.get("metadata") or {},
         )
@@ -67,6 +80,13 @@ class ClientUpdateInputSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
     phone = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=64)
     address = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    # Structured address fields
+    address_line1 = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=255)
+    address_line2 = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=255)
+    city = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=100)
+    postal_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=20)
+    country = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2)
+    company = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=255)
     vat_number = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=64)
     metadata = serializers.DictField(required=False, allow_empty=True)
 
@@ -84,6 +104,12 @@ class ClientUpdateInputSerializer(serializers.Serializer):
             email=d.get("email") if "email" in d else None,
             phone=d.get("phone") if "phone" in d else None,
             address=d.get("address") if "address" in d else None,
+            address_line1=d.get("address_line1") if "address_line1" in d else None,
+            address_line2=d.get("address_line2") if "address_line2" in d else None,
+            city=d.get("city") if "city" in d else None,
+            postal_code=d.get("postal_code") if "postal_code" in d else None,
+            country=d.get("country") if "country" in d else None,
+            company=d.get("company") if "company" in d else None,
             vat_number=d.get("vat_number") if "vat_number" in d else None,
             metadata=d.get("metadata") if "metadata" in d else None,
         )
@@ -126,6 +152,13 @@ class ClientOutputSerializer(serializers.Serializer):
     email = serializers.CharField(allow_null=True, allow_blank=True)
     phone = serializers.CharField(allow_null=True, allow_blank=True)
     address = serializers.CharField(allow_null=True, allow_blank=True)
+    # Structured address fields
+    address_line1 = serializers.CharField(allow_null=True, allow_blank=True)
+    address_line2 = serializers.CharField(allow_null=True, allow_blank=True)
+    city = serializers.CharField(allow_null=True, allow_blank=True)
+    postal_code = serializers.CharField(allow_null=True, allow_blank=True)
+    country = serializers.CharField(allow_null=True, allow_blank=True)
+    company = serializers.CharField(allow_null=True, allow_blank=True)
     vat_number = serializers.CharField(allow_null=True, allow_blank=True)
     metadata = serializers.DictField()
     created_at = serializers.CharField()  # VM fournit déjà un ISO string
@@ -155,5 +188,12 @@ class ClientReadSerializer(serializers.Serializer):
     email = serializers.CharField(allow_null=True, allow_blank=True)
     phone = serializers.CharField(allow_null=True, allow_blank=True)
     address = serializers.CharField(allow_null=True, allow_blank=True)
+    # Structured address fields
+    address_line1 = serializers.CharField(allow_null=True, allow_blank=True)
+    address_line2 = serializers.CharField(allow_null=True, allow_blank=True)
+    city = serializers.CharField(allow_null=True, allow_blank=True)
+    postal_code = serializers.CharField(allow_null=True, allow_blank=True)
+    country = serializers.CharField(allow_null=True, allow_blank=True)
+    company = serializers.CharField(allow_null=True, allow_blank=True)
     vat_number = serializers.CharField(allow_null=True, allow_blank=True)
     metadata = serializers.DictField()

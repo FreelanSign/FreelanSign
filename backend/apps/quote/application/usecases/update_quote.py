@@ -139,7 +139,20 @@ class UpdateQuoteUseCase:
                 },
             )
             raise ValidationError({"client": "You do not own this client."})
-        allowed_fields = {"name", "email", "phone", "address", "vat_number", "metadata"}
+        allowed_fields = {
+            "name",
+            "email",
+            "phone",
+            "address",
+            "vat_number",
+            "metadata",
+            "address_line1",
+            "address_line2",
+            "city",
+            "postal_code",
+            "country",
+            "company",
+        }
         changed = {}
         for field, value in patch.items():
             if field in allowed_fields:

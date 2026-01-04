@@ -104,6 +104,12 @@ class StandardClientViewSet(viewsets.ModelViewSet):
             email=serializer.validated_data.get("email"),
             phone=serializer.validated_data.get("phone"),
             address=serializer.validated_data.get("address"),
+            address_line1=serializer.validated_data.get("address_line1"),
+            address_line2=serializer.validated_data.get("address_line2"),
+            city=serializer.validated_data.get("city"),
+            postal_code=serializer.validated_data.get("postal_code"),
+            country=serializer.validated_data.get("country"),
+            company=serializer.validated_data.get("company"),
             vat_number=serializer.validated_data.get("vat_number"),
             metadata=serializer.validated_data.get("metadata", {}),
         )
@@ -145,6 +151,16 @@ class StandardClientViewSet(viewsets.ModelViewSet):
             email=serializer.validated_data.get("email") if "email" in serializer.validated_data else None,
             phone=serializer.validated_data.get("phone") if "phone" in serializer.validated_data else None,
             address=serializer.validated_data.get("address") if "address" in serializer.validated_data else None,
+            address_line1=(
+                serializer.validated_data.get("address_line1") if "address_line1" in serializer.validated_data else None
+            ),
+            address_line2=(
+                serializer.validated_data.get("address_line2") if "address_line2" in serializer.validated_data else None
+            ),
+            city=serializer.validated_data.get("city") if "city" in serializer.validated_data else None,
+            postal_code=serializer.validated_data.get("postal_code") if "postal_code" in serializer.validated_data else None,
+            country=serializer.validated_data.get("country") if "country" in serializer.validated_data else None,
+            company=serializer.validated_data.get("company") if "company" in serializer.validated_data else None,
             vat_number=serializer.validated_data.get("vat_number") if "vat_number" in serializer.validated_data else None,
             metadata=serializer.validated_data.get("metadata") if "metadata" in serializer.validated_data else None,
         )
