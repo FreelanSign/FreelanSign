@@ -657,7 +657,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── 0006_add_soft_delete_to_client.py
 │   │   │   │   ├── 0007_add_field_encryption.py
 │   │   │   │   ├── 0008_add_structured_address.py
-│   │   │   │   └── 0009_migrate_address_data.py
+│   │   │   │   ├── 0009_migrate_address_data.py
+│   │   │   │   └── 0010_remove_legacy_address_field.py
 │   │   │   ├── models.py
 │   │   │   ├── signals.py
 │   │   │   ├── tests
@@ -1684,6 +1685,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── main.tsx
 │   │   ├── shared
 │   │   │   ├── apiErrors.ts
+│   │   │   ├── countries.ts
 │   │   │   ├── endpoints.ts
 │   │   │   ├── env.ts
 │   │   │   └── utils
@@ -1730,7 +1732,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-314 directories, 960 files
+314 directories, 962 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1805,5 +1807,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-01-04 17:49:09 CET**
+_Updated_: **2026-01-04 18:19:30 CET**
 <!-- END AUTO: LAST_UPDATED -->

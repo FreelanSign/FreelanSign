@@ -30,7 +30,6 @@ class Client(TimestampedModel, SoftDeleteModel):
     # RGPD: Encrypted fields for sensitive personal data (SPECIFICATIONS_RGPD.md Section 3.1.1)
     email = EncryptedEmailField(blank=True)
     phone = EncryptedCharField(max_length=64, blank=True)
-    address = models.TextField(blank=True)  # LEGACY - will be removed after migration
     # Structured address fields
     address_line1 = EncryptedCharField(max_length=255, blank=True)
     address_line2 = EncryptedCharField(max_length=255, blank=True)

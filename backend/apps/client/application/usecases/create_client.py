@@ -30,7 +30,6 @@ class CreateClient:
             "name": name,
             "email": email,
             "phone": phone,
-            "address": inp.address or "",  # LEGACY
             # Structured address fields
             "address_line1": inp.address_line1 or "",
             "address_line2": inp.address_line2 or "",
@@ -52,7 +51,6 @@ class CreateClient:
             name=obj.name,
             email=obj.email or None,
             phone=obj.phone or None,
-            address=obj.address or None,  # LEGACY
             # Structured address fields
             address_line1=obj.address_line1 or None,
             address_line2=obj.address_line2 or None,

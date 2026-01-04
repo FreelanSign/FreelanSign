@@ -33,7 +33,6 @@ class ClientCreateInputSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
     phone = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=64)
-    address = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     # Structured address fields
     address_line1 = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=255)
     address_line2 = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=255)
@@ -58,7 +57,6 @@ class ClientCreateInputSerializer(serializers.Serializer):
             name=data["name"],
             email=data.get("email"),
             phone=data.get("phone"),
-            address=data.get("address"),
             address_line1=data.get("address_line1"),
             address_line2=data.get("address_line2"),
             city=data.get("city"),
@@ -79,7 +77,6 @@ class ClientUpdateInputSerializer(serializers.Serializer):
     name = serializers.CharField(required=False, allow_blank=False, max_length=255)
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
     phone = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=64)
-    address = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     # Structured address fields
     address_line1 = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=255)
     address_line2 = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=255)
@@ -103,7 +100,6 @@ class ClientUpdateInputSerializer(serializers.Serializer):
             name=d.get("name") if "name" in d else None,
             email=d.get("email") if "email" in d else None,
             phone=d.get("phone") if "phone" in d else None,
-            address=d.get("address") if "address" in d else None,
             address_line1=d.get("address_line1") if "address_line1" in d else None,
             address_line2=d.get("address_line2") if "address_line2" in d else None,
             city=d.get("city") if "city" in d else None,
@@ -151,7 +147,6 @@ class ClientOutputSerializer(serializers.Serializer):
     name = serializers.CharField()
     email = serializers.CharField(allow_null=True, allow_blank=True)
     phone = serializers.CharField(allow_null=True, allow_blank=True)
-    address = serializers.CharField(allow_null=True, allow_blank=True)
     # Structured address fields
     address_line1 = serializers.CharField(allow_null=True, allow_blank=True)
     address_line2 = serializers.CharField(allow_null=True, allow_blank=True)
@@ -187,7 +182,6 @@ class ClientReadSerializer(serializers.Serializer):
     name = serializers.CharField()
     email = serializers.CharField(allow_null=True, allow_blank=True)
     phone = serializers.CharField(allow_null=True, allow_blank=True)
-    address = serializers.CharField(allow_null=True, allow_blank=True)
     # Structured address fields
     address_line1 = serializers.CharField(allow_null=True, allow_blank=True)
     address_line2 = serializers.CharField(allow_null=True, allow_blank=True)

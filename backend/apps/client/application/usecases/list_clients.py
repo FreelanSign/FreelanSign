@@ -17,7 +17,6 @@ class ListClients:
                 name=o.name,
                 email=o.email or None,
                 phone=o.phone or None,
-                address=o.address or None,
                 # Structured address fields
                 address_line1=o.address_line1 or None,
                 address_line2=o.address_line2 or None,

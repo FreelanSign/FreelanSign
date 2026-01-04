@@ -13,7 +13,6 @@ class ClientViewModel:
     name: str
     email: str | None
     phone: str | None
-    address: str | None  # LEGACY - will be removed after migration
     # Structured address fields
     address_line1: str | None
     address_line2: str | None

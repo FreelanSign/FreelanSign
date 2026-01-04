@@ -182,7 +182,17 @@ export default function ClientDetailPage() {
           <div>
             <div className={styles.kv}>
               <span>Adresse</span>
-              <strong>{client.address || '—'}</strong>
+              <strong>
+                {[
+                  client.company,
+                  client.address_line1,
+                  client.address_line2,
+                  [client.postal_code, client.city].filter(Boolean).join(' '),
+                  client.country,
+                ]
+                  .filter(Boolean)
+                  .join(', ') || '—'}
+              </strong>
             </div>
           </div>
         </div>

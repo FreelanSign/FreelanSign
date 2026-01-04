@@ -35,6 +35,7 @@ export default function ClientCreateDrawer({
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
@@ -50,7 +51,12 @@ export default function ClientCreateDrawer({
         name: data.name,
         email: data.email || undefined,
         phone: data.phone || undefined,
-        address: data.address || undefined,
+        address_line1: data.address_line1 || undefined,
+        address_line2: data.address_line2 || undefined,
+        city: data.city || undefined,
+        postal_code: data.postal_code || undefined,
+        country: data.country || undefined,
+        company: data.company || undefined,
       };
 
       const newClient = await clientRepository.create(payload);
@@ -76,9 +82,14 @@ export default function ClientCreateDrawer({
   });
 
   const handleClose = () => {
-    reset();
-    setServerError(null);
+    // First trigger the close animation/state
     onClose();
+
+    // Defer the reset of states to avoid jank during the closing animation
+    setTimeout(() => {
+      reset();
+      setServerError(null);
+    }, 300); // Wait slightly longer than the 200ms animation
   };
 
   return (
@@ -95,7 +106,11 @@ export default function ClientCreateDrawer({
               <div className={styles.serverError}>{serverError}</div>
             )}
 
-            <ClientFormFields register={register} errors={errors} />
+            <ClientFormFields
+              register={register}
+              control={control}
+              errors={errors}
+            />
           </div>
 
           <DialogFooter className={styles.footer}>

@@ -21,8 +21,6 @@ class UpdateClient:
             payload["email"] = normalize_email(inp.email or None)
         if inp.phone is not None:
             payload["phone"] = normalize_phone_number(inp.phone or None)
-        if inp.address is not None:
-            payload["address"] = inp.address  # LEGACY
         # Structured address fields
         if inp.address_line1 is not None:
             payload["address_line1"] = inp.address_line1
@@ -52,7 +50,6 @@ class UpdateClient:
             name=obj.name,
             email=obj.email or None,
             phone=obj.phone or None,
-            address=obj.address or None,  # LEGACY
             # Structured address fields
             address_line1=obj.address_line1 or None,
             address_line2=obj.address_line2 or None,

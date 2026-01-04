@@ -143,7 +143,6 @@ class UpdateQuoteUseCase:
             "name",
             "email",
             "phone",
-            "address",
             "vat_number",
             "metadata",
             "address_line1",

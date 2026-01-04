@@ -103,7 +103,6 @@ class StandardClientViewSet(viewsets.ModelViewSet):
             name=serializer.validated_data.get("name"),
             email=serializer.validated_data.get("email"),
             phone=serializer.validated_data.get("phone"),
-            address=serializer.validated_data.get("address"),
             address_line1=serializer.validated_data.get("address_line1"),
             address_line2=serializer.validated_data.get("address_line2"),
             city=serializer.validated_data.get("city"),
@@ -150,7 +149,6 @@ class StandardClientViewSet(viewsets.ModelViewSet):
             name=serializer.validated_data.get("name") if "name" in serializer.validated_data else None,
             email=serializer.validated_data.get("email") if "email" in serializer.validated_data else None,
             phone=serializer.validated_data.get("phone") if "phone" in serializer.validated_data else None,
-            address=serializer.validated_data.get("address") if "address" in serializer.validated_data else None,
             address_line1=(
                 serializer.validated_data.get("address_line1") if "address_line1" in serializer.validated_data else None
             ),
@@ -182,7 +180,6 @@ class StandardClientViewSet(viewsets.ModelViewSet):
             "name": getattr(instance, "name", None),
             "email": getattr(instance, "email", None),
             "phone": getattr(instance, "phone", None),
-            "address": getattr(instance, "address", None),
             "vat_number": getattr(instance, "vat_number", None),
         }
 

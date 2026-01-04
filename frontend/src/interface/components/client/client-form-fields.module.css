@@ -8,54 +8,82 @@
 
 .label {
   font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.125rem;
 }
 
 .required {
-  color: #dc2626;
+  color: #ef4444;
+}
+
+.addressGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+/* Make the country field span the full width of the grid */
+.addressGrid > div:last-child {
+  grid-column: span 2;
 }
 
 .input,
 .textarea {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
   font-size: 0.875rem;
-  transition: border-color 0.15s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: #f8fafc;
+  min-height: 42px;
+}
+
+.input {
+  height: 42px;
+}
+
+.input:hover,
+.textarea:hover {
+  border-color: #cbd5e1;
+  background-color: #ffffff;
 }
 
 .input:focus,
 .textarea:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--brand);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(0, 166, 138, 0.1);
 }
 
 .input[aria-invalid='true'],
 .textarea[aria-invalid='true'] {
-  border-color: #dc2626;
+  border-color: #ef4444;
+}
+
+.input[aria-invalid='true']:focus,
+.textarea[aria-invalid='true']:focus {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
 }
 
 .textarea {
   resize: vertical;
-  font-family: inherit;
+  min-height: 100px;
 }
 
 .error {
-  color: #dc2626;
+  color: #ef4444;
   font-size: 0.75rem;
   margin-top: 0.25rem;
-}
-
-.addressGrid {
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  gap: 1rem;
+  font-weight: 500;
 }
 
 @media (max-width: 640px) {
   .addressGrid {
     grid-template-columns: 1fr;
+  }
+  .addressGrid > div:last-child {
+    grid-column: span 1;
   }
 }

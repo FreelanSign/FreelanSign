@@ -71,7 +71,6 @@ export type ApiQuoteUpdatePayload = {
     name: string;
     email: string | null;
     phone?: string | null;
-    address?: string | null;
     // Structured address fields
     address_line1?: string | null;
     address_line2?: string | null;

@@ -1,16 +1,27 @@
 // frontend/src/interface/components/client/ClientFormFields.tsx
 
-import type { UseFormRegister, FieldErrors } from 'react-hook-form';
+import type { UseFormRegister, FieldErrors, Control } from 'react-hook-form';
+import { Controller } from 'react-hook-form';
 import type { ClientFormData } from './clientFormSchema';
 import styles from './client-form-fields.module.css';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { COUNTRIES } from '@/shared/countries';
 
 interface ClientFormFieldsProps {
   register: UseFormRegister<ClientFormData>;
+  control: Control<ClientFormData>;
   errors: FieldErrors<ClientFormData>;
 }
 
 export default function ClientFormFields({
   register,
+  control,
   errors,
 }: ClientFormFieldsProps) {
   return (
@@ -186,15 +197,30 @@ export default function ClientFormFields({
           <label htmlFor="country" className={styles.label}>
             Pays
           </label>
-          <input
-            id="country"
-            type="text"
-            placeholder="FR"
-            maxLength={2}
-            {...register('country')}
-            className={styles.input}
-            aria-invalid={!!errors.country}
-            aria-describedby={errors.country ? 'country-error' : undefined}
+          <Controller
+            name="country"
+            control={control}
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} value={field.value || ''}>
+                <SelectTrigger
+                  id="country"
+                  className={styles.input}
+                  aria-invalid={!!errors.country}
+                  aria-describedby={
+                    errors.country ? 'country-error' : undefined
+                  }
+                >
+                  <SelectValue placeholder="Sélectionner un pays" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COUNTRIES.map((country) => (
+                    <SelectItem key={country.code} value={country.code}>
+                      {country.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           />
           {errors.country && (
             <small id="country-error" className={styles.error}>

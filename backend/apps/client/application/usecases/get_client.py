@@ -18,7 +18,6 @@ class GetClient:
             name=obj.name,
             email=obj.email or None,
             phone=obj.phone or None,
-            address=obj.address or None,
             # Structured address fields
             address_line1=obj.address_line1 or None,
             address_line2=obj.address_line2 or None,
