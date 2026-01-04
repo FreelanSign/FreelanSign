@@ -51,13 +51,11 @@ function sortingToOrdering(sorting: SortingState): string {
 type ColumnPrefs = {
   email: boolean;
   phone: boolean;
-  address: boolean;
 };
 
 const DEFAULT_COLUMNS: ColumnPrefs = {
   email: true,
   phone: true,
-  address: false,
 };
 
 const STORAGE_KEY = 'freelansign_client_columns_v1';
@@ -200,7 +198,6 @@ export default function ClientsListPage() {
       name: client.name,
       email: client.email,
       phone: client.phone,
-      address: client.address,
       created_at: client.created_at,
     }));
   }, [data]);
@@ -283,15 +280,6 @@ export default function ClientsListPage() {
                 className="rounded cursor-pointer"
               />
               Téléphone
-            </label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={columnPrefs.address}
-                onChange={() => toggleColumn('address')}
-                className="rounded cursor-pointer"
-              />
-              Adresse
             </label>
           </div>
         </div>

@@ -22,6 +22,7 @@ export default function ClientEditPage() {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
     reset,
@@ -44,7 +45,12 @@ export default function ClientEditPage() {
           name: data.name,
           email: data.email || '',
           phone: data.phone || '',
-          address: data.address || '',
+          address_line1: data.address_line1 || '',
+          address_line2: data.address_line2 || '',
+          city: data.city || '',
+          postal_code: data.postal_code || '',
+          country: data.country || '',
+          company: data.company || '',
         });
       } catch (err: unknown) {
         if (!active) return;
@@ -70,7 +76,12 @@ export default function ClientEditPage() {
         name: data.name,
         email: data.email || undefined,
         phone: data.phone || undefined,
-        address: data.address || undefined,
+        address_line1: data.address_line1 || undefined,
+        address_line2: data.address_line2 || undefined,
+        city: data.city || undefined,
+        postal_code: data.postal_code || undefined,
+        country: data.country || undefined,
+        company: data.company || undefined,
       };
 
       await clientRepository.update(id, payload);
@@ -160,7 +171,11 @@ export default function ClientEditPage() {
         {error && <div className={styles.serverError}>{error}</div>}
 
         <div className={styles.formGrid}>
-          <ClientFormFields register={register} errors={errors} />
+          <ClientFormFields
+            register={register}
+            control={control}
+            errors={errors}
+          />
         </div>
       </form>
     </Shell>

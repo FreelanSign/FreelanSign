@@ -43,3 +43,50 @@ def normalize_phone_number(phone: str | None) -> str | None:
     p = phone.strip()
     # (ici on reste simple; la validation champistique est côté serializer)
     return p
+
+
+# ISO 3166-1 alpha-2 country codes whitelist
+ALLOWED_COUNTRY_CODES = {
+    "FR",
+    "BE",
+    "CH",
+    "LU",
+    "DE",
+    "ES",
+    "IT",
+    "PT",
+    "NL",
+    "GB",
+    "US",
+    "CA",
+    "AT",
+    "DK",
+    "SE",
+    "NO",
+    "FI",
+    "IE",
+    "PL",
+    "CZ",
+}
+
+
+def validate_country_code(country: str | None) -> str:
+    """Validate ISO 3166-1 alpha-2 country code against whitelist.
+
+    Args:
+        country: Country code (2-letter ISO code)
+
+    Returns:
+        Validated and normalized country code (uppercase)
+
+    Raises:
+        ValueError: If country code is invalid or not in whitelist
+    """
+    if not country:
+        return ""
+    code = country.strip().upper()
+    if len(code) != 2:
+        raise ValueError(f"Invalid country code length: {code}")
+    if code not in ALLOWED_COUNTRY_CODES:
+        raise ValueError(f"Unsupported country code: {code}")
+    return code

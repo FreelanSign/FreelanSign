@@ -30,7 +30,13 @@ class Client(TimestampedModel, SoftDeleteModel):
     # RGPD: Encrypted fields for sensitive personal data (SPECIFICATIONS_RGPD.md Section 3.1.1)
     email = EncryptedEmailField(blank=True)
     phone = EncryptedCharField(max_length=64, blank=True)
-    address = models.TextField(blank=True)
+    # Structured address fields
+    address_line1 = EncryptedCharField(max_length=255, blank=True)
+    address_line2 = EncryptedCharField(max_length=255, blank=True)
+    city = EncryptedCharField(max_length=100, blank=True)
+    postal_code = EncryptedCharField(max_length=20, blank=True)
+    country = models.CharField(max_length=2, blank=True)  # ISO 3166-1 alpha-2, not encrypted for VAT validation queries
+    company = EncryptedCharField(max_length=255, blank=True)
     vat_number = EncryptedCharField(max_length=64, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
 

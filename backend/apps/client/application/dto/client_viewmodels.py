@@ -13,7 +13,13 @@ class ClientViewModel:
     name: str
     email: str | None
     phone: str | None
-    address: str | None
+    # Structured address fields
+    address_line1: str | None
+    address_line2: str | None
+    city: str | None
+    postal_code: str | None
+    country: str | None
+    company: str | None
     vat_number: str | None
     metadata: dict[str, Any]
     created_at: datetime

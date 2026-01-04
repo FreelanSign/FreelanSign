@@ -53,7 +53,12 @@ export function apiToUiQuote(api: Partial<ApiQuoteResponse>): UiQuote {
           name: api.client.name ?? '',
           email: api.client.email ?? '',
           phone: api.client.phone ?? '',
-          address: api.client.address ?? '',
+          address_line1: api.client.address_line1 ?? '',
+          address_line2: api.client.address_line2 ?? '',
+          city: api.client.city ?? '',
+          postal_code: api.client.postal_code ?? '',
+          country: api.client.country ?? '',
+          company: api.client.company ?? '',
           vat_number: api.client.vat_number ?? '',
           metadata: api.client.metadata ?? null,
         }
@@ -62,7 +67,12 @@ export function apiToUiQuote(api: Partial<ApiQuoteResponse>): UiQuote {
           name: '',
           email: '',
           phone: '',
-          address: '',
+          address_line1: '',
+          address_line2: '',
+          city: '',
+          postal_code: '',
+          country: '',
+          company: '',
           vat_number: '',
           metadata: null,
         },
@@ -84,6 +94,15 @@ export function uiToUpdatePayload(q: UiQuote): ApiQuoteUpdatePayload {
     client_update: {
       name: q.client?.name ?? '',
       email: q.client?.email ?? '',
+      phone: q.client?.phone ?? null,
+      // Structured address fields
+      address_line1: q.client?.address_line1 ?? null,
+      address_line2: q.client?.address_line2 ?? null,
+      city: q.client?.city ?? null,
+      postal_code: q.client?.postal_code ?? null,
+      country: q.client?.country ?? null,
+      company: q.client?.company ?? null,
+      vat_number: q.client?.vat_number ?? null,
     },
   };
 
@@ -151,7 +170,13 @@ export function apiToUiQuoteDetail(
           name: api.client.name ?? '',
           email: api.client.email ?? null,
           phone: api.client.phone ?? null,
-          address: api.client.address ?? null,
+          // Structured address fields
+          address_line1: api.client.address_line1 ?? null,
+          address_line2: api.client.address_line2 ?? null,
+          city: api.client.city ?? null,
+          postal_code: api.client.postal_code ?? null,
+          country: api.client.country ?? null,
+          company: api.client.company ?? null,
           vat_number: api.client.vat_number ?? null,
           metadata: api.client.metadata ?? null,
         }

@@ -213,10 +213,13 @@ export default function QuoteDetailPage() {
     );
   }
 
-  const addressLines = (quote.client?.address || '')
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter(Boolean);
+  const addressLines = [
+    quote.client?.company,
+    quote.client?.address_line1,
+    quote.client?.address_line2,
+    [quote.client?.postal_code, quote.client?.city].filter(Boolean).join(' '),
+    quote.client?.country,
+  ].filter(Boolean);
 
   return (
     <div className="container mx-auto py-8 px-4 space-y-8 max-w-7xl animate-in fade-in duration-500">

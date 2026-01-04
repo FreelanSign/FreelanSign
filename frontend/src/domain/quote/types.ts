@@ -70,7 +70,15 @@ export type ApiQuoteUpdatePayload = {
   client_update: {
     name: string;
     email: string | null;
-    // ajoute: phone/address/vat_number/metadata si supportés
+    phone?: string | null;
+    // Structured address fields
+    address_line1?: string | null;
+    address_line2?: string | null;
+    city?: string | null;
+    postal_code?: string | null;
+    country?: string | null;
+    company?: string | null;
+    vat_number?: string | null;
   };
   items?: Array<{
     description: string;

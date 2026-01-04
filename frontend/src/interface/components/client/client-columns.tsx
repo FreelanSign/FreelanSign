@@ -10,7 +10,6 @@ export type ClientRow = {
   name: string;
   email?: string | null;
   phone?: string | null;
-  address?: string | null;
   created_at?: string | null;
 };
 
@@ -22,7 +21,6 @@ export type ClientRow = {
 export const createClientColumns = (columnPrefs: {
   email: boolean;
   phone: boolean;
-  address: boolean;
 }): Array<ColumnDef<ClientRow, unknown>> => {
   const columns: Array<ColumnDef<ClientRow, unknown>> = [
     {
@@ -83,19 +81,6 @@ export const createClientColumns = (columnPrefs: {
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground">
           {row.original.phone || '—'}
-        </span>
-      ),
-    });
-  }
-
-  // Address column (optional)
-  if (columnPrefs.address) {
-    columns.push({
-      accessorKey: 'address',
-      header: () => <span>Adresse</span>,
-      cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">
-          {row.original.address || '—'}
         </span>
       ),
     });

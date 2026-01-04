@@ -22,7 +22,18 @@ class DjangoClientRepository(ClientRepository):
         try:
             normalized = data.copy()
             # TODO: avoid dict field in code
-            for field in ("email", "phone", "address", "vat_number"):
+            for field in (
+                "email",
+                "phone",
+                "address",
+                "address_line1",
+                "address_line2",
+                "city",
+                "postal_code",
+                "country",
+                "company",
+                "vat_number",
+            ):
                 value = normalized.get(field, "")
                 if value is None:
                     normalized[field] = ""

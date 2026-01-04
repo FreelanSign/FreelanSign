@@ -77,12 +77,33 @@ def anonymize_client_for_deletion(
         client.name = f"Client supprimé [{client.id}]"
         client.email = f"deleted_{client.id}@anonymized.local"
         client.phone = ""
-        client.address = ""
+        client.address_line1 = ""
+        client.address_line2 = ""
+        client.city = ""
+        client.postal_code = ""
+        client.country = ""
+        client.company = ""
         client.vat_number = ""
         client.metadata = {}
 
         # Save all changes
-        client.save(update_fields=["is_deleted", "deleted_at", "name", "email", "phone", "address", "vat_number", "metadata"])
+        client.save(
+            update_fields=[
+                "is_deleted",
+                "deleted_at",
+                "name",
+                "email",
+                "phone",
+                "address_line1",
+                "address_line2",
+                "city",
+                "postal_code",
+                "country",
+                "company",
+                "vat_number",
+                "metadata",
+            ]
+        )
 
         # 3. Quotes are preserved (legal requirement - 10 years)
         # They will still reference this client with anonymized data

@@ -60,12 +60,14 @@ type ClientInfo = {
   id?: string; // UUID renvoyé par l'API
   name: string;
   email?: string | null;
+  phone?: string | null;
   company?: string | null;
   address_line1?: string | null;
   address_line2?: string | null;
   city?: string | null;
   postal_code?: string | null;
   country?: string | null;
+  vat_number?: string | null;
 };
 
 type Quote = {
@@ -180,12 +182,12 @@ export default function QuoteEditPage() {
                 id: uiBase.client.id,
                 name: uiBase.client.name ?? '',
                 email: uiBase.client.email ?? '',
-                company: '', // champs spécifiques à ton formulaire
-                address_line1: uiBase.client.address ?? '',
-                address_line2: '',
-                city: '',
-                postal_code: '',
-                country: '',
+                company: uiBase.client.company ?? '',
+                address_line1: uiBase.client.address_line1 ?? '',
+                address_line2: uiBase.client.address_line2 ?? '',
+                city: uiBase.client.city ?? '',
+                postal_code: uiBase.client.postal_code ?? '',
+                country: uiBase.client.country ?? '',
               }
             : {
                 id: undefined,
@@ -380,7 +382,15 @@ export default function QuoteEditPage() {
       client_update: {
         name: q.client?.name ?? '',
         email: q.client?.email ?? '',
-        // ajoute ici phone/address/vat_number/metadata si supportés côté Client
+        phone: q.client?.phone ?? null,
+        // Structured address fields
+        address_line1: q.client?.address_line1 ?? null,
+        address_line2: q.client?.address_line2 ?? null,
+        city: q.client?.city ?? null,
+        postal_code: q.client?.postal_code ?? null,
+        country: q.client?.country ?? null,
+        company: q.client?.company ?? null,
+        vat_number: q.client?.vat_number ?? null,
       },
     };
 
