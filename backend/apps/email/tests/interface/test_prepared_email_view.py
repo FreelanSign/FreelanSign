@@ -7,6 +7,7 @@ from rest_framework.test import APIClient
 
 from apps.client.models import Client
 from apps.quote.models import Quote
+from apps.user.models.account import Account
 
 
 @pytest.mark.django_db
@@ -18,9 +19,11 @@ class TestPreparedEmailView:
         from apps.user.models import User
 
         user = User.objects.create_user(email="bob@example.com", password="test")
-        client = Client.objects.create(owner=user, name="Alice Dupont", email="client@example.com")
+        account = Account.objects.create(user=user, display_name="Bob Account", legal_form="micro", is_active=True)
+        client = Client.objects.create(owner=user, account=account, name="Alice Dupont", email="client@example.com")
         quote = Quote.objects.create(
             owner=user,
+            account=account,
             client=client,
             issue_date=date(2024, 1, 1),
             valid_until=date(2024, 1, 31),
@@ -48,9 +51,11 @@ class TestPreparedEmailView:
         owner = User.objects.create_user(email="alice@example.com", password="x")
         not_owner = User.objects.create_user(email="bob@example.com", password="x")
 
-        client_obj = Client.objects.create(owner=owner, name="X", email="client@example.com")
+        account = Account.objects.create(user=owner, display_name="Alice Account", legal_form="micro", is_active=True)
+        client_obj = Client.objects.create(owner=owner, account=account, name="X", email="client@example.com")
         quote = Quote.objects.create(
             owner=owner,
+            account=account,
             client=client_obj,
             issue_date=date(2024, 1, 1),
             valid_until=date(2024, 1, 31),
