@@ -6,7 +6,7 @@ Entité Account du domaine user.
 @author: @Bertrand2808
 @since: 2025-11-25
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from apps.user.domain.policies.account_policy import AccountPolicy
@@ -30,11 +30,11 @@ class Account:
     legal_form: LegalForm  # Forme juridique (enum)
     legal_id: str | None  # SIRET (14 chiffres)
     domain_id: int | None  # FK vers catalog.Area
-    default_rate_cents: int | None  # TJM en centimes
-    service_type_ids: list[int]  # IDs des prestations favorites
     is_active: bool
     created_at: datetime
     updated_at: datetime
+    default_rate_cents: int | None = None
+    service_type_ids: list[int] = field(default_factory=list)
 
     def __post_init__(self):
         """Validation à la création."""
