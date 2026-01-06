@@ -5,6 +5,7 @@ import {
   useFieldArray,
   useForm,
   useWatch,
+  type FieldPath,
   type Resolver,
   type SubmitHandler,
 } from 'react-hook-form';
@@ -54,22 +55,38 @@ import { openBlobUrlInNewTab, saveBlobUrlAs } from '../../utils/saveFile';
 /* ---------- zod schema ---------- */
 const ItemSchema = z.object({
   prestation_id: z.number().int().positive().optional(),
-  description: z.string().min(1, 'Description requise'),
-  qty: z.number().positive('Qty doit être > 0'),
-  unit_price: z.number().nonnegative('Prix unitaire >= 0'),
+  description: z.preprocess(
+    (val) => (val === undefined || val === null ? '' : val),
+    z.string().min(1, 'La description de la prestation est requise'),
+  ),
+  qty: z.number().positive('La quantité doit être supérieure à 0'),
+  unit_price: z
+    .number()
+    .nonnegative('Le prix unitaire doit être positif ou nul'),
   tax_rate: z.number().min(0).max(100).optional(),
   discount: z.number().nonnegative().optional(),
 });
 
 const Schema = z.object({
-  client: z.string().min(1, 'Choisis un client'),
-  title: z.string().min(1, 'Titre requis'),
+  client: z.preprocess(
+    (val) => (val === undefined || val === null ? '' : val),
+    z.string().min(1, 'Veuillez sélectionner un client'),
+  ),
+  title: z.preprocess(
+    (val) => (val === undefined || val === null ? '' : val),
+    z.string().min(1, 'Le titre du devis est requis'),
+  ),
   currency: z.string().length(3).default('EUR'),
   language: z.string().min(2).max(8).default('fr'),
-  issue_date: z.string().min(8, 'Date requise (YYYY-MM-DD)'),
+  issue_date: z.preprocess(
+    (val) => (val === undefined || val === null ? '' : val),
+    z.string().min(8, "La date d'émission est requise"),
+  ),
   valid_until: z.string().optional().or(z.literal('')),
-  payment_terms_text: z.string().optional(),
-  items: z.array(ItemSchema).min(1, 'Au moins une ligne est requise'),
+  payment_terms_text: z.string().optional().default(''),
+  items: z
+    .array(ItemSchema)
+    .min(1, 'Ajoutez au moins une prestation à votre devis'),
 });
 
 type FormData = z.infer<typeof Schema>;
@@ -130,6 +147,7 @@ function isAxiosLikeError(
 export default function QuoteCreatePage() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [clientDrawerOpen, setClientDrawerOpen] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientDto[] | 'loading' | null>(
     'loading',
@@ -165,6 +183,7 @@ export default function QuoteCreatePage() {
           discount: 0.0,
         },
       ],
+      payment_terms_text: '',
     },
   });
 
@@ -448,7 +467,7 @@ export default function QuoteCreatePage() {
         language: values.language,
         issue_date: values.issue_date,
         valid_until: validUntil ?? null,
-        payment_terms_text: values.payment_terms_text ?? null,
+        payment_terms_text: values.payment_terms_text || '',
         items: values.items.map((it) => ({
           prestation_id: it.prestation_id ?? undefined,
           description: it.description,
@@ -472,14 +491,27 @@ export default function QuoteCreatePage() {
     } catch (err: unknown) {
       console.error('Create quote error', err);
       if (isAxiosLikeError(err) && err.response?.data) {
-        alert(
-          'Impossible de créer le devis : ' +
-            JSON.stringify(err.response.data, null, 2),
-        );
+        const data = err.response.data as Record<string, unknown>;
+        if (typeof data === 'object' && !Array.isArray(data)) {
+          Object.entries(data).forEach(([key, messages]) => {
+            if (Array.isArray(messages)) {
+              form.setError(key as FieldPath<FormData>, {
+                type: 'server',
+                message: messages.join(' '),
+              });
+            } else {
+              setServerError(JSON.stringify(data));
+            }
+          });
+        } else {
+          setServerError(JSON.stringify(data));
+        }
       } else if (isAxiosLikeError(err) && err.message) {
-        alert('Impossible de créer le devis : ' + err.message);
+        setServerError(err.message);
       } else {
-        alert('Impossible de créer le devis : erreur inconnue');
+        setServerError(
+          'Une erreur inconnue est survenue lors de la création du devis.',
+        );
       }
     } finally {
       setLoading(false);
@@ -529,14 +561,42 @@ export default function QuoteCreatePage() {
       </header>
 
       {/* Erreurs globales */}
-      {(errors.client || errors.title || errors.items) && (
-        <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
-          <p className="font-semibold">⚠️ Erreurs de validation</p>
-          <ul className="mt-2 space-y-1 text-sm">
-            {errors.client && <li>{String(errors.client.message)}</li>}
-            {errors.title && <li>{String(errors.title.message)}</li>}
-            {errors.items && <li>{String(errors.items.message)}</li>}
-          </ul>
+      {(Object.keys(errors).length > 0 || serverError) && (
+        <div className="rounded-lg border-l-4 border-amber-500 bg-amber-50 p-4 text-sm shadow-sm">
+          <div className="flex items-start gap-3">
+            <svg
+              className="h-5 w-5 text-amber-600 shrink-0 mt-0.5"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <div className="flex-1">
+              <p className="font-semibold text-amber-800">
+                {serverError
+                  ? 'Une erreur est survenue'
+                  : 'Quelques informations sont manquantes'}
+              </p>
+              {serverError ? (
+                <p className="mt-1 text-amber-700">{serverError}</p>
+              ) : (
+                <>
+                  <p className="mt-1 text-amber-700">
+                    Complétez les champs ci-dessous pour créer votre devis :
+                  </p>
+                  <ul className="mt-2 space-y-1 text-amber-700 list-disc list-inside">
+                    {Object.entries(errors).map(([key, error]) => (
+                      <li key={key}>{String(error?.message || key)}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

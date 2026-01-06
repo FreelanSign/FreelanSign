@@ -377,6 +377,7 @@ export default function QuoteEditPage() {
       valid_until: q.due_date ?? null,
       currency: q.currency ?? 'EUR',
       note: q.notes ?? '',
+      payment_terms_text: q.terms ?? '',
       metadata: {},
       client: q.client?.id, // UUID attendu par l'API
       client_update: {
@@ -427,12 +428,28 @@ export default function QuoteEditPage() {
       await quoteRepository.update(id, payload);
       navigate(`/quotes/${id}`);
     } catch (err) {
-      const e = err as { response?: { data?: unknown }; message?: string };
-      setError(
-        e.response?.data
-          ? JSON.stringify(e.response.data)
-          : (e.message ?? 'Erreur'),
-      );
+      console.error('Update quote error', err);
+      const e = err as {
+        response?: { data?: Record<string, unknown> };
+        message?: string;
+      };
+      if (e.response?.data) {
+        const data = e.response.data;
+        if (typeof data === 'object' && !Array.isArray(data)) {
+          // If specific fields have errors, show them cleanly
+          const messages = Object.entries(data)
+            .map(
+              ([key, val]) =>
+                `${key}: ${Array.isArray(val) ? val.join(' ') : JSON.stringify(val)}`,
+            )
+            .join('\n');
+          setError(messages);
+        } else {
+          setError(JSON.stringify(data));
+        }
+      } else {
+        setError(e.message ?? 'Une erreur est survenue lors de la sauvegarde.');
+      }
     } finally {
       setSaving(false);
     }

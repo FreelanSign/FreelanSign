@@ -3,8 +3,8 @@ import type {
   ApiQuoteResponse,
   ApiQuoteUpdatePayload,
   UiQuote,
-  UiQuoteLine,
   UiQuoteDetail,
+  UiQuoteLine,
   UiQuoteLineDetail,
 } from './types';
 
@@ -89,6 +89,7 @@ export function uiToUpdatePayload(q: UiQuote): ApiQuoteUpdatePayload {
     valid_until: q.due_date ?? null,
     currency: q.currency ?? 'EUR',
     note: q.notes ?? '',
+    payment_terms_text: q.terms ?? '',
     metadata: {},
     client: q.client?.id,
     client_update: {
