@@ -9,12 +9,10 @@ services:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
-      # On retire le fichier conf externe pour simplifier, on passe les commandes en ligne
-      # C'est plus sûr pour un MVP que de gérer un fichier externe
     command:
       - "postgres"
       - "-c"
-      - "shared_buffers=128MB" # Optimisé pour 2GB RAM
+      - "shared_buffers=128MB"
       - "-c"
       - "max_connections=50"
       - "-c"
@@ -35,7 +33,6 @@ services:
       retries: 5
 
   backend:
-    # REMPLACÉ: On utilise l'image buildée localement
     image: ghcr.io/freelansign/freelansign-backend:latest
     container_name: freelansign_backend_prod
     restart: always
@@ -48,7 +45,7 @@ services:
       - DEBUG=False
       - SECRET_KEY=${SECRET_KEY}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD} # N'oublie pas les autres vars email
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
     volumes:
       - backend_static_prod:/app/static
       - backend_media_prod:/app/media

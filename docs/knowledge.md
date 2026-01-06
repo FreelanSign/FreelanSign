@@ -1452,7 +1452,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   └── RELEASE_PLAN_v0.2.0.md
 │   └── tmp
 ├── environment
+│   ├── .env.docker.local.example
 │   ├── .env.example
+│   ├── .env.local.exemple
 │   └── .env.prod.example
 ├── FreelanSign.code-workspace
 ├── frontend
@@ -1736,7 +1738,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-315 directories, 965 files
+315 directories, 967 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1811,5 +1813,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-01-06 21:14:26 CET**
+_Updated_: **2026-01-06 21:47:45 CET**
 <!-- END AUTO: LAST_UPDATED -->

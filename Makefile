@@ -40,13 +40,13 @@ help:
 # Configuration clean
 setup-clean:
 	@echo "$(GREEN)Configuration clean...$(NC)"
-	@cp .env.example .env 2>/dev/null || echo "Fichier .env.example non trouvé"
+	@cp environment/.env.example .env 2>/dev/null || echo "Fichier .env.example non trouvé"
 	@echo "$(GREEN)Configuration clean terminée!$(NC)"
 
 # Configuration locale
 setup-local:
 	@echo "$(GREEN)Configuration pour développement local...$(NC)"
-	@cp .env.local .env 2>/dev/null || echo "Fichier .env.local non trouvé"
+	@cp environment/.env.local .env 2>/dev/null || echo "Fichier .env.local non trouvé"
 	@mkdir -p database/dumps database/init scripts
 	@chmod +x scripts/*.sh 2>/dev/null || true
 	@echo "$(GREEN)Configuration locale terminée!$(NC)"
@@ -54,10 +54,18 @@ setup-local:
 # Configuration Docker
 setup-docker:
 	@echo "$(GREEN)Configuration pour développement Docker...$(NC)"
-	@cp .env.docker .env 2>/dev/null || echo "Fichier .env.docker non trouvé"
+	@cp environment/.env.docker.local.example .env 2>/dev/null || echo "Fichier .env.docker.local.example non trouvé"
 	@mkdir -p database/dumps database/init scripts
 	@chmod +x scripts/*.sh 2>/dev/null || true
 	@echo "$(GREEN)Configuration Docker terminée!$(NC)"
+
+# Configuration Prod Docker
+setup-prod:
+	@echo "$(GREEN)Configuration pour production Docker...$(NC)"
+	@cp environment/.env.prod.example .env 2>/dev/null || echo "Fichier .env.prod.example non trouvé"
+	@mkdir -p database/dumps database/init scripts
+	@chmod +x scripts/*.sh 2>/dev/null || true
+	@echo "$(GREEN)Configuration Prod Docker terminée!$(NC)"
 
 # Développement local (sans Docker)
 dev-local: setup-local
