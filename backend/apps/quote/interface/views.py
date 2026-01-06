@@ -337,6 +337,18 @@ class QuoteViewSet(viewsets.ModelViewSet):
         self.perform_destroy(obj)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    def perform_update(self, serializer):
+        """
+        Block modifications on non-DRAFT quotes.
+        Only DRAFT quotes can be edited. SENT/PAID/ACCEPTED quotes are immutable.
+        """
+        instance = serializer.instance
+        if instance.status not in [Quote.Status.DRAFT]:
+            raise ValidationError(
+                {"status": f"Cannot modify quotes with status {instance.status}. Only DRAFT quotes can be edited."}
+            )
+        serializer.save()
+
     # ----------------------
     # Custom actions (CLEAN ARCH)
     # ----------------------

@@ -316,8 +316,20 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
         owner = request.user
 
         vat_exempt, owner_default_tax = _owner_vat_config(owner)
-        client_country = _get_client_country(data.get("client"))
-        item_tax_rates = _collect_item_tax_rates(items, vat_exempt, owner_default_tax)
+        # Phase 5+: robust partial update handling for tax validation
+        client = data.get("client")
+        if client is None and self.instance:
+            client = self.instance.client
+
+        client_country = _get_client_country(client)
+
+        if items is not None:
+            item_tax_rates = _collect_item_tax_rates(items, vat_exempt, owner_default_tax)
+        elif self.instance:
+            # Fallback to existing items' tax rates for validation
+            item_tax_rates = [li.tax_rate for li in self.instance.items.all()]
+        else:
+            item_tax_rates = []
 
         _qlog(
             self,
@@ -326,7 +338,7 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
             owner_id=getattr(owner, "id", None),
             vat_exempt=vat_exempt,
             client_country=client_country,
-            item_count=len(items),
+            item_count=len(item_tax_rates),
             has_client_update=bool(self.initial_data.get("client_update")),
         )
 

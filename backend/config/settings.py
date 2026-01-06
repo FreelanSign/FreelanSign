@@ -313,16 +313,9 @@ if os.getenv("DEBUG", "False").lower() == "true":
         "http://127.0.0.1:3000",  # Alternative localhost
         "http://0.0.0.0:3000",  # Docker internal
     ]
-
-    # Pour le développement, on peut être plus permissif
-    CORS_ALLOW_ALL_ORIGINS = True  # ⚠️ UNIQUEMENT en développement !
-
 else:
     # En production, spécifier les domaines autorisés
-    CORS_ALLOWED_ORIGINS = [
-        "https://votre-frontend-prod.com",
-        # Ajouter d'autres domaines autorisés
-    ]
+    CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS")
 
 # Headers autorisés
 CORS_ALLOW_HEADERS = [
