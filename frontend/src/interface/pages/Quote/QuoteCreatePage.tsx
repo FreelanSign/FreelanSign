@@ -5,6 +5,7 @@ import {
   useFieldArray,
   useForm,
   useWatch,
+  type FieldPath,
   type Resolver,
   type SubmitHandler,
 } from 'react-hook-form';
@@ -82,7 +83,7 @@ const Schema = z.object({
     z.string().min(8, "La date d'émission est requise"),
   ),
   valid_until: z.string().optional().or(z.literal('')),
-  payment_terms_text: z.string().optional(),
+  payment_terms_text: z.string().optional().default(''),
   items: z
     .array(ItemSchema)
     .min(1, 'Ajoutez au moins une prestation à votre devis'),
@@ -146,6 +147,7 @@ function isAxiosLikeError(
 export default function QuoteCreatePage() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [clientDrawerOpen, setClientDrawerOpen] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientDto[] | 'loading' | null>(
     'loading',
@@ -181,6 +183,7 @@ export default function QuoteCreatePage() {
           discount: 0.0,
         },
       ],
+      payment_terms_text: '',
     },
   });
 
@@ -464,7 +467,7 @@ export default function QuoteCreatePage() {
         language: values.language,
         issue_date: values.issue_date,
         valid_until: validUntil ?? null,
-        payment_terms_text: values.payment_terms_text ?? null,
+        payment_terms_text: values.payment_terms_text || '',
         items: values.items.map((it) => ({
           prestation_id: it.prestation_id ?? undefined,
           description: it.description,
@@ -488,14 +491,27 @@ export default function QuoteCreatePage() {
     } catch (err: unknown) {
       console.error('Create quote error', err);
       if (isAxiosLikeError(err) && err.response?.data) {
-        alert(
-          'Impossible de créer le devis : ' +
-            JSON.stringify(err.response.data, null, 2),
-        );
+        const data = err.response.data as Record<string, unknown>;
+        if (typeof data === 'object' && !Array.isArray(data)) {
+          Object.entries(data).forEach(([key, messages]) => {
+            if (Array.isArray(messages)) {
+              form.setError(key as FieldPath<FormData>, {
+                type: 'server',
+                message: messages.join(' '),
+              });
+            } else {
+              setServerError(JSON.stringify(data));
+            }
+          });
+        } else {
+          setServerError(JSON.stringify(data));
+        }
       } else if (isAxiosLikeError(err) && err.message) {
-        alert('Impossible de créer le devis : ' + err.message);
+        setServerError(err.message);
       } else {
-        alert('Impossible de créer le devis : erreur inconnue');
+        setServerError(
+          'Une erreur inconnue est survenue lors de la création du devis.',
+        );
       }
     } finally {
       setLoading(false);
@@ -545,7 +561,7 @@ export default function QuoteCreatePage() {
       </header>
 
       {/* Erreurs globales */}
-      {(errors.client || errors.title || errors.items) && (
+      {(Object.keys(errors).length > 0 || serverError) && (
         <div className="rounded-lg border-l-4 border-amber-500 bg-amber-50 p-4 text-sm shadow-sm">
           <div className="flex items-start gap-3">
             <svg
@@ -561,16 +577,24 @@ export default function QuoteCreatePage() {
             </svg>
             <div className="flex-1">
               <p className="font-semibold text-amber-800">
-                Quelques informations sont manquantes
+                {serverError
+                  ? 'Une erreur est survenue'
+                  : 'Quelques informations sont manquantes'}
               </p>
-              <p className="mt-1 text-amber-700">
-                Complétez les champs ci-dessous pour créer votre devis :
-              </p>
-              <ul className="mt-2 space-y-1 text-amber-700 list-disc list-inside">
-                {errors.client && <li>{String(errors.client.message)}</li>}
-                {errors.title && <li>{String(errors.title.message)}</li>}
-                {errors.items && <li>{String(errors.items.message)}</li>}
-              </ul>
+              {serverError ? (
+                <p className="mt-1 text-amber-700">{serverError}</p>
+              ) : (
+                <>
+                  <p className="mt-1 text-amber-700">
+                    Complétez les champs ci-dessous pour créer votre devis :
+                  </p>
+                  <ul className="mt-2 space-y-1 text-amber-700 list-disc list-inside">
+                    {Object.entries(errors).map(([key, error]) => (
+                      <li key={key}>{String(error?.message || key)}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </div>
           </div>
         </div>

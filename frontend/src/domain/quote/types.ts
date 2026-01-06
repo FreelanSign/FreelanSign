@@ -65,6 +65,7 @@ export type ApiQuoteUpdatePayload = {
   valid_until: string | null;
   currency: string | null;
   note: string | null;
+  payment_terms_text?: string | null;
   metadata: Record<string, unknown>;
   client: string | undefined; // UUID
   client_update: {
