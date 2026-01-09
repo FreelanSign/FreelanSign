@@ -42,10 +42,27 @@ services:
       - DATABASE_NAME=${DATABASE_NAME}
       - DATABASE_USER=${DATABASE_USER}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
-      - DEBUG=False
+      - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - FIELD_ENCRYPTION_KEY=${FIELD_ENCRYPTION_KEY}
+      - EMAIL_BACKEND=${EMAIL_BACKEND}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
       - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - RESET_PASSWORD_URL=${RESET_PASSWORD_URL}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT:-production}
+      - SENTRY_TRACES_SAMPLE_RATE=${SENTRY_TRACES_SAMPLE_RATE:-0.1}
+      - RETENTION_POLICY_ENABLED=${RETENTION_POLICY_ENABLED:-True}
+      - RETENTION_AUDIT_LOGS_DAYS=${RETENTION_AUDIT_LOGS_DAYS:-395}
+      - RETENTION_ACCOUNTING_YEARS=${RETENTION_ACCOUNTING_YEARS:-10}
+      - ENABLE_ACCOUNT_MODEL=${ENABLE_ACCOUNT_MODEL:-True}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
     volumes:
       - backend_static_prod:/app/static
       - backend_media_prod:/app/media
@@ -85,6 +102,14 @@ services:
       - RETENTION_ACCOUNTING_YEARS=10
       - SENTRY_DSN=${SENTRY_DSN}
       - SENTRY_ENVIRONMENT=production
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - EMAIL_BACKEND=${EMAIL_BACKEND}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
     volumes:
       - backend_logs_prod:/app/logs
     depends_on:
@@ -96,7 +121,8 @@ services:
     # Schedule: Sunday at 3:00 AM (low-traffic period)
     command: >
       sh -c "
-      echo '0 3 * * 0 cd /app && python manage.py apply_retention_policy >> /app/logs/retention_policy.log 2>&1' | crontab - &&
+      mkdir -p /etc/crontabs &&
+      echo '0 3 * * 0 cd /app && python manage.py apply_retention_policy >> /app/logs/retention_policy.log 2>&1' > /etc/crontabs/root &&
       crond -f -l 2
       "
     deploy:
@@ -128,7 +154,7 @@ services:
       - nginx_logs_prod:/var/log/nginx
       # VOLUME CRITIQUE POUR LE CHALLENGE ACME
       - certbot_www:/var/www/certbot:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - certbot_conf:/etc/letsencrypt:ro
     networks:
       - freelansign_network_prod
 
@@ -138,7 +164,8 @@ volumes:
   backend_media_prod:
   backend_logs_prod:
   nginx_logs_prod:
-  certbot_www: # On déclare le volume ici
+  certbot_www:
+  certbot_conf:
 
 networks:
   freelansign_network_prod:
