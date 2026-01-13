@@ -985,8 +985,12 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── conftest.py
 │   │   │   │   ├── domain
 │   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── test_status_policy.py
 │   │   │   │   │   ├── test_tax_policy.py
 │   │   │   │   │   └── test_totals.py
+│   │   │   │   ├── interface
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── test_quote_api.py
 │   │   │   │   ├── temp_fixtures.py
 │   │   │   │   ├── test_add_prestation_line_api.py
 │   │   │   │   ├── test_mock_verification.py
@@ -1161,6 +1165,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │           └── packages_quote_arch.png
 │   ├── Dockerfile
 │   ├── docs
+│   │   ├── ENCRYPTION_KEY_BACKUP.md
 │   │   └── FIELD_ENCRYPTION.md
 │   ├── generate_diagrams.py
 │   ├── logs
@@ -1177,6 +1182,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── requirements
 │   │   ├── dev-requirements.txt
 │   │   └── requirements.txt
+│   ├── scripts
+│   │   ├── clear_encrypted_fields.py
+│   │   └── migrate_encryption_key.py
 │   ├── setup.cfg
 │   ├── static
 │   ├── staticfiles
@@ -1394,6 +1402,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── coverage.xml
 ├── database
 │   ├── dumps
+│   │   ├── db_prod_2026-01-12_19h25.dump
 │   │   └── dump_local_20251120_094504.sql
 │   └── init
 ├── docker-compose.certbot.yml
@@ -1448,7 +1457,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   └── RELEASE_PLAN_v0.2.0.md
 │   └── tmp
 ├── environment
+│   ├── .env.docker.local.example
 │   ├── .env.example
+│   ├── .env.local.exemple
 │   └── .env.prod.example
 ├── FreelanSign.code-workspace
 ├── frontend
@@ -1702,6 +1713,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── tsconfig.app.json
 │   ├── tsconfig.json
 │   ├── tsconfig.node.json
+│   ├── tsconfig.test.json
 │   ├── vite.config.ts
 │   └── vitest.config.ts
 ├── LICENSE
@@ -1732,7 +1744,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-314 directories, 962 files
+316 directories, 972 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1807,5 +1819,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-01-06 15:09:40 CET**
+_Updated_: **2026-01-13 21:25:52 CET**
 <!-- END AUTO: LAST_UPDATED -->

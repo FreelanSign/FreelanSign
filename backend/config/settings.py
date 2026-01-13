@@ -79,8 +79,8 @@ EMAIL_HOST = env("EMAIL_HOST", default="sandbox.smtp.mailtrap.io")
 EMAIL_PORT = env.int("EMAIL_PORT", default=2525)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
 EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
-EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="54e99456c8cc20")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="04ef95b11a8fce")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_FROM = env("EMAIL_FROM", default="noreply@example.com")
 RESET_PASSWORD_URL = env("RESET_PASSWORD_URL", default="http://localhost:3000/reset-password")
 
@@ -285,7 +285,7 @@ SIMPLE_JWT = {
 SPECTACULAR_SETTINGS = {
     "TITLE": "FreelanSign REST API",
     "DESCRIPTION": "API documentation for the FreelanSign REST application",
-    "VERSION": "0.1.0",
+    "VERSION": "v0.3.0-SNAPSHOT",
     "TAGS": [
         {"name": "Auth", "description": "JWT Authentication & session endpoints"},
         {"name": "Users", "description": "User & profile management"},
@@ -313,16 +313,9 @@ if os.getenv("DEBUG", "False").lower() == "true":
         "http://127.0.0.1:3000",  # Alternative localhost
         "http://0.0.0.0:3000",  # Docker internal
     ]
-
-    # Pour le développement, on peut être plus permissif
-    CORS_ALLOW_ALL_ORIGINS = True  # ⚠️ UNIQUEMENT en développement !
-
 else:
     # En production, spécifier les domaines autorisés
-    CORS_ALLOWED_ORIGINS = [
-        "https://votre-frontend-prod.com",
-        # Ajouter d'autres domaines autorisés
-    ]
+    CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS")
 
 # Headers autorisés
 CORS_ALLOW_HEADERS = [
@@ -410,14 +403,24 @@ LOGGING = {
 # Sentry (Error Tracking)
 # --------------------------------------------------------------------------------------
 SENTRY_DSN = env("SENTRY_DSN", default=None)
-if SENTRY_DSN and SENTRY_DSN.startswith("http"):
-    import sentry_sdk
-    from sentry_sdk.integrations.django import DjangoIntegration
 
-    sentry_sdk.init(
-        dsn=SENTRY_DSN,
-        environment=env("SENTRY_ENVIRONMENT", default="production"),
-        traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.1),
-        integrations=[DjangoIntegration()],
-        send_default_pii=False,
-    )
+
+def init_sentry():
+    if SENTRY_DSN and SENTRY_DSN.startswith("http"):
+        import sentry_sdk
+        from sentry_sdk.integrations.django import DjangoIntegration
+
+        sentry_sdk.init(
+            dsn=SENTRY_DSN,
+            environment=env("SENTRY_ENVIRONMENT", default="production"),
+            traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.1),
+            integrations=[DjangoIntegration()],
+            send_default_pii=False,
+        )
+
+
+# Initialize Sentry only if we are not in the middle of a settings setup that could cause circularity.
+# In Django, it's safer to initialize Sentry in wsgi.py or asgi.py, or at the end of settings
+# but wrapped to avoid immediate execution during some import phases.
+if SENTRY_DSN:
+    init_sentry()

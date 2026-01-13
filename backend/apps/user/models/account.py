@@ -123,5 +123,6 @@ class Account(TimestampedModel, SoftDeleteModel):
             # Soft-delete Account via le mécanisme du SoftDeleteModel
             if not self.is_deleted:
                 self.is_deleted = True
+                self.is_active = False  # Deactivate when deleted
                 self.deleted_at = now
-                self.save(update_fields=["is_deleted", "deleted_at"])
+                self.save(update_fields=["is_deleted", "deleted_at", "is_active"])

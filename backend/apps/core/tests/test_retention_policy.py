@@ -90,18 +90,19 @@ def test_command_succeeds_with_force_flag_in_dev():
 @override_settings(RETENTION_POLICY_ENABLED=True, RETENTION_AUDIT_LOGS_DAYS=395)
 def test_purge_old_audit_logs(user):
     """Audit logs older than 395 days should be purged."""
-    # Create old audit logs (> 395 days)
     old_timestamp = timezone.now() - timedelta(days=400)
     old_log1 = AuditLog.objects.create(
-        action=AuditLog.Action.CLIENT_CREATED, actor=user, target_model="Client", target_id="123", timestamp=old_timestamp
+        action=AuditLog.Action.CLIENT_CREATED, actor=user, target_model="Client", target_id="123"
     )
+    AuditLog.objects.filter(id=old_log1.id).update(timestamp=old_timestamp)
+
     old_log2 = AuditLog.objects.create(
         action=AuditLog.Action.ACCOUNT_CREATED,
         actor=user,
         target_model="Account",
         target_id="456",
-        timestamp=old_timestamp,
     )
+    AuditLog.objects.filter(id=old_log2.id).update(timestamp=old_timestamp)
 
     # Create recent audit log (< 395 days) - should NOT be purged
     recent_log = AuditLog.objects.create(
@@ -173,7 +174,7 @@ def test_purge_old_soft_deleted_accounts(user):
 
 @pytest.mark.django_db
 @override_settings(RETENTION_POLICY_ENABLED=True, RETENTION_ACCOUNTING_YEARS=10)
-def test_protect_account_with_active_quotes(user, account):
+def test_protect_account_with_active_quotes(user, account, client_obj):
     """Accounts with active quotes should be protected from purge."""
     # Soft-delete account (> 10 years)
     account.is_deleted = True
@@ -184,9 +185,11 @@ def test_protect_account_with_active_quotes(user, account):
     Quote.objects.create(
         owner=user,
         account=account,
+        client=client_obj,
         title="Active Quote",
         reference="QTE-001",
         status=Quote.Status.DRAFT,
+        issue_date=timezone.now().date(),
         currency="EUR",
         language="fr",
     )
@@ -203,7 +206,7 @@ def test_protect_account_with_active_quotes(user, account):
 
 @pytest.mark.django_db
 @override_settings(RETENTION_POLICY_ENABLED=True, RETENTION_ACCOUNTING_YEARS=10)
-def test_protect_account_with_recent_quotes(user, account):
+def test_protect_account_with_recent_quotes(user, account, client_obj):
     """Accounts with quotes < 10 years old should be protected."""
     # Soft-delete account (> 10 years)
     account.is_deleted = True
@@ -214,9 +217,11 @@ def test_protect_account_with_recent_quotes(user, account):
     recent_quote = Quote.objects.create(
         owner=user,
         account=account,
+        client=client_obj,
         title="Recent Quote",
         reference="QTE-002",
         status=Quote.Status.PAID,  # Even paid quotes protect if recent
+        issue_date=timezone.now().date(),
         currency="EUR",
         language="fr",
     )
@@ -282,6 +287,7 @@ def test_protect_client_with_recent_quotes(user, account, client_obj):
         title="Recent Quote",
         reference="QTE-003",
         status=Quote.Status.PAID,
+        issue_date=timezone.now().date(),
         currency="EUR",
         language="fr",
     )
@@ -304,11 +310,11 @@ def test_protect_client_with_recent_quotes(user, account, client_obj):
 @override_settings(RETENTION_POLICY_ENABLED=True, RETENTION_AUDIT_LOGS_DAYS=395)
 def test_dry_run_mode_no_database_changes(user):
     """Dry-run mode should show what would be deleted without making changes."""
-    # Create old audit logs
     old_timestamp = timezone.now() - timedelta(days=400)
     old_log = AuditLog.objects.create(
-        action=AuditLog.Action.CLIENT_CREATED, actor=user, target_model="Client", target_id="123", timestamp=old_timestamp
+        action=AuditLog.Action.CLIENT_CREATED, actor=user, target_model="Client", target_id="123"
     )
+    AuditLog.objects.filter(id=old_log.id).update(timestamp=old_timestamp)
 
     # Run dry-run
     out, err = call_retention_policy(dry_run=True)
@@ -331,15 +337,13 @@ def test_dry_run_mode_no_database_changes(user):
 @override_settings(RETENTION_POLICY_ENABLED=True, RETENTION_AUDIT_LOGS_DAYS=395)
 def test_purge_large_number_of_audit_logs(user):
     """Test batch processing with large dataset (1000+ records)."""
-    # Create 1500 old audit logs
     old_timestamp = timezone.now() - timedelta(days=400)
     bulk_logs = [
-        AuditLog(
-            action=AuditLog.Action.CLIENT_CREATED, actor=user, target_model="Client", target_id=str(i), timestamp=old_timestamp
-        )
+        AuditLog(action=AuditLog.Action.CLIENT_CREATED, actor=user, target_model="Client", target_id=str(i))
         for i in range(1500)
     ]
     AuditLog.objects.bulk_create(bulk_logs)
+    AuditLog.objects.all().update(timestamp=old_timestamp)
 
     # Run retention policy
     out, err = call_retention_policy()
@@ -361,14 +365,10 @@ def test_purge_large_number_of_audit_logs(user):
 @override_settings(RETENTION_POLICY_ENABLED=True, RETENTION_AUDIT_LOGS_DAYS=395, RETENTION_ACCOUNTING_YEARS=10)
 def test_summary_output(user, account):
     """Verify summary shows correct purge counts."""
-    # Create old data
     old_timestamp = timezone.now() - timedelta(days=400)
-    AuditLog.objects.create(
-        action=AuditLog.Action.CLIENT_CREATED, actor=user, target_model="Client", target_id="123", timestamp=old_timestamp
-    )
-    AuditLog.objects.create(
-        action=AuditLog.Action.CLIENT_DELETED, actor=user, target_model="Client", target_id="456", timestamp=old_timestamp
-    )
+    l1 = AuditLog.objects.create(action=AuditLog.Action.CLIENT_CREATED, actor=user, target_model="Client", target_id="123")
+    l2 = AuditLog.objects.create(action=AuditLog.Action.CLIENT_DELETED, actor=user, target_model="Client", target_id="456")
+    AuditLog.objects.filter(id__in=[l1.id, l2.id]).update(timestamp=old_timestamp)
 
     old_client = Client.objects.create(owner=user, account=account, name="Old Client", email="old@test.com")
     old_client.is_deleted = True

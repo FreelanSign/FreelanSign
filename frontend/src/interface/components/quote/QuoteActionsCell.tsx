@@ -27,6 +27,7 @@ export function QuoteActionsCell({ quote }: { quote: QuoteRow }) {
 
   const activeStatuses = ['DRAFT', 'SENT', 'ACCEPTED'];
   const isDeleteDisabled = activeStatuses.includes(quote.status);
+  const isEditDisabled = quote.status !== 'DRAFT';
 
   async function handleDelete() {
     setIsDeleting(true);
@@ -70,6 +71,12 @@ export function QuoteActionsCell({ quote }: { quote: QuoteRow }) {
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => navigate(`/quotes/${quote.id}/edit`)}
+              disabled={isEditDisabled}
+              title={
+                isEditDisabled
+                  ? 'Seuls les devis en brouillon peuvent être modifiés'
+                  : 'Éditer le devis'
+              }
             >
               <Edit className="mr-2 h-4 w-4" />
               Éditer

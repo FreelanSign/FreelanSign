@@ -45,7 +45,9 @@ def client_obj(user, account):
         name="Test Client Company",
         email="contact@testclient.com",
         phone="0123456789",
-        address="123 Test Street, Test City",
+        address_line1="123 Test Street",
+        city="Test City",
+        country="FR",
         vat_number="FR12345678901",
         metadata={"industry": "tech", "size": "small"},
     )
@@ -78,7 +80,9 @@ class TestAnonymizeClient:
         assert client_obj.name == f"Client supprimé [{client_id}]"
         assert client_obj.email == f"deleted_{client_id}@anonymized.local"
         assert client_obj.phone == ""
-        assert client_obj.address == ""
+        assert client_obj.address_line1 == ""
+        assert client_obj.city == ""
+        assert client_obj.country == ""
         assert client_obj.vat_number == ""
         assert client_obj.metadata == {}
 

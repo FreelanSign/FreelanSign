@@ -5,6 +5,7 @@ Brotli==1.1.0
 cffi==2.0.0
 click==8.3.0
 coverage==7.11.0
+cryptography==44.0.0
 cssselect2==0.8.0
 dill==0.4.0
 Django==5.2.4
@@ -64,4 +65,4 @@ webencodings==0.5.1
 wheel==0.45.1
 zopfli==0.2.3.post1
 gunicorn==21.2.0
-sentry-sdk[django]==2.19.2
+sentry-sdk[django]==2.49.0

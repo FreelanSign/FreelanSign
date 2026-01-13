@@ -281,6 +281,12 @@ export default function QuoteDetailPage() {
           <Button
             className="h-9 px-6 bg-brand text-white hover:bg-brand-dark shadow-sm font-bold text-xs uppercase tracking-wider"
             asChild
+            disabled={quote.status !== 'DRAFT'}
+            title={
+              quote.status !== 'DRAFT'
+                ? 'Seuls les devis en brouillon peuvent être modifiés'
+                : 'Modifier le devis'
+            }
           >
             <Link to={`/quotes/${quote.id}/edit`}>
               <Edit className="mr-2 h-4 w-4" />

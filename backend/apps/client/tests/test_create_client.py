@@ -13,7 +13,12 @@ class FakeClient:
         self.name = kwargs.get("name")
         self.email = kwargs.get("email", "")
         self.phone = kwargs.get("phone", "")
-        self.address = kwargs.get("address", "")
+        self.address_line1 = kwargs.get("address_line1", "")
+        self.address_line2 = kwargs.get("address_line2", "")
+        self.city = kwargs.get("city", "")
+        self.postal_code = kwargs.get("postal_code", "")
+        self.country = kwargs.get("country", "")
+        self.company = kwargs.get("company", "")
         self.vat_number = kwargs.get("vat_number", "")
         self.metadata = kwargs.get("metadata", {})
 
@@ -60,7 +65,9 @@ class TestCreateClientUseCase:
             name="New Client",
             email="client@example.com",
             phone="123456",
-            address="Paris",
+            address_line1="123 Street",
+            city="Paris",
+            country="FR",
             vat_number="FR123",
             metadata={"key": "value"},
         )
