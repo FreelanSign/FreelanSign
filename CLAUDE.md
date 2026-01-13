@@ -5,16 +5,17 @@
 ## Project
 
 **FreelanSign**: SaaS for quotes/invoices (freelancers). Monorepo: Django backend + React/TS frontend.
-**Version**: 0.2.0 | **Main branch**: `dev`
+**Version**: v0.3.0-SNAPSHOT | **Main branch**: `dev`
 
 ## Non-Negotiable
 
 1. **Clean Architecture**: Never import Django models in domain layer
-2. **Absolute imports**: Always `from apps.quote.domain import ...`
-3. **DTOs**: Use for input/output, not Django models in use cases
-4. **Conventional commits**: Required for changelog/versioning
-5. **Type safety**: Strict TS, type-check before commit
-6. **TDD**: Domain/application layers must have tests
+2. **Keep it simple**: Don't add abstractions I didn't ask for. One file if possible.
+3. **Absolute imports**: Always `from apps.quote.domain import ...`
+4. **DTOs**: Use for input/output, not Django models in use cases
+5. **Conventional commits**: Required for changelog/versioning
+6. **Type safety**: Strict TS, type-check before commit
+7. **TDD**: Domain/application layers must have tests
 
 ## Code Style Rules
 
