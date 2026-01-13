@@ -100,6 +100,7 @@ class DjangoUserRepository(UserRepository):
 
             user.profile.save()
             user.refresh_from_db()
+            user.profile.refresh_from_db()  # AIDEV-NOTE: Refresh profile to avoid returning stale cached data
 
             return user
 

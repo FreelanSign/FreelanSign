@@ -119,6 +119,32 @@ class UserApiTests(APITestCase):
         self.assertTrue(body["profile"]["avatar_url"].endswith("john.png"))
         self.assertEqual(body["profile"]["role"], "freelance")
 
+    def test_update_profile_persists_changes(self):
+        """Test that profile changes are actually persisted and not just cached."""
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+
+        # Update profile with new values
+        patch_data = {"first_name": "UpdatedName", "last_name": "UpdatedLastName", "phone": "+33612345678"}
+        update_res = self.client.patch(ME, data=patch_data, format="json")
+        self.assertEqual(update_res.status_code, status.HTTP_200_OK)
+
+        # Verify immediate response has new values
+        body = update_res.json()
+        self.assertEqual(body["profile"]["first_name"], "UpdatedName")
+        self.assertEqual(body["profile"]["last_name"], "UpdatedLastName")
+        self.assertEqual(body["profile"]["phone"], "+33612345678")
+
+        # Critical: Fetch profile again to verify persistence
+        # This would FAIL with the caching bug (issue #93)
+        get_res = self.client.get(ME)
+        self.assertEqual(get_res.status_code, status.HTTP_200_OK)
+        body = get_res.json()
+
+        # These assertions verify data was actually saved to DB
+        self.assertEqual(body["profile"]["first_name"], "UpdatedName")
+        self.assertEqual(body["profile"]["last_name"], "UpdatedLastName")
+        self.assertEqual(body["profile"]["phone"], "+33612345678")
+
     def test_non_staff_cannot_promote_self_to_admin_role_is_ignored(self):
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
         res1 = self.client.get(ME)

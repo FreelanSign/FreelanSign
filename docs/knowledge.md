@@ -486,12 +486,20 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── .sonarcloud.properties
 ├── .sonarignore
 ├── AGENT.md
+├── CHANGELOG.md
+├── CLAUDE.md
+├── FreelanSign.code-workspace
+├── LICENSE
+├── Makefile
+├── README.md
+├── SPECIFICATIONS_RGPD.md
 ├── backend
 │   ├── .claude
 │   │   └── settings.local.json
 │   ├── .coverage
 │   ├── .coveragerc
 │   ├── .dockerignore
+│   ├── Dockerfile
 │   ├── apps
 │   │   ├── __init__.py
 │   │   ├── branding
@@ -551,11 +559,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── urls.py
 │   │   │   │   └── views.py
 │   │   │   ├── migrations
-│   │   │   │   ├── __init__.py
 │   │   │   │   ├── 0001_initial.py
 │   │   │   │   ├── 0002_add_account_fk.py
 │   │   │   │   ├── 0003_migrate_to_account.py
-│   │   │   │   └── 0004_account_not_null_drop_professional.py
+│   │   │   │   ├── 0004_account_not_null_drop_professional.py
+│   │   │   │   └── __init__.py
 │   │   │   ├── models.py
 │   │   │   └── tests
 │   │   │       ├── __init__.py
@@ -598,14 +606,14 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── urls.py
 │   │   │   │   └── views.py
 │   │   │   ├── migrations
-│   │   │   │   ├── __init__.py
 │   │   │   │   ├── 0001_initial.py
 │   │   │   │   ├── 0002_remove_prestation_unique_area_prestation_name_and_more.py
 │   │   │   │   ├── 0003_add_account_fk.py
 │   │   │   │   ├── 0004_migrate_to_account.py
 │   │   │   │   ├── 0005_account_not_null_drop_professional_user.py
 │   │   │   │   ├── 0006_remove_prestation_unique_area_prestation_name_global_and_more.py
-│   │   │   │   └── 0007_remove_prestation_unique_area_prestation_name_global.py
+│   │   │   │   ├── 0007_remove_prestation_unique_area_prestation_name_global.py
+│   │   │   │   └── __init__.py
 │   │   │   ├── models.py
 │   │   │   ├── tests
 │   │   │   │   ├── __init__.py
@@ -648,7 +656,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── urls.py
 │   │   │   │   └── views.py
 │   │   │   ├── migrations
-│   │   │   │   ├── __init__.py
 │   │   │   │   ├── 0001_initial.py
 │   │   │   │   ├── 0002_client_account.py
 │   │   │   │   ├── 0003_migrate_client_to_account.py
@@ -658,7 +665,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── 0007_add_field_encryption.py
 │   │   │   │   ├── 0008_add_structured_address.py
 │   │   │   │   ├── 0009_migrate_address_data.py
-│   │   │   │   └── 0010_remove_legacy_address_field.py
+│   │   │   │   ├── 0010_remove_legacy_address_field.py
+│   │   │   │   └── __init__.py
 │   │   │   ├── models.py
 │   │   │   ├── signals.py
 │   │   │   ├── tests
@@ -678,10 +686,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── test_encryption.py
 │   │   │   └── views.py
 │   │   ├── core
+│   │   │   ├── CLAUDE.md
 │   │   │   ├── __init__.py
 │   │   │   ├── admin.py
 │   │   │   ├── apps.py
-│   │   │   ├── CLAUDE.md
 │   │   │   ├── enums.py
 │   │   │   ├── exceptions.py
 │   │   │   ├── fields.py
@@ -703,10 +711,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── middleware
 │   │   │   │   └── request_logging.py
 │   │   │   ├── migrations
-│   │   │   │   ├── __init__.py
 │   │   │   │   ├── 0001_initial.py
 │   │   │   │   ├── 0002_auditlog.py
-│   │   │   │   └── 0003_auditlog_core_audit__timesta_9f170b_idx.py
+│   │   │   │   ├── 0003_auditlog_core_audit__timesta_9f170b_idx.py
+│   │   │   │   └── __init__.py
 │   │   │   ├── models
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── audit.py
@@ -714,9 +722,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── models.py
 │   │   │   ├── permissions.py
 │   │   │   ├── services
+│   │   │   │   ├── CLAUDE.md
 │   │   │   │   ├── __init__.py
-│   │   │   │   ├── audit.py
-│   │   │   │   └── CLAUDE.md
+│   │   │   │   └── audit.py
 │   │   │   ├── tests
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── test_audit_logging.py
@@ -852,9 +860,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   └── views.py
 │   │   │   │   └── urls.py
 │   │   │   ├── migrations
-│   │   │   │   ├── __init__.py
 │   │   │   │   ├── 0001_initial.py
-│   │   │   │   └── 0002_seed_base_fr_template.py
+│   │   │   │   ├── 0002_seed_base_fr_template.py
+│   │   │   │   └── __init__.py
 │   │   │   ├── models.py
 │   │   │   └── tests
 │   │   │       ├── __init__.py
@@ -954,7 +962,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │       ├── __init__.py
 │   │   │   │       └── attach_legal_terms_to_quotes.py
 │   │   │   ├── migrations
-│   │   │   │   ├── __init__.py
 │   │   │   │   ├── 0001_initial.py
 │   │   │   │   ├── 0002_alter_quotelineitem_options_and_more.py
 │   │   │   │   ├── 0003_alter_paymentterms_owner_and_more.py
@@ -964,7 +971,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── 0007_account_not_null.py
 │   │   │   │   ├── 0008_alter_quote_account.py
 │   │   │   │   ├── 0009_quote_ix_quote_account_updated_at_and_more.py
-│   │   │   │   └── 0010_add_soft_delete_to_quote.py
+│   │   │   │   ├── 0010_add_soft_delete_to_quote.py
+│   │   │   │   └── __init__.py
 │   │   │   ├── models.py
 │   │   │   ├── signals.py
 │   │   │   ├── tests
@@ -973,8 +981,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── test_django_quote_repository.py
 │   │   │   │   │   ├── test_playwright_pdf.py
-│   │   │   │   │   ├── test_reference_generator_concurrency.py
-│   │   │   │   │   └── test_reference_generator.py
+│   │   │   │   │   ├── test_reference_generator.py
+│   │   │   │   │   └── test_reference_generator_concurrency.py
 │   │   │   │   ├── application
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── test_add_prestation_line.py
@@ -1079,7 +1087,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │       ├── account_views.py
 │   │       │       └── user_views.py
 │   │       ├── migrations
-│   │       │   ├── __init__.py
 │   │       │   ├── 0001_initial.py
 │   │       │   ├── 0002_remove_user_username_alter_user_email.py
 │   │       │   ├── 0003_alter_user_managers_profile.py
@@ -1093,7 +1100,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── 0011_cleanup_phase6.py
 │   │       │   ├── 0012_add_rate_and_service_types_to_account.py
 │   │       │   ├── 0013_add_soft_delete_to_account.py
-│   │       │   └── 0014_add_field_encryption.py
+│   │       │   ├── 0014_add_field_encryption.py
+│   │       │   └── __init__.py
 │   │       ├── models
 │   │       │   ├── __init__.py
 │   │       │   ├── account.py
@@ -1157,13 +1165,12 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── doc
 │   │   └── classes
 │   │       └── quote
+│   │           ├── classes_quote_arch.dot
 │   │           ├── classes_quote_arch_lr.png
 │   │           ├── classes_quote_arch_packages.png
-│   │           ├── classes_quote_arch.dot
-│   │           ├── packages_quote_arch_packages.png
 │   │           ├── packages_quote_arch.dot
-│   │           └── packages_quote_arch.png
-│   ├── Dockerfile
+│   │           ├── packages_quote_arch.png
+│   │           └── packages_quote_arch_packages.png
 │   ├── docs
 │   │   ├── ENCRYPTION_KEY_BACKUP.md
 │   │   └── FIELD_ENCRYPTION.md
@@ -1198,8 +1205,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── forms.css
 │   │   │   │   ├── login.css
 │   │   │   │   ├── nav_sidebar.css
-│   │   │   │   ├── responsive_rtl.css
 │   │   │   │   ├── responsive.css
+│   │   │   │   ├── responsive_rtl.css
 │   │   │   │   ├── rtl.css
 │   │   │   │   ├── unusable_password_field.css
 │   │   │   │   ├── vendor
@@ -1209,6 +1216,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │       └── select2.min.css
 │   │   │   │   └── widgets.css
 │   │   │   ├── img
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.txt
 │   │   │   │   ├── calendar-icons.svg
 │   │   │   │   ├── gis
 │   │   │   │   │   ├── move_vertex_off.svg
@@ -1226,14 +1235,14 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── icon-viewlink.svg
 │   │   │   │   ├── icon-yes.svg
 │   │   │   │   ├── inline-delete.svg
-│   │   │   │   ├── LICENSE
-│   │   │   │   ├── README.txt
 │   │   │   │   ├── search.svg
 │   │   │   │   ├── selector-icons.svg
 │   │   │   │   ├── sorting-icons.svg
 │   │   │   │   ├── tooltag-add.svg
 │   │   │   │   └── tooltag-arrowright.svg
 │   │   │   └── js
+│   │   │       ├── SelectBox.js
+│   │   │       ├── SelectFilter2.js
 │   │   │       ├── actions.js
 │   │   │       ├── admin
 │   │   │       │   ├── DateTimeShortcuts.js
@@ -1248,19 +1257,18 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       ├── jquery.init.js
 │   │   │       ├── nav_sidebar.js
 │   │   │       ├── popup_response.js
-│   │   │       ├── prepopulate_init.js
 │   │   │       ├── prepopulate.js
-│   │   │       ├── SelectBox.js
-│   │   │       ├── SelectFilter2.js
+│   │   │       ├── prepopulate_init.js
 │   │   │       ├── theme.js
 │   │   │       ├── unusable_password_field.js
 │   │   │       ├── urlify.js
 │   │   │       └── vendor
 │   │   │           ├── jquery
+│   │   │           │   ├── LICENSE.txt
 │   │   │           │   ├── jquery.js
-│   │   │           │   ├── jquery.min.js
-│   │   │           │   └── LICENSE.txt
+│   │   │           │   └── jquery.min.js
 │   │   │           ├── select2
+│   │   │           │   ├── LICENSE.md
 │   │   │           │   ├── i18n
 │   │   │           │   │   ├── af.js
 │   │   │           │   │   ├── ar.js
@@ -1321,7 +1329,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │           │   │   ├── vi.js
 │   │   │           │   │   ├── zh-CN.js
 │   │   │           │   │   └── zh-TW.js
-│   │   │           │   ├── LICENSE.md
 │   │   │           │   ├── select2.full.js
 │   │   │           │   └── select2.full.min.js
 │   │   │           └── xregexp
@@ -1397,8 +1404,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │       │   └── prestations.json
 │       ├── migrate_encrypt_data.py
 │       └── prestations.csv
-├── CHANGELOG.md
-├── CLAUDE.md
 ├── coverage.xml
 ├── database
 │   ├── dumps
@@ -1423,19 +1428,19 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   └── ADR-001-cross-context-repository-dependencies.md
 │   │   ├── template_bounded_context.md
 │   │   └── work
+│   │       ├── DEPRECATED_FILES_ACCOUNT.md
+│   │       ├── TODO_FAVORITE_PRESTATIONS.md
 │   │       ├── account_phase1_domain.md
 │   │       ├── auth_user_refacto.md
-│   │       ├── DEPRECATED_FILES_ACCOUNT.md
 │   │       ├── legal_terms_v0.md
 │   │       ├── subscription_v0.md
-│   │       ├── TODO_FAVORITE_PRESTATIONS.md
 │   │       └── user_refacto_analysis.md
 │   ├── backup.md
 │   ├── database_management.md
 │   ├── deployment
+│   │   ├── DEPLOYMENT_MASTER_GUIDE.md
 │   │   ├── backups.md
 │   │   ├── build-and-deploy.md
-│   │   ├── DEPLOYMENT_MASTER_GUIDE.md
 │   │   ├── disaster-recovery.md
 │   │   ├── environment-config.md
 │   │   ├── monitoring.md
@@ -1447,7 +1452,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── dev-docs-pattern.md
 │   │   ├── development.md
 │   │   ├── git-workflow.md
-│   │   └── paradigms.md
+│   │   ├── paradigms.md
+│   │   └── senior_mindset.md
 │   ├── knowledge.md
 │   ├── knowledge.sh
 │   ├── plans
@@ -1461,7 +1467,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── .env.example
 │   ├── .env.local.exemple
 │   └── .env.prod.example
-├── FreelanSign.code-workspace
 ├── frontend
 │   ├── .dockerignore
 │   ├── .env
@@ -1469,8 +1474,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── .eslintrc.cjs
 │   ├── .gitignore
 │   ├── CLAUDE.md
-│   ├── components.json
 │   ├── Dockerfile
+│   ├── README.md
+│   ├── components.json
 │   ├── docs
 │   │   └── tests
 │   │       ├── account_header.feature.md
@@ -1488,13 +1494,12 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── default-avatar.jpeg
 │   │   │   └── logo.png
 │   │   └── vite.svg
-│   ├── README.md
 │   ├── src
+│   │   ├── App.css
 │   │   ├── app
 │   │   │   ├── providers
 │   │   │   │   └── AuthProvider.tsx
 │   │   │   └── router.tsx
-│   │   ├── App.css
 │   │   ├── application
 │   │   │   └── quote
 │   │   │       └── metricsMapper.ts
@@ -1577,32 +1582,32 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       └── userRepository.ts
 │   │   ├── interface
 │   │   │   ├── components
+│   │   │   │   ├── AppToBar.tsx
 │   │   │   │   ├── account
 │   │   │   │   │   └── AccountDataForm.tsx
-│   │   │   │   ├── AppToBar.tsx
 │   │   │   │   ├── auth
-│   │   │   │   │   ├── request-password-reset-form.module.css
 │   │   │   │   │   ├── RequestPasswordResetForm.tsx
-│   │   │   │   │   ├── reset-password-form.module.css
-│   │   │   │   │   └── ResetPasswordForm.tsx
+│   │   │   │   │   ├── ResetPasswordForm.tsx
+│   │   │   │   │   ├── request-password-reset-form.module.css
+│   │   │   │   │   └── reset-password-form.module.css
 │   │   │   │   ├── branding
 │   │   │   │   │   └── ThemesForm.tsx
 │   │   │   │   ├── client
-│   │   │   │   │   ├── client-columns.tsx
-│   │   │   │   │   ├── client-create-drawer.module.css
-│   │   │   │   │   ├── client-form-fields.module.css
 │   │   │   │   │   ├── ClientActionsCell.tsx
 │   │   │   │   │   ├── ClientCreateDrawer.tsx
 │   │   │   │   │   ├── ClientFormFields.tsx
+│   │   │   │   │   ├── client-columns.tsx
+│   │   │   │   │   ├── client-create-drawer.module.css
+│   │   │   │   │   ├── client-form-fields.module.css
 │   │   │   │   │   └── clientFormSchema.ts
 │   │   │   │   ├── common
-│   │   │   │   │   ├── card.module.css
 │   │   │   │   │   ├── Card.tsx
-│   │   │   │   │   ├── confirm-modal.module.css
 │   │   │   │   │   ├── ConfirmModal.tsx
 │   │   │   │   │   ├── DeleteConfirmDialog.tsx
 │   │   │   │   │   ├── Modal.css
-│   │   │   │   │   └── Modal.tsx
+│   │   │   │   │   ├── Modal.tsx
+│   │   │   │   │   ├── card.module.css
+│   │   │   │   │   └── confirm-modal.module.css
 │   │   │   │   ├── dashboard
 │   │   │   │   │   ├── MetricCard.tsx
 │   │   │   │   │   ├── MonthlyQuoteCountChart.tsx
@@ -1610,14 +1615,14 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── data-table
 │   │   │   │   │   └── DataTable.tsx
 │   │   │   │   ├── email
-│   │   │   │   │   ├── quote-email-preview-dialog.module.css
-│   │   │   │   │   └── QuoteEmailPreviewDialog.tsx
+│   │   │   │   │   ├── QuoteEmailPreviewDialog.tsx
+│   │   │   │   │   └── quote-email-preview-dialog.module.css
 │   │   │   │   ├── footer
-│   │   │   │   │   ├── footer.module.css
-│   │   │   │   │   └── Footer.tsx
+│   │   │   │   │   ├── Footer.tsx
+│   │   │   │   │   └── footer.module.css
 │   │   │   │   ├── login
-│   │   │   │   │   ├── login-form.module.css
-│   │   │   │   │   └── LoginForm.tsx
+│   │   │   │   │   ├── LoginForm.tsx
+│   │   │   │   │   └── login-form.module.css
 │   │   │   │   ├── navbar
 │   │   │   │   │   └── Navbar.tsx
 │   │   │   │   ├── profile
@@ -1628,13 +1633,13 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── quote
 │   │   │   │   │   ├── LatestQuotesTable.tsx
 │   │   │   │   │   ├── PdfPreviewPanel.tsx
+│   │   │   │   │   ├── QuoteActionsCell.tsx
 │   │   │   │   │   ├── quote-column-components.tsx
 │   │   │   │   │   ├── quote-utils.ts
-│   │   │   │   │   ├── QuoteActionsCell.tsx
 │   │   │   │   │   └── quotes-columns.tsx
 │   │   │   │   ├── register
-│   │   │   │   │   ├── register-form.module.css
-│   │   │   │   │   └── RegisterForm.tsx
+│   │   │   │   │   ├── RegisterForm.tsx
+│   │   │   │   │   └── register-form.module.css
 │   │   │   │   └── sidebar
 │   │   │   │       └── Sidebar.tsx
 │   │   │   ├── hooks
@@ -1657,17 +1662,16 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── ThemesEditPage.tsx
 │   │   │   │   │   └── ThemesListPage.tsx
 │   │   │   │   ├── Client
-│   │   │   │   │   ├── client-detail.module.css
-│   │   │   │   │   ├── client-edit.module.css
 │   │   │   │   │   ├── ClientDetailPage.tsx
 │   │   │   │   │   ├── ClientEditPage.tsx
-│   │   │   │   │   └── ClientsListPage.tsx
-│   │   │   │   ├── dashboard.module.css
+│   │   │   │   │   ├── ClientsListPage.tsx
+│   │   │   │   │   ├── client-detail.module.css
+│   │   │   │   │   └── client-edit.module.css
 │   │   │   │   ├── DashboardPage.tsx
 │   │   │   │   ├── Legal
-│   │   │   │   │   ├── legal-page.module.css
 │   │   │   │   │   ├── PrivacyPolicyPage.tsx
-│   │   │   │   │   └── TermsOfServicePage.tsx
+│   │   │   │   │   ├── TermsOfServicePage.tsx
+│   │   │   │   │   └── legal-page.module.css
 │   │   │   │   ├── LegalTerms
 │   │   │   │   │   └── LegalTermsPage.tsx
 │   │   │   │   ├── Login
@@ -1681,9 +1685,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── QuoteDetailPage.tsx
 │   │   │   │   │   ├── QuoteEditPage.tsx
 │   │   │   │   │   └── QuoteListPage.tsx
-│   │   │   │   └── Register
-│   │   │   │       ├── RegisterPage.module.css
-│   │   │   │       └── RegisterPage.tsx
+│   │   │   │   ├── Register
+│   │   │   │   │   ├── RegisterPage.module.css
+│   │   │   │   │   └── RegisterPage.tsx
+│   │   │   │   └── dashboard.module.css
 │   │   │   └── utils
 │   │   │       ├── branding.ts
 │   │   │       └── saveFile.ts
@@ -1716,16 +1721,13 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── tsconfig.test.json
 │   ├── vite.config.ts
 │   └── vitest.config.ts
-├── LICENSE
 ├── logo.png
 ├── logrotate.conf
 ├── logs
 │   └── app.log
-├── Makefile
 ├── package.json
 ├── pnpm-lock.yaml
 ├── postgres.conf
-├── README.md
 ├── release.md
 ├── scripts
 │   ├── backup.sh
@@ -1735,7 +1737,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── precommit.sh
 │   └── restore.sh
 ├── sonar-project.properties
-├── SPECIFICATIONS_RGPD.md
 └── typings
     └── rest_framework
         ├── __init__.pyi
@@ -1744,7 +1745,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-316 directories, 972 files
+316 directories, 973 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1819,5 +1820,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-01-13 21:25:52 CET**
+_Updated_: **2026-01-13 22:01:08 CET**
 <!-- END AUTO: LAST_UPDATED -->
