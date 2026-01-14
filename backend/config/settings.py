@@ -353,13 +353,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-# --------------------------------------------------------------------------------------
-# Supabase Storage (Avatar uploads)
-# --------------------------------------------------------------------------------------
-SUPABASE_URL = env("SUPABASE_URL", default=None)
-SUPABASE_SERVICE_KEY = env("SUPABASE_SERVICE_KEY", default=None)
-SUPABASE_STORAGE_BUCKET = env("SUPABASE_STORAGE_BUCKET", default="avatars")
-
 LOG_DIR = BASE_DIR / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
@@ -409,25 +402,25 @@ LOGGING = {
 # --------------------------------------------------------------------------------------
 # Sentry (Error Tracking)
 # --------------------------------------------------------------------------------------
-SENTRY_DSN = env("SENTRY_DSN", default=None)
+# SENTRY_DSN = env("SENTRY_DSN", default=None)
 
 
-def init_sentry():
-    if SENTRY_DSN and SENTRY_DSN.startswith("http"):
-        import sentry_sdk
-        from sentry_sdk.integrations.django import DjangoIntegration
+# def init_sentry():
+#     if SENTRY_DSN and SENTRY_DSN.startswith("http"):
+#         import sentry_sdk
+#         from sentry_sdk.integrations.django import DjangoIntegration
 
-        sentry_sdk.init(
-            dsn=SENTRY_DSN,
-            environment=env("SENTRY_ENVIRONMENT", default="production"),
-            traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.1),
-            integrations=[DjangoIntegration()],
-            send_default_pii=False,
-        )
+#         sentry_sdk.init(
+#             dsn=SENTRY_DSN,
+#             environment=env("SENTRY_ENVIRONMENT", default="production"),
+#             traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.1),
+#             integrations=[DjangoIntegration()],
+#             send_default_pii=False,
+#         )
 
 
-# Initialize Sentry only if we are not in the middle of a settings setup that could cause circularity.
-# In Django, it's safer to initialize Sentry in wsgi.py or asgi.py, or at the end of settings
-# but wrapped to avoid immediate execution during some import phases.
-if SENTRY_DSN:
-    init_sentry()
+# # Initialize Sentry only if we are not in the middle of a settings setup that could cause circularity.
+# # In Django, it's safer to initialize Sentry in wsgi.py or asgi.py, or at the end of settings
+# # but wrapped to avoid immediate execution during some import phases.
+# if SENTRY_DSN:
+#     init_sentry()
