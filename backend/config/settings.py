@@ -353,6 +353,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
+# --------------------------------------------------------------------------------------
+# Supabase Storage (Avatar uploads)
+# --------------------------------------------------------------------------------------
+SUPABASE_URL = env("SUPABASE_URL", default=None)
+SUPABASE_SERVICE_KEY = env("SUPABASE_SERVICE_KEY", default=None)
+SUPABASE_STORAGE_BUCKET = env("SUPABASE_STORAGE_BUCKET", default="avatars")
+
 LOG_DIR = BASE_DIR / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()

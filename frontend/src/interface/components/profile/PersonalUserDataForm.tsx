@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import AvatarUpload from './AvatarUpload';
 
 export const PersonalUserSchema = z.object({
   first_name: z.string().optional().nullable(),
@@ -158,12 +159,11 @@ export default function PersonalUserDataForm({
           name="avatar_url"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Avatar (URL)</FormLabel>
+              <FormLabel>Avatar</FormLabel>
               <FormControl>
-                <Input
-                  {...field}
-                  value={field.value ?? ''}
-                  placeholder="https://votre-image.com/avatar.jpg"
+                <AvatarUpload
+                  currentAvatarUrl={field.value}
+                  onUploadSuccess={(newUrl) => field.onChange(newUrl)}
                 />
               </FormControl>
               <FormMessage />
