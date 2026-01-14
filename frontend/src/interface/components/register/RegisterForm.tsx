@@ -15,10 +15,6 @@ const schema = z.object({
   profile: z.object({
     first_name: z.string().min(1, 'Prénom requis'),
     last_name: z.string().min(1, 'Nom requis'),
-    birthday: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date invalide (YYYY-MM-DD)')
-      .optional(),
     phone: z.string().optional(),
     avatar_url: z
       .string()
@@ -178,27 +174,6 @@ export default function RegisterForm() {
           {errors.profile?.last_name && (
             <small id="last-name-error" className={styles.error}>
               {errors.profile.last_name.message}
-            </small>
-          )}
-        </div>
-
-        <div className={styles.field}>
-          <label htmlFor="birthday" className={styles.label}>
-            Date de naissance
-          </label>
-          <input
-            id="birthday"
-            type="date"
-            {...register('profile.birthday')}
-            className={styles.input}
-            aria-invalid={!!errors.profile?.birthday}
-            aria-describedby={
-              errors.profile?.birthday ? 'birthday-error' : undefined
-            }
-          />
-          {errors.profile?.birthday && (
-            <small id="birthday-error" className={styles.error}>
-              {errors.profile.birthday.message}
             </small>
           )}
         </div>

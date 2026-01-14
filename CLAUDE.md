@@ -9,6 +9,8 @@
 
 ## Non-Negotiable
 
+- Read the file `docs/good-practices/senior_mindset.md` before anything.
+
 1. **Clean Architecture**: Never import Django models in domain layer
 2. **Keep it simple**: Don't add abstractions I didn't ask for. One file if possible.
 3. **Absolute imports**: Always `from apps.quote.domain import ...`
