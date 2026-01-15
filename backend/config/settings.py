@@ -405,22 +405,22 @@ LOGGING = {
 SENTRY_DSN = env("SENTRY_DSN", default=None)
 
 
-def init_sentry():
-    if SENTRY_DSN and SENTRY_DSN.startswith("http"):
-        import sentry_sdk
-        from sentry_sdk.integrations.django import DjangoIntegration
+# def init_sentry():
+#     if SENTRY_DSN and SENTRY_DSN.startswith("http"):
+#         import sentry_sdk
+#         from sentry_sdk.integrations.django import DjangoIntegration
 
-        sentry_sdk.init(
-            dsn=SENTRY_DSN,
-            environment=env("SENTRY_ENVIRONMENT", default="production"),
-            traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.1),
-            integrations=[DjangoIntegration()],
-            send_default_pii=False,
-        )
+#         sentry_sdk.init(
+#             dsn=SENTRY_DSN,
+#             environment=env("SENTRY_ENVIRONMENT", default="production"),
+#             traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.1),
+#             integrations=[DjangoIntegration()],
+#             send_default_pii=False,
+#         )
 
 
-# Initialize Sentry only if we are not in the middle of a settings setup that could cause circularity.
-# In Django, it's safer to initialize Sentry in wsgi.py or asgi.py, or at the end of settings
-# but wrapped to avoid immediate execution during some import phases.
-if SENTRY_DSN:
-    init_sentry()
+# # Initialize Sentry only if we are not in the middle of a settings setup that could cause circularity.
+# # In Django, it's safer to initialize Sentry in wsgi.py or asgi.py, or at the end of settings
+# # but wrapped to avoid immediate execution during some import phases.
+# if SENTRY_DSN:
+#     init_sentry()
