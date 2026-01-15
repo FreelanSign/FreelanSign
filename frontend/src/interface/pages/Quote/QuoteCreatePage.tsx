@@ -153,6 +153,17 @@ function isAxiosLikeError(
   );
 }
 
+const FIELD_LABELS: Record<string, string> = {
+  client: 'Client',
+  title: 'Titre du devis',
+  issue_date: "Date d'émission",
+  valid_until: "Valable jusqu'au",
+  items: 'Prestations',
+  payment_terms_text: 'Conditions de paiement',
+  currency: 'Devise',
+  language: 'Langue',
+};
+
 /* ---------- component ---------- */
 export default function QuoteCreatePage() {
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -463,6 +474,26 @@ export default function QuoteCreatePage() {
   };
 
   const onSubmit: SubmitHandler<FormData> = async (values) => {
+    if (!values.items || values.items.length === 0) {
+      setServerError('Le devis doit contenir au moins une prestation.');
+      return;
+    }
+
+    // Vérification : au moins une prestation doit être modifiée (pas juste la prestation par défaut à 0€)
+    const hasModifiedItem = values.items.some(
+      (it) =>
+        it.unit_price > 0 ||
+        it.description !== 'Nouvelle prestation' ||
+        it.prestation_id,
+    );
+
+    if (!hasModifiedItem) {
+      setServerError(
+        'Veuillez modifier au moins une prestation (nom ou prix) avant de créer le devis.',
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       const validUntil =
@@ -503,14 +534,18 @@ export default function QuoteCreatePage() {
       if (isAxiosLikeError(err) && err.response?.data) {
         const data = err.response.data as Record<string, unknown>;
         if (typeof data === 'object' && !Array.isArray(data)) {
-          Object.entries(data).forEach(([key, messages]) => {
-            if (Array.isArray(messages)) {
+          Object.entries(data).forEach(([key, value]) => {
+            const message = Array.isArray(value)
+              ? value.join(' ')
+              : String(value);
+
+            if (key === 'detail' || key === 'non_field_errors') {
+              setServerError(message);
+            } else {
               form.setError(key as FieldPath<FormData>, {
                 type: 'server',
-                message: messages.join(' '),
+                message: message,
               });
-            } else {
-              setServerError(JSON.stringify(data));
             }
           });
         } else {
@@ -630,9 +665,33 @@ export default function QuoteCreatePage() {
                     Complétez les champs ci-dessous pour créer votre devis :
                   </p>
                   <ul className="mt-2 space-y-1 text-amber-700 list-disc list-inside">
-                    {Object.entries(errors).map(([key, error]) => (
-                      <li key={key}>{String(error?.message || key)}</li>
-                    ))}
+                    {Object.entries(errors).map(([key, error]) => {
+                      const label = FIELD_LABELS[key] || key;
+                      // Pour les FieldArrays, l'erreur peut être sur 'root' ou être un message direct
+                      const errorObj = error as {
+                        message?: string;
+                        root?: { message?: string };
+                      };
+                      let message = errorObj?.message;
+
+                      // Cas spécifique de l'erreur min(1) de Zod sur un tableau
+                      if (!message && errorObj?.root?.message) {
+                        message = errorObj.root.message;
+                      }
+
+                      // Si c'est un tableau (erreurs sur les items individuels) et qu'on n'a pas de message global
+                      if (!message && key === 'items' && Array.isArray(error)) {
+                        message =
+                          'Veuillez vérifier les informations des prestations';
+                      }
+
+                      return (
+                        <li key={key}>
+                          <span className="font-semibold">{label}</span>
+                          {message ? ` : ${message}` : ''}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </>
               )}

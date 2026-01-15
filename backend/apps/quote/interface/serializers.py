@@ -260,7 +260,7 @@ def _create_items_and_compute_totals(
 # Write serializer
 # --------------------------------------------------------------------------------------
 class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
-    items = QuoteLineItemSerializer(many=True)
+    items = QuoteLineItemSerializer(many=True, allow_empty=False)
     client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all())
     client_update = serializers.DictField(required=False, write_only=True)
 
@@ -297,10 +297,24 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
         Raises:
             ValidationError: If the quote data is invalid.
         """
-        items = data.get("items", None)
+        items = data.get("items")
         if not self.partial:
-            if not items or len(items) < 1:
+            if items is None or len(items) < 1:
                 raise ValidationError({"items": "A quote must contain at least one line item."})
+
+            # Check if at least one item is non-default
+            is_empty_selection = True
+            for item in items:
+                # An item is considered "default" if it has the default description AND 0 unit price
+                # If a prestation was selected, description and price would likely have changed.
+                if Decimal(str(item.get("unit_price", 0))) > ZERO or item.get("description") != "Nouvelle prestation":
+                    is_empty_selection = False
+                    break
+
+            if is_empty_selection:
+                raise ValidationError(
+                    {"items": "Veuillez modifier au moins une prestation (nom ou prix) avant de créer le devis."}
+                )
         else:
             if items is not None and len(items) < 1:
                 raise ValidationError({"items": "When provided, 'items' must contain at least one line item."})
