@@ -14,7 +14,6 @@ import {
   Euro,
   FileText,
   List,
-  Plus,
   User,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -97,14 +96,14 @@ export default function DashboardPage() {
             <List className="mr-2 h-4 w-4" />
             Mes devis
           </Button>
-          <Button
+          {/* <Button
             size="sm"
             onClick={() => navigate('/quotes/new')}
             className="bg-brand text-white hover:bg-brand-dark h-9 px-4 shadow-sm"
           >
             <Plus className="mr-2 h-4 w-4" />
             Créer un devis
-          </Button>
+          </Button> */}
         </div>
       </div>
 

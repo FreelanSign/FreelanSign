@@ -7,6 +7,7 @@ from typing import Optional
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
@@ -17,6 +18,11 @@ from apps.core.services.audit import log_audit
 
 # Adapters
 from apps.user.adapters.persistence.django_user_repository import DjangoUserRepository
+from apps.user.adapters.storage.supabase_storage import (
+    SupabaseStorageAdapter,
+    SupabaseStorageError,
+    get_storage_adapter,
+)
 
 # DTOs / VMs
 from apps.user.application.dto.user_viewmodels import (
@@ -100,12 +106,22 @@ def _user_vm_from_model(u) -> UserViewModel:
         responses={200: OpenApiResponse(description="User data exported successfully")},
         tags=["Users"],
     ),
+    upload_avatar=extend_schema(
+        summary="Upload avatar image",
+        description="Upload avatar image to Supabase Storage. Max 2MB. Accepted: jpeg, png, webp, gif.",
+        responses={
+            200: OpenApiResponse(description="Avatar uploaded successfully"),
+            400: OpenApiResponse(description="Invalid file or upload error"),
+        },
+        tags=["Users"],
+    ),
 )
 class UserViewSet(viewsets.ViewSet):
     """
     HTTP <-> Use cases boundary for Users.
     """
 
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
     user_repo = DjangoUserRepository()
 
     def get_permissions(self):
@@ -301,3 +317,61 @@ class UserViewSet(viewsets.ViewSet):
 
         logger.info("export_data succeeded for user_id=%s", request.user.id)
         return Response(data, status=status.HTTP_200_OK)
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="me/avatar",
+        permission_classes=[IsAuthenticated],
+        parser_classes=[MultiPartParser, FormParser],
+    )
+    def upload_avatar(self, request):
+        """
+        Upload avatar image to Supabase Storage.
+
+        Expects multipart/form-data with 'file' field.
+        Max size: 2MB. Accepted types: jpeg, png, webp, gif.
+        """
+        logger.info("upload_avatar called", extra={"user_id": request.user.id})
+
+        file = request.FILES.get("file")
+        if not file:
+            return Response(
+                {"error": "No file provided"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        content_type = file.content_type
+        filename = file.name
+
+        try:
+            storage = get_storage_adapter()
+            public_url = storage.upload_avatar(
+                user_id=request.user.id,
+                file=file,
+                content_type=content_type,
+                filename=filename,
+            )
+        except SupabaseStorageError as e:
+            logger.warning(
+                "upload_avatar failed for user_id=%s: %s",
+                request.user.id,
+                str(e),
+            )
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Update profile with new avatar URL
+        user = self.user_repo.get_by_id(request.user.id)
+        if hasattr(user, "profile") and user.profile:
+            user.profile.avatar_url = public_url
+            user.profile.save(update_fields=["avatar_url", "updated_at"])
+
+        logger.info(
+            "upload_avatar succeeded for user_id=%s: %s",
+            request.user.id,
+            public_url,
+        )
+        return Response({"avatar_url": public_url}, status=status.HTTP_200_OK)

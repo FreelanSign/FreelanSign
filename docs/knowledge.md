@@ -1013,6 +1013,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── providers
 │   │       │   │   ├── logging_token_sender.py
 │   │       │   │   └── smtp_token_provider.py
+│   │       │   ├── storage
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── supabase_storage.py
 │   │       │   └── system_clock.py
 │   │       ├── admin.py
 │   │       ├── application
@@ -1547,6 +1550,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── types.ts
 │   │   │   ├── types.ts
 │   │   │   └── user
+│   │   │       ├── api.ts
 │   │   │       └── types.ts
 │   │   ├── infrastructure
 │   │   │   ├── account
@@ -1622,6 +1626,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── navbar
 │   │   │   │   │   └── Navbar.tsx
 │   │   │   │   ├── profile
+│   │   │   │   │   ├── AvatarUpload.tsx
 │   │   │   │   │   ├── PersonalUserDataForm.tsx
 │   │   │   │   │   ├── PrestationSelector.tsx
 │   │   │   │   │   ├── ProfessionalInfoForm.tsx
@@ -1745,7 +1750,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-316 directories, 973 files
+317 directories, 977 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1820,5 +1825,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-01-14 14:45:00 CET**
+_Updated_: **2026-01-14 16:35:34 CET**
 <!-- END AUTO: LAST_UPDATED -->

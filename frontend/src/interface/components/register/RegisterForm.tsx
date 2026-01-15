@@ -1,7 +1,7 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../../../app/providers/AuthProvider';
 import styles from './register-form.module.css';
 
@@ -9,10 +9,6 @@ const schema = z.object({
   email: z.string().email('Email invalide'),
   password: z.string().min(6, '6 caractères minimum'),
   full_name: z.string().optional(),
-  phone: z
-    .string()
-    .optional()
-    .refine((v) => !v || v.length >= 6, 'Numéro trop court'),
   profile: z.object({
     first_name: z.string().min(1, 'Prénom requis'),
     last_name: z.string().min(1, 'Nom requis'),
@@ -114,27 +110,6 @@ export default function RegisterForm() {
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="phone" className={styles.label}>
-            Téléphone (optionnel)
-          </label>
-          <input
-            id="phone"
-            type="tel"
-            autoComplete="tel"
-            {...register('phone')}
-            className={styles.input}
-            aria-invalid={!!errors.phone}
-            aria-describedby={errors.phone ? 'phone-error' : undefined}
-            placeholder="+33 6 12 34 56 78"
-          />
-          {errors.phone && (
-            <small id="phone-error" className={styles.error}>
-              {errors.phone.message}
-            </small>
-          )}
-        </div>
-
-        <div className={styles.field}>
           <label htmlFor="first_name" className={styles.label}>
             Prénom
           </label>
@@ -182,7 +157,7 @@ export default function RegisterForm() {
 
         <div className={styles.field}>
           <label htmlFor="profile_phone" className={styles.label}>
-            Téléphone (profil)
+            Téléphone
           </label>
           <input
             id="profile_phone"
@@ -201,32 +176,6 @@ export default function RegisterForm() {
               {errors.profile.phone.message}
             </small>
           )}
-        </div>
-
-        <div className={styles.field}>
-          <label htmlFor="avatar_url" className={styles.label}>
-            Avatar URL
-          </label>
-          <input
-            id="avatar_url"
-            type="url"
-            inputMode="url"
-            placeholder="https://…"
-            {...register('profile.avatar_url')}
-            className={styles.input}
-            aria-invalid={!!errors.profile?.avatar_url}
-            aria-describedby={
-              errors.profile?.avatar_url ? 'avatar-error' : undefined
-            }
-          />
-          {errors.profile?.avatar_url && (
-            <small id="avatar-error" className={styles.error}>
-              {errors.profile.avatar_url.message}
-            </small>
-          )}
-          <p className={styles.help}>
-            Tu pourras importer un fichier plus tard (upload côté app).
-          </p>
         </div>
       </div>
 

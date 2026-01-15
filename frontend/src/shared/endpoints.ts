@@ -18,6 +18,7 @@ export const API_ENDPOINTS = {
   // Si absent, tu peux l'ignorer et te baser sur le token.
   me: '/api/user/me/',
   meProfile: '/api/user/me/profile/',
+  meAvatar: '/api/user/me/avatar/',
   exportData: '/api/user/export-data/',
   accounts: '/api/user/accounts/',
   account: (id: string) => `/api/user/accounts/${id}/`,
