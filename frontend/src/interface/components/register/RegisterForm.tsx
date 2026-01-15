@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useAuth } from '../../../app/providers/AuthProvider';
 import styles from './register-form.module.css';
@@ -11,10 +12,6 @@ const schema = z.object({
   profile: z.object({
     first_name: z.string().min(1, 'Prénom requis'),
     last_name: z.string().min(1, 'Nom requis'),
-    birthday: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date invalide (YYYY-MM-DD)')
-      .optional(),
     phone: z.string().optional(),
     avatar_url: z
       .string()
@@ -28,6 +25,7 @@ type FormData = z.infer<typeof schema>;
 
 export default function RegisterForm() {
   const { register: registerUser } = useAuth();
+  const navigate = useNavigate();
 
   const {
     register,
@@ -158,27 +156,6 @@ export default function RegisterForm() {
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="birthday" className={styles.label}>
-            Date de naissance
-          </label>
-          <input
-            id="birthday"
-            type="date"
-            {...register('profile.birthday')}
-            className={styles.input}
-            aria-invalid={!!errors.profile?.birthday}
-            aria-describedby={
-              errors.profile?.birthday ? 'birthday-error' : undefined
-            }
-          />
-          {errors.profile?.birthday && (
-            <small id="birthday-error" className={styles.error}>
-              {errors.profile.birthday.message}
-            </small>
-          )}
-        </div>
-
-        <div className={styles.field}>
           <label htmlFor="profile_phone" className={styles.label}>
             Téléphone
           </label>
@@ -206,7 +183,12 @@ export default function RegisterForm() {
         <button type="submit" disabled={isSubmitting} className={styles.submit}>
           {isSubmitting ? 'Création…' : "S'inscrire"}
         </button>
-        <button type="button" disabled={isSubmitting} className={styles.ghost}>
+        <button
+          type="button"
+          disabled={isSubmitting}
+          className={styles.ghost}
+          onClick={() => navigate('/login')}
+        >
           Annuler
         </button>
       </footer>

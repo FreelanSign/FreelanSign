@@ -25,16 +25,24 @@ export default function RegisterPage() {
       </Helmet>
       <Navbar />
       <main className={styles.registerPage} data-component="RegisterPage">
+        <div className={styles.heroSection}>
+          <h2 className={styles.heroTitle}>
+            Vos <span className="text-accent-orange">devis professionnels</span>{' '}
+            en quelques <span className="text-brand">minutes</span>.
+          </h2>
+          <p className={styles.heroSubtitle}>
+            FreelanSign simplifie votre administratif : créez, personnalisez et
+            envoyez vos devis conformes à la réglementation française.
+          </p>
+        </div>
+
         <section className={styles.card} aria-labelledby="register-title">
           <h1 id="register-title" className={styles.title}>
             Créer un compte
           </h1>
-
-          {/* (Optionnel) Sous-titre d'accroche */}
           <p className={styles.subtitle}>
             Rejoignez FreelanSign et gagnez du temps sur vos devis & factures.
           </p>
-
           <RegisterForm />
 
           <p className={styles.cta}>

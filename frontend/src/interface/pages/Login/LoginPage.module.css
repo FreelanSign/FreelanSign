@@ -5,10 +5,28 @@
 
 /* Wrapper pleine hauteur, centré, fond blanc épuré */
 .loginPage {
-  @apply min-h-screen flex items-center justify-center px-6 py-10;
+  @apply min-h-screen flex flex-col items-center justify-center px-6 py-10;
   background: #ffffff;
   transition: background 200ms ease;
   box-sizing: border-box;
+}
+
+/* Hero section marketing */
+.heroSection {
+  @apply text-center mb-8;
+  max-width: 600px;
+}
+
+.heroTitle {
+  @apply text-3xl md:text-4xl font-semibold leading-tight mb-4;
+  font-family: 'Playfair Display', serif;
+  color: var(--dark, #1a1a1a);
+}
+
+.heroSubtitle {
+  @apply text-base text-gray-600 leading-relaxed;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
 /* Carte plus étroite, toujours centrée */

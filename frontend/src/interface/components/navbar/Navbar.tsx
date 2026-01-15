@@ -9,11 +9,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Bell, FilePlus, LogOut, Settings, User } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAuthPage = ['/login', '/register'].includes(location.pathname);
 
   const handleLogout = async () => {
     try {
@@ -31,16 +33,18 @@ export default function Navbar() {
       aria-label="Barre de navigation FreelanSign"
     >
       <div className="flex h-16 items-center justify-end px-4 sm:px-6 lg:px-8 gap-4">
-        {/* Quick actions or Notifications could go here */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-gray-400 hover:text-brand transition-colors"
-        >
-          <Bell className="h-5 w-5" />
-        </Button>
-
-        <div className="h-6 w-px bg-gray-100 mx-2" />
+        {!isAuthPage && (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-gray-400 hover:text-brand transition-colors"
+            >
+              <Bell className="h-5 w-5" />
+            </Button>
+            <div className="h-6 w-px bg-gray-100 mx-2" />
+          </>
+        )}
 
         <div className="flex items-center gap-4">
           {user ? (
@@ -142,22 +146,26 @@ export default function Navbar() {
             </>
           ) : (
             <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                asChild
-                className="text-gray-600 hover:text-brand rounded-xl"
-              >
-                <Link to="/login">Connexion</Link>
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                asChild
-                className="bg-brand hover:bg-brand-dark shadow-lg shadow-brand/20 rounded-xl"
-              >
-                <Link to="/register">Essai gratuit</Link>
-              </Button>
+              {location.pathname !== '/login' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="text-gray-600 hover:text-brand rounded-xl"
+                >
+                  <Link to="/login">Connexion</Link>
+                </Button>
+              )}
+              {location.pathname !== '/register' && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  asChild
+                  className="bg-brand hover:bg-brand-dark shadow-lg shadow-brand/20 rounded-xl"
+                >
+                  <Link to="/register">Essai gratuit</Link>
+                </Button>
+              )}
             </div>
           )}
         </div>

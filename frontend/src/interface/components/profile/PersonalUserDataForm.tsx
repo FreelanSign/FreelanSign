@@ -20,7 +20,6 @@ export const PersonalUserSchema = z.object({
   first_name: z.string().optional().nullable(),
   last_name: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
-  birthday: z.string().optional().nullable(), // YYYY-MM-DD
   avatar_url: z.string().url().optional().nullable(),
 });
 
@@ -49,7 +48,6 @@ export default function PersonalUserDataForm({
       first_name: initialValues.first_name ?? null,
       last_name: initialValues.last_name ?? null,
       phone: initialValues.phone ?? null,
-      birthday: initialValues.birthday ?? null,
       avatar_url: initialValues.avatar_url ?? null,
     },
   });
@@ -120,39 +118,23 @@ export default function PersonalUserDataForm({
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            control={control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Téléphone</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ''}
-                    placeholder="Ex: 06 12 34 56 78"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="birthday"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Date de naissance</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} value={field.value ?? ''} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Téléphone</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ''}
+                  placeholder="Ex: 06 12 34 56 78"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={control}

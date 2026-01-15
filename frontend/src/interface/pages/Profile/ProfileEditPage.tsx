@@ -205,7 +205,6 @@ export default function ProfileEditPage() {
     first_name: p.first_name && p.first_name !== '' ? p.first_name : null,
     last_name: p.last_name && p.last_name !== '' ? p.last_name : null,
     phone: p.phone && p.phone !== '' ? p.phone : null,
-    birthday: p.birthday && p.birthday !== '' ? p.birthday : null,
     avatar_url: p.avatar_url && p.avatar_url !== '' ? p.avatar_url : null,
   });
 
