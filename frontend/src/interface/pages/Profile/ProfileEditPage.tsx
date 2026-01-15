@@ -320,12 +320,40 @@ export default function ProfileEditPage() {
       setTimeout(() => {
         navigate('/profile', { replace: true });
       }, 500);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Save all failed', err);
-      toast.error(
-        'Erreur lors de la sauvegarde: ' +
-          (err instanceof Error ? err.message : String(err)),
-      );
+      let errorMessage = 'Erreur lors de la sauvegarde';
+
+      const errorObj = err as {
+        response?: { data?: unknown };
+        message?: string;
+      };
+
+      // AIDEV-NOTE: Parsing backend specific validation errors (e.g. "Identifiant légal invalide")
+      // Currently backend returns simple string arrays or objects with field keys
+      if (errorObj.response?.data) {
+        const data = errorObj.response.data;
+        if (Array.isArray(data)) {
+          errorMessage = data.join(', ');
+        } else if (typeof data === 'object') {
+          // Handle cases like {"legal_id": ["Invalid..."]} or {"detail": "..."}
+          const parts: string[] = [];
+          Object.entries(data).forEach(([key, val]) => {
+            if (key === 'detail' && typeof val === 'string') {
+              parts.push(val);
+            } else if (Array.isArray(val)) {
+              parts.push(`${val.join(', ')}`);
+            } else {
+              parts.push(String(val));
+            }
+          });
+          if (parts.length > 0) errorMessage = parts.join('\n');
+        }
+      } else if (errorObj.message) {
+        errorMessage = errorObj.message;
+      }
+
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
