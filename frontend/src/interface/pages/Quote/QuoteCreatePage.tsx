@@ -33,7 +33,17 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Briefcase,
+  ChevronLeft,
+  Eye,
+  FileText,
+  List,
+  PlusCircle,
+  Trash2,
+  User,
+} from 'lucide-react';
 import type { AccountDto } from '../../../domain/account/types';
 import type { PrestationDto } from '../../../domain/catalog/types';
 import type { ClientDto } from '../../../domain/client/types';
@@ -520,45 +530,76 @@ export default function QuoteCreatePage() {
 
   if (clients === 'loading' || prestations === 'loading') {
     return (
-      <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="h-32 bg-muted/50 rounded-lg animate-pulse" />
-        <div className="h-96 bg-muted/50 rounded-lg animate-pulse" />
+      <div className="container mx-auto py-8 px-4 max-w-7xl space-y-8">
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid gap-6">
+          <Skeleton className="h-48 w-full rounded-xl" />
+          <Skeleton className="h-96 w-full rounded-xl" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-      {/* Header gradient avec actions */}
-      <header className="flex flex-col sm:flex-row items-start justify-between gap-4 p-6 rounded-lg bg-[#e86c1d] from-brand to-accent-orange text-white shadow-lg">
-        <div>
-          <h1 className="text-2xl font-bold">Créer un nouveau devis</h1>
-          <p className="text-sm opacity-95 mt-1">
-            Remplissez les informations ci-dessous pour générer un devis.
+    <div className="container mx-auto py-8 px-4 space-y-8 max-w-7xl animate-in fade-in duration-500">
+      {/* Header Row */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border/60">
+        <div className="space-y-1">
+          <Link
+            to="/dashboard"
+            className="flex items-center text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-brand transition-colors mb-2 group"
+          >
+            <ChevronLeft className="mr-1 h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
+            Retour au tableau de bord
+          </Link>
+          <h1 className="text-3xl font-bold tracking-tight font-playfair">
+            Créer un nouveau devis
+          </h1>
+          <p className="text-muted-foreground">
+            Remplissez les informations ci-dessous pour générer un nouveau devis
+            professionnel.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button asChild variant="cancel" className="">
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-9 px-4 font-bold text-xs uppercase tracking-wider"
+            onClick={() => setPreviewOpen(true)}
+          >
+            <Eye className="mr-2 h-4 w-4" />
+            Aperçu
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-9 px-4 font-bold text-xs uppercase tracking-wider"
+            asChild
+          >
             <Link to="/dashboard">Annuler</Link>
           </Button>
           <Button
             type="button"
-            variant="preview"
-            onClick={() => setPreviewOpen(true)}
-          >
-            Aperçu
-          </Button>
-          <Button
-            type="button"
-            className=""
-            variant="create"
+            className="h-9 px-6 bg-brand text-white hover:bg-brand-dark shadow-sm font-bold text-xs uppercase tracking-wider"
             onClick={handleSubmit(onSubmit)}
             disabled={isSubmitting || loading}
           >
-            {isSubmitting || loading ? 'Création…' : 'Créer le devis'}
+            {isSubmitting || loading ? (
+              'Création…'
+            ) : (
+              <>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Créer le devis
+              </>
+            )}
           </Button>
         </div>
-      </header>
+      </div>
 
       {/* Erreurs globales */}
       {(Object.keys(errors).length > 0 || serverError) && (
@@ -603,10 +644,22 @@ export default function QuoteCreatePage() {
       <Form {...form}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Bloc Client */}
-          <Card className="shadow-sm border border-border">
-            <CardHeader className="pb-3">
+          <Card className="shadow-none border border-border bg-white">
+            <CardHeader className="border-b border-border/50 bg-muted/20 pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold">Client</CardTitle>
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-md bg-brand/10 text-brand">
+                    <User size={18} />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-semibold">
+                      Client
+                    </CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                      Sélectionnez le destinataire du devis
+                    </p>
+                  </div>
+                </div>
                 <Button
                   type="button"
                   className="btn-add-client hover:btn-add-client-hover h-8 text-xs px-3 flex items-center gap-2"
@@ -655,9 +708,21 @@ export default function QuoteCreatePage() {
           </Card>
 
           {/* Bloc Devis */}
-          <Card className="shadow-sm border border-border">
-            <CardHeader>
-              <CardTitle>Informations du devis</CardTitle>
+          <Card className="shadow-none border border-border bg-white">
+            <CardHeader className="border-b border-border/50 bg-muted/20">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-md bg-brand/10 text-brand">
+                  <FileText size={18} />
+                </div>
+                <div>
+                  <CardTitle className="text-lg font-semibold">
+                    Informations du devis
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Détails généraux et dates clés
+                  </p>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="grid md:grid-cols-2 gap-4">
               <FormField
@@ -753,34 +818,45 @@ export default function QuoteCreatePage() {
           </Card>
 
           {/* Bloc Prestations */}
-          <Card className="shadow-sm border border-border">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold">
-                  Prestations
-                </CardTitle>
-                <Button
-                  type="button"
-                  className="btn-add-item"
-                  onClick={() =>
-                    append({
-                      description: 'Nouvelle prestation',
-                      qty: 1,
-                      unit_price: 0.0,
-                      tax_rate: 20.0,
-                      discount: 0.0,
-                    })
-                  }
-                >
-                  <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
-                  Ajouter
-                </Button>
+          <Card className="shadow-none border border-border bg-white overflow-hidden">
+            <CardHeader className="border-b border-border/50 bg-muted/20 flex flex-row items-center justify-between py-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-md bg-brand/10 text-brand">
+                  <List size={18} />
+                </div>
+                <div>
+                  <CardTitle className="text-lg font-semibold leading-none">
+                    Prestations
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Détaillez les services ou produits proposés
+                  </p>
+                </div>
               </div>
+              <Button
+                type="button"
+                className="bg-brand text-white hover:bg-brand-dark h-8 text-xs font-bold"
+                onClick={() =>
+                  append({
+                    description: 'Nouvelle prestation',
+                    qty: 1,
+                    unit_price: 0.0,
+                    tax_rate: 20.0,
+                    discount: 0.0,
+                  })
+                }
+              >
+                <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
+                Ajouter
+              </Button>
             </CardHeader>
             <CardContent className="space-y-3">
               {fields.length === 0 ? (
-                <div className="text-center text-muted-foreground py-8">
-                  Aucune prestation
+                <div className="text-center py-12">
+                  <Briefcase className="mx-auto h-12 w-12 text-muted-foreground/20 mb-4" />
+                  <p className="text-muted-foreground text-sm font-medium">
+                    Votre devis ne contient aucune ligne de prestation.
+                  </p>
                 </div>
               ) : (
                 <>
@@ -1053,16 +1129,27 @@ export default function QuoteCreatePage() {
           </Card>
 
           {/* Actions bas de page */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-3 pt-6 border-t border-border/60">
+            <Button
+              asChild
+              variant="ghost"
+              className="font-bold text-xs uppercase tracking-wider h-10 px-6"
+            >
+              <Link to="/dashboard">Annuler</Link>
+            </Button>
             <Button
               type="submit"
-              className="bg-brand text-brand-foreground hover:bg-brand/90"
+              className="bg-brand text-white hover:bg-brand-dark shadow-md font-bold text-xs uppercase tracking-wider h-10 px-8"
               disabled={isSubmitting || loading}
             >
-              {isSubmitting || loading ? 'Création…' : 'Créer le devis'}
-            </Button>
-            <Button asChild variant="outline">
-              <Link to="/dashboard">Annuler</Link>
+              {isSubmitting || loading ? (
+                'Création…'
+              ) : (
+                <>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Créer le devis
+                </>
+              )}
             </Button>
           </div>
         </form>

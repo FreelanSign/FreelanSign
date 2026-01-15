@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../../../app/providers/AuthProvider';
@@ -28,6 +29,7 @@ type FormData = z.infer<typeof schema>;
 
 export default function RegisterForm() {
   const { register: registerUser } = useAuth();
+  const navigate = useNavigate();
 
   const {
     register,
@@ -232,7 +234,12 @@ export default function RegisterForm() {
         <button type="submit" disabled={isSubmitting} className={styles.submit}>
           {isSubmitting ? 'Création…' : "S'inscrire"}
         </button>
-        <button type="button" disabled={isSubmitting} className={styles.ghost}>
+        <button
+          type="button"
+          disabled={isSubmitting}
+          className={styles.ghost}
+          onClick={() => navigate('/login')}
+        >
           Annuler
         </button>
       </footer>
