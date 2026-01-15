@@ -402,7 +402,7 @@ LOGGING = {
 # --------------------------------------------------------------------------------------
 # Sentry (Error Tracking)
 # --------------------------------------------------------------------------------------
-SENTRY_DSN = env("SENTRY_DSN", default=None)
+# SENTRY_DSN = env("SENTRY_DSN", default=None)
 
 
 # def init_sentry():
