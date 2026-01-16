@@ -86,6 +86,7 @@ class CreateAccount:
             legal_id=input_dto.legal_id,
             domain_id=input_dto.domain_id,
             default_rate_cents=input_dto.default_rate_cents,
+            professional_headline=input_dto.professional_headline,
             service_type_ids=input_dto.service_type_ids or [],
             is_active=True,
             created_at=now,
@@ -112,6 +113,7 @@ class CreateAccount:
             legal_id=account.legal_id,
             domain_id=account.domain_id,
             default_rate_cents=account.default_rate_cents,
+            professional_headline=account.professional_headline,
             service_type_ids=account.service_type_ids,
             is_active=True,  # New accounts are active by default
             created_at=account.created_at,

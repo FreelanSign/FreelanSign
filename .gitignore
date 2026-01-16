@@ -1,5 +1,9 @@
 environment/
 
+# Perso
+docs/perso
+backend/docs
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -232,7 +236,3 @@ backend/logs/
 .DS_Store
 backend/.DS_Store
 backend/tools/.DS_Store
-
-
-# Perso
-docs/perso

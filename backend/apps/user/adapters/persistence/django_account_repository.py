@@ -30,6 +30,7 @@ class DjangoAccountRepository:
             legal_id=account.legal_id,
             domain_id=account.domain_id,
             default_rate_cents=account.default_rate_cents,
+            professional_headline=account.professional_headline,
             is_active=account.is_active,
             created_at=account.created_at,
             updated_at=account.updated_at,
@@ -64,6 +65,7 @@ class DjangoAccountRepository:
         model.legal_id = account.legal_id
         model.domain_id = account.domain_id
         model.default_rate_cents = account.default_rate_cents
+        model.professional_headline = account.professional_headline
         model.is_active = account.is_active
         model.updated_at = account.updated_at
         model.save()
@@ -119,6 +121,7 @@ class DjangoAccountRepository:
             legal_id=model.legal_id,
             domain_id=model.domain_id,
             default_rate_cents=model.default_rate_cents,
+            professional_headline=model.professional_headline,
             service_type_ids=list(model.service_types.values_list("id", flat=True)),
             is_active=model.is_active,
             created_at=model.created_at,

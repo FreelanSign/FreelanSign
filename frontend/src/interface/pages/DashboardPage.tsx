@@ -20,7 +20,9 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../app/providers/AuthProvider';
 import { mapMetricsToUi } from '../../application/quote/metricsMapper';
+import type { AccountDto } from '../../domain/account/types';
 import type { QuoteMetricsUi } from '../../domain/quote/metricsTypes';
+import { accountRepository } from '../../infrastructure/account/accountRepository';
 import { useAccountStore } from '../../infrastructure/account/accountStore';
 import { quoteRepository } from '../../infrastructure/quote/quoteRepository';
 import { MetricCard } from '../components/dashboard/MetricCard';
@@ -35,6 +37,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [account, setAccount] = useState<AccountDto | null>(null);
+
   useEffect(() => {
     let active = true;
     (async () => {
@@ -45,12 +49,16 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
       try {
-        const data = await quoteRepository.getMetrics();
+        const [metricsData, accountData] = await Promise.all([
+          quoteRepository.getMetrics(),
+          accountRepository.retrieve(activeAccountId),
+        ]);
         if (!active) return;
-        setMetrics(mapMetricsToUi(data));
+        setMetrics(mapMetricsToUi(metricsData));
+        setAccount(accountData);
       } catch (err) {
-        console.error('Load metrics error', err);
-        setError('Erreur de chargement des métriques');
+        console.error('Load dashboard data error', err);
+        setError('Erreur de chargement des données');
       } finally {
         if (active) setLoading(false);
       }
@@ -106,6 +114,40 @@ export default function DashboardPage() {
           </Button> */}
         </div>
       </div>
+
+      {/* Alert missing SIRET */}
+      {account && !account.legal_id && !loading && (
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded shadow-sm">
+          <div className="flex">
+            <div className="shrink-0">
+              <svg
+                className="h-5 w-5 text-amber-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-amber-700">
+                Votre profil est incomplet.{' '}
+                <span className="font-bold">Le numéro SIRET est manquant.</span>{' '}
+                <button
+                  onClick={() => navigate('/profile/edit')}
+                  className="font-medium underline hover:text-amber-600 focus:outline-none"
+                >
+                  Complétez-le maintenant
+                </button>
+                .
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {activeAccountId === null && !loading && (
         <Card className="border-brand/20 bg-brand/5 shadow-none overflow-hidden relative">

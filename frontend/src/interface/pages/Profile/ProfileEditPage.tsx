@@ -138,6 +138,7 @@ export default function ProfileEditPage() {
             domain_id: acc?.domain_id ?? null,
             default_rate_cents: acc?.default_rate_cents ?? undefined,
             legal_id: acc?.legal_id ?? null,
+            professional_headline: acc?.professional_headline ?? null,
           });
         } else {
           setAccount(null);
@@ -170,6 +171,7 @@ export default function ProfileEditPage() {
         domain_id: values.domain_id ?? null,
         tjm_eur: values.tjm_eur ?? undefined,
         legal_id: values.legal_id ?? null,
+        professional_headline: values.professional_headline ?? null,
       }));
     },
     [],
@@ -196,6 +198,7 @@ export default function ProfileEditPage() {
     legal_form?: string | null;
     domain_id?: number | null;
     legal_id?: string | null;
+    professional_headline?: string | null;
     service_type_ids?: number[];
     default_rate_cents?: number | null;
   };
@@ -222,6 +225,7 @@ export default function ProfileEditPage() {
         domain_id: accountDraft.domain_id ?? null,
         default_rate_cents: accountDraft.default_rate_cents ?? null,
         legal_id: accountDraft.legal_id ?? null,
+        professional_headline: accountDraft.professional_headline ?? null,
       }) !==
       JSON.stringify({
         display_name: currentAcc?.display_name ?? null,
@@ -229,6 +233,7 @@ export default function ProfileEditPage() {
         domain_id: currentAcc?.domain_id ?? null,
         default_rate_cents: currentAcc?.default_rate_cents ?? null,
         legal_id: currentAcc?.legal_id ?? null,
+        professional_headline: currentAcc?.professional_headline ?? null,
       });
 
     const servicesChanged =
@@ -284,6 +289,7 @@ export default function ProfileEditPage() {
         legal_form: accountDraft.legal_form ?? null,
         domain_id: accountDraft.domain_id ?? null,
         legal_id: accountDraft.legal_id ?? null,
+        professional_headline: accountDraft.professional_headline ?? null,
         service_type_ids: selectedServiceIds ?? [],
         default_rate_cents: null,
       };
@@ -311,6 +317,7 @@ export default function ProfileEditPage() {
         domain_id: acc?.domain_id ?? null,
         default_rate_cents: acc?.default_rate_cents ?? undefined,
         legal_id: acc?.legal_id ?? null,
+        professional_headline: acc?.professional_headline ?? null,
       });
 
       // show success toast
@@ -320,12 +327,40 @@ export default function ProfileEditPage() {
       setTimeout(() => {
         navigate('/profile', { replace: true });
       }, 500);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Save all failed', err);
-      toast.error(
-        'Erreur lors de la sauvegarde: ' +
-          (err instanceof Error ? err.message : String(err)),
-      );
+      let errorMessage = 'Erreur lors de la sauvegarde';
+
+      const errorObj = err as {
+        response?: { data?: unknown };
+        message?: string;
+      };
+
+      // AIDEV-NOTE: Parsing backend specific validation errors (e.g. "Identifiant légal invalide")
+      // Currently backend returns simple string arrays or objects with field keys
+      if (errorObj.response?.data) {
+        const data = errorObj.response.data;
+        if (Array.isArray(data)) {
+          errorMessage = data.join(', ');
+        } else if (typeof data === 'object') {
+          // Handle cases like {"legal_id": ["Invalid..."]} or {"detail": "..."}
+          const parts: string[] = [];
+          Object.entries(data).forEach(([key, val]) => {
+            if (key === 'detail' && typeof val === 'string') {
+              parts.push(val);
+            } else if (Array.isArray(val)) {
+              parts.push(`${val.join(', ')}`);
+            } else {
+              parts.push(String(val));
+            }
+          });
+          if (parts.length > 0) errorMessage = parts.join('\n');
+        }
+      } else if (errorObj.message) {
+        errorMessage = errorObj.message;
+      }
+
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -448,6 +483,8 @@ export default function ProfileEditPage() {
                     domain_id: account.domain_id ?? null,
                     default_rate_cents: account.default_rate_cents ?? undefined,
                     legal_id: account.legal_id ?? null,
+                    professional_headline:
+                      account.professional_headline ?? null,
                   }}
                   areas={areas}
                   onDomainChange={handleDomainChange}

@@ -186,3 +186,40 @@ class TestUpdateAccount:
 
         assert result.display_name == "Same Name"
         repository.exists_by_name.assert_called_once_with(10, "Same Name", exclude_id=1)
+
+    def test_update_account_with_professional_headline(self):
+        """Test mise à jour du professional_headline."""
+        repository = Mock()
+        clock = Mock()
+        now = datetime(2024, 2, 1, 14, 0)
+        clock.now.return_value = now
+
+        existing = Account(
+            id=1,
+            user_id=10,
+            display_name="My Company",
+            legal_form=LegalForm.MICRO,
+            legal_id=None,
+            domain_id=None,
+            professional_headline=None,
+            created_at=datetime(2024, 1, 1),
+            is_active=True,
+            updated_at=datetime(2024, 1, 1),
+        )
+        repository.get_by_id.return_value = existing
+        repository.exists_by_name.return_value = False
+        repository.update.return_value = existing
+
+        use_case = UpdateAccount(repository=repository, clock=clock)
+        input_dto = UpdateAccountInput(
+            account_id=1,
+            display_name="My Company",
+            legal_form="micro",
+            professional_headline="Développeur Fullstack",
+        )
+
+        result = use_case.execute(input_dto)
+
+        assert isinstance(result, AccountViewModel)
+        assert result.professional_headline == "Développeur Fullstack"
+        repository.update.assert_called_once()

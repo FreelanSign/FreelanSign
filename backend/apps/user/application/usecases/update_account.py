@@ -41,6 +41,7 @@ class UpdateAccount:
         account.legal_id = input_dto.legal_id
         account.domain_id = input_dto.domain_id
         account.default_rate_cents = input_dto.default_rate_cents
+        account.professional_headline = input_dto.professional_headline
         account.service_type_ids = input_dto.service_type_ids or []
         account.updated_at = self.clock.now()
 
@@ -60,6 +61,7 @@ class UpdateAccount:
             legal_id=account.legal_id,
             domain_id=account.domain_id,
             default_rate_cents=account.default_rate_cents,
+            professional_headline=account.professional_headline,
             service_type_ids=account.service_type_ids,
             is_active=True,
             created_at=account.created_at,

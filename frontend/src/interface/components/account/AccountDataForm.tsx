@@ -29,6 +29,7 @@ export const AccountSchema = z.object({
   domain_id: z.number().nullable().optional(),
   tjm_eur: z.number().nonnegative().nullable().optional(),
   legal_id: z.string().optional().nullable(),
+  professional_headline: z.string().max(100).optional().nullable(),
   service_types: z.array(z.number()).optional().nullable(),
 });
 
@@ -66,6 +67,7 @@ type Props = {
     domain_id?: number | null;
     default_rate_cents?: number | null;
     legal_id?: string | null;
+    professional_headline?: string | null;
     service_types?: number[] | null;
   }) => Promise<void> | void;
   onDomainChange?: (domain_id: number | null) => void;
@@ -102,6 +104,7 @@ export default function AccountDataForm({
           ? init.default_rate_cents / 100
           : (init.tjm_eur ?? null),
       legal_id: init.legal_id ?? null,
+      professional_headline: init.professional_headline ?? null,
       service_types: normalizeToNumberArray(init.service_types),
     },
   });
@@ -157,12 +160,14 @@ export default function AccountDataForm({
         domain_id?: number | null;
         default_rate_cents?: number | null;
         legal_id?: string | null;
+        professional_headline?: string | null;
         service_types?: number[] | null;
       } = {
         display_name: values.display_name ?? null,
         legal_form: values.legal_form ?? null,
         domain_id: values.domain_id ?? null,
         legal_id: values.legal_id ?? null,
+        professional_headline: values.professional_headline ?? null,
       };
 
       if (typeof values.tjm_eur === 'number') {
@@ -201,6 +206,25 @@ export default function AccountDataForm({
                   {...field}
                   value={field.value ?? ''}
                   placeholder="Nom de votre structure"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="professional_headline"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Titre professionnel</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ''}
+                  placeholder="Ex: Développeur Fullstack, Consultant Marketing"
+                  maxLength={100}
                 />
               </FormControl>
               <FormMessage />
@@ -334,6 +358,7 @@ export default function AccountDataForm({
                       ? init.default_rate_cents / 100
                       : (init.tjm_eur ?? null),
                   legal_id: init.legal_id ?? null,
+                  professional_headline: init.professional_headline ?? null,
                   service_types: normalizeToNumberArray(init.service_types),
                 })
               }

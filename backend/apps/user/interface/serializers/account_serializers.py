@@ -28,6 +28,7 @@ class AccountInputSerializer(serializers.Serializer):
     legal_id = serializers.CharField(max_length=14, required=False, allow_null=True, allow_blank=True)
     domain_id = serializers.IntegerField(required=False, allow_null=True)
     default_rate_cents = serializers.IntegerField(required=False, allow_null=True)
+    professional_headline = serializers.CharField(max_length=100, required=False, allow_null=True, allow_blank=True)
     service_type_ids = serializers.ListField(
         child=serializers.IntegerField(),
         required=False,
@@ -82,6 +83,7 @@ class AccountOutputSerializer(serializers.Serializer):
     legal_id = serializers.CharField(allow_null=True)
     domain_id = serializers.SerializerMethodField()
     default_rate_cents = serializers.IntegerField(allow_null=True)
+    professional_headline = serializers.CharField(allow_null=True)
     service_type_ids = serializers.SerializerMethodField()
     is_active = serializers.BooleanField()
     created_at = serializers.DateTimeField()

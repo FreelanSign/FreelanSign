@@ -76,7 +76,7 @@ class DownloadPdf:
             )
             for li in quote.items.all()
         ]
-        seller_payload = _build_seller_from_actor(actor)
+        seller_payload = _build_seller_from_actor(actor, quote.account)
         log.debug("download_pdf.seller_payload seller_payload=%s", seller_payload)
         # 4) construire le DTO de preview
         dto = PreviewPayloadDTO(
@@ -139,10 +139,10 @@ class DownloadPdf:
         return pdf_bytes
 
 
-def _build_seller_from_actor(actor) -> dict:
+def _build_seller_from_actor(actor, account=None) -> dict:
     """
-    Construit le payload 'seller' pour le PDF à partir du user connecté.
-    On agrège: user, profile, professional.
+    Construit le payload 'seller' pour le PDF à partir du user connecté et du compte.
+    On agrège: user, profile, professional, account.
     """
     if actor is None:
         return {"name": "FreelanSign"}
@@ -157,25 +157,41 @@ def _build_seller_from_actor(actor) -> dict:
     first_name = getattr(profile, "first_name", None) if profile else None
     last_name = getattr(profile, "last_name", None) if profile else None
 
-    # 3) professional
+    # 3) professional (legacy)
     pro = getattr(actor, "professional", None)
     pro_name = getattr(pro, "name", None) if pro else None
     siret = getattr(pro, "number_pro", None) if pro else None
     statut = getattr(pro, "status_juridique", None) if pro else None
 
-    # priorité d’affichage: nom métier > nom profil > nom legacy > email
+    # 4) account (new architecture)
+    account_name = getattr(account, "display_name", None) if account else None
+    account_siret = getattr(account, "legal_id", None) if account else None
+    account_legal_form = getattr(account, "legal_form", None) if account else None
+    professional_headline = getattr(account, "professional_headline", None) if account else None
+
+    # priorité d'affichage: account > professional > profile > legacy > email
     display_name = (
-        pro_name or (" ".join(p for p in [first_name, last_name] if p) or None) or legacy_name or email or "FreelanSign"
+        account_name
+        or pro_name
+        or (" ".join(p for p in [first_name, last_name] if p) or None)
+        or legacy_name
+        or email
+        or "FreelanSign"
     )
+
+    # Priorité SIRET: account > professional
+    final_siret = account_siret or siret
+    # Priorité statut juridique: account > professional
+    final_statut = account_legal_form or statut
 
     seller = {
         "name": display_name,
-        # ce sont les champs que ton template sait afficher :
-        "siret": siret,
+        "professional_headline": professional_headline,
+        "siret": final_siret,
         "vat_number": None,  # tu pourras le mapper depuis un autre modèle plus tard
         "address": None,
         "email": email,
-        "legal_status": statut,
+        "legal_status": final_statut,
     }
 
     return seller

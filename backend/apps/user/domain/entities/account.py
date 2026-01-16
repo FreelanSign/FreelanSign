@@ -34,6 +34,7 @@ class Account:
     created_at: datetime
     updated_at: datetime
     default_rate_cents: int | None = None
+    professional_headline: str | None = None
     service_type_ids: list[int] = field(default_factory=list)
 
     def __post_init__(self):
