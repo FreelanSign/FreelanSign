@@ -463,11 +463,26 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── agents
 │   ├── commands
 │   │   ├── dev-docs-update.md
-│   │   └── dev-docs.md
+│   │   ├── dev-docs.md
+│   │   └── jarvis.md
 │   ├── scripts
 │   ├── settings.json
 │   ├── settings.local.json
 │   └── skills
+│       ├── jarvis
+│       │   ├── jarvis.md
+│       │   ├── step-00-init.md
+│       │   ├── step-00b-economy.md
+│       │   ├── step-01-analyze.md
+│       │   ├── step-02-plan.md
+│       │   ├── step-03-execute.md
+│       │   ├── step-04-validate.md
+│       │   ├── step-05-review.md
+│       │   ├── step-06-fix.md
+│       │   ├── step-07-tests.md
+│       │   ├── step-08-verify.md
+│       │   ├── step-09-claude-md.md
+│       │   └── step-10-create-pr.md
 │       └── skill-creator
 │           └── scripts
 ├── .coverage
@@ -1460,6 +1475,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── RELEASE_PLAN_v0.1.0.md
 │   │   └── RELEASE_PLAN_v0.2.0.md
 │   └── tmp
+│       └── Jarvis.md
 ├── environment
 │   ├── .env.docker.local.example
 │   ├── .env.example
@@ -1750,7 +1766,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-317 directories, 977 files
+318 directories, 992 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1825,5 +1841,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-01-15 16:22:32 CET**
+_Updated_: **2026-01-16 11:01:18 CET**
 <!-- END AUTO: LAST_UPDATED -->
