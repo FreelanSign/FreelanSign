@@ -15,6 +15,8 @@ ARCHITECTURE DECISIONS:
 import logging
 
 from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -278,3 +280,66 @@ class AccountViewSet(viewsets.ModelViewSet):
             return Response({"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND)
         except CannotDeleteAccountError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="logo",
+        permission_classes=[IsAuthenticated, IsAccountOwner],
+        parser_classes=[MultiPartParser, FormParser],
+    )
+    def upload_logo(self, request, pk=None):
+        """
+        Upload logo image to Supabase Storage.
+
+        Expects multipart/form-data with 'file' field.
+        Max size: 2MB. Accepted types: jpeg, png, webp, gif.
+        """
+        from apps.user.adapters.storage.supabase_storage import (
+            SupabaseStorageError,
+            get_storage_adapter,
+        )
+
+        instance = self.get_object()  # Handles 404 + 403
+
+        logger.info("upload_logo called", extra={"account_id": instance.id, "user_id": request.user.id})
+
+        file = request.FILES.get("file")
+        if not file:
+            return Response(
+                {"error": "No file provided"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        content_type = file.content_type
+        filename = file.name
+
+        try:
+            storage = get_storage_adapter()
+            public_url = storage.upload_logo(
+                account_id=instance.id,
+                file=file,
+                content_type=content_type,
+                filename=filename,
+            )
+        except SupabaseStorageError as e:
+            logger.warning(
+                "upload_logo failed for account_id=%s: %s",
+                instance.id,
+                str(e),
+            )
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Update account with new logo URL
+        instance.logo_url = public_url
+        instance.save(update_fields=["logo_url", "updated_at"])
+
+        logger.info(
+            "upload_logo succeeded for account_id=%s: %s",
+            instance.id,
+            public_url,
+        )
+        return Response({"logo_url": public_url}, status=status.HTTP_200_OK)

@@ -125,6 +125,87 @@ class SupabaseStorageAdapter:
             logger.warning(f"Failed to delete avatar {path}: {e}")
             return False
 
+    # =========================================================================
+    # Logo uploads (uses 'logos' bucket)
+    # =========================================================================
+
+    LOGOS_BUCKET = "logos"
+
+    def upload_logo(self, account_id: int, file: BinaryIO, content_type: str, filename: str) -> str:
+        """
+        Upload logo to Supabase Storage ('logos' bucket).
+
+        Args:
+            account_id: Account ID for path organization
+            file: File-like object with read() method
+            content_type: MIME type (must be in ALLOWED_CONTENT_TYPES)
+            filename: Original filename (used for extension)
+
+        Returns:
+            Public URL of uploaded file
+
+        Raises:
+            SupabaseStorageError: If upload fails or validation fails
+        """
+        if content_type not in self.ALLOWED_CONTENT_TYPES:
+            raise SupabaseStorageError(
+                f"Invalid content type: {content_type}. " f"Allowed: {', '.join(self.ALLOWED_CONTENT_TYPES)}"
+            )
+
+        file_data = file.read()
+        if len(file_data) > self.MAX_FILE_SIZE:
+            raise SupabaseStorageError(f"File too large: {len(file_data)} bytes. Max: {self.MAX_FILE_SIZE} bytes")
+
+        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "png"
+        unique_name = f"{uuid.uuid4()}.{ext}"
+        path = f"{account_id}/{unique_name}"
+
+        logger.info(f"Uploading logo for account {account_id}: {path}")
+
+        try:
+            self.client.storage.from_(self.LOGOS_BUCKET).upload(
+                path,
+                file_data,
+                {"content-type": content_type, "upsert": "true"},
+            )
+        except Exception as e:
+            logger.error(f"Supabase logo upload failed for account {account_id}: {e}")
+            raise SupabaseStorageError(f"Upload failed: {e}") from e
+
+        public_url = self.client.storage.from_(self.LOGOS_BUCKET).get_public_url(path)
+        logger.info(f"Logo uploaded for account {account_id}: {public_url}")
+
+        return public_url
+
+    def delete_logo(self, path: str) -> bool:
+        """
+        Delete logo from Supabase Storage ('logos' bucket).
+
+        Args:
+            path: Full path or URL of the file
+
+        Returns:
+            True if deleted successfully
+        """
+        if not path:
+            return False
+
+        # Extract path from URL if needed
+        if path.startswith("http"):
+            try:
+                path = path.split(f"/public/{self.LOGOS_BUCKET}/")[1]
+            except IndexError:
+                logger.warning(f"Could not extract path from URL: {path}")
+                return False
+
+        try:
+            self.client.storage.from_(self.LOGOS_BUCKET).remove([path])
+            logger.info(f"Logo deleted: {path}")
+            return True
+        except Exception as e:
+            logger.warning(f"Failed to delete logo {path}: {e}")
+            return False
+
 
 # Singleton instance
 _storage_adapter = None

@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import LogoUpload from './LogoUpload';
 
 export const AccountSchema = z.object({
   display_name: z.string().optional().nullable(),
@@ -61,6 +62,9 @@ function normalizeToNumberArray(value: unknown): number[] {
 type Props = {
   initialValues?: Partial<AccountFormValues & { default_rate_cents?: number }>;
   areas?: AreaDto[] | null;
+  accountId?: number;
+  currentLogoUrl?: string | null;
+  onLogoChange?: (url: string) => void;
   onSave?: (payload: {
     display_name?: string | null;
     legal_form?: string | null;
@@ -80,6 +84,9 @@ type Props = {
 export default function AccountDataForm({
   initialValues = {},
   areas = null,
+  accountId,
+  currentLogoUrl,
+  onLogoChange,
   onSave,
   onDomainChange,
   onChange,
@@ -195,6 +202,16 @@ export default function AccountDataForm({
         className="grid gap-4"
         noValidate
       >
+        {/* Logo Upload */}
+        {accountId && (
+          <div className="flex justify-center mb-4">
+            <LogoUpload
+              accountId={accountId}
+              currentLogoUrl={currentLogoUrl}
+              onUploadSuccess={onLogoChange}
+            />
+          </div>
+        )}
         <FormField
           control={control}
           name="display_name"

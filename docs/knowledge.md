@@ -1059,10 +1059,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │       ├── update_account.py
 │   │       │       └── update_profile.py
 │   │       ├── apps.py
-│   │       ├── backend
-│   │       │   └── apps
-│   │       │       └── user
-│   │       │           └── logs
 │   │       ├── domain
 │   │       │   ├── entities
 │   │       │   │   ├── __init__.py
@@ -1112,7 +1108,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── 0012_add_rate_and_service_types_to_account.py
 │   │       │   ├── 0013_add_soft_delete_to_account.py
 │   │       │   ├── 0014_add_field_encryption.py
-│   │       │   └── 0015_add_professional_headline.py
+│   │       │   ├── 0015_add_professional_headline.py
+│   │       │   └── 0016_add_logo_url_to_account.py
 │   │       ├── models
 │   │       │   ├── __init__.py
 │   │       │   ├── account.py
@@ -1146,7 +1143,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   │   ├── __init__.py
 │   │       │   │   ├── serializers
 │   │       │   │   │   └── test_reset_password_serializer.py
-│   │       │   │   └── test_account_api.py
+│   │       │   │   ├── test_account_api.py
+│   │       │   │   └── test_account_logo.py
 │   │       │   ├── test_account_soft_delete.py
 │   │       │   ├── test_anonymize_account.py
 │   │       │   ├── test_auth_api.py
@@ -1551,6 +1549,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       └── tooltip.tsx
 │   │   ├── domain
 │   │   │   ├── account
+│   │   │   │   ├── api.ts
 │   │   │   │   └── types.ts
 │   │   │   ├── auth
 │   │   │   │   └── usecases.ts
@@ -1601,7 +1600,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── interface
 │   │   │   ├── components
 │   │   │   │   ├── account
-│   │   │   │   │   └── AccountDataForm.tsx
+│   │   │   │   │   ├── AccountDataForm.tsx
+│   │   │   │   │   └── LogoUpload.tsx
 │   │   │   │   ├── AppToBar.tsx
 │   │   │   │   ├── auth
 │   │   │   │   │   ├── request-password-reset-form.module.css
@@ -1768,7 +1768,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-318 directories, 994 files
+314 directories, 998 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1843,5 +1843,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-01-16 11:37:41 CET**
+_Updated_: **2026-01-16 15:34:44 CET**
 <!-- END AUTO: LAST_UPDATED -->

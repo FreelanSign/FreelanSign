@@ -8,6 +8,7 @@ export type AccountDto = {
   professional_headline: string | null;
   service_type_ids: number[];
   is_active: boolean;
+  logo_url: string | null;
   created_at: string;
   updated_at: string;
 };
