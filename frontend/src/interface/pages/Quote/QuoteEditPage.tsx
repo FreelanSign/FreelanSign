@@ -909,13 +909,14 @@ export default function QuoteEditPage() {
                               />
                             </div>
                             <div className="md:col-span-2">
-                              <Input
+                              <Textarea
                                 value={l.description ?? ''}
                                 onChange={(e) =>
                                   updateLine(i, { description: e.target.value })
                                 }
-                                placeholder="Description détaillée (optionnel)"
-                                className="h-10 text-muted-foreground"
+                                placeholder="Détaillez ici les spécificités de cette prestation pour ce client..."
+                                className="min-h-[40px] text-muted-foreground resize-y"
+                                rows={1}
                               />
                             </div>
                           </div>

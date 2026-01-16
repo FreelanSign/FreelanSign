@@ -119,3 +119,49 @@ def test_totals_verification():  # ← Retire le paramètre client_model
     q.save()
 
     assert q.totals_match() is True
+
+
+@pytest.mark.django_db
+def test_line_item_long_description():
+    """Verify description field accepts text longer than 255 characters."""
+    owner = User.objects.create_user(email="long@desc.io", password="x")
+
+    from apps.user.models.account import Account
+
+    account = Account.objects.create(user=owner, display_name="Account Long")
+    client = Client.objects.create(owner=owner, name="Client Long", account=account)
+
+    q = Quote.objects.create(
+        owner=owner,
+        account=account,
+        client=client,
+        title="Q Long",
+        reference="REF-LONG",
+        currency="EUR",
+        language="fr",
+        status=Quote.Status.DRAFT,
+        issue_date=timezone.now().date(),
+        subtotal=Decimal("0.00"),
+        tax_total=Decimal("0.00"),
+        discount_total=Decimal("0.00"),
+        total=Decimal("0.00"),
+    )
+
+    # Create a description longer than 255 characters
+    long_description = "A" * 500
+
+    line = QuoteLineItem.objects.create(
+        quote=q,
+        description=long_description,
+        qty=Decimal("1"),
+        unit_price=Decimal("100.00"),
+        tax_rate=Decimal("20.00"),
+        discount=Decimal("0.00"),
+        order=1,
+        line_total=Decimal("100.00"),
+    )
+
+    # Refresh from DB and verify full description is stored
+    line.refresh_from_db()
+    assert len(line.description) == 500
+    assert line.description == long_description

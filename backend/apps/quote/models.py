@@ -285,7 +285,7 @@ class QuoteLineItem(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     quote = models.ForeignKey("quote.Quote", on_delete=models.CASCADE, related_name="items", help_text="Owning quote.")
-    description = models.CharField(max_length=255)
+    description = models.TextField(blank=True, default="")
     qty = models.DecimalField(
         max_digits=12,
         decimal_places=2,

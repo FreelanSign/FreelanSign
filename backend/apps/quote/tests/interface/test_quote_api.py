@@ -108,3 +108,48 @@ class TestQuoteUpdatePermissions:
 
         quote.refresh_from_db()
         assert quote.title == "Test Quote"
+
+    def test_create_quote_with_long_description(self, api_client, user_with_account):
+        """Verify API accepts line item descriptions longer than 255 characters."""
+        from unittest.mock import MagicMock, patch
+
+        user, account = user_with_account
+        api_client.force_login(user)
+
+        from apps.client.models import Client
+
+        client = Client.objects.create(owner=user, name="Test Client Long", account=account)
+
+        long_description = "A" * 500  # 500 characters
+        url = reverse("quote:quote-list")
+        payload = {
+            "title": "Quote with Long Description",
+            "client": str(client.pk),
+            "currency": "EUR",
+            "language": "fr",
+            "issue_date": "2025-01-01",
+            "items": [
+                {
+                    "description": long_description,
+                    "qty": "1.00",
+                    "unit_price": "100.00",
+                    "tax_rate": "20.00",
+                    "discount": "0.00",
+                }
+            ],
+        }
+
+        # Mock legal terms attachment to avoid SIRET/phone requirements
+        mock_attach = MagicMock()
+        mock_attach.execute.return_value = MagicMock(success=True, terms_id=None)
+        with patch(
+            "apps.quote.interface.serializers.AttachTermsToQuoteUseCase",
+            return_value=mock_attach,
+        ):
+            resp = api_client.post(url, payload, format="json")
+
+        assert resp.status_code == 201
+        quote = Quote.objects.get(pk=resp.json()["id"])
+        line = quote.items.first()
+        assert len(line.description) == 500
+        assert line.description == long_description

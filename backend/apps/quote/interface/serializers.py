@@ -188,7 +188,7 @@ def _create_and_accumulate_line(
 ) -> Tuple[Decimal, Decimal]:
     line = QuoteLineItem.objects.create(
         quote=quote,
-        description=(item.get("description", "") or "")[:255],
+        description=item.get("description", "") or "",
         qty=Decimal(str(item.get("qty"))),
         unit_price=quantize_money(Decimal(str(item.get("unit_price")))),
         tax_rate=tax_rate,

@@ -1048,7 +1048,12 @@ export default function QuoteCreatePage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormControl>
-                                <Input {...field} placeholder="Description" />
+                                <Textarea
+                                  {...field}
+                                  placeholder="Détaillez ici les spécificités de cette prestation pour ce client..."
+                                  className="min-h-[40px] resize-y"
+                                  rows={1}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
