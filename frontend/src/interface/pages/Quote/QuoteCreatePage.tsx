@@ -67,8 +67,9 @@ const ItemSchema = z.object({
   prestation_id: z.number().int().positive().optional(),
   description: z.preprocess(
     (val) => (val === undefined || val === null ? '' : val),
-    z.string().min(1, 'La description de la prestation est requise'),
+    z.string().min(1, 'La désignation de la prestation est requise'),
   ),
+  details: z.string().optional().default(''),
   qty: z.number().positive('La quantité doit être supérieure à 0'),
   unit_price: z
     .number()
@@ -198,6 +199,7 @@ export default function QuoteCreatePage() {
         {
           prestation_id: undefined,
           description: 'Nouvelle prestation',
+          details: '',
           qty: 1,
           unit_price: 0.0,
           tax_rate: 20.0,
@@ -522,7 +524,7 @@ export default function QuoteCreatePage() {
             it.discount === undefined || it.discount === null
               ? 0.0
               : Number(it.discount),
-          metadata: {},
+          metadata: { details: it.details || null },
         })),
       };
 
@@ -898,6 +900,7 @@ export default function QuoteCreatePage() {
                 onClick={() =>
                   append({
                     description: 'Nouvelle prestation',
+                    details: '',
                     qty: 1,
                     unit_price: 0.0,
                     tax_rate: 20.0,
@@ -1008,6 +1011,19 @@ export default function QuoteCreatePage() {
                                               shouldDirty: true,
                                             },
                                           );
+                                        // Pre-fill details from prestation description
+                                        const prestationDesc =
+                                          p.description ||
+                                          p.short_description ||
+                                          '';
+                                        if (prestationDesc)
+                                          setValue(
+                                            `items.${idx}.details`,
+                                            prestationDesc,
+                                            {
+                                              shouldDirty: true,
+                                            },
+                                          );
                                       }}
                                     >
                                       <SelectTrigger className="focus:ring-brand/50 focus:border-brand">
@@ -1041,21 +1057,53 @@ export default function QuoteCreatePage() {
                           </Button>
                         </div>
 
-                        {/* Row 2: Description */}
+                        {/* Row 2: Désignation */}
                         <FormField
                           control={control}
                           name={`items.${idx}.description`}
                           render={({ field }) => (
                             <FormItem>
+                              <FormLabel className="text-xs text-muted-foreground">
+                                Désignation
+                              </FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="Description" />
+                                <Input
+                                  {...field}
+                                  placeholder="Nom du service ou produit"
+                                  className="font-semibold"
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
 
-                        {/* Row 3: Grid Qty, Prix, TVA, Remise */}
+                        {/* Row 3: Détails */}
+                        <FormField
+                          control={control}
+                          name={`items.${idx}.details`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs text-muted-foreground">
+                                Détails{' '}
+                                <span className="font-normal text-muted-foreground/60">
+                                  (optionnel)
+                                </span>
+                              </FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  {...field}
+                                  placeholder="Détaillez ici les spécificités de cette prestation pour ce client..."
+                                  className="min-h-[60px] resize-y text-sm"
+                                  rows={2}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Row 4: Grid Qty, Prix, TVA, Remise */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                           <FormField
                             control={control}

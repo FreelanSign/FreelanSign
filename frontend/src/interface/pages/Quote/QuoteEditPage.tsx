@@ -404,7 +404,7 @@ export default function QuoteEditPage() {
         tax_rate: String(((l.tax_rate ?? 0) * 100).toFixed(2)),
         discount: '0.00',
         order: i,
-        metadata: {},
+        metadata: { details: l.description || null },
       }));
     }
 
@@ -896,31 +896,43 @@ export default function QuoteEditPage() {
                           {i + 1}
                         </div>
 
-                        <div className="flex-1 space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="md:col-span-2">
-                              <Input
-                                value={l.designation}
-                                onChange={(e) =>
-                                  updateLine(i, { designation: e.target.value })
-                                }
-                                placeholder="Désignation du service"
-                                className="h-10 font-semibold"
-                              />
-                            </div>
-                            <div className="md:col-span-2">
-                              <Input
-                                value={l.description ?? ''}
-                                onChange={(e) =>
-                                  updateLine(i, { description: e.target.value })
-                                }
-                                placeholder="Description détaillée (optionnel)"
-                                className="h-10 text-muted-foreground"
-                              />
-                            </div>
+                        <div className="flex-1 space-y-3">
+                          {/* Row 1: Désignation */}
+                          <div>
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">
+                              Désignation
+                            </Label>
+                            <Input
+                              value={l.designation}
+                              onChange={(e) =>
+                                updateLine(i, { designation: e.target.value })
+                              }
+                              placeholder="Nom du service ou produit"
+                              className="h-10 font-semibold"
+                            />
                           </div>
 
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
+                          {/* Row 2: Description détaillée */}
+                          <div>
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">
+                              Détails{' '}
+                              <span className="font-normal text-muted-foreground/60">
+                                (optionnel)
+                              </span>
+                            </Label>
+                            <Textarea
+                              value={l.description ?? ''}
+                              onChange={(e) =>
+                                updateLine(i, { description: e.target.value })
+                              }
+                              placeholder="Détaillez ici les spécificités de cette prestation pour ce client..."
+                              className="min-h-[60px] text-muted-foreground resize-y text-sm"
+                              rows={2}
+                            />
+                          </div>
+
+                          {/* Row 3: Quantité, Prix, TVA, Total */}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end pt-2">
                             <div className="space-y-1.5">
                               <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                                 Quantité

@@ -115,7 +115,7 @@ export function uiToUpdatePayload(q: UiQuote): ApiQuoteUpdatePayload {
       tax_rate: String(((l.tax_rate ?? 0) * 100).toFixed(2)),
       discount: '0.00',
       order: i,
-      metadata: {},
+      metadata: { details: l.description || null },
     }));
   }
 
