@@ -152,3 +152,32 @@ class TestCreateAccount:
 
         with pytest.raises(DuplicateAccountNameError):
             use_case.execute(input_dto)
+
+    def test_create_account_with_professional_headline(self):
+        """Test création avec professional_headline."""
+        repository = Mock()
+        clock = Mock()
+        now = datetime(2024, 1, 15, 10, 30)
+        clock.now.return_value = now
+
+        def create_side_effect(account: Account) -> Account:
+            account.id = 1
+            return account
+
+        repository.create.side_effect = create_side_effect
+        repository.exists_by_name.return_value = False
+
+        use_case = CreateAccount(repository=repository, clock=clock)
+
+        input_dto = CreateAccountInput(
+            user_id=42,
+            display_name="Mon Entreprise",
+            legal_form="micro",
+            professional_headline="Développeur Fullstack",
+        )
+
+        result = use_case.execute(input_dto)
+
+        assert isinstance(result, AccountViewModel)
+        assert result.professional_headline == "Développeur Fullstack"
+        repository.create.assert_called_once()

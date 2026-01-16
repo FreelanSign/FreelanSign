@@ -1111,7 +1111,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── 0011_cleanup_phase6.py
 │   │       │   ├── 0012_add_rate_and_service_types_to_account.py
 │   │       │   ├── 0013_add_soft_delete_to_account.py
-│   │       │   └── 0014_add_field_encryption.py
+│   │       │   ├── 0014_add_field_encryption.py
+│   │       │   └── 0015_add_professional_headline.py
 │   │       ├── models
 │   │       │   ├── __init__.py
 │   │       │   ├── account.py
@@ -1475,6 +1476,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── RELEASE_PLAN_v0.1.0.md
 │   │   └── RELEASE_PLAN_v0.2.0.md
 │   └── tmp
+│       ├── feature-job-title.md
 │       └── Jarvis.md
 ├── environment
 │   ├── .env.docker.local.example
@@ -1766,7 +1768,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-318 directories, 992 files
+318 directories, 994 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1841,5 +1843,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-01-16 11:01:18 CET**
+_Updated_: **2026-01-16 11:30:42 CET**
 <!-- END AUTO: LAST_UPDATED -->

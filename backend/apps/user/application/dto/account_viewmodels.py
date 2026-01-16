@@ -17,6 +17,7 @@ class AccountViewModel:
     legal_id: str | None
     domain_id: int | None
     default_rate_cents: int | None
+    professional_headline: str | None
     service_type_ids: list[int]
     is_active: bool
     created_at: datetime

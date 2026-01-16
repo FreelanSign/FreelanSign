@@ -63,6 +63,12 @@ class Account(TimestampedModel, SoftDeleteModel):
         null=True,
         help_text="Default daily rate in cents (TJM)",
     )
+    professional_headline = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Professional title displayed on quotes (e.g., 'Développeur Fullstack')",
+    )
     service_types = models.ManyToManyField(
         "catalog.Prestation",
         blank=True,

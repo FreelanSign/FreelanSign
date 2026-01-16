@@ -329,6 +329,7 @@
         <div class="header-right">
           <div class="seller-info">
             <strong>{{ seller.name|default:"" }}</strong>
+            {% if seller.professional_headline %}<div style="font-style: italic; margin-bottom: 4px;">{{ seller.professional_headline }}</div>{% endif %}
             {% if seller.siret %}<div>SIRET : {{ seller.siret }}</div>{% endif %}
             {% if seller.vat_number %}<div>TVA : {{ seller.vat_number }}</div>{% endif %}
             {% if seller.address %}<div>{{ seller.address }}</div>{% endif %}

@@ -5,6 +5,7 @@ export type AccountDto = {
   legal_id: string | null;
   domain_id: number | null;
   default_rate_cents: number | null;
+  professional_headline: string | null;
   service_type_ids: number[];
   is_active: boolean;
   created_at: string;
@@ -17,6 +18,7 @@ export type CreateAccountInput = {
   legal_id?: string | null;
   domain_id?: number | null;
   default_rate_cents?: number | null;
+  professional_headline?: string | null;
   service_type_ids?: number[];
 };
 

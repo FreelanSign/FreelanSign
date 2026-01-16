@@ -15,6 +15,7 @@ class CreateAccountInput:
     legal_id: str | None = None
     domain_id: int | None = None
     default_rate_cents: int | None = None
+    professional_headline: str | None = None
     service_type_ids: list[int] | None = None
 
 
@@ -28,4 +29,5 @@ class UpdateAccountInput:
     legal_id: str | None = None
     domain_id: int | None = None
     default_rate_cents: int | None = None
+    professional_headline: str | None = None
     service_type_ids: list[int] | None = None
