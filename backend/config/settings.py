@@ -54,6 +54,13 @@ RETENTION_POLICY_ENABLED = env.bool("RETENTION_POLICY_ENABLED", default=False)
 RETENTION_AUDIT_LOGS_DAYS = env.int("RETENTION_AUDIT_LOGS_DAYS", default=395)  # 13 months
 RETENTION_ACCOUNTING_YEARS = env.int("RETENTION_ACCOUNTING_YEARS", default=10)
 
+# --------------------------------------------------------------------------------------
+# Supabase Storage (for avatars and logos)
+# --------------------------------------------------------------------------------------
+SUPABASE_URL = env("SUPABASE_URL", default=None)
+SUPABASE_SERVICE_KEY = env("SUPABASE_SERVICE_KEY", default=None)
+SUPABASE_STORAGE_BUCKET = env("SUPABASE_STORAGE_BUCKET", default="avatars")
+
 USE_X_FORWARDED_HOST = True
 
 # --------------------------------------------------------------------------------------

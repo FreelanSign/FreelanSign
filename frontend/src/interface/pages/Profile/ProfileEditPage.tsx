@@ -487,6 +487,11 @@ export default function ProfileEditPage() {
                       account.professional_headline ?? null,
                   }}
                   areas={areas}
+                  accountId={account.id}
+                  currentLogoUrl={account.logo_url}
+                  onLogoChange={(url) => {
+                    setAccount({ ...account, logo_url: url });
+                  }}
                   onDomainChange={handleDomainChange}
                   onChange={(vals) => handleAccountValuesChange(vals)}
                   showButtons={false}

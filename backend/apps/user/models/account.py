@@ -76,6 +76,7 @@ class Account(TimestampedModel, SoftDeleteModel):
         help_text="Favorite service types for this account",
     )
     is_active = models.BooleanField(default=True)
+    logo_url = models.URLField(blank=True, null=True, help_text="Company logo URL")
 
     class Meta:
         unique_together = [("user", "display_name")]

@@ -86,6 +86,7 @@ class AccountOutputSerializer(serializers.Serializer):
     professional_headline = serializers.CharField(allow_null=True)
     service_type_ids = serializers.SerializerMethodField()
     is_active = serializers.BooleanField()
+    logo_url = serializers.CharField(allow_null=True)
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
 
