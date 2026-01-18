@@ -398,13 +398,14 @@ export default function QuoteEditPage() {
     if ((q.line_items?.length ?? 0) > 0) {
       payload.items = q.line_items.map((l, i) => ({
         description: l.designation,
+        details: l.description || '',
         qty: String(l.quantity),
         unit_price: String(Number(l.unit_price).toFixed(2)),
         // 0.2 (20%) -> "20.00"
         tax_rate: String(((l.tax_rate ?? 0) * 100).toFixed(2)),
         discount: '0.00',
         order: i,
-        metadata: { details: l.description || null },
+        metadata: {},
       }));
     }
 

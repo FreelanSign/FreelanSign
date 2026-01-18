@@ -15,6 +15,7 @@ class LineVM:
         unit_price: The unit price of the line item.
         tax_rate_display: The tax rate of the line item (as percentage).
         total_ht: The total HT of the line item.
+        discount: The discount of the line item.
     """
 
     designation: str
@@ -23,6 +24,7 @@ class LineVM:
     unit_price: float
     tax_rate_display: float
     total_ht: float
+    discount: float = 0.0
 
 
 @dataclass(frozen=True)

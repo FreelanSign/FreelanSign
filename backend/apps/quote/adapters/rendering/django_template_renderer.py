@@ -36,7 +36,7 @@ class DjangoTemplateRenderer(TemplateRenderer):
 
         lines = [
             {
-                # “nouveau” jeu de clés
+                # "nouveau" jeu de clés
                 "designation": l.designation,
                 "description": l.description,
                 "quantity": l.quantity,
@@ -44,7 +44,7 @@ class DjangoTemplateRenderer(TemplateRenderer):
                 "tax_rate": l.tax_rate_display / 100.0,  # 0..1 pour le template
                 "tax_rate_display": l.tax_rate_display,  # % pour affichage
                 "total_ht": l.total_ht,
-                "discount": 0.0,
+                "discount": getattr(l, "discount", 0.0) or 0.0,
                 # alias legacy
                 "qty": l.quantity,
                 "unit": l.unit_price,

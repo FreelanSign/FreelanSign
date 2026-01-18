@@ -34,8 +34,8 @@ def generate_preview(dto: PreviewPayloadDTO) -> QuoteViewModel:
                 "unit_price": line.unit_price,
                 "discount": line.discount or Decimal("0.00"),
                 "tax_rate_pct": rate_pct,  # clé attendue par compute_totals
-                "designation": line.description or "",
-                "description": None,
+                "designation": line.designation or "",
+                "description": line.description,
             }
         )
 
@@ -46,7 +46,8 @@ def generate_preview(dto: PreviewPayloadDTO) -> QuoteViewModel:
 
     vm_lines = []
     for L in normalized_lines:
-        total_ht = (L["qty"] * L["unit_price"]) - (L["discount"] or Decimal("0"))
+        discount = L["discount"] or Decimal("0")
+        total_ht = (L["qty"] * L["unit_price"]) - discount
         vm_lines.append(
             LineVM(
                 designation=L["designation"],
@@ -55,6 +56,7 @@ def generate_preview(dto: PreviewPayloadDTO) -> QuoteViewModel:
                 unit_price=float(L["unit_price"]),
                 tax_rate_display=float(L["tax_rate_pct"]),
                 total_ht=float(total_ht),
+                discount=float(discount),
             )
         )
 

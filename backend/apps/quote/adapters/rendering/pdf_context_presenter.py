@@ -26,6 +26,7 @@ def _line_to_dict(line: Any) -> dict:
             "tax_rate": (tr_disp or 0.0) / 100.0,
             "tax_rate_display": tr_disp or 0.0,
             "total_ht": line.get("total_ht"),
+            "discount": line.get("discount", 0.0) or 0.0,
         }
     # Objet LineVM
     tr_disp = float(getattr(line, "tax_rate_display"))
@@ -37,6 +38,7 @@ def _line_to_dict(line: Any) -> dict:
         "tax_rate": tr_disp / 100.0,
         "tax_rate_display": tr_disp,
         "total_ht": getattr(line, "total_ht"),
+        "discount": getattr(line, "discount", 0.0) or 0.0,
     }
 
 

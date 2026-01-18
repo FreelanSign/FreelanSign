@@ -9,7 +9,7 @@ from apps.quote.application.usecases.generate_preview import generate_preview
 D = Decimal
 
 
-def _mk_line(desc, qty, unit, *, discount=None, tax_rate_pct=None, tax_rate_fraction=None):
+def _mk_line(desc, qty, unit, *, discount=None, tax_rate_pct=None, tax_rate_fraction=None, description=None):
     """
     Helper:
       - tax_rate_pct: ex 20 (pour 20%)
@@ -24,11 +24,12 @@ def _mk_line(desc, qty, unit, *, discount=None, tax_rate_pct=None, tax_rate_frac
         # la view convertira la fraction en % avant de passer au DTO
         rate = D(str(tax_rate_fraction * 100))
     return LineItemInputDTO(
-        description=desc,
+        designation=desc,  # was 'description', now 'designation' (item name)
         qty=D(str(qty)),
         unit_price=D(str(unit)),
         discount=(D(str(discount)) if discount is not None else None),
         tax_rate_pct=rate,
+        description=description,  # optional detailed description
     )
 
 

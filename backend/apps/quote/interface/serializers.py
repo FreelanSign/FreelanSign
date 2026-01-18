@@ -69,6 +69,7 @@ class QuoteLineItemSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "description",
+            "details",
             "qty",
             "unit_price",
             "tax_rate",
@@ -189,6 +190,7 @@ def _create_and_accumulate_line(
     line = QuoteLineItem.objects.create(
         quote=quote,
         description=item.get("description", "") or "",
+        details=item.get("details", "") or "",
         qty=Decimal(str(item.get("qty"))),
         unit_price=quantize_money(Decimal(str(item.get("unit_price")))),
         tax_rate=tax_rate,

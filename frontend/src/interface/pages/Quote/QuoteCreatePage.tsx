@@ -514,6 +514,7 @@ export default function QuoteCreatePage() {
         items: values.items.map((it) => ({
           prestation_id: it.prestation_id ?? undefined,
           description: it.description,
+          details: it.details || '',
           qty: Number(it.qty),
           unit_price: Number(it.unit_price),
           tax_rate:
@@ -524,7 +525,7 @@ export default function QuoteCreatePage() {
             it.discount === undefined || it.discount === null
               ? 0.0
               : Number(it.discount),
-          metadata: { details: it.details || null },
+          metadata: {},
         })),
       };
 

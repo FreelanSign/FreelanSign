@@ -66,27 +66,32 @@ class DownloadPdf:
             )
 
         # 3) mapper les lignes
+        # AIDEV-NOTE: Model's `description` = designation (item name), `details` = description (optional detail)
         lines = [
             LineItemInputDTO(
-                description=li.description,
+                designation=li.description,  # Item name/title
                 qty=li.qty,
                 unit_price=li.unit_price,
                 discount=li.discount,
                 tax_rate_pct=li.tax_rate,
+                description=li.details or None,  # Optional detailed description
             )
             for li in quote.items.all()
         ]
-        seller_payload = _build_seller_from_actor(actor, quote.account)
+        seller_payload = _build_seller_from_actor(actor, quote.account, owner_vat_exempt=owner_vat_exempt)
         log.debug("download_pdf.seller_payload seller_payload=%s", seller_payload)
+
+        # Build complete client data
+        client_data = _build_client_from_quote(quote.client, client_country)
+
+        # Build complete meta data
+        meta_data = _build_meta_from_quote(quote)
+
         # 4) construire le DTO de preview
         dto = PreviewPayloadDTO(
             seller=seller_payload,
-            client={"name": getattr(quote.client, "name", ""), "country": client_country},
-            # ⚠️ ton template lit meta.number / meta.date → on les met bien comme ça
-            meta={
-                "number": quote.reference,
-                "date": str(quote.issue_date),
-            },
+            client=client_data,
+            meta=meta_data,
             lines=lines,
             branding=branding,
             owner_vat_exempt=owner_vat_exempt,
@@ -139,7 +144,7 @@ class DownloadPdf:
         return pdf_bytes
 
 
-def _build_seller_from_actor(actor, account=None) -> dict:
+def _build_seller_from_actor(actor, account=None, *, owner_vat_exempt: bool = False) -> dict:
     """
     Construit le payload 'seller' pour le PDF à partir du user connecté et du compte.
     On agrège: user, profile, professional, account.
@@ -156,6 +161,7 @@ def _build_seller_from_actor(actor, account=None) -> dict:
     profile = getattr(actor, "profile", None)
     first_name = getattr(profile, "first_name", None) if profile else None
     last_name = getattr(profile, "last_name", None) if profile else None
+    phone = getattr(profile, "phone", None) if profile else None
 
     # 3) professional (legacy)
     pro = getattr(actor, "professional", None)
@@ -168,6 +174,7 @@ def _build_seller_from_actor(actor, account=None) -> dict:
     account_siret = getattr(account, "legal_id", None) if account else None
     account_legal_form = getattr(account, "legal_form", None) if account else None
     professional_headline = getattr(account, "professional_headline", None) if account else None
+    logo_url = getattr(account, "logo_url", None) if account else None
 
     # priorité d'affichage: account > professional > profile > legacy > email
     display_name = (
@@ -191,7 +198,49 @@ def _build_seller_from_actor(actor, account=None) -> dict:
         "vat_number": None,  # tu pourras le mapper depuis un autre modèle plus tard
         "address": None,
         "email": email,
+        "phone": phone,
         "legal_status": final_statut,
+        "vat_exempt": owner_vat_exempt,
+        "logo_url": logo_url,
     }
 
     return seller
+
+
+def _build_client_from_quote(client, client_country: str | None) -> dict:
+    """Build complete client data for PDF template."""
+    if client is None:
+        return {"name": "", "country": client_country}
+
+    return {
+        "name": getattr(client, "name", "") or "",
+        "company": getattr(client, "company", None),
+        "email": getattr(client, "email", None),
+        "phone": getattr(client, "phone", None),
+        "address_line1": getattr(client, "address_line1", None),
+        "address_line2": getattr(client, "address_line2", None),
+        "city": getattr(client, "city", None),
+        "postal_code": getattr(client, "postal_code", None),
+        "country": client_country or getattr(client, "country", None),
+        "vat_number": getattr(client, "vat_number", None),
+    }
+
+
+def _build_meta_from_quote(quote) -> dict:
+    """Build complete meta data for PDF template."""
+    # Get payment terms text
+    payment_terms_text = None
+    if quote.payment_terms:
+        payment_terms_text = quote.payment_terms.name
+    elif quote.payment_terms_text:
+        payment_terms_text = quote.payment_terms_text
+
+    return {
+        "number": quote.reference,
+        "date": str(quote.issue_date) if quote.issue_date else None,
+        "valid_until": str(quote.valid_until) if quote.valid_until else None,
+        "payment_terms": payment_terms_text,
+        "title": getattr(quote, "title", None),
+        "note": getattr(quote, "note", None),
+        "terms": getattr(quote, "terms", None),
+    }
