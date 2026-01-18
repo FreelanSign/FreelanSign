@@ -17,12 +17,7 @@ export function apiItemsToUi(items: ApiQuoteItem[] | undefined): UiQuoteLine[] {
     (it, idx): UiQuoteLine => ({
       id: it.id ?? idx,
       designation: it.description ?? '',
-      description:
-        typeof it.metadata === 'object' &&
-        it.metadata &&
-        'details' in it.metadata
-          ? ((it.metadata as { details?: string | null }).details ?? '')
-          : '',
+      description: it.details ?? '',
       quantity: Number(it.qty ?? 0),
       unit_price: Number(it.unit_price ?? 0),
       tax_rate: it.tax_rate != null ? Number(it.tax_rate) / 100 : 0,
@@ -110,12 +105,12 @@ export function uiToUpdatePayload(q: UiQuote): ApiQuoteUpdatePayload {
   if ((q.line_items?.length ?? 0) > 0) {
     payload.items = q.line_items.map((l, i) => ({
       description: l.designation,
+      details: l.description || null,
       qty: String(l.quantity),
       unit_price: String(Number(l.unit_price).toFixed(2)),
       tax_rate: String(((l.tax_rate ?? 0) * 100).toFixed(2)),
       discount: '0.00',
       order: i,
-      metadata: { details: l.description || null },
     }));
   }
 
@@ -141,12 +136,7 @@ export function apiToUiQuoteDetail(
     return {
       id: (it.id ?? idx) as string | number,
       designation: it.description ?? '',
-      description:
-        typeof it.metadata === 'object' &&
-        it.metadata &&
-        'details' in it.metadata
-          ? ((it.metadata as { details?: string | null }).details ?? '')
-          : '',
+      description: it.details ?? '',
       quantity: qty,
       unit_price: up,
       tax_rate: taxPct / 100,

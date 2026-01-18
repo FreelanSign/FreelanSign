@@ -980,7 +980,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── 0008_alter_quote_account.py
 │   │   │   │   ├── 0009_quote_ix_quote_account_updated_at_and_more.py
 │   │   │   │   ├── 0010_add_soft_delete_to_quote.py
-│   │   │   │   └── 0011_alter_quotelineitem_description_to_text.py
+│   │   │   │   ├── 0011_alter_quotelineitem_description_to_text.py
+│   │   │   │   └── 0012_add_details_to_lineitem.py
 │   │   │   ├── models.py
 │   │   │   ├── signals.py
 │   │   │   ├── tests
@@ -1769,7 +1770,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-314 directories, 999 files
+314 directories, 1000 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1844,5 +1845,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-01-16 16:36:57 CET**
+_Updated_: **2026-01-18 16:59:42 CET**
 <!-- END AUTO: LAST_UPDATED -->

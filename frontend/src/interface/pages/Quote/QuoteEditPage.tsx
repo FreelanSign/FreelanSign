@@ -44,7 +44,7 @@ import { PdfPreviewPanel } from '../../components/quote/PdfPreviewPanel';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { usePdfPreview, type PreviewPayload } from '../../hooks/usePdfPreview';
 import { useRequireAccount } from '../../hooks/useRequireAccount';
-import { openBlobUrlInNewTab, saveBlobUrlAs } from '../../utils/saveFile';
+import { openBlobUrlInNewTab } from '../../utils/saveFile';
 
 type QuoteLine = {
   id?: string | number;
@@ -398,13 +398,14 @@ export default function QuoteEditPage() {
     if ((q.line_items?.length ?? 0) > 0) {
       payload.items = q.line_items.map((l, i) => ({
         description: l.designation,
+        details: l.description || '',
         qty: String(l.quantity),
         unit_price: String(Number(l.unit_price).toFixed(2)),
         // 0.2 (20%) -> "20.00"
         tax_rate: String(((l.tax_rate ?? 0) * 100).toFixed(2)),
         discount: '0.00',
         order: i,
-        metadata: { details: l.description || null },
+        metadata: {},
       }));
     }
 
@@ -1092,7 +1093,7 @@ export default function QuoteEditPage() {
                 >
                   Ouvrir dans un nouvel onglet
                 </button>
-                <button
+                {/* <button
                   type="button"
                   className="fs-btn fs-btn--primary"
                   onClick={() =>
@@ -1103,7 +1104,7 @@ export default function QuoteEditPage() {
                   }
                 >
                   Télécharger
-                </button>
+                </button> */}
               </>
             )}
           </>

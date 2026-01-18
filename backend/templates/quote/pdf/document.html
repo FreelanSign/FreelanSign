@@ -312,6 +312,24 @@
     .avoid-break {
       page-break-inside: avoid;
     }
+
+    /* AIDEV-NOTE: Watermark for draft previews - only shows when is_download=False */
+    {% if not is_download %}
+    .page::before {
+      content: "BROUILLON";
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-45deg);
+      font-size: 100px;
+      color: rgba(200, 0, 0, 0.12);
+      font-weight: bold;
+      font-family: sans-serif;
+      letter-spacing: 15px;
+      z-index: 9999;
+      pointer-events: none;
+    }
+    {% endif %}
   </style>
 </head>
 <body>
@@ -320,11 +338,14 @@
     <header class="header avoid-break">
       <div class="header-grid">
         <div class="header-left">
-          <div class="brand-name">{{ branding.name|default:"FreelanSign" }}</div>
-          <div class="brand-divider"></div>
-          {% if branding.logo_url %}
-            <img src="{{ branding.logo_url }}" alt="Logo" class="logo-img" />
+          {% if seller.logo_url %}
+            <img src="{{ seller.logo_url }}" alt="Logo" class="logo-img" style="max-height: 80px; max-width: 200px; margin-bottom: 12px; object-fit: contain;" />
+          {% elif branding.logo_url %}
+            <img src="{{ branding.logo_url }}" alt="Logo" class="logo-img" style="max-height: 80px; max-width: 200px; margin-bottom: 12px; object-fit: contain;" />
+          {% else %}
+            <div class="brand-name">{{ seller.name|default:"FreelanSign" }}</div>
           {% endif %}
+          <div class="brand-divider"></div>
         </div>
         <div class="header-right">
           <div class="seller-info">
@@ -332,6 +353,7 @@
             {% if seller.professional_headline %}<div style="font-style: italic; margin-bottom: 4px;">{{ seller.professional_headline }}</div>{% endif %}
             {% if seller.siret %}<div>SIRET : {{ seller.siret }}</div>{% endif %}
             {% if seller.vat_number %}<div>TVA : {{ seller.vat_number }}</div>{% endif %}
+            {% if seller.phone %}<div>Tél : {{ seller.phone }}</div>{% endif %}
             {% if seller.address %}<div>{{ seller.address }}</div>{% endif %}
             {% if seller.email %}<div>{{ seller.email }}</div>{% endif %}
           </div>
@@ -339,31 +361,42 @@
       </div>
     </header>
 
-    <!-- ✅ Contenu sur fond blanc -->
     <main class="content">
-      <!-- Titre du document -->
-      <div class="mb-section avoid-break">
-        <h1>
-          Devis
-          <span class="badge">Document</span>
-        </h1>
-        <div class="doc-meta">
-          Réf : <strong>{{ meta.number|default:"—" }}</strong> •
-          Date : <strong>{{ meta.date|default:"—" }}</strong>
-        </div>
+      <!-- Title + meta -->
+      <div class="avoid-break">
+        <h1>Devis</h1>
+        <div class="muted">Réf : {{ meta.number|default:"—" }} • Date : {{ meta.date|default:"—" }}</div>
       </div>
 
-      <!-- ✅ Section Client -->
-      <div class="avoid-break" style="max-width: 400px;">
-        <div class="card">
-          <h3>Client</h3>
-          <div><strong>{{ client.name }}</strong></div>
-          {% if client.company %}<div class="muted">{{ client.company }}</div>{% endif %}
-          {% if client.address_line1 %}<div>{{ client.address_line1 }}</div>{% endif %}
-          {% if client.postal_code or client.city %}
-            <div>{{ client.postal_code|default_if_none:"" }} {{ client.city|default_if_none:"" }}</div>
-          {% endif %}
-          {% if client.email %}<div class="muted">{{ client.email }}</div>{% endif %}
+      <!-- Section Client / Conditions -->
+      <div class="two-cols avoid-break">
+        <div class="col" style="padding-right: 6px;">
+          <div class="card">
+            <h3>Client</h3>
+            <div><strong>{{ client.name }}</strong></div>
+            {% if client.company %}<div class="muted">{{ client.company }}</div>{% endif %}
+            {% if client.address_line1 %}<div>{{ client.address_line1 }}</div>{% endif %}
+            {% if client.address_line2 %}<div>{{ client.address_line2 }}</div>{% endif %}
+            {% if client.postal_code or client.city %}
+              <div>{{ client.postal_code|default_if_none:"" }} {{ client.city|default_if_none:"" }}</div>
+            {% endif %}
+            {% if client.country %}<div>{{ client.country }}</div>{% endif %}
+            {% if client.phone %}<div class="muted">Tél : {{ client.phone }}</div>{% endif %}
+            {% if client.email %}<div class="muted">{{ client.email }}</div>{% endif %}
+            {% if client.vat_number %}<div class="muted">TVA : {{ client.vat_number }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="col" style="padding-left: 6px;">
+          <div class="card card--accent">
+            <h3>Conditions</h3>
+            {% if meta.valid_until %}<div style="margin-top: 4px;"><strong>Validité :</strong> jusqu'au {{ meta.valid_until }}</div>{% endif %}
+            {% if meta.payment_terms %}<div style="margin-top: 4px;"><strong>Règlement :</strong> {{ meta.payment_terms }}</div>{% endif %}
+            {% if meta.work_start_date %}<div style="margin-top: 4px;"><strong>Début des travaux :</strong> {{ meta.work_start_date }}</div>{% endif %}
+            {% if meta.work_duration %}<div><strong>Durée estimée :</strong> {{ meta.work_duration }}</div>{% endif %}
+            <div class="muted" style="margin-top: 8px; font-size: var(--fs-small);">
+              {{ meta.terms|default:"Conditions générales sur demande." }}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -371,26 +404,31 @@
       <table class="lines-table avoid-break">
         <thead>
           <tr>
-            <th style="width:35%">Désignation</th>
-            <th style="width:30%">Description</th>
-            <th class="right" style="width:8%">Qté</th>
-            <th class="right" style="width:12%">PU HT</th>
-            <th class="right" style="width:7%">TVA</th>
-            <th class="right" style="width:12%">Total HT</th>
+            <th style="width:40%">Désignation</th>
+            <th class="right" style="width:10%">Qté</th>
+            <th class="right" style="width:14%">PU HT</th>
+            <th class="right" style="width:10%">Remise</th>
+            <th class="right" style="width:10%">TVA</th>
+            <th class="right" style="width:16%">Total HT</th>
           </tr>
         </thead>
         <tbody>
           {% for l in lines %}
           <tr>
-            <td><strong>{{ l.designation }}</strong></td>
-            <td class="muted">
-              {% if l.description %}{{ l.description }}{% else %}—{% endif %}
+            <td>
+              <strong>{{ l.designation }}</strong>
+              {% if l.description %}
+              <div class="muted" style="font-size: var(--fs-small); margin-top: 4px; line-height: 1.4;">{{ l.description }}</div>
+              {% endif %}
             </td>
             <td class="right">
               {% if l.quantity is not None %}{{ l.quantity|floatformat:2 }}{% else %}—{% endif %}
             </td>
             <td class="right">
               {% if l.unit_price is not None %}{{ l.unit_price|floatformat:2 }} €{% else %}—{% endif %}
+            </td>
+            <td class="right">
+              {% if l.discount and l.discount > 0 %}{{ l.discount|floatformat:2 }} €{% else %}—{% endif %}
             </td>
             <td class="right">
               {% if l.tax_rate_display is not None %}
@@ -423,6 +461,13 @@
         </tr>
       </table>
 
+      <!-- ✅ VAT exemption mention if applicable -->
+      {% if seller.vat_exempt %}
+      <div style="margin-top: 8px; text-align: right; font-size: var(--fs-small); color: var(--text-secondary); font-style: italic;">
+        TVA non applicable, art. 293 B du CGI
+      </div>
+      {% endif %}
+
       <!-- Note optionnelle -->
       {% if meta.note %}
       <div class="mt-section">
@@ -430,6 +475,28 @@
         <div class="muted">{{ meta.note }}</div>
       </div>
       {% endif %}
+
+      <!-- ✅ Signature Area - BEFORE legal terms -->
+      <div class="mt-section avoid-break" style="margin-top: 40px; padding: 20px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--brand-accent-bg);">
+        <h3 style="margin-bottom: 12px; color: var(--brand-primary);">Bon pour accord</h3>
+        <div style="display: table; width: 100%;">
+          <div style="display: table-cell; width: 50%; vertical-align: top;">
+            <div class="muted" style="margin-bottom: 8px;">Date :</div>
+            <div style="border-bottom: 1px solid var(--border-color); height: 30px; margin-right: 20px;"></div>
+          </div>
+          <div style="display: table-cell; width: 50%; vertical-align: top;">
+            <div class="muted" style="margin-bottom: 8px;">Signature du client (précédée de la mention « Lu et approuvé ») :</div>
+            <div style="border: 1px dashed var(--border-color); height: 80px; border-radius: 4px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ Footer - end of first page content -->
+      <div style="text-align: center; margin-top: 30px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+        <div style="font-size: 9px; color: var(--text-secondary);">
+          Généré par <strong style="color: var(--brand-primary);">FreelanSign</strong> — freelansign.com
+        </div>
+      </div>
 
       <!-- Phase 7: Legal Terms (CGV/CGU) - Page 2 -->
       {% if legal_terms_html %}

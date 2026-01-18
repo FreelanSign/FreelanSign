@@ -26,12 +26,13 @@ export type QuoteCreatePayload = {
 export type ApiQuoteItem = {
   id?: string | number;
   description?: string | null;
+  details?: string | null;
   qty?: string | number | null;
   unit_price?: string | number | null;
   tax_rate?: string | number | null; // 0–100 (%)
   discount?: string | number | null;
   order?: number;
-  metadata?: { details?: string | null } | Record<string, unknown> | null;
+  metadata?: Record<string, unknown> | null;
   pre_tax_total?: string | number | null;
   tax_amount?: string | number | null;
 };
@@ -83,12 +84,12 @@ export type ApiQuoteUpdatePayload = {
   };
   items?: Array<{
     description: string;
+    details?: string | null;
     qty: string;
     unit_price: string;
     tax_rate: string; // "20.00"
     discount: string; // "0.00"
     order: number;
-    metadata: Record<string, unknown>;
   }>;
 };
 

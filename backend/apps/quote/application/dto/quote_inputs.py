@@ -11,11 +11,12 @@ class LineItemInputDTO:
     Note: 'tax_rate_pct' est optionnel; on ne veut PAS de champ obligatoire 'tax_rate'.
     """
 
-    description: str
+    designation: str  # Item name/title (was previously 'description')
     qty: Decimal
     unit_price: Decimal
     discount: Decimal | None = None
     tax_rate_pct: Decimal | None = None  # ex: 20 => 20%
+    description: str | None = None  # Optional detailed description
 
 
 @dataclass(frozen=True)

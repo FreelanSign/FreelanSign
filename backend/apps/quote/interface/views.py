@@ -564,7 +564,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
 
 class QuotePreviewPdfView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, HasAccountContext]
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
 
     def post(self, request):
@@ -606,16 +606,28 @@ class QuotePreviewPdfView(APIView):
             discount_dec = D(str(discount_val)) if discount_val is not None else None
             lines_dto.append(
                 LineItemInputDTO(
-                    description=str(line.get("designation") or line.get("name") or ""),
+                    designation=str(line.get("designation") or line.get("name") or ""),
                     qty=D(str(line["quantity"])),
                     unit_price=D(str(line["unit_price"])),
                     discount=discount_dec,
                     tax_rate_pct=tax_rate_pct,
+                    description=line.get("description"),
                 )
             )
 
+        # Enrich seller data with account info (logo_url, phone) if not provided
+        seller_data = dict(data["seller"])
+        if hasattr(request, "account") and request.account:
+            if not seller_data.get("logo_url"):
+                seller_data["logo_url"] = getattr(request.account, "logo_url", None)
+            if not seller_data.get("professional_headline"):
+                seller_data["professional_headline"] = getattr(request.account, "professional_headline", None)
+        if hasattr(request.user, "profile") and request.user.profile:
+            if not seller_data.get("phone"):
+                seller_data["phone"] = getattr(request.user.profile, "phone", None)
+
         dto = PreviewPayloadDTO(
-            seller=data["seller"],
+            seller=seller_data,
             client=data["client"],
             meta=data["meta"],
             lines=lines_dto,

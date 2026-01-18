@@ -60,7 +60,7 @@ import { PdfPreviewPanel } from '../../components/quote/PdfPreviewPanel';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { usePdfPreview } from '../../hooks/usePdfPreview';
 import { useRequireAccount } from '../../hooks/useRequireAccount';
-import { openBlobUrlInNewTab, saveBlobUrlAs } from '../../utils/saveFile';
+import { openBlobUrlInNewTab } from '../../utils/saveFile';
 
 /* ---------- zod schema ---------- */
 const ItemSchema = z.object({
@@ -514,6 +514,7 @@ export default function QuoteCreatePage() {
         items: values.items.map((it) => ({
           prestation_id: it.prestation_id ?? undefined,
           description: it.description,
+          details: it.details || '',
           qty: Number(it.qty),
           unit_price: Number(it.unit_price),
           tax_rate:
@@ -524,7 +525,7 @@ export default function QuoteCreatePage() {
             it.discount === undefined || it.discount === null
               ? 0.0
               : Number(it.discount),
-          metadata: { details: it.details || null },
+          metadata: {},
         })),
       };
 
@@ -1285,7 +1286,7 @@ export default function QuoteCreatePage() {
                 >
                   Ouvrir dans un nouvel onglet
                 </button>
-                <button
+                {/* <button
                   type="button"
                   className="fs-btn fs-btn--primary"
                   onClick={() =>
@@ -1296,7 +1297,7 @@ export default function QuoteCreatePage() {
                   }
                 >
                   Télécharger
-                </button>
+                </button> */}
               </>
             )}
           </>

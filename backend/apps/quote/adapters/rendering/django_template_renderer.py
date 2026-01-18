@@ -14,7 +14,13 @@ log = logging.getLogger(__name__)
 
 
 class DjangoTemplateRenderer(TemplateRenderer):
-    def render(self, template_key: str, vm: QuoteViewModel, legal_terms_html: str | None = None) -> str:
+    def render(
+        self,
+        template_key: str,
+        vm: QuoteViewModel,
+        legal_terms_html: str | None = None,
+        is_download: bool = False,
+    ) -> str:
         # AIDEV-NOTE: Diagnostic logs added to debug legal terms generation issue (#87)
         log.debug(
             "renderer.render.start template=%s has_legal_terms=%s legal_terms_length=%s",
@@ -36,7 +42,7 @@ class DjangoTemplateRenderer(TemplateRenderer):
 
         lines = [
             {
-                # “nouveau” jeu de clés
+                # "nouveau" jeu de clés
                 "designation": l.designation,
                 "description": l.description,
                 "quantity": l.quantity,
@@ -44,7 +50,7 @@ class DjangoTemplateRenderer(TemplateRenderer):
                 "tax_rate": l.tax_rate_display / 100.0,  # 0..1 pour le template
                 "tax_rate_display": l.tax_rate_display,  # % pour affichage
                 "total_ht": l.total_ht,
-                "discount": 0.0,
+                "discount": getattr(l, "discount", 0.0) or 0.0,
                 # alias legacy
                 "qty": l.quantity,
                 "unit": l.unit_price,
@@ -78,7 +84,7 @@ class DjangoTemplateRenderer(TemplateRenderer):
             "totals": totals_fmt,  # ⬅️ le template lit `totals.*` => prêt à afficher
             "totals_raw": totals_raw,  # ⬅️ dispo si besoin de calculs ailleurs
             "branding": vm.branding or {},
-            "is_download": False,
+            "is_download": is_download,
             "legal_terms_html": legal_terms_html,  # Phase 7: legal terms for PDF
         }
 
