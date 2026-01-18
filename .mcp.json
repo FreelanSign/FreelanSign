@@ -3,6 +3,14 @@
     "context7": {
       "type": "http",
       "url": "https://mcp.context7.com/mcp"
-    }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "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"
+      },
+      "description": "GitHub operations - PRs, issues, repos"
+    },
   }
 }
