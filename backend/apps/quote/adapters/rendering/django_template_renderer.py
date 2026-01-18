@@ -14,7 +14,13 @@ log = logging.getLogger(__name__)
 
 
 class DjangoTemplateRenderer(TemplateRenderer):
-    def render(self, template_key: str, vm: QuoteViewModel, legal_terms_html: str | None = None) -> str:
+    def render(
+        self,
+        template_key: str,
+        vm: QuoteViewModel,
+        legal_terms_html: str | None = None,
+        is_download: bool = False,
+    ) -> str:
         # AIDEV-NOTE: Diagnostic logs added to debug legal terms generation issue (#87)
         log.debug(
             "renderer.render.start template=%s has_legal_terms=%s legal_terms_length=%s",
@@ -78,7 +84,7 @@ class DjangoTemplateRenderer(TemplateRenderer):
             "totals": totals_fmt,  # ⬅️ le template lit `totals.*` => prêt à afficher
             "totals_raw": totals_raw,  # ⬅️ dispo si besoin de calculs ailleurs
             "branding": vm.branding or {},
-            "is_download": False,
+            "is_download": is_download,
             "legal_terms_html": legal_terms_html,  # Phase 7: legal terms for PDF
         }
 

@@ -60,7 +60,7 @@ import { PdfPreviewPanel } from '../../components/quote/PdfPreviewPanel';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { usePdfPreview } from '../../hooks/usePdfPreview';
 import { useRequireAccount } from '../../hooks/useRequireAccount';
-import { openBlobUrlInNewTab, saveBlobUrlAs } from '../../utils/saveFile';
+import { openBlobUrlInNewTab } from '../../utils/saveFile';
 
 /* ---------- zod schema ---------- */
 const ItemSchema = z.object({
@@ -1286,7 +1286,7 @@ export default function QuoteCreatePage() {
                 >
                   Ouvrir dans un nouvel onglet
                 </button>
-                <button
+                {/* <button
                   type="button"
                   className="fs-btn fs-btn--primary"
                   onClick={() =>
@@ -1297,7 +1297,7 @@ export default function QuoteCreatePage() {
                   }
                 >
                   Télécharger
-                </button>
+                </button> */}
               </>
             )}
           </>

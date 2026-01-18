@@ -312,6 +312,24 @@
     .avoid-break {
       page-break-inside: avoid;
     }
+
+    /* AIDEV-NOTE: Watermark for draft previews - only shows when is_download=False */
+    {% if not is_download %}
+    .page::before {
+      content: "BROUILLON";
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-45deg);
+      font-size: 100px;
+      color: rgba(200, 0, 0, 0.12);
+      font-weight: bold;
+      font-family: sans-serif;
+      letter-spacing: 15px;
+      z-index: 9999;
+      pointer-events: none;
+    }
+    {% endif %}
   </style>
 </head>
 <body>

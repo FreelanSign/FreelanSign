@@ -136,8 +136,8 @@ class DownloadPdf:
             bool(legal_terms_html),
         )
 
-        # 7) rendu
-        html = self.renderer.render("quote/pdf/document.html", vm, legal_terms_html=legal_terms_html)
+        # 7) rendu - is_download=True removes the "BROUILLON" watermark
+        html = self.renderer.render("quote/pdf/document.html", vm, legal_terms_html=legal_terms_html, is_download=True)
         pdf_bytes = self.pdf.generate(html)
 
         log.info("download_pdf.done quote_id=%s, pdf_len=%s", quote_id, len(pdf_bytes))
