@@ -3,6 +3,7 @@
 Port pour l'abstraction du temps.
 Permet de mocker les timestamps dans les tests.
 """
+
 from abc import abstractmethod
 from datetime import datetime
 from typing import Protocol

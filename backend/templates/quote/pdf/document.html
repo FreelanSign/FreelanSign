@@ -354,7 +354,10 @@
             {% if seller.siret %}<div>SIRET : {{ seller.siret }}</div>{% endif %}
             {% if seller.vat_number %}<div>TVA : {{ seller.vat_number }}</div>{% endif %}
             {% if seller.phone %}<div>Tél : {{ seller.phone }}</div>{% endif %}
-            {% if seller.address %}<div>{{ seller.address }}</div>{% endif %}
+            {% if seller.address_line1 %}<div>{{ seller.address_line1 }}</div>{% endif %}
+            {% if seller.address_line2 %}<div>{{ seller.address_line2 }}</div>{% endif %}
+            {% if seller.postal_code or seller.city %}<div>{{ seller.postal_code|default_if_none:"" }} {{ seller.city|default_if_none:"" }}</div>{% endif %}
+            {% if seller.country %}<div>{{ seller.country }}</div>{% endif %}
             {% if seller.email %}<div>{{ seller.email }}</div>{% endif %}
           </div>
         </div>

@@ -178,6 +178,12 @@ def _build_seller_from_actor(actor, account=None, *, owner_vat_exempt: bool = Fa
     account_legal_form = getattr(account, "legal_form", None) if account else None
     professional_headline = getattr(account, "professional_headline", None) if account else None
     logo_url = getattr(account, "logo_url", None) if account else None
+    # AIDEV-NOTE: Address fields from Account (feat/account-address)
+    address_line1 = getattr(account, "address_line1", None) if account else None
+    address_line2 = getattr(account, "address_line2", None) if account else None
+    city = getattr(account, "city", None) if account else None
+    postal_code = getattr(account, "postal_code", None) if account else None
+    country = getattr(account, "country", None) if account else None
 
     # priorité d'affichage: account > professional > profile > legacy > email
     display_name = (
@@ -194,12 +200,26 @@ def _build_seller_from_actor(actor, account=None, *, owner_vat_exempt: bool = Fa
     # Priorité statut juridique: account > professional
     final_statut = account_legal_form or statut
 
+    # Build formatted address string from account fields
+    address_parts = [p for p in [address_line1, address_line2] if p]
+    location_parts = [p for p in [postal_code, city] if p]
+    if location_parts:
+        address_parts.append(" ".join(location_parts))
+    if country:
+        address_parts.append(country)
+    formatted_address = ", ".join(address_parts) if address_parts else None
+
     seller = {
         "name": display_name,
         "professional_headline": professional_headline,
         "siret": final_siret,
         "vat_number": None,  # tu pourras le mapper depuis un autre modèle plus tard
-        "address": None,
+        "address": formatted_address,
+        "address_line1": address_line1,
+        "address_line2": address_line2,
+        "city": city,
+        "postal_code": postal_code,
+        "country": country,
         "email": email,
         "phone": phone,
         "legal_status": final_statut,

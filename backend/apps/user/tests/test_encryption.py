@@ -15,6 +15,7 @@ Verifies:
 @since: 2025-12-11
 @version: 1.0
 """
+
 import pytest
 from django.db import connection
 

@@ -6,6 +6,7 @@ Permissions for Account resource.
 @since: 2025-11-26
 @version: 1.0
 """
+
 from rest_framework import permissions
 
 from apps.user.models.account import Account

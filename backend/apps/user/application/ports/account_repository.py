@@ -3,6 +3,7 @@
 Port (interface) pour l'accès aux données Account.
 L'implémentation concrète (Django ORM) vivra dans adapters/persistence.
 """
+
 from abc import abstractmethod
 from typing import Protocol
 

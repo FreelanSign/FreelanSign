@@ -19,8 +19,7 @@ class PlaywrightPdfGenerator:
 
             if hasattr(page, "add_style_tag"):
                 try:
-                    page.add_style_tag(
-                        content="""
+                    page.add_style_tag(content="""
                       * {
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
@@ -32,8 +31,7 @@ class PlaywrightPdfGenerator:
                           print-color-adjust: exact !important;
                         }
                       }
-                    """
-                    )
+                    """)
                 except Exception:
                     pass
 

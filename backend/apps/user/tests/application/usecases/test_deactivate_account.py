@@ -1,5 +1,6 @@
 # apps/user/tests/application/usecases/test_deactivate_account.py
 """Tests pour le use case DeactivateAccount."""
+
 from datetime import datetime
 from unittest.mock import Mock
 

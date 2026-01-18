@@ -2,6 +2,7 @@
 """
 Input DTOs pour les use cases Account.
 """
+
 from dataclasses import dataclass
 
 
@@ -17,6 +18,12 @@ class CreateAccountInput:
     default_rate_cents: int | None = None
     professional_headline: str | None = None
     service_type_ids: list[int] | None = None
+    # Address fields (feat/account-address)
+    address_line1: str | None = None
+    address_line2: str | None = None
+    city: str | None = None
+    postal_code: str | None = None
+    country: str | None = None
 
 
 @dataclass(frozen=True)
@@ -31,3 +38,9 @@ class UpdateAccountInput:
     default_rate_cents: int | None = None
     professional_headline: str | None = None
     service_type_ids: list[int] | None = None
+    # Address fields (feat/account-address)
+    address_line1: str | None = None
+    address_line2: str | None = None
+    city: str | None = None
+    postal_code: str | None = None
+    country: str | None = None

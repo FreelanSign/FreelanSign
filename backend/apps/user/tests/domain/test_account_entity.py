@@ -3,6 +3,7 @@
 Tests unitaires pour l'entité Account.
 Tests purs, sans dépendance Django.
 """
+
 from datetime import datetime
 
 import pytest

@@ -1,5 +1,6 @@
 # apps/user/application/usecases/get_user_accounts.py
 """Use case: Récupérer les comptes d'un utilisateur."""
+
 from apps.user.application.dto.account_viewmodels import AccountListViewModel, AccountViewModel
 from apps.user.application.ports.account_repository import AccountRepository
 from apps.user.domain.entities.account import Account

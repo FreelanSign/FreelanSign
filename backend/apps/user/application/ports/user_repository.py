@@ -3,6 +3,7 @@
 Ports des repositories pour le domaine user.
 Interfaces abstraites utilisées par les use cases.
 """
+
 from abc import ABC, abstractmethod
 from typing import Optional
 

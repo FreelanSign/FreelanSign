@@ -2,6 +2,7 @@
 """
 Implémentation Django des repositories user.
 """
+
 import logging
 from typing import Optional
 

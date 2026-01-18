@@ -11,6 +11,7 @@ Behavior:
 @since: 2025-11-26
 @version: 1.0
 """
+
 from apps.user.interface.exceptions import AccountNotFoundError
 from apps.user.models.account import Account
 

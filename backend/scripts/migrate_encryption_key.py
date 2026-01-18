@@ -13,6 +13,7 @@ by temporarily using the old key to decrypt, then re-encrypting with new key.
 @author: @Bertrand2808
 @date: 2026-01-13
 """
+
 import os
 import sys
 

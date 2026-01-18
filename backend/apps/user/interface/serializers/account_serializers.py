@@ -6,6 +6,7 @@ Serializers for Account REST API.
 @since: 2025-11-26
 @version: 1.0
 """
+
 import logging
 
 from rest_framework import serializers
@@ -34,6 +35,12 @@ class AccountInputSerializer(serializers.Serializer):
         required=False,
         allow_empty=True,
     )
+    # Address fields
+    address_line1 = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    address_line2 = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    city = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    postal_code = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    country = serializers.CharField(max_length=2, required=False, allow_blank=True)
 
     def validate(self, data):
         """
@@ -87,6 +94,12 @@ class AccountOutputSerializer(serializers.Serializer):
     service_type_ids = serializers.SerializerMethodField()
     is_active = serializers.BooleanField()
     logo_url = serializers.CharField(allow_null=True)
+    # Address fields
+    address_line1 = serializers.CharField(allow_blank=True)
+    address_line2 = serializers.CharField(allow_blank=True)
+    city = serializers.CharField(allow_blank=True)
+    postal_code = serializers.CharField(allow_blank=True)
+    country = serializers.CharField(allow_blank=True)
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
 

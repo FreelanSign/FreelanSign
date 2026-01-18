@@ -169,7 +169,10 @@
         {% if seller.siret %}<div class="muted">SIRET : {{ seller.siret }}</div>{% endif %}
         {% if seller.vat_number %}<div class="muted">TVA : {{ seller.vat_number }}</div>{% endif %}
         {% if seller.phone %}<div class="muted">Tél : {{ seller.phone }}</div>{% endif %}
-        {% if seller.address %}<div class="muted">{{ seller.address }}</div>{% endif %}
+        {% if seller.address_line1 %}<div class="muted">{{ seller.address_line1 }}</div>{% endif %}
+        {% if seller.address_line2 %}<div class="muted">{{ seller.address_line2 }}</div>{% endif %}
+        {% if seller.postal_code or seller.city %}<div class="muted">{{ seller.postal_code|default_if_none:"" }} {{ seller.city|default_if_none:"" }}</div>{% endif %}
+        {% if seller.country %}<div class="muted">{{ seller.country }}</div>{% endif %}
         {% if seller.email %}<div class="muted">{{ seller.email }}</div>{% endif %}
       </td>
     </tr>

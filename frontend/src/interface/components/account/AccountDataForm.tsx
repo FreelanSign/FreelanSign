@@ -32,6 +32,12 @@ export const AccountSchema = z.object({
   legal_id: z.string().optional().nullable(),
   professional_headline: z.string().max(100).optional().nullable(),
   service_types: z.array(z.number()).optional().nullable(),
+  // Address fields (feat/account-address)
+  address_line1: z.string().max(255).optional().nullable(),
+  address_line2: z.string().max(255).optional().nullable(),
+  city: z.string().max(100).optional().nullable(),
+  postal_code: z.string().max(20).optional().nullable(),
+  country: z.string().max(2).optional().nullable(),
 });
 
 export type AccountFormValues = z.infer<typeof AccountSchema>;
@@ -73,6 +79,11 @@ type Props = {
     legal_id?: string | null;
     professional_headline?: string | null;
     service_types?: number[] | null;
+    address_line1?: string | null;
+    address_line2?: string | null;
+    city?: string | null;
+    postal_code?: string | null;
+    country?: string | null;
   }) => Promise<void> | void;
   onDomainChange?: (domain_id: number | null) => void;
   onChange?: (values: AccountFormValues) => void;
@@ -113,6 +124,12 @@ export default function AccountDataForm({
       legal_id: init.legal_id ?? null,
       professional_headline: init.professional_headline ?? null,
       service_types: normalizeToNumberArray(init.service_types),
+      // Address fields
+      address_line1: init.address_line1 ?? null,
+      address_line2: init.address_line2 ?? null,
+      city: init.city ?? null,
+      postal_code: init.postal_code ?? null,
+      country: init.country ?? null,
     },
   });
 
@@ -169,12 +186,23 @@ export default function AccountDataForm({
         legal_id?: string | null;
         professional_headline?: string | null;
         service_types?: number[] | null;
+        address_line1?: string | null;
+        address_line2?: string | null;
+        city?: string | null;
+        postal_code?: string | null;
+        country?: string | null;
       } = {
         display_name: values.display_name ?? null,
         legal_form: values.legal_form ?? null,
         domain_id: values.domain_id ?? null,
         legal_id: values.legal_id ?? null,
         professional_headline: values.professional_headline ?? null,
+        // Address fields
+        address_line1: values.address_line1 ?? null,
+        address_line2: values.address_line2 ?? null,
+        city: values.city ?? null,
+        postal_code: values.postal_code ?? null,
+        country: values.country ?? null,
       };
 
       if (typeof values.tjm_eur === 'number') {
@@ -344,6 +372,106 @@ export default function AccountDataForm({
           />
         </div>
 
+        {/* Address fields section */}
+        <div className="space-y-3 pt-4 border-t border-border/50">
+          <h4 className="text-sm font-medium text-muted-foreground">
+            Adresse professionnelle
+          </h4>
+
+          <FormField
+            control={control}
+            name="address_line1"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Adresse ligne 1</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value ?? ''}
+                    placeholder="Ex: 123 Rue de la Paix"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={control}
+            name="address_line2"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Adresse ligne 2 (optionnel)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value ?? ''}
+                    placeholder="Ex: Bâtiment A, Étage 2"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+              control={control}
+              name="postal_code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Code postal</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ''}
+                      placeholder="Ex: 75001"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="city"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ville</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ''}
+                      placeholder="Ex: Paris"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <FormField
+            control={control}
+            name="country"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Pays (code ISO)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value ?? ''}
+                    placeholder="Ex: FR"
+                    maxLength={2}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         {submitError && (
           <p className="text-sm text-destructive mt-1">Erreur: {submitError}</p>
         )}
@@ -377,6 +505,11 @@ export default function AccountDataForm({
                   legal_id: init.legal_id ?? null,
                   professional_headline: init.professional_headline ?? null,
                   service_types: normalizeToNumberArray(init.service_types),
+                  address_line1: init.address_line1 ?? null,
+                  address_line2: init.address_line2 ?? null,
+                  city: init.city ?? null,
+                  postal_code: init.postal_code ?? null,
+                  country: init.country ?? null,
                 })
               }
             >

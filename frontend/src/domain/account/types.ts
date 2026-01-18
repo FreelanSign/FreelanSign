@@ -9,6 +9,12 @@ export type AccountDto = {
   service_type_ids: number[];
   is_active: boolean;
   logo_url: string | null;
+  // Address fields (feat/account-address)
+  address_line1: string | null;
+  address_line2: string | null;
+  city: string | null;
+  postal_code: string | null;
+  country: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -21,6 +27,12 @@ export type CreateAccountInput = {
   default_rate_cents?: number | null;
   professional_headline?: string | null;
   service_type_ids?: number[];
+  // Address fields (feat/account-address)
+  address_line1?: string | null;
+  address_line2?: string | null;
+  city?: string | null;
+  postal_code?: string | null;
+  country?: string | null;
 };
 
 export type UpdateAccountInput = Partial<CreateAccountInput>;

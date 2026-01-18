@@ -13,6 +13,7 @@ Usage:
 @since: 2025-12-12
 @version: 1.0
 """
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError

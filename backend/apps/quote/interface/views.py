@@ -615,13 +615,34 @@ class QuotePreviewPdfView(APIView):
                 )
             )
 
-        # Enrich seller data with account info (logo_url, phone) if not provided
+        # Enrich seller data with account info (logo_url, phone, address) if not provided
         seller_data = dict(data["seller"])
         if hasattr(request, "account") and request.account:
+            account = request.account
             if not seller_data.get("logo_url"):
-                seller_data["logo_url"] = getattr(request.account, "logo_url", None)
+                seller_data["logo_url"] = getattr(account, "logo_url", None)
             if not seller_data.get("professional_headline"):
-                seller_data["professional_headline"] = getattr(request.account, "professional_headline", None)
+                seller_data["professional_headline"] = getattr(account, "professional_headline", None)
+            # AIDEV-NOTE: Add address fields from Account (feat/account-address)
+            if not seller_data.get("address_line1"):
+                seller_data["address_line1"] = getattr(account, "address_line1", None)
+            if not seller_data.get("address_line2"):
+                seller_data["address_line2"] = getattr(account, "address_line2", None)
+            if not seller_data.get("city"):
+                seller_data["city"] = getattr(account, "city", None)
+            if not seller_data.get("postal_code"):
+                seller_data["postal_code"] = getattr(account, "postal_code", None)
+            if not seller_data.get("country"):
+                seller_data["country"] = getattr(account, "country", None)
+            # Build formatted address if not already set
+            if not seller_data.get("address"):
+                parts = [p for p in [seller_data.get("address_line1"), seller_data.get("address_line2")] if p]
+                loc = [p for p in [seller_data.get("postal_code"), seller_data.get("city")] if p]
+                if loc:
+                    parts.append(" ".join(loc))
+                if seller_data.get("country"):
+                    parts.append(seller_data["country"])
+                seller_data["address"] = ", ".join(parts) if parts else None
         if hasattr(request.user, "profile") and request.user.profile:
             if not seller_data.get("phone"):
                 seller_data["phone"] = getattr(request.user.profile, "phone", None)

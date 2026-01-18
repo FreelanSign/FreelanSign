@@ -3,6 +3,7 @@
 Phase 8: Minimal admin smoke tests.
 Verifies that admin interfaces are properly registered and accessible.
 """
+
 import pytest
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model

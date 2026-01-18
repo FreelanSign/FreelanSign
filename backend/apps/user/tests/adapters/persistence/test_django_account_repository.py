@@ -7,6 +7,7 @@ Uses real database (pytest-django).
 @since: 2025-11-25
 @version: 1.0
 """
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError

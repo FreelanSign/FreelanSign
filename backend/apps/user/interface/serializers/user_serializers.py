@@ -5,6 +5,7 @@ Interface serializers (API boundary).
 - Output serializers: render application ViewModels to API payloads.
 No business rules here (kept in domain). No DB access here.
 """
+
 from __future__ import annotations
 
 from typing import Optional

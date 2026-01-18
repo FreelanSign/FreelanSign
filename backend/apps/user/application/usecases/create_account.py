@@ -2,6 +2,7 @@
 """
 Use case: Créer un nouveau compte professionnel.
 """
+
 import logging
 
 from apps.user.application.dto.account_inputs import CreateAccountInput
@@ -91,6 +92,12 @@ class CreateAccount:
             is_active=True,
             created_at=now,
             updated_at=now,
+            # Address fields
+            address_line1=input_dto.address_line1,
+            address_line2=input_dto.address_line2,
+            city=input_dto.city,
+            postal_code=input_dto.postal_code,
+            country=input_dto.country,
         )
         logger.info(f"[USE CASE] Step 3: Account entity created")
 
@@ -118,4 +125,10 @@ class CreateAccount:
             is_active=True,  # New accounts are active by default
             created_at=account.created_at,
             updated_at=account.updated_at,
+            # Address fields
+            address_line1=account.address_line1,
+            address_line2=account.address_line2,
+            city=account.city,
+            postal_code=account.postal_code,
+            country=account.country,
         )

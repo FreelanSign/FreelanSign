@@ -10,6 +10,7 @@ Tests written BEFORE implementation to ensure:
 @author: Assistant
 @since: 2026-01-16
 """
+
 from io import BytesIO
 from unittest.mock import MagicMock, patch
 

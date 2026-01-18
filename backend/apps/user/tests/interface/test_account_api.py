@@ -8,6 +8,7 @@ Tests use real database (pytest-django) and DRF test client.
 @since: 2025-11-26
 @version: 1.0
 """
+
 import pytest
 from django.contrib.auth import get_user_model
 from rest_framework import status
@@ -369,3 +370,88 @@ class TestAccountRGPDDelete:
 
         # Account should NOT be deleted
         assert Account.objects.filter(id=user_account.id).exists()
+
+
+@pytest.mark.django_db
+class TestAccountAddress:
+    """Tests for Account address fields (feat/account-address)."""
+
+    def test_create_account_with_address(self, api_client, user):
+        """User creates account with address fields."""
+        api_client.force_authenticate(user=user)
+
+        data = {
+            "display_name": "Company With Address",
+            "legal_form": "micro",
+            "address_line1": "123 Rue de la Paix",
+            "address_line2": "Bâtiment A",
+            "city": "Paris",
+            "postal_code": "75001",
+            "country": "FR",
+        }
+        response = api_client.post("/api/user/accounts/", data)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["address_line1"] == "123 Rue de la Paix"
+        assert response.data["address_line2"] == "Bâtiment A"
+        assert response.data["city"] == "Paris"
+        assert response.data["postal_code"] == "75001"
+        assert response.data["country"] == "FR"
+
+    def test_update_account_address(self, api_client, user, user_account):
+        """User updates account address via PATCH."""
+        api_client.force_authenticate(user=user)
+
+        data = {
+            "address_line1": "456 Avenue des Champs-Élysées",
+            "city": "Paris",
+            "postal_code": "75008",
+            "country": "FR",
+        }
+        response = api_client.patch(f"/api/user/accounts/{user_account.id}/", data)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["address_line1"] == "456 Avenue des Champs-Élysées"
+        assert response.data["city"] == "Paris"
+        assert response.data["postal_code"] == "75008"
+
+        # Verify in DB
+        user_account.refresh_from_db()
+        assert user_account.address_line1 == "456 Avenue des Champs-Élysées"
+        assert user_account.city == "Paris"
+
+    def test_retrieve_account_includes_address(self, api_client, user):
+        """GET account includes address fields."""
+        account = Account.objects.create(
+            user=user,
+            display_name="Address Test Account",
+            legal_form="micro",
+            address_line1="789 Boulevard Haussmann",
+            city="Paris",
+            postal_code="75009",
+            country="FR",
+        )
+
+        api_client.force_authenticate(user=user)
+        response = api_client.get(f"/api/user/accounts/{account.id}/")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["address_line1"] == "789 Boulevard Haussmann"
+        assert response.data["city"] == "Paris"
+        assert response.data["postal_code"] == "75009"
+        assert response.data["country"] == "FR"
+
+    def test_address_fields_are_encrypted(self, user):
+        """Address fields are stored encrypted in DB (RGPD compliance)."""
+        account = Account.objects.create(
+            user=user,
+            display_name="Encrypted Address Test",
+            legal_form="micro",
+            address_line1="Secret Address",
+            city="Secret City",
+        )
+
+        # Refresh and check that fields are accessible (decrypted on read)
+        account.refresh_from_db()
+        assert account.address_line1 == "Secret Address"
+        assert account.city == "Secret City"

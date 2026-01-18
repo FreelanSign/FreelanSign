@@ -1,5 +1,6 @@
 # apps/user/application/usecases/rgpd_delete_account.py
 """Use case: Suppression RGPD d'un compte professionnel (soft delete avec cascade)."""
+
 from apps.user.application.errors import CannotDeleteAccountError
 from apps.user.domain.errors import AccountNotFoundError
 from apps.user.models.account import Account as AccountModel

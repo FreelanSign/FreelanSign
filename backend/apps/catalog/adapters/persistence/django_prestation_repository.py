@@ -2,6 +2,7 @@
 """
 Implémentation Django du PrestationRepository.
 """
+
 import logging
 from typing import Optional
 

@@ -2,6 +2,7 @@
 """
 Use case: Lister les utilisateurs.
 """
+
 import logging
 
 from apps.user.application.dto.user_viewmodels import ProfileViewModel, UserListViewModel, UserViewModel

@@ -190,6 +190,32 @@ export default function ProfilePage() {
                 {account.legal_id || '—'}
               </span>
             </div>
+
+            <div className="info-row">
+              <span className="info-label">Adresse professionnelle</span>
+              <span className="info-value">
+                {account.address_line1 || account.city ? (
+                  <div className="flex flex-col">
+                    {account.address_line1 && (
+                      <span>{account.address_line1}</span>
+                    )}
+                    {account.address_line2 && (
+                      <span>{account.address_line2}</span>
+                    )}
+                    {(account.postal_code || account.city) && (
+                      <span>
+                        {[account.postal_code, account.city]
+                          .filter(Boolean)
+                          .join(' ')}
+                      </span>
+                    )}
+                    {account.country && <span>{account.country}</span>}
+                  </div>
+                ) : (
+                  '—'
+                )}
+              </span>
+            </div>
           </CardContent>
         </Card>
       )}

@@ -9,6 +9,7 @@ legal/accounting data for the required 10-year retention period.
 @since: 2025-12-12
 @version: 1.0
 """
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.utils import timezone

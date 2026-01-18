@@ -3,6 +3,7 @@
 Gestion centralisée des erreurs pour l'interface API.
 Mappe les erreurs métier vers des codes HTTP appropriés.
 """
+
 import logging
 
 from rest_framework import status
