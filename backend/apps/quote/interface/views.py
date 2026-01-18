@@ -564,7 +564,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
 
 class QuotePreviewPdfView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, HasAccountContext]
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
 
     def post(self, request):

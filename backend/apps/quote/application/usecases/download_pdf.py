@@ -40,30 +40,33 @@ class DownloadPdf:
             quote.items.count(),
         )
 
-        # 2) charger le thème (sans forcer en UUID)
+        # 2) charger le thème (via quote.account)
         branding = None
         raw_theme = None
-        if self.theme_loader and hasattr(actor, "id"):
-            raw_id = actor.id
-            log.debug("download_pdf.theme_loader.call actor_id=%s, actor_id_type=%s", raw_id, type(raw_id).__name__)
+        # Phase 5: Use account from quote instead of actor
+        account_id = getattr(quote.account, "id", None)
+
+        if self.theme_loader and account_id:
+            log.debug("download_pdf.theme_loader.call account_id=%s", account_id)
             try:
-                raw_theme = self.theme_loader(raw_id)
+                raw_theme = self.theme_loader(account_id)
                 log.debug(
-                    "download_pdf.theme_loader.done actor_id=%s, has_branding=%s, theme_name=%s",
-                    raw_id,
+                    "download_pdf.theme_loader.done account_id=%s, has_branding=%s, theme_name=%s",
+                    account_id,
                     bool(raw_theme),
                     raw_theme.get("name") if isinstance(raw_theme, dict) else None,
                 )
             except Exception as e:
-                log.exception("download_pdf.theme_loader.error actor_id=%s", raw_id)
+                log.exception("download_pdf.theme_loader.error account_id=%s", account_id)
                 raw_theme = None
             branding = normalize_theme_dict(raw_theme)
         else:
             log.debug(
-                "download_pdf.theme_loader.skipped_no_theme_loader has_loader=%s, actor_id=%s",
+                "download_pdf.theme_loader.skipped has_loader=%s, has_account=%s",
                 bool(self.theme_loader),
-                getattr(actor, "id", None),
+                bool(account_id),
             )
+            branding = normalize_theme_dict(None)
 
         # 3) mapper les lignes
         # AIDEV-NOTE: Model's `description` = designation (item name), `details` = description (optional detail)
