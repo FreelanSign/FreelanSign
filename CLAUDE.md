@@ -31,3 +31,9 @@
 - **JS/TS**: No semicolons, single quotes, no unnecessary braces, 2-space indent.
 - **Imports**: External → Internal → Types.
 - **TDD**: Domain/Application layers must have 100% test coverage.
+
+## 📄 PDF Templates
+
+- **Conditional logic**: Add flags in `pdf_context_presenter.py:preview_context()` (e.g., `has_uniform_tax`)
+- **Template width**: Always sum to 100% (use conditional widths if needed)
+- **Signature box**: 120px height for stamps/digital signatures
