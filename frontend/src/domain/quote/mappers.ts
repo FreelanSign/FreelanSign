@@ -21,6 +21,7 @@ export function apiItemsToUi(items: ApiQuoteItem[] | undefined): UiQuoteLine[] {
       quantity: Number(it.qty ?? 0),
       unit_price: Number(it.unit_price ?? 0),
       tax_rate: it.tax_rate != null ? Number(it.tax_rate) / 100 : 0,
+      discount: it.discount != null ? Number(it.discount) : 0,
     }),
   );
 }
@@ -109,7 +110,7 @@ export function uiToUpdatePayload(q: UiQuote): ApiQuoteUpdatePayload {
       qty: String(l.quantity),
       unit_price: String(Number(l.unit_price).toFixed(2)),
       tax_rate: String(((l.tax_rate ?? 0) * 100).toFixed(2)),
-      discount: '0.00',
+      discount: String(Number(l.discount ?? 0).toFixed(2)),
       order: i,
     }));
   }
@@ -129,8 +130,10 @@ export function apiToUiQuoteDetail(
   const line_items: UiQuoteLineDetail[] = items.map((it, idx) => {
     const qty = num(it.qty);
     const up = num(it.unit_price);
+    const disc = num(it.discount);
     const taxPct = it.tax_rate != null ? num(it.tax_rate) : 0; // 0..100
-    const pre = it.pre_tax_total != null ? num(it.pre_tax_total) : qty * up;
+    const pre =
+      it.pre_tax_total != null ? num(it.pre_tax_total) : qty * up - disc;
     const tax =
       it.tax_amount != null ? num(it.tax_amount) : pre * (taxPct / 100);
     return {
@@ -140,6 +143,7 @@ export function apiToUiQuoteDetail(
       quantity: qty,
       unit_price: up,
       tax_rate: taxPct / 100,
+      discount: disc,
       pre_tax_total: pre,
       tax_amount: tax,
       total: pre + tax,

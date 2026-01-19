@@ -101,6 +101,7 @@ export type UiQuoteLine = {
   quantity: number;
   unit_price: number;
   tax_rate?: number | null; // 0.2 => 20%
+  discount?: number | null; // absolute amount (EUR)
 };
 
 export type UiQuote = {
@@ -125,6 +126,7 @@ export type UiQuoteLineDetail = {
   quantity: number;
   unit_price: number;
   tax_rate?: number | null; // fraction 0..1
+  discount?: number | null; // absolute amount (EUR)
   pre_tax_total?: number | null;
   tax_amount?: number | null;
   total?: number | null;

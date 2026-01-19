@@ -54,6 +54,8 @@ type QuoteLine = {
   unit_price: number;
   /** 0.2 => 20% (fraction UI) */
   tax_rate?: number | null;
+  /** absolute discount amount (EUR) */
+  discount?: number | null;
 };
 
 type ClientInfo = {
@@ -208,6 +210,7 @@ export default function QuoteEditPage() {
               quantity: l.quantity,
               unit_price: l.unit_price,
               tax_rate: l.tax_rate ?? 0,
+              discount: l.discount ?? 0,
             }),
           ),
         };
@@ -271,7 +274,7 @@ export default function QuoteEditPage() {
       quantity: Number(l.quantity),
       unit_price: Number(l.unit_price ?? 0),
       tax_rate: typeof l.tax_rate === 'number' ? l.tax_rate : null,
-      discount: 0,
+      discount: Number(l.discount ?? 0),
     }));
     const branding = { name: 'FreelanSign' };
     return { seller, client, meta, lines, branding };
@@ -296,10 +299,15 @@ export default function QuoteEditPage() {
   // Derived totals (UI)
   const totals = useMemo(() => {
     const lines = quote?.line_items ?? [];
-    const sub = lines.reduce((acc, l) => acc + l.quantity * l.unit_price, 0);
+    const sub = lines.reduce((acc, l) => {
+      const base = l.quantity * l.unit_price - (l.discount ?? 0);
+      return acc + Math.max(0, base);
+    }, 0);
     const tax = lines.reduce((acc, l) => {
+      const base = l.quantity * l.unit_price - (l.discount ?? 0);
+      const preTax = Math.max(0, base);
       const rate = l.tax_rate ?? 0;
-      return acc + l.quantity * l.unit_price * rate;
+      return acc + preTax * rate;
     }, 0);
     return { sub, tax, total: sub + tax };
   }, [quote]);
@@ -337,6 +345,7 @@ export default function QuoteEditPage() {
         quantity: 1,
         unit_price: 0,
         tax_rate: 0.2,
+        discount: 0,
       };
       return { ...q, line_items: [...q.line_items, next] };
     });
@@ -403,7 +412,7 @@ export default function QuoteEditPage() {
         unit_price: String(Number(l.unit_price).toFixed(2)),
         // 0.2 (20%) -> "20.00"
         tax_rate: String(((l.tax_rate ?? 0) * 100).toFixed(2)),
-        discount: '0.00',
+        discount: String(Number(l.discount ?? 0).toFixed(2)),
         order: i,
         metadata: {},
       }));
@@ -885,8 +894,9 @@ export default function QuoteEditPage() {
             ) : (
               <div className="divide-y divide-border/50">
                 {quote.line_items.map((l, i) => {
-                  const base = l.quantity * l.unit_price;
-                  const tot = base * (1 + (l.tax_rate ?? 0));
+                  const base = l.quantity * l.unit_price - (l.discount ?? 0);
+                  const preTax = Math.max(0, base);
+                  const tot = preTax * (1 + (l.tax_rate ?? 0));
                   return (
                     <div
                       key={i}
@@ -932,8 +942,8 @@ export default function QuoteEditPage() {
                             />
                           </div>
 
-                          {/* Row 3: Quantité, Prix, TVA, Total */}
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end pt-2">
+                          {/* Row 3: Quantité, Prix, Remise, TVA, Total */}
+                          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-end pt-2">
                             <div className="space-y-1.5">
                               <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                                 Quantité
@@ -963,6 +973,28 @@ export default function QuoteEditPage() {
                                   onChange={(e) =>
                                     updateLine(i, {
                                       unit_price: Number(e.target.value),
+                                    })
+                                  }
+                                  className="h-9 pr-8"
+                                />
+                                <span className="absolute right-3 top-2.5 text-[10px] text-muted-foreground font-bold">
+                                  €
+                                </span>
+                              </div>
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                Remise
+                              </Label>
+                              <div className="relative">
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  value={l.discount ?? 0}
+                                  onChange={(e) =>
+                                    updateLine(i, {
+                                      discount: Number(e.target.value),
                                     })
                                   }
                                   className="h-9 pr-8"
