@@ -3,6 +3,7 @@ AccountService adapter for fetching account data.
 """
 
 from apps.legal_terms.domain.exceptions import MissingTemplateVariablesError
+from apps.legal_terms.domain.services.address_formatter import format_address
 from apps.legal_terms.domain.value_objects.template_variables import TemplateVariables
 from apps.user.models.account import Account
 
@@ -58,11 +59,14 @@ class AccountServiceAdapter:
         if not phone:
             missing_fields.append("Phone (Profile.phone)")
 
-        # Address - Not yet in Account model (MVP limitation)
-        # TODO: Add address field to Account model
-        # For now, we use a placeholder to avoid blocking users
-        # This allows the legal terms preview to work without requiring address data
-        address = "Adresse à compléter"  # Placeholder until address field is added to Account model
+        # AIDEV-NOTE: Address optional, fallback to placeholder if incomplete
+        address = format_address(
+            address_line1=account.address_line1,
+            address_line2=account.address_line2,
+            city=account.city,
+            postal_code=account.postal_code,
+            country=account.country,
+        )
 
         # If any required fields are missing, raise error
         if missing_fields:

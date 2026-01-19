@@ -3,6 +3,7 @@
 Views API pour le module catalog.
 Couche interface: mapping HTTP ⇄ Use Cases.
 """
+
 import logging
 
 from drf_spectacular.utils import OpenApiParameter, extend_schema

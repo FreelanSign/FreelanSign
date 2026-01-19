@@ -6,6 +6,7 @@ Django ORM implementation of AccountRepository port.
 @since: 2025-11-25
 @version: 1.0
 """
+
 from django.db.models import Q
 from django.db.models.functions import Lower
 
@@ -34,6 +35,12 @@ class DjangoAccountRepository:
             is_active=account.is_active,
             created_at=account.created_at,
             updated_at=account.updated_at,
+            # Address fields
+            address_line1=account.address_line1 or "",
+            address_line2=account.address_line2 or "",
+            city=account.city or "",
+            postal_code=account.postal_code or "",
+            country=account.country or "",
         )
         # Set M2M relationship for service_types
         if account.service_type_ids:
@@ -68,6 +75,12 @@ class DjangoAccountRepository:
         model.professional_headline = account.professional_headline
         model.is_active = account.is_active
         model.updated_at = account.updated_at
+        # Address fields
+        model.address_line1 = account.address_line1 or ""
+        model.address_line2 = account.address_line2 or ""
+        model.city = account.city or ""
+        model.postal_code = account.postal_code or ""
+        model.country = account.country or ""
         model.save()
         # Update M2M relationship for service_types
         model.service_types.set(account.service_type_ids)
@@ -126,4 +139,10 @@ class DjangoAccountRepository:
             is_active=model.is_active,
             created_at=model.created_at,
             updated_at=model.updated_at,
+            # Address fields
+            address_line1=model.address_line1 or None,
+            address_line2=model.address_line2 or None,
+            city=model.city or None,
+            postal_code=model.postal_code or None,
+            country=model.country or None,
         )

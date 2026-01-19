@@ -139,6 +139,12 @@ export default function ProfileEditPage() {
             default_rate_cents: acc?.default_rate_cents ?? undefined,
             legal_id: acc?.legal_id ?? null,
             professional_headline: acc?.professional_headline ?? null,
+            // Address fields
+            address_line1: acc?.address_line1 ?? null,
+            address_line2: acc?.address_line2 ?? null,
+            city: acc?.city ?? null,
+            postal_code: acc?.postal_code ?? null,
+            country: acc?.country ?? null,
           });
         } else {
           setAccount(null);
@@ -172,6 +178,12 @@ export default function ProfileEditPage() {
         tjm_eur: values.tjm_eur ?? undefined,
         legal_id: values.legal_id ?? null,
         professional_headline: values.professional_headline ?? null,
+        // Address fields
+        address_line1: values.address_line1 ?? null,
+        address_line2: values.address_line2 ?? null,
+        city: values.city ?? null,
+        postal_code: values.postal_code ?? null,
+        country: values.country ?? null,
       }));
     },
     [],
@@ -201,6 +213,12 @@ export default function ProfileEditPage() {
     professional_headline?: string | null;
     service_type_ids?: number[];
     default_rate_cents?: number | null;
+    // Address fields
+    address_line1?: string | null;
+    address_line2?: string | null;
+    city?: string | null;
+    postal_code?: string | null;
+    country?: string | null;
   };
 
   // helper: normalise profile fields (convert '' -> null)
@@ -226,6 +244,12 @@ export default function ProfileEditPage() {
         default_rate_cents: accountDraft.default_rate_cents ?? null,
         legal_id: accountDraft.legal_id ?? null,
         professional_headline: accountDraft.professional_headline ?? null,
+        // Address fields
+        address_line1: accountDraft.address_line1 ?? null,
+        address_line2: accountDraft.address_line2 ?? null,
+        city: accountDraft.city ?? null,
+        postal_code: accountDraft.postal_code ?? null,
+        country: accountDraft.country ?? null,
       }) !==
       JSON.stringify({
         display_name: currentAcc?.display_name ?? null,
@@ -234,6 +258,12 @@ export default function ProfileEditPage() {
         default_rate_cents: currentAcc?.default_rate_cents ?? null,
         legal_id: currentAcc?.legal_id ?? null,
         professional_headline: currentAcc?.professional_headline ?? null,
+        // Address fields
+        address_line1: currentAcc?.address_line1 ?? null,
+        address_line2: currentAcc?.address_line2 ?? null,
+        city: currentAcc?.city ?? null,
+        postal_code: currentAcc?.postal_code ?? null,
+        country: currentAcc?.country ?? null,
       });
 
     const servicesChanged =
@@ -292,6 +322,12 @@ export default function ProfileEditPage() {
         professional_headline: accountDraft.professional_headline ?? null,
         service_type_ids: selectedServiceIds ?? [],
         default_rate_cents: null,
+        // Address fields
+        address_line1: accountDraft.address_line1 ?? null,
+        address_line2: accountDraft.address_line2 ?? null,
+        city: accountDraft.city ?? null,
+        postal_code: accountDraft.postal_code ?? null,
+        country: accountDraft.country ?? null,
       };
 
       // convert tjm_eur (if provided) to default_rate_cents
@@ -318,6 +354,12 @@ export default function ProfileEditPage() {
         default_rate_cents: acc?.default_rate_cents ?? undefined,
         legal_id: acc?.legal_id ?? null,
         professional_headline: acc?.professional_headline ?? null,
+        // Address fields
+        address_line1: acc?.address_line1 ?? null,
+        address_line2: acc?.address_line2 ?? null,
+        city: acc?.city ?? null,
+        postal_code: acc?.postal_code ?? null,
+        country: acc?.country ?? null,
       });
 
       // show success toast
@@ -485,6 +527,12 @@ export default function ProfileEditPage() {
                     legal_id: account.legal_id ?? null,
                     professional_headline:
                       account.professional_headline ?? null,
+                    // Address fields
+                    address_line1: account.address_line1 ?? null,
+                    address_line2: account.address_line2 ?? null,
+                    city: account.city ?? null,
+                    postal_code: account.postal_code ?? null,
+                    country: account.country ?? null,
                   }}
                   areas={areas}
                   accountId={account.id}

@@ -3,6 +3,7 @@
 ViewModels de sortie pour les use cases.
 Structures prêtes pour présentation.
 """
+
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional

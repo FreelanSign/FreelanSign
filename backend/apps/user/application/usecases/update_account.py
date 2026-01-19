@@ -1,5 +1,6 @@
 # apps/user/application/usecases/update_account.py
 """Use case: Mettre à jour un compte professionnel."""
+
 from apps.user.application.dto.account_inputs import UpdateAccountInput
 from apps.user.application.dto.account_viewmodels import AccountViewModel
 from apps.user.application.ports.account_repository import AccountRepository
@@ -43,6 +44,12 @@ class UpdateAccount:
         account.default_rate_cents = input_dto.default_rate_cents
         account.professional_headline = input_dto.professional_headline
         account.service_type_ids = input_dto.service_type_ids or []
+        # Address fields
+        account.address_line1 = input_dto.address_line1
+        account.address_line2 = input_dto.address_line2
+        account.city = input_dto.city
+        account.postal_code = input_dto.postal_code
+        account.country = input_dto.country
         account.updated_at = self.clock.now()
 
         # 5. Persist
@@ -66,4 +73,10 @@ class UpdateAccount:
             is_active=True,
             created_at=account.created_at,
             updated_at=account.updated_at,
+            # Address fields
+            address_line1=account.address_line1,
+            address_line2=account.address_line2,
+            city=account.city,
+            postal_code=account.postal_code,
+            country=account.country,
         )

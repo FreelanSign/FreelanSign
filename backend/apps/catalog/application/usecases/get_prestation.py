@@ -2,6 +2,7 @@
 """
 Use case: Récupérer une prestation par ID.
 """
+
 import logging
 
 from apps.catalog.application.dto.prestation_inputs import GetPrestationInput

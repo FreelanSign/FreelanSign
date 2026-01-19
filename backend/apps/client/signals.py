@@ -4,6 +4,7 @@ Signals for Client model.
 
 RGPD compliance: Prevent soft delete of Client if active Quotes exist.
 """
+
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 

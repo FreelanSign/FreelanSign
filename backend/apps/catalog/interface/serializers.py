@@ -3,6 +3,7 @@
 Serializers DRF pour l'API catalog.
 Gèrent la validation d'entrée et la sérialisation de sortie.
 """
+
 import logging
 
 from rest_framework import serializers

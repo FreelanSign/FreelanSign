@@ -2,6 +2,7 @@
 """
 Use case: Mettre à jour le profil d'un utilisateur.
 """
+
 import logging
 
 from apps.user.application.dto.user_inputs import UpdateProfileInput

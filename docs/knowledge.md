@@ -852,6 +852,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── exceptions.py
 │   │   │   │   ├── services
 │   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── address_formatter.py
 │   │   │   │   │   └── legal_terms_assembler.py
 │   │   │   │   └── value_objects
 │   │   │   │       ├── __init__.py
@@ -884,10 +885,12 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       │       ├── test_legal_terms_assembly_steps.py
 │   │   │       │       └── test_manage_legal_profile_steps.py
 │   │   │       ├── conftest.py
+│   │   │       ├── test_adapters_account_service.py
 │   │   │       ├── test_admin.py
 │   │   │       ├── test_api_legal_profile.py
 │   │   │       ├── test_api_preview.py
 │   │   │       ├── test_app_smoke.py
+│   │   │       ├── test_domain_address_formatter.py
 │   │   │       ├── test_domain_assembler.py
 │   │   │       ├── test_domain_entities.py
 │   │   │       ├── test_domain_value_objects.py
@@ -995,6 +998,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── application
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── test_add_prestation_line.py
+│   │   │   │   │   ├── test_build_seller_address.py
 │   │   │   │   │   ├── test_generate_preview.py
 │   │   │   │   │   └── usecases
 │   │   │   │   │       ├── test_create_quote.py
@@ -1017,6 +1021,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── test_preview.py
 │   │   │   │   ├── test_quote_actions_api.py
 │   │   │   │   ├── test_quote_soft_delete.py
+│   │   │   │   ├── test_repository_bug_repro.py
 │   │   │   │   └── test_serializers.py
 │   │   │   └── views.py
 │   │   └── user
@@ -1111,7 +1116,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── 0013_add_soft_delete_to_account.py
 │   │       │   ├── 0014_add_field_encryption.py
 │   │       │   ├── 0015_add_professional_headline.py
-│   │       │   └── 0016_add_logo_url_to_account.py
+│   │       │   ├── 0016_add_logo_url_to_account.py
+│   │       │   └── 0017_add_account_address.py
 │   │       ├── models
 │   │       │   ├── __init__.py
 │   │       │   ├── account.py
@@ -1770,7 +1776,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-314 directories, 1000 files
+314 directories, 1006 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1845,5 +1851,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-01-18 16:59:42 CET**
+_Updated_: **2026-01-19 11:25:24 CET**
 <!-- END AUTO: LAST_UPDATED -->

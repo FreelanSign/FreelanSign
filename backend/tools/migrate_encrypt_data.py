@@ -10,6 +10,7 @@ Run once after adding EncryptedField to models.
 @author: @Bertrand2808
 @since: 2025-12-12
 """
+
 import os
 import sys
 

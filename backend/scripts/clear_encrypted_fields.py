@@ -41,8 +41,7 @@ with connection.cursor() as cursor:
 # Clear Client encrypted fields (use empty string '' for NOT NULL fields)
 print("2. Clearing Client encrypted fields...")
 with connection.cursor() as cursor:
-    cursor.execute(
-        """
+    cursor.execute("""
         UPDATE client_client SET
             email = '',
             phone = '',
@@ -60,8 +59,7 @@ with connection.cursor() as cursor:
            OR postal_code != ''
            OR company != ''
            OR vat_number != ''
-    """
-    )
+    """)
     count = cursor.rowcount
     print(f"   ✓ Cleared {count} clients\n")
 

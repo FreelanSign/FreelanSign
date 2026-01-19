@@ -2,6 +2,7 @@
 """
 DTOs d'entrée pour les use cases de prestations.
 """
+
 from dataclasses import dataclass
 from typing import Optional
 

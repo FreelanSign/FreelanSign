@@ -3,6 +3,7 @@
 Politiques métier pour les comptes professionnels (Account).
 Règles pures, sans dépendance Django.
 """
+
 import re
 from typing import Optional
 

@@ -3,6 +3,7 @@
 Value Objects du domaine user.
 Objets purs, sans dépendance Django.
 """
+
 from enum import Enum
 
 

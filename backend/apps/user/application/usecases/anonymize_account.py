@@ -13,6 +13,7 @@ Implements "Droit à l'Oubli" by:
 @version: 1.0
 @reference: SPECIFICATIONS_RGPD.md Section 3.3
 """
+
 from typing import Optional
 
 from django.contrib.auth import get_user_model

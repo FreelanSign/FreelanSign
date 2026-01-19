@@ -6,6 +6,7 @@ Entité Account du domaine user.
 @author: @Bertrand2808
 @since: 2025-11-25
 """
+
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -36,6 +37,12 @@ class Account:
     default_rate_cents: int | None = None
     professional_headline: str | None = None
     service_type_ids: list[int] = field(default_factory=list)
+    # Address fields (feat/account-address)
+    address_line1: str | None = None
+    address_line2: str | None = None
+    city: str | None = None
+    postal_code: str | None = None
+    country: str | None = None
 
     def __post_init__(self):
         """Validation à la création."""

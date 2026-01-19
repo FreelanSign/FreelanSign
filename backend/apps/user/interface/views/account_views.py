@@ -12,6 +12,7 @@ ARCHITECTURE DECISIONS:
 @since: 2025-11-26
 @version: 2.0
 """
+
 import logging
 
 from rest_framework import status, viewsets

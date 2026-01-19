@@ -3,6 +3,7 @@
 Port du repository de prestations.
 Interface abstraite utilisée par les use cases.
 """
+
 from abc import ABC, abstractmethod
 from typing import Optional
 

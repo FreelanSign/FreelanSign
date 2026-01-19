@@ -2,6 +2,7 @@
 """
 Tests unitaires pour le service de calcul.
 """
+
 from decimal import Decimal
 
 import pytest

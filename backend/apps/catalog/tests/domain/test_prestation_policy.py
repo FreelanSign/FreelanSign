@@ -3,6 +3,7 @@
 Tests unitaires pour les politiques du domaine.
 Tests purs, sans dépendance Django.
 """
+
 import pytest
 
 from apps.catalog.domain.errors import (

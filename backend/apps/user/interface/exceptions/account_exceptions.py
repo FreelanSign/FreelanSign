@@ -6,6 +6,7 @@ Custom exceptions for Account interface layer.
 @since: 2025-11-25
 @version: 1.0
 """
+
 from rest_framework import status
 from rest_framework.exceptions import APIException
 

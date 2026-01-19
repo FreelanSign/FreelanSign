@@ -18,6 +18,7 @@ Security requirements (SPECIFICATIONS_RGPD.md Section 3.1.1):
 @since: 2025-12-11
 @version: 1.0
 """
+
 import base64
 from typing import Any, Optional
 

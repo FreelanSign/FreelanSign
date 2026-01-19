@@ -1,5 +1,6 @@
 # apps/user/tests/application/usecases/test_update_account.py
 """Tests pour le use case UpdateAccount."""
+
 from datetime import datetime
 from unittest.mock import Mock
 

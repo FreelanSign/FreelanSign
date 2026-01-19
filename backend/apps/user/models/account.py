@@ -1,5 +1,6 @@
 # apps/user/models/account.py
 """Django model for Account entity."""
+
 from django.conf import settings
 from django.db import models, transaction
 from django.utils import timezone
@@ -77,6 +78,14 @@ class Account(TimestampedModel, SoftDeleteModel):
     )
     is_active = models.BooleanField(default=True)
     logo_url = models.URLField(blank=True, null=True, help_text="Company logo URL")
+
+    # AIDEV-NOTE: Address fields for professional structure (same pattern as Client)
+    # RGPD: Encrypted fields for sensitive location data
+    address_line1 = EncryptedCharField(max_length=255, blank=True, help_text="Street address line 1")
+    address_line2 = EncryptedCharField(max_length=255, blank=True, help_text="Street address line 2")
+    city = EncryptedCharField(max_length=100, blank=True, help_text="City")
+    postal_code = EncryptedCharField(max_length=20, blank=True, help_text="Postal/ZIP code")
+    country = models.CharField(max_length=2, blank=True, help_text="ISO 3166-1 alpha-2 country code")
 
     class Meta:
         unique_together = [("user", "display_name")]

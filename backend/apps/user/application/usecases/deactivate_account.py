@@ -1,5 +1,6 @@
 # apps/user/application/usecases/deactivate_account.py
 """Use case: Désactiver un compte professionnel (soft delete)."""
+
 from apps.user.application.errors import CannotDeactivateAccountError
 from apps.user.application.ports.account_repository import AccountRepository
 from apps.user.application.ports.clock import Clock

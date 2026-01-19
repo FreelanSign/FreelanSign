@@ -2,6 +2,7 @@
 """
 Output DTOs (ViewModels) pour la présentation des données Account.
 """
+
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -22,6 +23,12 @@ class AccountViewModel:
     is_active: bool
     created_at: datetime
     updated_at: datetime
+    # Address fields (feat/account-address)
+    address_line1: str | None = None
+    address_line2: str | None = None
+    city: str | None = None
+    postal_code: str | None = None
+    country: str | None = None
 
 
 @dataclass(frozen=True)

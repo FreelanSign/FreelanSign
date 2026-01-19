@@ -2,6 +2,7 @@
 """
 Use case: Enregistrer un nouvel utilisateur.
 """
+
 import logging
 
 from apps.user.application.dto.user_inputs import RegisterUserInput

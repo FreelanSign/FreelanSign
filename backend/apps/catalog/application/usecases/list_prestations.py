@@ -2,6 +2,7 @@
 """
 Use case: Lister les prestations.
 """
+
 import logging
 
 from apps.catalog.application.dto.prestation_inputs import ListPrestationsInput

@@ -3,6 +3,7 @@
 Tests unitaires pour LegalForm value object.
 Tests purs, sans dépendance Django.
 """
+
 import pytest
 
 from apps.user.domain.value_objects import LegalForm

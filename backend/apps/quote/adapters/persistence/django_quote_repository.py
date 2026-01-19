@@ -69,6 +69,7 @@ class DjangoQuoteRepository(QuoteRepository):
             QuoteLineItem.objects.create(
                 quote=quote,
                 description=it["description"][:255],
+                details=it.get("details", "") or "",
                 qty=it["qty"],
                 unit_price=it["unit_price"],
                 tax_rate=it.get("tax_rate") or it.get("tax_rate_pct") or Decimal("0.00"),
@@ -83,6 +84,7 @@ class DjangoQuoteRepository(QuoteRepository):
         quote_id: str,
         *,
         description: str,
+        details: str = "",
         qty: Decimal,
         unit_price: Decimal,
         tax_rate_pct: Decimal,
@@ -96,6 +98,7 @@ class DjangoQuoteRepository(QuoteRepository):
             line = QuoteLineItem.objects.create(
                 quote=quote,
                 description=description[:255],
+                details=details,
                 qty=qty,
                 unit_price=unit_price,
                 tax_rate=tax_rate_pct,
