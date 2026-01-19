@@ -139,18 +139,20 @@ export default function QuoteDetailPage() {
     const sub =
       quote.subtotal ??
       lines.reduce(
-        (acc, l) => acc + (l.pre_tax_total ?? l.quantity * l.unit_price),
+        (acc, l) =>
+          acc +
+          (l.pre_tax_total ??
+            Math.max(0, l.quantity * l.unit_price - (l.discount ?? 0))),
         0,
       );
     const taxes =
       quote.tax_total ??
-      lines.reduce(
-        (acc, l) =>
-          acc +
-          (l.tax_amount ??
-            (l.pre_tax_total ?? l.quantity * l.unit_price) * (l.tax_rate ?? 0)),
-        0,
-      );
+      lines.reduce((acc, l) => {
+        const preTax =
+          l.pre_tax_total ??
+          Math.max(0, l.quantity * l.unit_price - (l.discount ?? 0));
+        return acc + (l.tax_amount ?? preTax * (l.tax_rate ?? 0));
+      }, 0);
     const total = quote.total ?? sub + taxes - (quote.discount_total ?? 0);
     return { sub, taxes, total };
   }, [quote]);
@@ -394,6 +396,9 @@ export default function QuoteDetailPage() {
                       PU HT
                     </TableHead>
                     <TableHead className="h-10 py-3 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">
+                      Remise
+                    </TableHead>
+                    <TableHead className="h-10 py-3 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">
                       TVA
                     </TableHead>
                     <TableHead className="h-10 py-3 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right pr-6">
@@ -427,12 +432,25 @@ export default function QuoteDetailPage() {
                       <TableCell className="py-4 text-right align-top text-sm">
                         {money.format(l.unit_price)}
                       </TableCell>
+                      <TableCell className="py-4 text-right align-top text-sm text-muted-foreground">
+                        {l.discount && l.discount > 0 ? (
+                          <span className="text-destructive font-medium">
+                            - {money.format(l.discount)}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </TableCell>
                       <TableCell className="py-4 text-right align-top text-sm text-muted-foreground font-medium">
                         {((l.tax_rate ?? 0) * 100).toFixed(0)}%
                       </TableCell>
                       <TableCell className="py-4 text-right align-top pr-6 font-bold text-sm">
                         {money.format(
-                          l.pre_tax_total ?? l.quantity * l.unit_price,
+                          l.pre_tax_total ??
+                            Math.max(
+                              0,
+                              l.quantity * l.unit_price - (l.discount ?? 0),
+                            ),
                         )}
                       </TableCell>
                     </TableRow>
