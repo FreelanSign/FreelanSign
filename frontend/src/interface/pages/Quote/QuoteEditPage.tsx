@@ -943,7 +943,7 @@ export default function QuoteEditPage() {
                           </div>
 
                           {/* Row 3: Quantité, Prix, Remise, TVA, Total */}
-                          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-end pt-2">
+                          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-start pt-2">
                             <div className="space-y-1.5">
                               <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                                 Quantité
@@ -1008,24 +1008,26 @@ export default function QuoteEditPage() {
                               <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                                 TVA
                               </Label>
-                              <Select
-                                value={(l.tax_rate ?? 0).toString()}
-                                onValueChange={(val) =>
-                                  updateLine(i, { tax_rate: Number(val) })
-                                }
-                              >
-                                <SelectTrigger className="h-9">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="0">
-                                    0% (Exonéré)
-                                  </SelectItem>
-                                  <SelectItem value="0.055">5,5%</SelectItem>
-                                  <SelectItem value="0.1">10%</SelectItem>
-                                  <SelectItem value="0.2">20%</SelectItem>
-                                </SelectContent>
-                              </Select>
+                              <div>
+                                <Select
+                                  value={(l.tax_rate ?? 0).toString()}
+                                  onValueChange={(val) =>
+                                    updateLine(i, { tax_rate: Number(val) })
+                                  }
+                                >
+                                  <SelectTrigger className="h-9 w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="0">
+                                      0% (Exonéré)
+                                    </SelectItem>
+                                    <SelectItem value="0.055">5,5%</SelectItem>
+                                    <SelectItem value="0.1">10%</SelectItem>
+                                    <SelectItem value="0.2">20%</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
                             <div className="space-y-1.5 text-right">
                               <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">

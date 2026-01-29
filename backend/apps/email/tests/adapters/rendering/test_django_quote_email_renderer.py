@@ -17,6 +17,7 @@ def sample_data():
         quote_date=date(2024, 1, 1),
         expiration_date=date(2024, 1, 31),
         locale="fr",
+        sender_name="Test Company",
     )
 
 
@@ -41,20 +42,22 @@ def test_render_html_sanitizes_script_tag(sample_data):
     assert "alert(" in html  # visible, mais safe car échappé
 
 
-def test_render_plain_template_missing_raises(sample_data):
+def test_render_plain_always_uses_french(sample_data):
     sample_data.locale = "zz"
     renderer = DjangoQuoteEmailRenderer()
 
-    with pytest.raises(TemplateDoesNotExist):
-        renderer.render_plain(sample_data)
+    # Even with invalid locale, should use French
+    output = renderer.render_plain(sample_data)
+    assert "Bonjour" in output
 
 
-def test_render_html_template_missing_returns_fallback(sample_data):
+def test_render_html_always_uses_french(sample_data):
     sample_data.locale = "zz"
     renderer = DjangoQuoteEmailRenderer()
 
+    # Even with invalid locale, should use French
     html = renderer.render_html(sample_data)
-    assert html == "<p>Erreur de génération d'email.</p>"
+    assert "Bonjour" in html
 
 
 def test_render_plain_logs_and_raises_on_generic_error(monkeypatch, sample_data):
@@ -79,3 +82,40 @@ def test_render_html_logs_and_fallbacks_on_generic_error(monkeypatch, sample_dat
 
     html = renderer.render_html(sample_data)
     assert html == "<p>Erreur de génération d'email.</p>"
+
+
+def test_render_plain_forces_french_locale(sample_data):
+    sample_data.locale = "en"
+    renderer = DjangoQuoteEmailRenderer()
+    output = renderer.render_plain(sample_data)
+
+    # Even with "en" locale, should render French template
+    assert "Bonjour" in output
+    assert "Alice" in output
+    assert "Q-123" in output
+
+
+def test_render_html_forces_french_locale(sample_data):
+    sample_data.locale = "en"
+    renderer = DjangoQuoteEmailRenderer()
+    html = renderer.render_html(sample_data)
+
+    # Even with "en" locale, should render French template
+    assert "Bonjour" in html
+    assert "Alice" in html
+
+
+def test_render_plain_includes_sender_name(sample_data):
+    renderer = DjangoQuoteEmailRenderer()
+    output = renderer.render_plain(sample_data)
+
+    assert "Test Company" in output
+    assert "Bien cordialement" in output
+
+
+def test_render_html_includes_sender_name(sample_data):
+    renderer = DjangoQuoteEmailRenderer()
+    html = renderer.render_html(sample_data)
+
+    assert "Test Company" in html
+    assert "Bien cordialement" in html

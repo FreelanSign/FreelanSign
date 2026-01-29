@@ -407,12 +407,14 @@
       <table class="lines-table avoid-break">
         <thead>
           <tr>
-            <th style="width:40%">Désignation</th>
+            <th style="width:{% if has_uniform_tax %}55%{% else %}50%{% endif %}">Désignation</th>
             <th class="right" style="width:10%">Qté</th>
-            <th class="right" style="width:14%">PU HT</th>
-            <th class="right" style="width:10%">Remise</th>
-            <th class="right" style="width:10%">TVA</th>
-            <th class="right" style="width:16%">Total HT</th>
+            <th class="right" style="width:13%">PU HT</th>
+            <th class="right" style="width:{% if has_uniform_tax %}10%{% else %}9%{% endif %}">Remise (€)</th>
+            {% if not has_uniform_tax %}
+            <th class="right" style="width:8%">TVA</th>
+            {% endif %}
+            <th class="right" style="width:{% if has_uniform_tax %}12%{% else %}10%{% endif %}">Total HT</th>
           </tr>
         </thead>
         <tbody>
@@ -433,6 +435,7 @@
             <td class="right">
               {% if l.discount and l.discount > 0 %}{{ l.discount|floatformat:2 }} €{% else %}—{% endif %}
             </td>
+            {% if not has_uniform_tax %}
             <td class="right">
               {% if l.tax_rate_display is not None %}
                 {{ l.tax_rate_display|floatformat:0 }}%
@@ -440,6 +443,7 @@
                 —
               {% endif %}
             </td>
+            {% endif %}
             <td class="right">
               {% if l.total_ht is not None %}<strong>{{ l.total_ht|floatformat:2 }} €</strong>{% else %}—{% endif %}
             </td>
@@ -489,14 +493,14 @@
           </div>
           <div style="display: table-cell; width: 50%; vertical-align: top;">
             <div class="muted" style="margin-bottom: 8px;">Signature du client (précédée de la mention « Lu et approuvé ») :</div>
-            <div style="border: 1px dashed var(--border-color); height: 80px; border-radius: 4px;"></div>
+            <div style="border: 1px dashed var(--border-color); height: 120px; border-radius: 4px;"></div>
           </div>
         </div>
       </div>
 
       <!-- ✅ Footer - end of first page content -->
       <div style="text-align: center; margin-top: 30px; padding-top: 12px; border-top: 1px solid var(--border-color);">
-        <div style="font-size: 9px; color: var(--text-secondary);">
+        <div style="font-size: 8px; color: var(--text-secondary); opacity: 0.7;">
           Généré par <strong style="color: var(--brand-primary);">FreelanSign</strong> — freelansign.com
         </div>
       </div>

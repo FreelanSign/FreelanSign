@@ -32,7 +32,7 @@ class DjangoQuoteRepository(QuoteRepository):
         # pour vérifier la propriété de la quote avant retour (vérification de sécurité).
         # Attention : nécessite adaptation de toutes les implémentations du repo.
 
-        qs = Quote.objects.select_related("client")
+        qs = Quote.objects.select_related("client", "account")
         if include_lines:
             qs = qs.prefetch_related("items")
         try:

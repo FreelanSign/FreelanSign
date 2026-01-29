@@ -222,12 +222,14 @@
   <table class="table mt-6">
     <thead>
       <tr>
-        <th style="width:40%">Désignation</th>
+        <th style="width:{% if has_uniform_tax %}55%{% else %}50%{% endif %}">Désignation</th>
         <th class="right" style="width:10%">Qté</th>
-        <th class="right" style="width:14%">PU&nbsp;HT</th>
-        <th class="right" style="width:10%">Remise</th>
-        <th class="right" style="width:10%">TVA</th>
-        <th class="right" style="width:16%">Total&nbsp;HT</th>
+        <th class="right" style="width:13%">PU&nbsp;HT</th>
+        <th class="right" style="width:{% if has_uniform_tax %}10%{% else %}9%{% endif %}">Remise (€)</th>
+        {% if not has_uniform_tax %}
+        <th class="right" style="width:8%">TVA</th>
+        {% endif %}
+        <th class="right" style="width:{% if has_uniform_tax %}12%{% else %}10%{% endif %}">Total&nbsp;HT</th>
       </tr>
     </thead>
     <tbody>
@@ -242,6 +244,7 @@
         <td class="right">{% if l.quantity is not None %}{{ l.quantity|floatformat:2 }}{% else %}—{% endif %}</td>
         <td class="right">{% if l.unit_price is not None %}{{ l.unit_price|floatformat:2 }} €{% else %}—{% endif %}</td>
         <td class="right">{% if l.discount and l.discount > 0 %}{{ l.discount|floatformat:2 }} €{% else %}—{% endif %}</td>
+        {% if not has_uniform_tax %}
         <td class="right">
           {% if l.tax_rate_display is not None %}
             {{ l.tax_rate_display|floatformat:0 }}%
@@ -249,6 +252,7 @@
             {{ l.tax_rate|floatformat:0 }}%
           {% else %}—{% endif %}
         </td>
+        {% endif %}
         <td class="right">{% if l.total_ht is not None %}<strong>{{ l.total_ht|floatformat:2 }} €</strong>{% else %}—{% endif %}</td>
       </tr>
       {% endfor %}
@@ -297,7 +301,7 @@
 
   <!-- Footer -->
   <div style="text-align: center; margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--color-border);">
-    <div style="font-size: 9px; color: var(--color-text-secondary);">
+    <div style="font-size: 8px; color: var(--color-text-secondary); opacity: 0.7;">
       Généré par <strong style="color: var(--color-primary);">FreelanSign</strong> — freelansign.com
     </div>
   </div>

@@ -58,6 +58,12 @@ def preview_context(vm: QuoteViewModel | dict, *, is_download: bool = False) -> 
 
     lines_dict = [_line_to_dict(l) for l in lines]
 
+    # AIDEV-NOTE: Detect uniform tax rate to conditionally hide TVA column in templates
+    has_uniform_tax = True
+    if len(lines_dict) > 1:
+        first_rate = lines_dict[0].get("tax_rate_display")
+        has_uniform_tax = all(line.get("tax_rate_display") == first_rate for line in lines_dict)
+
     ctx = {
         "quote": {
             "reference": meta.get("number"),
@@ -77,9 +83,10 @@ def preview_context(vm: QuoteViewModel | dict, *, is_download: bool = False) -> 
         "totals": totals,
         "branding": _get(vm, "branding") or {},
         "is_download": is_download,
+        "has_uniform_tax": has_uniform_tax,
     }
 
-    # 🔑 Compat: expose aussi un namespace 'vm' pour les templates qui font vm.seller etc.
+    # Compat: expose aussi un namespace 'vm' pour les templates qui font vm.seller etc.
     ctx["vm"] = SimpleNamespace(
         seller=seller,
         client=client,

@@ -2,7 +2,11 @@ environment/
 
 # Perso
 docs/perso
+docs/good-practices
+docs/tmp
 backend/docs
+database/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

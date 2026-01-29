@@ -24,3 +24,4 @@ class PreparedEmailData:
     quote_date: date
     expiration_date: date
     locale: str  # e.g. "fr" or "en"
+    sender_name: str  # Account display name for email signature

@@ -4,7 +4,7 @@ Vous trouverez ci-joint votre devis "{{ data.quote_title }}" (réf. {{ data.quot
 
 Ce devis est valable jusqu’au {{ data.expiration_date|date:"d/m/Y" }}.
 
-N’hésitez pas à me contacter si vous avez des questions.
+N'hésitez pas à me contacter si vous avez des questions.
 
 Bien cordialement,
-L’équipe FreelanSign
+{{ data.sender_name }}
