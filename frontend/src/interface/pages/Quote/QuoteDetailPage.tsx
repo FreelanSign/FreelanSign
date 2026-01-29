@@ -434,8 +434,8 @@ export default function QuoteDetailPage() {
                       </TableCell>
                       <TableCell className="py-4 text-right align-top text-sm text-muted-foreground">
                         {l.discount && l.discount > 0 ? (
-                          <span className="text-destructive font-medium">
-                            - {money.format(l.discount)}
+                          <span className="text-destructive font-medium whitespace-nowrap">
+                            -{money.format(l.discount)}
                           </span>
                         ) : (
                           '—'
