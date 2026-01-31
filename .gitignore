@@ -234,6 +234,9 @@ node_modules/
 *.env.production
 *.sql
 
+# DB sync config (contains credentials and VPS info)
+.db-sync.config
+
 workspace/
 
 backend/logs/

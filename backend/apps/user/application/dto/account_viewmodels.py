@@ -29,6 +29,10 @@ class AccountViewModel:
     city: str | None = None
     postal_code: str | None = None
     country: str | None = None
+    # Subscription plan (v0.4.0+)
+    plan: str = "beta"
+    max_quotes_monthly: int | None = None
+    max_clients: int | None = None
 
 
 @dataclass(frozen=True)

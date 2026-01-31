@@ -43,6 +43,10 @@ class Account:
     city: str | None = None
     postal_code: str | None = None
     country: str | None = None
+    # Subscription plan and quota fields (v0.4.0+)
+    plan: str = "beta"
+    max_quotes_monthly: int | None = None
+    max_clients: int | None = None
 
     def __post_init__(self):
         """Validation à la création."""

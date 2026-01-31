@@ -1,16 +1,18 @@
 # apps/quote/adapters/persistence/django_quote_repository.py
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
 
 from django.db import transaction
 
 from apps.quote.application.errors import QuoteNotFoundError
 from apps.quote.application.ports.quote_repository import QuoteRepository
+from apps.quote.application.ports.quote_repository_extensions import QuoteRepositoryQuotaExt
 from apps.quote.models import Quote, QuoteLineItem
 
 
-class DjangoQuoteRepository(QuoteRepository):
+class DjangoQuoteRepository(QuoteRepository, QuoteRepositoryQuotaExt):
     """
     DjangoQuoteRepository – Django ORM implementation of the @QuoteRepository port.
 
@@ -121,3 +123,7 @@ class DjangoQuoteRepository(QuoteRepository):
             "discount_total": quote.discount_total,
             "total": quote.total,
         }
+
+    def count_by_account_since(self, account_id: int, since: datetime) -> int:
+        """Count quotes for account created since given datetime."""
+        return Quote.objects.filter(account_id=account_id, created_at__gte=since).count()

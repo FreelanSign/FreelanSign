@@ -55,3 +55,8 @@ class AccountRepository(Protocol):
     def has_quotes(self, account_id: int) -> bool:
         """Vérifier si le compte possède des devis."""
         ...
+
+    @abstractmethod
+    def count_active_clients(self, account_id: int) -> int:
+        """Compter le nombre de clients actifs (non supprimés) d'un compte."""
+        ...
