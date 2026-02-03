@@ -1557,6 +1557,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── pen-nib-line.svg
 │   │   │   └── react.svg
 │   │   ├── components
+│   │   │   ├── common
+│   │   │   │   └── BetaWarningDialog.tsx
 │   │   │   └── ui
 │   │   │       ├── badge.tsx
 │   │   │       ├── button.tsx
@@ -1578,7 +1580,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── domain
 │   │   │   ├── account
 │   │   │   │   ├── api.ts
-│   │   │   │   └── types.ts
+│   │   │   │   ├── types.ts
+│   │   │   │   └── utils.ts
 │   │   │   ├── auth
 │   │   │   │   └── usecases.ts
 │   │   │   ├── catalog
@@ -1758,6 +1761,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── tests
 │   │   │   ├── accountStore.test.ts
 │   │   │   ├── apiClient.account-header.test.ts
+│   │   │   ├── BetaWarningDialog.test.tsx
 │   │   │   ├── noAccount_ProfileEditPage.test.tsx
 │   │   │   ├── noAccount_ProfilePage.test.tsx
 │   │   │   └── useRequireAccount.test.tsx
@@ -1796,7 +1800,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-314 directories, 1026 files
+315 directories, 1029 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1871,5 +1875,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-01-31 16:01:51 CET**
+_Updated_: **2026-02-03 08:27:11 CET**
 <!-- END AUTO: LAST_UPDATED -->

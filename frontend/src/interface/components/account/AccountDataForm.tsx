@@ -29,7 +29,15 @@ export const AccountSchema = z.object({
   legal_form: z.string().optional().nullable(),
   domain_id: z.number().nullable().optional(),
   tjm_eur: z.number().nonnegative().nullable().optional(),
-  legal_id: z.string().optional().nullable(),
+  legal_id: z
+    .string()
+    .regex(
+      /^[0-9]{14}$/,
+      'Le numéro SIRET doit contenir exactement 14 chiffres',
+    )
+    .optional()
+    .or(z.literal(''))
+    .nullable(),
   professional_headline: z.string().max(100).optional().nullable(),
   service_types: z.array(z.number()).optional().nullable(),
   // Address fields (feat/account-address)
@@ -363,7 +371,10 @@ export default function AccountDataForm({
                   <Input
                     {...field}
                     value={field.value ?? ''}
-                    placeholder="Ex: 123 456 789 00012"
+                    maxLength={14}
+                    pattern="[0-9]*"
+                    inputMode="numeric"
+                    placeholder="14 chiffres (ex: 12345678901234)"
                   />
                 </FormControl>
                 <FormMessage />

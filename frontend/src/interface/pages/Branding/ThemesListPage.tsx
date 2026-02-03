@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { isAccountMissingError } from '@/domain/account/utils';
 import type { ThemeListItem } from '../../../infrastructure/branding/themeRepository';
 import { themeRepository } from '../../../infrastructure/branding/themeRepository';
 import { useThemes } from '../../hooks/useThemes';
@@ -130,6 +131,44 @@ export default function ThemesListPage() {
   }
 
   if (error) {
+    // Si erreur 403 (pas de compte pro), afficher CTA onboarding
+    if (isAccountMissingError(error)) {
+      return (
+        <div className="container mx-auto max-w-xl py-20 flex flex-col items-center justify-center animate-in zoom-in-95 duration-500">
+          <div className="h-20 w-20 rounded-full bg-brand/10 flex items-center justify-center mb-6">
+            <Palette className="h-10 w-10 text-brand" />
+          </div>
+          <h2 className="text-2xl font-bold font-playfair mb-3 text-brand-dark">
+            Créez votre compte professionnel
+          </h2>
+          <p className="text-center text-muted-foreground mb-8">
+            Accédez à vos thèmes en complétant votre profil professionnel
+          </p>
+          <Button
+            onClick={() => navigate('/onboarding-account')}
+            className="rounded-xl px-8 bg-brand hover:bg-brand-dark text-white"
+          >
+            Créer mon compte
+          </Button>
+        </div>
+      );
+    }
+
+    // Erreur générique
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : (() => {
+            const e = error as {
+              response?: { data?: unknown };
+              message?: string;
+            };
+            const server = e.response?.data;
+            return server
+              ? JSON.stringify(server)
+              : (e.message ?? 'Impossible de charger vos templates.');
+          })();
+
     return (
       <div className="container mx-auto max-w-xl py-20 flex flex-col items-center justify-center animate-in zoom-in-95 duration-500">
         <div className="h-20 w-20 rounded-full bg-destructive/10 flex items-center justify-center mb-6">
@@ -138,9 +177,7 @@ export default function ThemesListPage() {
         <h2 className="text-2xl font-bold font-playfair mb-3">
           Erreur de chargement
         </h2>
-        <p className="text-center text-muted-foreground mb-8">
-          {error.message || 'Impossible de charger vos templates.'}
-        </p>
+        <p className="text-center text-muted-foreground mb-8">{errorMessage}</p>
         <Button
           onClick={() => window.location.reload()}
           variant="outline"

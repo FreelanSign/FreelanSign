@@ -401,6 +401,16 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
+        "django.request": {
+            "handlers": ["console", "file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "django.server": {
+            "handlers": ["console", "file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
         # loggers spécifiques si tu veux niveauter différemment
         # "apps.catalog": {"handlers": ["console","file"], "level": "DEBUG", "propagate": False},
     },

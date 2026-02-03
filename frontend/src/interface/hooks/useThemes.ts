@@ -8,7 +8,7 @@ import {
 export function useThemes() {
   const [themes, setThemes] = useState<ThemeListItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -20,11 +20,8 @@ export function useThemes() {
         if (!mounted) return;
         setThemes(list);
       } catch (err: unknown) {
-        const e = err as { response?: { data?: unknown }; message?: string };
-        const server = e.response?.data;
-        setError(
-          new Error(server ? JSON.stringify(server) : (e.message ?? 'Erreur')),
-        );
+        if (!mounted) return;
+        setError(err);
       } finally {
         if (mounted) setLoading(false);
       }

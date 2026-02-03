@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import { BetaWarningDialog } from '@/components/common/BetaWarningDialog';
 import { useAccountStore } from '../../infrastructure/account/accountStore';
 import { useUIStore } from '../../infrastructure/ui/uiStore';
 import Footer from '../components/footer/Footer';
@@ -8,13 +9,36 @@ import Navbar from '../components/navbar/Navbar';
 import Sidebar from '../components/sidebar/Sidebar';
 
 export default function MainLayout() {
-  const { fetchAccounts } = useAccountStore();
-  const { isSidebarCollapsed } = useUIStore();
+  const { fetchAccounts, accounts, activeAccountId } = useAccountStore();
+  const { isSidebarCollapsed, isDismissed, dismissModal } = useUIStore();
+  const [showBetaWarning, setShowBetaWarning] = useState(false);
+
+  const activeAccount = accounts.find((a) => a.id === activeAccountId);
+  const BETA_WARNING_MODAL_ID = 'beta-warning';
 
   // Fetch accounts on mount to sync with backend state
   useEffect(() => {
     fetchAccounts();
   }, [fetchAccounts]);
+
+  // Show beta warning if applicable
+  useEffect(() => {
+    if (
+      activeAccount &&
+      activeAccount.plan === 'beta' &&
+      !isDismissed(BETA_WARNING_MODAL_ID)
+    ) {
+      const timer = setTimeout(() => {
+        setShowBetaWarning(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [activeAccount, isDismissed]);
+
+  const handleDismissForever = () => {
+    dismissModal(BETA_WARNING_MODAL_ID);
+    setShowBetaWarning(false);
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50/80">
@@ -36,6 +60,12 @@ export default function MainLayout() {
 
         <Footer />
       </div>
+
+      <BetaWarningDialog
+        open={showBetaWarning}
+        onClose={() => setShowBetaWarning(false)}
+        onDismissForever={handleDismissForever}
+      />
     </div>
   );
 }

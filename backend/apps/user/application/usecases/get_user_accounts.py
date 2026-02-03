@@ -28,8 +28,19 @@ class GetUserAccounts:
             legal_id=account.legal_id,
             domain_id=account.domain_id,
             default_rate_cents=account.default_rate_cents,
+            professional_headline=account.professional_headline,
             service_type_ids=account.service_type_ids,
             is_active=account.is_active,
             created_at=account.created_at,
             updated_at=account.updated_at,
+            # Address fields
+            address_line1=account.address_line1,
+            address_line2=account.address_line2,
+            city=account.city,
+            postal_code=account.postal_code,
+            country=account.country,
+            # Subscription plan fields
+            plan=account.plan,
+            max_quotes_monthly=account.max_quotes_monthly,
+            max_clients=account.max_clients,
         )

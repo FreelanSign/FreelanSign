@@ -36,11 +36,11 @@ class AccountInputSerializer(serializers.Serializer):
         allow_empty=True,
     )
     # Address fields
-    address_line1 = serializers.CharField(max_length=255, required=False, allow_blank=True)
-    address_line2 = serializers.CharField(max_length=255, required=False, allow_blank=True)
-    city = serializers.CharField(max_length=100, required=False, allow_blank=True)
-    postal_code = serializers.CharField(max_length=20, required=False, allow_blank=True)
-    country = serializers.CharField(max_length=2, required=False, allow_blank=True)
+    address_line1 = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
+    address_line2 = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
+    city = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
+    postal_code = serializers.CharField(max_length=20, required=False, allow_blank=True, allow_null=True)
+    country = serializers.CharField(max_length=2, required=False, allow_blank=True, allow_null=True)
 
     def validate(self, data):
         """
@@ -100,6 +100,10 @@ class AccountOutputSerializer(serializers.Serializer):
     city = serializers.CharField(allow_blank=True)
     postal_code = serializers.CharField(allow_blank=True)
     country = serializers.CharField(allow_blank=True)
+    # Subscription plan fields
+    plan = serializers.CharField()
+    max_quotes_monthly = serializers.IntegerField(allow_null=True)
+    max_clients = serializers.IntegerField(allow_null=True)
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
 

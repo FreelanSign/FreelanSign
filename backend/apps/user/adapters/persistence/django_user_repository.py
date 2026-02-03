@@ -66,11 +66,16 @@ class DjangoUserRepository(UserRepository):
             password = user_data.pop("password")
             email = user_data.pop("email")
 
-            # Créer l'utilisateur
+            # Créer l'utilisateur (Profile créé automatiquement via signal)
             user = User.objects.create_user(email=email, password=password, **user_data)
 
-            # Créer le profil
-            Profile.objects.create(user=user, **profile_data)
+            # Mettre à jour le profil avec les données fournies
+            # AIDEV-NOTE: Profile créé par signal post_save, on recharge avec select_related
+            user = User.objects.select_related("profile").get(pk=user.pk)
+            if profile_data:
+                for key, value in profile_data.items():
+                    setattr(user.profile, key, value)
+                user.profile.save()
 
             return user
 

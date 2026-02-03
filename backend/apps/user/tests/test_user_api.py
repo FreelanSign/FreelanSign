@@ -20,8 +20,10 @@ ME = "/api/user/me/"
 class UserApiTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(email="john@example.com", password="Secret123!")
-        if not hasattr(self.user, "profile"):
-            Profile.objects.create(user=self.user, first_name="John", last_name="Doe")
+        # Profile created automatically by signal, update it with test data
+        self.user.profile.first_name = "John"
+        self.user.profile.last_name = "Doe"
+        self.user.profile.save()
         self.token = str(AccessToken.for_user(self.user))
 
     # ---------- Inscription ----------
@@ -157,8 +159,10 @@ class UserApiTests(APITestCase):
 
     def test_staff_can_set_admin_role_on_self(self):
         staff = User.objects.create_user(email="staff@example.com", password="Secret123!", is_staff=True)
-        if not hasattr(staff, "profile"):
-            Profile.objects.create(user=staff, first_name="Staff", last_name="User")
+        # Profile created automatically by signal, update it with test data
+        staff.profile.first_name = "Staff"
+        staff.profile.last_name = "User"
+        staff.profile.save()
         staff_token = str(AccessToken.for_user(staff))
 
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {staff_token}")

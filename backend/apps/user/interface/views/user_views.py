@@ -35,8 +35,10 @@ from apps.user.application.usecases.change_password import ChangePassword
 from apps.user.application.usecases.list_users import ListUsers
 from apps.user.application.usecases.register_user import RegisterUser
 from apps.user.application.usecases.update_profile import UpdateProfile
+from apps.user.domain.errors import InvalidEmailError, InvalidNameError, InvalidPasswordError, InvalidPhoneError
 
-# Interface serializers
+# Interface layer
+from apps.user.interface.errors_handler import UserErrorHandler
 from apps.user.interface.serializers import (
     ChangePasswordInputSerializer,
     ProfilePatchInputSerializer,
@@ -152,6 +154,9 @@ class UserViewSet(viewsets.ViewSet):
         uc = RegisterUser(self.user_repo)
         try:
             vm: UserViewModel = uc.execute(dto)
+        except (InvalidPasswordError, InvalidEmailError, InvalidPhoneError, InvalidNameError) as e:
+            logger.warning("Registration validation failed: %s", str(e), extra={"email": dto.email})
+            return UserErrorHandler.handle_error(e)
         except DuplicateEmailError as e:
             return Response(
                 {"email": ["A user with this email already exists."]},

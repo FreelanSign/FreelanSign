@@ -15,6 +15,10 @@ export type AccountDto = {
   city: string | null;
   postal_code: string | null;
   country: string | null;
+  // Subscription plan fields
+  plan: 'beta' | 'free' | 'pro';
+  max_quotes_monthly: number | null;
+  max_clients: number | null;
   created_at: string;
   updated_at: string;
 };

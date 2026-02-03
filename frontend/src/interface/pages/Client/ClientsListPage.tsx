@@ -1,7 +1,7 @@
 import type { SortingState } from '@tanstack/react-table';
 import { Plus, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import {
 } from '@/interface/components/data-table/DataTable';
 import ClientCreateDrawer from '../../components/client/ClientCreateDrawer';
 
+import { isAccountMissingError } from '@/domain/account/utils';
 import type { ClientDto } from '../../../domain/client/types';
 import {
   clientRepository,
@@ -98,7 +99,8 @@ export default function ClientsListPage() {
   // Data state
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<PageResponse<ClientDto> | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
+  const navigate = useNavigate();
 
   // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -135,9 +137,7 @@ export default function ClientsListPage() {
         setData(res);
       } catch (err: unknown) {
         if (!active) return;
-        const e = err as { response?: { data?: unknown }; message?: string };
-        const server = e.response?.data;
-        setError(server ? JSON.stringify(server) : (e.message ?? 'Erreur'));
+        setError(err);
       } finally {
         if (active) setLoading(false);
       }
@@ -206,6 +206,19 @@ export default function ClientsListPage() {
     () => createClientColumns(columnPrefs),
     [columnPrefs],
   );
+
+  // Compute error message
+  const errorMsg: string | null =
+    error && !isAccountMissingError(error)
+      ? (() => {
+          const e = error as {
+            response?: { data?: unknown };
+            message?: string;
+          };
+          const server = e.response?.data;
+          return server ? JSON.stringify(server) : (e.message ?? 'Erreur');
+        })()
+      : null;
 
   return (
     <div className="container mx-auto py-6 px-4">
@@ -303,6 +316,24 @@ export default function ClientsListPage() {
         )}
       </div>
 
+      {/* Message d'onboarding si erreur 403 */}
+      {error && isAccountMissingError(error) ? (
+        <div className="rounded-lg border border-brand/20 bg-brand/5 p-4">
+          <p className="font-semibold text-brand-dark">
+            Créez votre compte professionnel
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Accédez à vos clients en complétant votre profil professionnel
+          </p>
+          <Button
+            onClick={() => navigate('/onboarding-account')}
+            className="mt-3 bg-brand hover:bg-brand-dark text-white"
+          >
+            Créer mon compte
+          </Button>
+        </div>
+      ) : null}
+
       {/* DataTable */}
       <DataTable
         columns={columns}
@@ -311,7 +342,7 @@ export default function ClientsListPage() {
         state={tableState}
         onStateChange={handleStateChange}
         isLoading={loading}
-        errorMessage={error}
+        errorMessage={errorMsg}
         emptyMessage={
           search
             ? 'Aucun client trouvé pour cette recherche.'

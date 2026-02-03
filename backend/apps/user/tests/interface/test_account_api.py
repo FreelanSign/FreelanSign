@@ -35,10 +35,9 @@ def user():
 def admin_user():
     """Admin user with profile."""
     admin = User.objects.create_user(email="admin@test.com", password="adminpass123")
-    # Create profile with admin role
-    from apps.user.models.models import Profile
-
-    Profile.objects.create(user=admin, role="admin")
+    # Profile created automatically by signal, update role
+    admin.profile.role = "admin"
+    admin.profile.save()
     return admin
 
 
