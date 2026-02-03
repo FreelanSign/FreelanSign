@@ -6,7 +6,7 @@ from decimal import Decimal
 from apps.quote.application.dto.quote_inputs import PreviewPayloadDTO
 from apps.quote.application.dto.quote_viewmodels import LineVM, QuoteViewModel, TotalsVM
 from apps.quote.domain.policies.tax_policy import effective_rate_for_line, validate_client_vat_rule
-from apps.quote.domain.services.totals import compute_totals
+from apps.quote.domain.services.totals import compute_totals, line_pre_tax_total
 
 
 def generate_preview(dto: PreviewPayloadDTO) -> QuoteViewModel:
@@ -47,7 +47,7 @@ def generate_preview(dto: PreviewPayloadDTO) -> QuoteViewModel:
     vm_lines = []
     for L in normalized_lines:
         discount = L["discount"] or Decimal("0")
-        total_ht = (L["qty"] * L["unit_price"]) - discount
+        total_ht = line_pre_tax_total(L["qty"], L["unit_price"], discount)
         vm_lines.append(
             LineVM(
                 designation=L["designation"],

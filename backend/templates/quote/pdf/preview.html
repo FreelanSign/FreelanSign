@@ -225,7 +225,7 @@
         <th style="width:{% if has_uniform_tax %}55%{% else %}50%{% endif %}">Désignation</th>
         <th class="right" style="width:10%">Qté</th>
         <th class="right" style="width:13%">PU&nbsp;HT</th>
-        <th class="right" style="width:{% if has_uniform_tax %}10%{% else %}9%{% endif %}">Remise (€)</th>
+        <th class="right" style="width:{% if has_uniform_tax %}10%{% else %}9%{% endif %}">Remise (%)</th>
         {% if not has_uniform_tax %}
         <th class="right" style="width:8%">TVA</th>
         {% endif %}
@@ -243,7 +243,7 @@
         </td>
         <td class="right">{% if l.quantity is not None %}{{ l.quantity|floatformat:2 }}{% else %}—{% endif %}</td>
         <td class="right">{% if l.unit_price is not None %}{{ l.unit_price|floatformat:2 }} €{% else %}—{% endif %}</td>
-        <td class="right">{% if l.discount and l.discount > 0 %}{{ l.discount|floatformat:2 }} €{% else %}—{% endif %}</td>
+        <td class="right">{% if l.discount and l.discount > 0 %}{{ l.discount|floatformat:0 }}%{% else %}—{% endif %}</td>
         {% if not has_uniform_tax %}
         <td class="right">
           {% if l.tax_rate_display is not None %}

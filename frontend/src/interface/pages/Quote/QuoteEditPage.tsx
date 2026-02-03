@@ -54,7 +54,7 @@ type QuoteLine = {
   unit_price: number;
   /** 0.2 => 20% (fraction UI) */
   tax_rate?: number | null;
-  /** absolute discount amount (EUR) */
+  /** discount percentage (10 => 10%) */
   discount?: number | null;
 };
 
@@ -300,12 +300,13 @@ export default function QuoteEditPage() {
   const totals = useMemo(() => {
     const lines = quote?.line_items ?? [];
     const sub = lines.reduce((acc, l) => {
-      const base = l.quantity * l.unit_price - (l.discount ?? 0);
-      return acc + Math.max(0, base);
+      const base = l.quantity * l.unit_price;
+      const afterDiscount = base * (1 - (l.discount ?? 0) / 100);
+      return acc + Math.max(0, afterDiscount);
     }, 0);
     const tax = lines.reduce((acc, l) => {
-      const base = l.quantity * l.unit_price - (l.discount ?? 0);
-      const preTax = Math.max(0, base);
+      const base = l.quantity * l.unit_price;
+      const preTax = Math.max(0, base * (1 - (l.discount ?? 0) / 100));
       const rate = l.tax_rate ?? 0;
       return acc + preTax * rate;
     }, 0);
@@ -894,8 +895,11 @@ export default function QuoteEditPage() {
             ) : (
               <div className="divide-y divide-border/50">
                 {quote.line_items.map((l, i) => {
-                  const base = l.quantity * l.unit_price - (l.discount ?? 0);
-                  const preTax = Math.max(0, base);
+                  const base = l.quantity * l.unit_price;
+                  const preTax = Math.max(
+                    0,
+                    base * (1 - (l.discount ?? 0) / 100),
+                  );
                   const tot = preTax * (1 + (l.tax_rate ?? 0));
                   return (
                     <div
@@ -984,7 +988,7 @@ export default function QuoteEditPage() {
                             </div>
                             <div className="space-y-1.5">
                               <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                Remise
+                                Remise (%)
                               </Label>
                               <div className="relative">
                                 <Input
@@ -1000,7 +1004,7 @@ export default function QuoteEditPage() {
                                   className="h-9 pr-8"
                                 />
                                 <span className="absolute right-3 top-2.5 text-[10px] text-muted-foreground font-bold">
-                                  €
+                                  %
                                 </span>
                               </div>
                             </div>
