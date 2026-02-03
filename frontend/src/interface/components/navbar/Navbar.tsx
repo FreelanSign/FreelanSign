@@ -19,6 +19,7 @@ export default function Navbar() {
   const location = useLocation();
   const { isSidebarCollapsed } = useUIStore();
   const isAuthPage = ['/login', '/register'].includes(location.pathname);
+  const isLegalPage = ['/cgu', '/confidentialite'].includes(location.pathname);
 
   const handleLogout = async () => {
     try {
@@ -40,7 +41,7 @@ export default function Navbar() {
           to={user ? '/dashboard' : '/'}
           className={cn(
             'flex items-center gap-2 transition-all duration-300',
-            !isSidebarCollapsed && 'lg:opacity-0 lg:invisible',
+            !isLegalPage && !isSidebarCollapsed && 'lg:opacity-0 lg:invisible',
           )}
         >
           <img src="/img/logo.png" alt="Freelansign" className="h-30" />
