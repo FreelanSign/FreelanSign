@@ -433,9 +433,17 @@ export default function PrivacyPolicyPage() {
                 </li>
               </ul>
               <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mt-4 rounded">
-                <p className="text-sm text-blue-700 font-medium">
-                  <strong>[À COMPLÉTER]</strong> : Certifications de l'hébergeur
-                  (ISO 27001, etc.)
+                <p className="text-sm font-medium">
+                  <strong>Certifications</strong> : Retrouvez les certifications
+                  de l'hébergeur sur{' '}
+                  <a
+                    href={LEGAL_INFO.hosting.certificationsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    {LEGAL_INFO.hosting.name}
+                  </a>
                 </p>
               </div>
             </section>

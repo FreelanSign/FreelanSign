@@ -16,6 +16,7 @@ export const LEGAL_INFO = {
     name: 'Scaleway SAS',
     address: 'BP 438, 75366 Paris Cedex 08, France',
     location: 'Allemagne (UE)',
+    certificationsUrl: 'https://www.scaleway.com/fr/securite-et-resilience/',
   },
   jurisdiction: 'Lyon',
 };
