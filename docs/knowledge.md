@@ -1754,6 +1754,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── countries.ts
 │   │   │   ├── endpoints.ts
 │   │   │   ├── env.ts
+│   │   │   ├── legalInfo.ts
 │   │   │   └── utils
 │   │   │       └── obj.ts
 │   │   ├── styles
@@ -1800,7 +1801,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-315 directories, 1029 files
+315 directories, 1030 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1875,5 +1876,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-02-03 08:28:07 CET**
+_Updated_: **2026-02-03 09:26:25 CET**
 <!-- END AUTO: LAST_UPDATED -->

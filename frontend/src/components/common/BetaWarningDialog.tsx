@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -7,10 +8,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { LEGAL_INFO } from '@/shared/legalInfo';
 import { AlertCircle } from 'lucide-react';
+import { useState } from 'react';
 
 interface BetaWarningDialogProps {
   open: boolean;
@@ -60,10 +61,10 @@ export function BetaWarningDialog({
           <p className="text-sm text-muted-foreground">
             Vos retours sont précieux ! Contactez-nous à{' '}
             <a
-              href="mailto:freelansign@gmail.com"
+              href={`mailto:${LEGAL_INFO.company.email}`}
               className="text-blue-600 hover:underline"
             >
-              freelansign@gmail.com
+              {LEGAL_INFO.company.email}
             </a>
           </p>
         </div>

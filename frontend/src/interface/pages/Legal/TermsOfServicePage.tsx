@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import { LEGAL_INFO } from '../../../shared/legalInfo';
 import Navbar from '../../components/navbar/Navbar';
 import styles from './legal-page.module.css';
 
@@ -18,7 +19,7 @@ export default function TermsOfServicePage() {
           <header className={styles.header}>
             <h1 className={styles.title}>Conditions Générales d'Utilisation</h1>
             <p className={styles.meta}>
-              Dernière mise à jour : 15 décembre 2025
+              Dernière mise à jour : {LEGAL_INFO.lastUpdate}
             </p>
           </header>
 
@@ -169,40 +170,32 @@ export default function TermsOfServicePage() {
               <h2 className="text-2xl font-semibold mb-4 text-gray-900">
                 3. Mentions légales
               </h2>
-              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4 rounded">
-                <p className="text-sm text-blue-700 font-medium">
-                  <strong>[À COMPLÉTER]</strong> : Informations juridiques à
-                  fournir
-                </p>
-              </div>
               <ul className="space-y-2 text-gray-700 list-disc list-inside">
                 <li>
-                  <strong>Éditeur :</strong> [NOM DE LA SOCIÉTÉ]
+                  <strong>Éditeur :</strong> {LEGAL_INFO.company.name}
                 </li>
                 <li>
-                  <strong>Forme juridique :</strong> [FORME JURIDIQUE]
+                  <strong>Forme juridique :</strong>{' '}
+                  {LEGAL_INFO.company.legalForm}
                 </li>
                 <li>
-                  <strong>RCS :</strong> [NUMÉRO RCS + VILLE]
+                  <strong>SIRET :</strong> {LEGAL_INFO.company.siret}
                 </li>
                 <li>
-                  <strong>SIRET :</strong> [NUMÉRO SIRET]
+                  <strong>Adresse du siège social :</strong>{' '}
+                  {LEGAL_INFO.company.address}
                 </li>
                 <li>
-                  <strong>Adresse du siège social :</strong> [ADRESSE COMPLÈTE]
+                  <strong>Contact :</strong> {LEGAL_INFO.company.email}
                 </li>
                 <li>
-                  <strong>Capital social :</strong> [MONTANT] euros
+                  <strong>Directeur de publication :</strong>{' '}
+                  {LEGAL_INFO.company.publicationDirector}
                 </li>
                 <li>
-                  <strong>Contact :</strong> freelansign@gmail.com
-                </li>
-                <li>
-                  <strong>Directeur de publication :</strong> [NOM PRÉNOM]
-                </li>
-                <li>
-                  <strong>Hébergement :</strong> Scaleway SAS, BP 438, 75366
-                  Paris Cedex 08, France - Serveurs situés en Allemagne (UE)
+                  <strong>Hébergement :</strong> {LEGAL_INFO.hosting.name},{' '}
+                  {LEGAL_INFO.hosting.address} - Serveurs situés en{' '}
+                  {LEGAL_INFO.hosting.location}
                 </li>
               </ul>
             </section>
@@ -382,11 +375,6 @@ export default function TermsOfServicePage() {
               <h2 className="text-2xl font-semibold mb-4 text-gray-900">
                 10. Tarification
               </h2>
-              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4 rounded">
-                <p className="text-sm text-blue-700 font-medium">
-                  <strong>[À COMPLÉTER]</strong> : Informations tarifaires
-                </p>
-              </div>
               <p className="text-gray-700 leading-relaxed mb-4">
                 <strong>Version bêta :</strong> Freelansign est actuellement en
                 phase de test bêta. Le Service est fourni gratuitement durant
@@ -434,8 +422,9 @@ export default function TermsOfServicePage() {
               </h3>
               <p className="text-gray-700 leading-relaxed mb-4">
                 L'Utilisateur peut résilier son compte à tout moment depuis les
-                paramètres de son compte ou en contactant freelansign@gmail.com.
-                La résiliation est effective immédiatement.
+                paramètres de son compte ou en contactant{' '}
+                {LEGAL_INFO.company.email}. La résiliation est effective
+                immédiatement.
               </p>
               <h3 className="text-xl font-semibold mb-3 text-gray-800">
                 12.2 Résiliation par Freelansign
@@ -507,21 +496,28 @@ export default function TermsOfServicePage() {
               <p className="text-gray-700 leading-relaxed mb-4">
                 Les présentes CGU sont régies par le droit français.
               </p>
-              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4 rounded">
-                <p className="text-sm text-blue-700 font-medium">
-                  <strong>[À COMPLÉTER]</strong> : Juridiction compétente
-                </p>
-              </div>
               <p className="text-gray-700 leading-relaxed mb-4">
                 Tout litige relatif à l'interprétation ou à l'exécution des
                 présentes CGU sera soumis, à défaut d'accord amiable, à la
-                compétence exclusive des tribunaux de [VILLE], France.
+                compétence exclusive des tribunaux de {LEGAL_INFO.jurisdiction},
+                France.
               </p>
               <p className="text-gray-700 leading-relaxed">
                 Conformément aux dispositions du Code de la consommation
                 concernant le règlement amiable des litiges, Freelansign adhère
-                [ou adhérera] à un service de médiation de la consommation dont
-                les coordonnées seront communiquées sur demande.
+                à un service de médiation de la consommation dont les
+                coordonnées seront communiquées sur demande.
+              </p>
+              <br />
+              <p className="text-gray-700 leading-relaxed">
+                Loi n° 78-87 du 6 janvier 1978, notamment modifiée par la loi n°
+                2004-801 du 6 août 2004 relative à l’informatique, aux fichiers
+                et aux libertés.
+              </p>
+              <br />
+              <p className="text-gray-700 leading-relaxed">
+                Loi n° 2004-575 du 21 juin 2004 pour la confiance dans
+                l’économie numérique.
               </p>
             </section>
 
@@ -530,10 +526,10 @@ export default function TermsOfServicePage() {
               <p className="text-gray-600 text-sm">
                 Pour toute question concernant ces CGU, contactez-nous à{' '}
                 <a
-                  href="mailto:freelansign@gmail.com"
+                  href={`mailto:${LEGAL_INFO.company.email}`}
                   className="text-brand hover:underline font-medium"
                 >
-                  freelansign@gmail.com
+                  {LEGAL_INFO.company.email}
                 </a>
               </p>
             </div>

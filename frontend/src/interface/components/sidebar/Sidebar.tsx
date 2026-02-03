@@ -44,12 +44,18 @@ export default function Sidebar() {
           isSidebarCollapsed ? 'justify-center' : 'px-6',
         )}
       >
-        <Link to="/" className="flex items-center gap-2.5 overflow-hidden">
-          {!isSidebarCollapsed && (
-            <span className="font-playfair text-xl font-bold text-brand whitespace-nowrap opacity-100 transition-opacity duration-300">
-              FreelanSign
-            </span>
-          )}
+        <Link
+          to="/dashboard"
+          className="flex items-center gap-2.5 overflow-hidden"
+        >
+          <img
+            src="/img/logo.png"
+            alt="Freelansign"
+            className={cn(
+              'transition-all duration-300',
+              isSidebarCollapsed ? 'h-8' : 'h-30',
+            )}
+          />
         </Link>
       </div>
 
