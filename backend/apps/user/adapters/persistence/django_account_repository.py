@@ -41,6 +41,10 @@ class DjangoAccountRepository:
             city=account.city or "",
             postal_code=account.postal_code or "",
             country=account.country or "",
+            # Subscription plan
+            plan=account.plan,
+            max_quotes_monthly=account.max_quotes_monthly,
+            max_clients=account.max_clients,
         )
         # Set M2M relationship for service_types
         if account.service_type_ids:
@@ -81,6 +85,10 @@ class DjangoAccountRepository:
         model.city = account.city or ""
         model.postal_code = account.postal_code or ""
         model.country = account.country or ""
+        # Subscription plan
+        model.plan = account.plan
+        model.max_quotes_monthly = account.max_quotes_monthly
+        model.max_clients = account.max_clients
         model.save()
         # Update M2M relationship for service_types
         model.service_types.set(account.service_type_ids)
@@ -124,6 +132,12 @@ class DjangoAccountRepository:
         account = AccountModel.objects.get(id=account_id)
         return Quote.objects.filter(owner_id=account.user_id).exists()
 
+    def count_active_clients(self, account_id: int) -> int:
+        """Count active (non-deleted) clients for account."""
+        from apps.client.models import Client
+
+        return Client.objects.filter(owner_id=account_id, is_deleted=False).count()
+
     def _to_entity(self, model: AccountModel) -> AccountEntity:
         """Convert Django model to domain entity."""
         return AccountEntity(
@@ -145,4 +159,8 @@ class DjangoAccountRepository:
             city=model.city or None,
             postal_code=model.postal_code or None,
             country=model.country or None,
+            # Subscription plan
+            plan=model.plan,
+            max_quotes_monthly=model.max_quotes_monthly,
+            max_clients=model.max_clients,
         )

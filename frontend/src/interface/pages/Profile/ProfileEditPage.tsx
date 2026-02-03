@@ -30,7 +30,7 @@ import PersonalUserDataForm, {
 } from '../../components/profile/PersonalUserDataForm';
 import PrestationsSelector from '../../components/profile/PrestationSelector';
 
-import { Briefcase, PencilLine, ShieldCheck } from 'lucide-react';
+import { Briefcase, PencilLine, ShieldCheck, User } from 'lucide-react';
 import { useRequireAccount } from '../../hooks/useRequireAccount';
 
 /**
@@ -446,15 +446,20 @@ export default function ProfileEditPage() {
           <header className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-white rounded-xl border border-border shadow-sm">
             <div className="relative">
               <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-muted shadow-inner bg-muted/20">
-                <img
-                  src={
-                    profileDraft.avatar_url ||
-                    user?.profile?.avatar_url ||
-                    '/img/default-avatar.jpeg'
-                  }
-                  alt="Avatar"
-                  className="object-cover w-full h-full"
-                />
+                {profileDraft.avatar_url || user?.profile?.avatar_url ? (
+                  <img
+                    src={
+                      (profileDraft.avatar_url ||
+                        user?.profile?.avatar_url) as string
+                    }
+                    alt="Avatar"
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground">
+                    <User className="h-10 w-10" />
+                  </div>
+                )}
               </div>
             </div>
 

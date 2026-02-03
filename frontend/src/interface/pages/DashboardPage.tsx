@@ -15,6 +15,8 @@ import {
   FileText,
   List,
   User,
+  Users,
+  Sparkles,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -215,11 +217,61 @@ export default function DashboardPage() {
                 />
               </div>
 
-              {/* Graphiques */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <MonthlyRevenueChart data={metrics.monthlyBreakdown} />
-                <MonthlyQuoteCountChart data={metrics.monthlyBreakdown} />
-              </div>
+              {/* Graphiques ou message d'aide */}
+              {metrics.totalQuotes > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <MonthlyRevenueChart data={metrics.monthlyBreakdown} />
+                  <MonthlyQuoteCountChart data={metrics.monthlyBreakdown} />
+                </div>
+              ) : (
+                <Card className="border-brand/20 bg-gradient-to-br from-brand/5 to-brand/10 shadow-sm overflow-hidden relative">
+                  <div className="absolute top-0 right-0 p-8 opacity-10">
+                    <Sparkles size={140} />
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="text-xl font-bold text-brand-dark flex items-center gap-2">
+                      <Sparkles className="h-5 w-5" />
+                      Créez votre premier devis
+                    </CardTitle>
+                    <CardDescription className="text-muted-foreground/80 max-w-2xl leading-relaxed">
+                      Pour commencer, vous pouvez créer votre premier client,
+                      choisir des prestations prédéfinies dans votre profil, ou
+                      directement créer un devis.
+                      <br />
+                      <span className="text-xs italic mt-2 block">
+                        💡 Pas de panique si vous ne trouvez pas votre
+                        prestation, vous pourrez la créer lors de la création du
+                        devis !
+                      </span>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-wrap gap-3">
+                    <Button
+                      onClick={() => navigate('/quotes/new')}
+                      className="bg-brand text-white hover:bg-brand-dark shadow-md"
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      Créer un devis
+                    </Button>
+                    <Button
+                      onClick={() => navigate('/clients')}
+                      variant="outline"
+                      className="border-brand text-brand hover:bg-brand/10"
+                    >
+                      <Users className="mr-2 h-4 w-4" />
+                      Ajouter un client
+                    </Button>
+                    <Button
+                      onClick={() => navigate('/profile/edit')}
+                      variant="outline"
+                      className="border-brand text-brand hover:bg-brand/10"
+                    >
+                      <User className="mr-2 h-4 w-4" />
+                      Configurer mon profil
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
             </>
           ) : null}
         </div>

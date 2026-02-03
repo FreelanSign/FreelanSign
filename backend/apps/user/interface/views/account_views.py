@@ -134,7 +134,9 @@ class AccountViewSet(viewsets.ModelViewSet):
 
         # Validate input
         input_serializer = AccountInputSerializer(data=request.data)
-        input_serializer.is_valid(raise_exception=True)
+        if not input_serializer.is_valid():
+            logger.error(f"[CREATE ACCOUNT] Validation errors: {input_serializer.errors}")
+            input_serializer.is_valid(raise_exception=True)  # Raise ValidationError
 
         logger.info(f"[CREATE ACCOUNT] Validated data: {input_serializer.validated_data}")
 

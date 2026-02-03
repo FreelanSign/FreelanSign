@@ -95,7 +95,17 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
         if (typeof payloadOrEmail === 'string') {
           const email = payloadOrEmail;
           const password = maybePassword!;
-          await uc.register({ email, password });
+          try {
+            await uc.register({ email, password });
+          } catch (err: unknown) {
+            const axiosErr = err as {
+              response?: { data?: { detail?: string; message?: string } };
+            };
+            const backendMsg =
+              axiosErr.response?.data?.detail ||
+              axiosErr.response?.data?.message;
+            throw new Error(backendMsg || 'Échec inscription');
+          }
           await uc.login({ email, password });
           try {
             const me = await uc.getMe();
@@ -109,43 +119,23 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
         // Cas nouveau : payload object (email, password, profile, professional, ...)
         const payload = payloadOrEmail as RegisterPayload;
 
-        // Première tentative : déléguer à uc.register si le usecase gère un payload complet
-        let registered = false;
-
-        // nous castons uc en un type plus précis pour vérifier la présence de register(payload)
-        const ucWithMaybeRegister = uc as unknown as {
-          register?: (p: RegisterPayload) => Promise<void>;
-        };
-
-        if (typeof ucWithMaybeRegister.register === 'function') {
-          try {
-            await ucWithMaybeRegister.register(payload);
-            registered = true;
-          } catch (_e) {
-            // ignore et fallback below
-            console.log('Erreur {}', _e);
-            registered = false;
-          }
+        // Vérifier que email et password sont présents
+        if (!payload.email || !payload.password) {
+          throw new Error('Email et mot de passe requis');
         }
 
-        if (!registered) {
-          // Fallback simple : appeler directement l'endpoint d'inscription du backend
-          // Adapte l'URL à ton API si besoin
-          try {
-            const res = await fetch('/api/auth/register', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload),
-            });
-            if (!res.ok) {
-              const txt = await res.text();
-              throw new Error(`Register failed: ${res.status} ${txt}`);
-            }
-          } catch (e: unknown) {
-            // on loggue et on renvoie l'erreur pour que le caller puisse la traiter
-            console.error('Register fallback failed', e);
-            throw e;
-          }
+        // Appeler le use case register avec le payload complet
+        try {
+          await uc.register(
+            payload as RegisterPayload & { email: string; password: string },
+          );
+        } catch (err: unknown) {
+          const axiosErr = err as {
+            response?: { data?: { detail?: string; message?: string } };
+          };
+          const backendMsg =
+            axiosErr.response?.data?.detail || axiosErr.response?.data?.message;
+          throw new Error(backendMsg || 'Échec inscription');
         }
 
         // Si on a email + password, on fait login auto pour récupérer le user

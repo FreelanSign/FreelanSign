@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import { LEGAL_INFO } from '../../../shared/legalInfo';
 import Navbar from '../../components/navbar/Navbar';
 import styles from './legal-page.module.css';
 
@@ -18,7 +19,7 @@ export default function PrivacyPolicyPage() {
           <header className={styles.header}>
             <h1 className={styles.title}>Politique de Confidentialité</h1>
             <p className={styles.meta}>
-              Dernière mise à jour : 15 décembre 2025
+              Dernière mise à jour : {LEGAL_INFO.lastUpdate}
             </p>
           </header>
 
@@ -136,8 +137,7 @@ export default function PrivacyPolicyPage() {
               </h2>
               <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4 rounded">
                 <p className="text-sm text-blue-700 font-medium">
-                  <strong>[À COMPLÉTER]</strong> : Informations sur le
-                  responsable de traitement
+                  Informations sur le responsable de traitement
                 </p>
               </div>
               <p className="text-gray-700 leading-relaxed mb-4">
@@ -145,19 +145,19 @@ export default function PrivacyPolicyPage() {
               </p>
               <ul className="space-y-2 text-gray-700 list-disc list-inside ml-4">
                 <li>
-                  <strong>Raison sociale :</strong> [NOM DE LA SOCIÉTÉ]
+                  <strong>Raison sociale :</strong> {LEGAL_INFO.company.name}
                 </li>
                 <li>
-                  <strong>Adresse :</strong> [ADRESSE COMPLÈTE]
+                  <strong>Adresse :</strong> {LEGAL_INFO.company.address}
                 </li>
                 <li>
-                  <strong>Email :</strong> freelansign@gmail.com
+                  <strong>Email :</strong> {LEGAL_INFO.company.email}
                 </li>
                 <li>
                   <strong>
                     Contact DPO (Délégué à la Protection des Données) :
                   </strong>{' '}
-                  freelansign@gmail.com
+                  {LEGAL_INFO.company.email}
                 </li>
               </ul>
             </section>
@@ -418,15 +418,14 @@ export default function PrivacyPolicyPage() {
               </p>
               <ul className="space-y-2 text-gray-700 list-disc list-inside ml-4">
                 <li>
-                  <strong>Hébergeur :</strong> Scaleway SAS
+                  <strong>Hébergeur :</strong> {LEGAL_INFO.hosting.name}
                 </li>
                 <li>
-                  <strong>Adresse :</strong> BP 438, 75366 Paris Cedex 08,
-                  France
+                  <strong>Adresse :</strong> {LEGAL_INFO.hosting.address}
                 </li>
                 <li>
-                  <strong>Localisation des serveurs :</strong> Allemagne (Union
-                  Européenne)
+                  <strong>Localisation des serveurs :</strong>{' '}
+                  {LEGAL_INFO.hosting.location}
                 </li>
                 <li>
                   <strong>Conformité :</strong> Infrastructure conforme aux
@@ -434,9 +433,17 @@ export default function PrivacyPolicyPage() {
                 </li>
               </ul>
               <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mt-4 rounded">
-                <p className="text-sm text-blue-700 font-medium">
-                  <strong>[À COMPLÉTER]</strong> : Certifications de l'hébergeur
-                  (ISO 27001, etc.)
+                <p className="text-sm font-medium">
+                  <strong>Certifications</strong> : Retrouvez les certifications
+                  de l'hébergeur sur{' '}
+                  <a
+                    href={LEGAL_INFO.hosting.certificationsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    {LEGAL_INFO.hosting.name}
+                  </a>
                 </p>
               </div>
             </section>
@@ -523,10 +530,10 @@ export default function PrivacyPolicyPage() {
                 <li>
                   <strong>Par email :</strong>{' '}
                   <a
-                    href="mailto:freelansign@gmail.com"
+                    href={`mailto:${LEGAL_INFO.company.email}`}
                     className="text-brand hover:underline"
                   >
-                    freelansign@gmail.com
+                    {LEGAL_INFO.company.email}
                   </a>
                 </li>
                 <li>
@@ -672,10 +679,10 @@ export default function PrivacyPolicyPage() {
               </p>
               <p className="text-gray-900 font-medium">
                 <a
-                  href="mailto:freelansign@gmail.com"
+                  href={`mailto:${LEGAL_INFO.company.email}`}
                   className="text-brand hover:underline"
                 >
-                  freelansign@gmail.com
+                  {LEGAL_INFO.company.email}
                 </a>
               </p>
             </div>

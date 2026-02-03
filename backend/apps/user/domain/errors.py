@@ -162,3 +162,10 @@ class AccountNotFoundError(AccountPolicyError):
         if context:
             msg += f" ({context})"
         super().__init__(msg)
+
+
+class QuotaExceededError(AccountPolicyError):
+    """Quota de compte dépassé (plan gratuit/limité)."""
+
+    def __init__(self, message: str):
+        super().__init__(message)

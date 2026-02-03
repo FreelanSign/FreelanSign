@@ -19,6 +19,14 @@ class LegalForm(models.TextChoices):
     OTHER = "other", "Autre"
 
 
+class SubscriptionPlan(models.TextChoices):
+    """Subscription plans with quota limits."""
+
+    BETA = "beta", "Beta (unlimited)"
+    FREE = "free", "Free"
+    PRO = "pro", "Pro"
+
+
 class Account(TimestampedModel, SoftDeleteModel):
     """
     Account model - replaces ProfessionalUser.
@@ -86,6 +94,25 @@ class Account(TimestampedModel, SoftDeleteModel):
     city = EncryptedCharField(max_length=100, blank=True, help_text="City")
     postal_code = EncryptedCharField(max_length=20, blank=True, help_text="Postal/ZIP code")
     country = models.CharField(max_length=2, blank=True, help_text="ISO 3166-1 alpha-2 country code")
+
+    # AIDEV-NOTE: Subscription plan and quota limits (v0.4.0+)
+    # During beta: All accounts default to plan='beta' (no limitations)
+    plan = models.CharField(
+        max_length=10,
+        choices=SubscriptionPlan.choices,
+        default=SubscriptionPlan.BETA,
+        help_text="Subscription plan (beta=unlimited during beta phase)",
+    )
+    max_quotes_monthly = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Max quotes per month (None=unlimited)",
+    )
+    max_clients = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Max total clients (None=unlimited)",
+    )
 
     class Meta:
         unique_together = [("user", "display_name")]

@@ -33,8 +33,23 @@ def mock_pdf_and_email():
 
 @pytest.fixture
 def user_with_account(db, django_user_model):
-    from apps.user.models import Account
+    from apps.user.models import Account, Profile
 
     user = django_user_model.objects.create_user(email="test@example.com", password="password")
-    account = Account.objects.create(user=user, display_name="Test Account", is_active=True)
+    # Create profile with phone (required for legal terms)
+    Profile.objects.update_or_create(
+        user=user,
+        defaults={
+            "first_name": "Test",
+            "last_name": "User",
+            "phone": "+33612345678",
+        },
+    )
+    # Create account with legal_id (required for legal terms)
+    account = Account.objects.create(
+        user=user,
+        display_name="Test Account",
+        is_active=True,
+        legal_id="12345678901234",  # 14 digits SIRET
+    )
     return user, account

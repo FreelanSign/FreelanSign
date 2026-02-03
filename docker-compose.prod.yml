@@ -33,7 +33,9 @@ services:
       retries: 5
 
   backend:
-    image: ghcr.io/freelansign/freelansign-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: freelansign_backend_prod
     restart: always
     environment:
@@ -134,29 +136,29 @@ services:
           memory: 64M
 
   frontend:
-    # REMPLACÉ: On utilise l'image buildée localement
-    image: ghcr.io/freelansign/freelansign-frontend:latest
-    container_name: freelansign_frontend_prod
-    restart: always
-    ports:
-      - "80:80"
-      # Le port 443 est ajouté via le fichier certbot override
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 256M
-    depends_on:
-      - backend
-    volumes:
-      - backend_static_prod:/app/static:ro
-      - backend_media_prod:/app/media:ro
-      - nginx_logs_prod:/var/log/nginx
-      # VOLUME CRITIQUE POUR LE CHALLENGE ACME
-      - certbot_www:/var/www/certbot:ro
-      - certbot_conf:/etc/letsencrypt:ro
-    networks:
-      - freelansign_network_prod
+      build:
+        context: ./frontend
+        dockerfile: Dockerfile
+        target: production-server  # ← Build le stage nginx
+      container_name: freelansign_frontend_prod
+      restart: always
+      ports:
+        - "80:80"
+      deploy:
+        resources:
+          limits:
+            cpus: '0.25'
+            memory: 256M
+      depends_on:
+        - backend
+      volumes:
+        - backend_static_prod:/app/static:ro
+        - backend_media_prod:/app/media:ro
+        - nginx_logs_prod:/var/log/nginx
+        - certbot_www:/var/www/certbot:ro
+        - certbot_conf:/etc/letsencrypt:ro
+      networks:
+        - freelansign_network_prod
 
 volumes:
   postgres_data_prod:

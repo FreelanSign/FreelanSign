@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -7,7 +8,11 @@ import styles from './register-form.module.css';
 
 const schema = z.object({
   email: z.string().email('Email invalide'),
-  password: z.string().min(6, '6 caractères minimum'),
+  password: z
+    .string()
+    .min(8, 'Min. 8 caractères')
+    .regex(/[a-zA-Z]/, 'Doit contenir une lettre')
+    .regex(/\d/, 'Doit contenir un chiffre'),
   full_name: z.string().optional(),
   profile: z.object({
     first_name: z.string().min(1, 'Prénom requis'),
@@ -26,6 +31,7 @@ type FormData = z.infer<typeof schema>;
 export default function RegisterForm() {
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
+  const [backendError, setBackendError] = useState<string | null>(null);
 
   const {
     register,
@@ -40,7 +46,13 @@ export default function RegisterForm() {
   });
 
   const onSubmit = handleSubmit(async (data) => {
-    await registerUser(data);
+    setBackendError(null);
+    try {
+      await registerUser(data);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erreur inscription';
+      setBackendError(message);
+    }
   });
 
   return (
@@ -79,7 +91,7 @@ export default function RegisterForm() {
             className={styles.input}
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? 'password-error' : undefined}
-            placeholder="Minimum 6 caractères"
+            placeholder="Min. 8 caractères (lettre + chiffre)"
           />
           {errors.password && (
             <small id="password-error" className={styles.error}>
@@ -178,6 +190,12 @@ export default function RegisterForm() {
           )}
         </div>
       </div>
+
+      {backendError && (
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+          {backendError}
+        </div>
+      )}
 
       <footer className={styles.actions}>
         <button type="submit" disabled={isSubmitting} className={styles.submit}>

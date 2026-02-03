@@ -22,7 +22,7 @@ class TestRefreshRotation(APITestCase):
         # Nettoyer le cache de throttling avant chaque test
         cache.clear()
         self.user = User.objects.create_user(email="john@example.com", password="Secret123!")
-        Profile.objects.create(user=self.user)
+        # Profile created automatically by signal
 
     def tearDown(self):
         # Nettoyer le cache après chaque test

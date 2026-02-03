@@ -8,6 +8,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useUIStore } from '@/infrastructure/ui/uiStore';
+import { cn } from '@/lib/utils';
 import { Bell, FilePlus, LogOut, Settings, User } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 
@@ -15,7 +17,9 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { isSidebarCollapsed } = useUIStore();
   const isAuthPage = ['/login', '/register'].includes(location.pathname);
+  const isLegalPage = ['/cgu', '/confidentialite'].includes(location.pathname);
 
   const handleLogout = async () => {
     try {
@@ -32,7 +36,16 @@ export default function Navbar() {
       role="banner"
       aria-label="Barre de navigation FreelanSign"
     >
-      <div className="flex h-16 items-center justify-end px-4 sm:px-6 lg:px-8 gap-4">
+      <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 gap-4">
+        <Link
+          to={user ? '/dashboard' : '/'}
+          className={cn(
+            'flex items-center gap-2 transition-all duration-300',
+            !isLegalPage && !isSidebarCollapsed && 'lg:opacity-0 lg:invisible',
+          )}
+        >
+          <img src="/img/logo.png" alt="Freelansign" className="h-30" />
+        </Link>
         {!isAuthPage && (
           <>
             <Button

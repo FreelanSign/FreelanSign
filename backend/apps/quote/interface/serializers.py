@@ -386,6 +386,20 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
         if not account:
             raise ValidationError("Account context required (X-Account-Id header or fallback)")
 
+        # v0.4.0+: Check subscription quota before creating quote
+        from apps.user.adapters.persistence.django_account_repository import DjangoAccountRepository
+        from apps.user.application.usecases.check_quota_available import CheckQuotaAvailableUseCase
+        from apps.user.domain.errors import QuotaExceededError
+
+        check_quota_use_case = CheckQuotaAvailableUseCase(
+            account_repository=DjangoAccountRepository(),
+            quote_repository=DjangoQuoteRepository(),
+        )
+        try:
+            check_quota_use_case.execute(account_id=account.id)
+        except QuotaExceededError as e:
+            raise ValidationError({"quota": str(e.message)})
+
         client_patch = self.initial_data.get("client_update", None)
 
         # Phase 6: Instantiate AttachTermsToQuoteUseCase with dependencies

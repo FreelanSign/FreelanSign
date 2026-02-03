@@ -15,7 +15,7 @@ import { useAccountStore } from '../../../infrastructure/account/accountStore';
 import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
 import { userRepository } from '../../../infrastructure/user/userRepository';
 
-import { Briefcase, Mail, PencilLine, Phone } from 'lucide-react';
+import { Briefcase, Mail, PencilLine, Phone, User } from 'lucide-react';
 import { useRequireAccount } from '../../hooks/useRequireAccount';
 
 /**
@@ -121,11 +121,17 @@ export default function ProfilePage() {
       <header className="flex flex-col sm:flex-row items-center gap-6 p-8 bg-white rounded-xl border border-border shadow-sm">
         <div className="relative group">
           <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-muted shadow-inner">
-            <img
-              src={user?.profile?.avatar_url || '/img/default-avatar.jpeg'}
-              alt="Avatar"
-              className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
-            />
+            {user?.profile?.avatar_url ? (
+              <img
+                src={user.profile.avatar_url}
+                alt="Avatar"
+                className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground">
+                <User className="h-10 w-10" />
+              </div>
+            )}
           </div>
         </div>
 

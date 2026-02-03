@@ -486,6 +486,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │       └── skill-creator
 │           └── scripts
 ├── .coverage
+├── .db-sync.config
+├── .db-sync.config.example
 ├── .dockerignore
 ├── .env
 ├── .env.docker
@@ -935,6 +937,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── email_sender.py
 │   │   │   │   │   ├── pdf_generator.py
 │   │   │   │   │   ├── prestation_repository.py
+│   │   │   │   │   ├── quote_repository_extensions.py
 │   │   │   │   │   ├── quote_repository.py
 │   │   │   │   │   ├── reference_gen.py
 │   │   │   │   │   └── template_renderer.py
@@ -1012,6 +1015,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   └── test_totals.py
 │   │   │   │   ├── interface
 │   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── test_quota_enforcement.py
 │   │   │   │   │   └── test_quote_api.py
 │   │   │   │   ├── temp_fixtures.py
 │   │   │   │   ├── test_add_prestation_line_api.py
@@ -1056,6 +1060,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   └── usecases
 │   │       │       ├── anonymize_account.py
 │   │       │       ├── change_password.py
+│   │       │       ├── check_quota_available.py
 │   │       │       ├── create_account.py
 │   │       │       ├── deactivate_account.py
 │   │       │       ├── get_user_accounts.py
@@ -1074,6 +1079,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── errors.py
 │   │       │   ├── policies
 │   │       │   │   ├── account_policy.py
+│   │       │   │   ├── quota_policy.py
 │   │       │   │   └── user_policy.py
 │   │       │   ├── services
 │   │       │   │   └── user_calculator.py
@@ -1118,7 +1124,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── 0014_add_field_encryption.py
 │   │       │   ├── 0015_add_professional_headline.py
 │   │       │   ├── 0016_add_logo_url_to_account.py
-│   │       │   └── 0017_add_account_address.py
+│   │       │   ├── 0017_add_account_address.py
+│   │       │   └── 0018_add_subscription_plan_quota.py
 │   │       ├── models
 │   │       │   ├── __init__.py
 │   │       │   ├── account.py
@@ -1135,8 +1142,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   │       ├── __init__.py
 │   │       │   │       └── test_django_account_repository.py
 │   │       │   ├── application
+│   │       │   │   ├── __init__.py
 │   │       │   │   └── usecases
 │   │       │   │       ├── __init__.py
+│   │       │   │       ├── test_check_quota.py
 │   │       │   │       ├── test_create_account.py
 │   │       │   │       ├── test_deactivate_account.py
 │   │       │   │       ├── test_get_user_accounts.py
@@ -1147,7 +1156,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   │   ├── __init__.py
 │   │       │   │   ├── test_account_entity.py
 │   │       │   │   ├── test_account_policy.py
-│   │       │   │   └── test_legal_form_value_object.py
+│   │       │   │   ├── test_legal_form_value_object.py
+│   │       │   │   └── test_quota_policy.py
 │   │       │   ├── interface
 │   │       │   │   ├── __init__.py
 │   │       │   │   ├── serializers
@@ -1190,6 +1200,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │           ├── packages_quote_arch.dot
 │   │           └── packages_quote_arch.png
 │   ├── Dockerfile
+│   ├── Dockerfile.optimized
 │   ├── docs
 │   │   ├── ENCRYPTION_KEY_BACKUP.md
 │   │   └── FIELD_ENCRYPTION.md
@@ -1429,8 +1440,14 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── database
 │   ├── dumps
 │   │   ├── db_prod_2026-01-12_19h25.dump
-│   │   └── dump_local_20251120_094504.sql
-│   └── init
+│   │   ├── dump_local_20251120_094504.sql
+│   │   ├── dump_local_20260130_111502.sql
+│   │   ├── freelansign_db_20260130_112711.sql
+│   │   ├── freelansign_db_20260130_112948.sql
+│   │   └── freelansign_db_20260130_113038.sql
+│   ├── init
+│   └── README.md
+├── db-sync.sh
 ├── docker-compose.certbot.yml
 ├── docker-compose.prod.yml
 ├── docker-compose.yml
@@ -1458,6 +1475,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       └── user_refacto_analysis.md
 │   ├── backup.md
 │   ├── database_management.md
+│   ├── DEPLOY_VPS_BUILD_LOCAL.md
 │   ├── deployment
 │   │   ├── backups.md
 │   │   ├── build-and-deploy.md
@@ -1468,6 +1486,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── production-checklist.md
 │   │   ├── retention-policy.md
 │   │   └── vps-setup.md
+│   ├── docker-compose.prod.patch
 │   ├── good-practices
 │   │   ├── claud-good-habits.md
 │   │   ├── dev-docs-pattern.md
@@ -1538,6 +1557,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── pen-nib-line.svg
 │   │   │   └── react.svg
 │   │   ├── components
+│   │   │   ├── common
+│   │   │   │   └── BetaWarningDialog.tsx
 │   │   │   └── ui
 │   │   │       ├── badge.tsx
 │   │   │       ├── button.tsx
@@ -1559,7 +1580,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── domain
 │   │   │   ├── account
 │   │   │   │   ├── api.ts
-│   │   │   │   └── types.ts
+│   │   │   │   ├── types.ts
+│   │   │   │   └── utils.ts
 │   │   │   ├── auth
 │   │   │   │   └── usecases.ts
 │   │   │   ├── catalog
@@ -1732,6 +1754,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── countries.ts
 │   │   │   ├── endpoints.ts
 │   │   │   ├── env.ts
+│   │   │   ├── legalInfo.ts
 │   │   │   └── utils
 │   │   │       └── obj.ts
 │   │   ├── styles
@@ -1739,6 +1762,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── tests
 │   │   │   ├── accountStore.test.ts
 │   │   │   ├── apiClient.account-header.test.ts
+│   │   │   ├── BetaWarningDialog.test.tsx
 │   │   │   ├── noAccount_ProfileEditPage.test.tsx
 │   │   │   ├── noAccount_ProfilePage.test.tsx
 │   │   │   └── useRequireAccount.test.tsx
@@ -1777,7 +1801,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-314 directories, 1007 files
+315 directories, 1030 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1852,5 +1876,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-01-30 11:00:26 CET**
+_Updated_: **2026-02-03 09:48:27 CET**
 <!-- END AUTO: LAST_UPDATED -->

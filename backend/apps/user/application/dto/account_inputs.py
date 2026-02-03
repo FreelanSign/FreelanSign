@@ -24,6 +24,8 @@ class CreateAccountInput:
     city: str | None = None
     postal_code: str | None = None
     country: str | None = None
+    # Subscription plan (v0.4.0+)
+    plan: str = "beta"
 
 
 @dataclass(frozen=True)
@@ -44,3 +46,5 @@ class UpdateAccountInput:
     city: str | None = None
     postal_code: str | None = None
     country: str | None = None
+    # Subscription plan (v0.4.0+)
+    plan: str = "beta"

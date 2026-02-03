@@ -12,6 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+import { isAccountMissingError } from '@/domain/account/utils';
 import { useAccountStore } from '@/infrastructure/account/accountStore';
 import { quoteRepository } from '@/infrastructure/quote/quoteRepository';
 
@@ -50,7 +51,7 @@ export function DashboardLatestQuotesTable({ pageSize = 5 }: Props) {
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<PageResponse<QuoteItem> | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
     let active = true;
@@ -71,9 +72,7 @@ export function DashboardLatestQuotesTable({ pageSize = 5 }: Props) {
         setData(res as PageResponse<QuoteItem>);
       } catch (err: unknown) {
         if (!active) return;
-        const e = err as { response?: { data?: unknown }; message?: string };
-        const server = e.response?.data;
-        setError(server ? JSON.stringify(server) : (e.message ?? 'Erreur'));
+        setError(err);
       } finally {
         if (active) setLoading(false);
       }
@@ -90,16 +89,38 @@ export function DashboardLatestQuotesTable({ pageSize = 5 }: Props) {
     <section className="space-y-4">
       {/* Zone d'erreur (même style que DataTable) */}
       {error ? (
-        <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive-foreground/90">
-          <p className="font-semibold text-destructive">
-            Erreur de chargement des devis
-          </p>
-          <p className="mt-1 opacity-90 text-sm">{error}</p>
-        </div>
+        isAccountMissingError(error) ? (
+          <div className="rounded-lg border border-brand/20 bg-brand/5 p-4">
+            <p className="font-semibold text-brand-dark">
+              Créez votre compte professionnel
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Accédez à vos devis en complétant votre profil professionnel
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive-foreground/90">
+            <p className="font-semibold text-destructive">
+              Erreur de chargement des devis
+            </p>
+            <p className="mt-1 opacity-90 text-sm">
+              {(() => {
+                const e = error as {
+                  response?: { data?: unknown };
+                  message?: string;
+                };
+                const server = e.response?.data;
+                return server
+                  ? JSON.stringify(server)
+                  : (e.message ?? 'Erreur');
+              })()}
+            </p>
+          </div>
+        )
       ) : null}
 
       {/* Conteneur tableau */}
-      <div className="overflow-hidden">
+      <div className="mt-5 overflow-hidden">
         <Table>
           <TableHeader className="bg-muted/30">
             <TableRow className="hover:bg-transparent border-b border-border/50">

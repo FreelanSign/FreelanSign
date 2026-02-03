@@ -91,7 +91,7 @@ export function DataTable<TData>({
   });
 
   return (
-    <div className="space-y-4">
+    <div className="mt-6 space-y-4">
       {/* Zone d'Erreur améliorée (utilisant les couleurs destructives) */}
       {errorMessage ? (
         <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive-foreground/90">

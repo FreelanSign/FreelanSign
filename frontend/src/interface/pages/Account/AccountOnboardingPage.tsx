@@ -39,7 +39,13 @@ export default function AccountOnboardingPage() {
     domain_id?: number | null;
     default_rate_cents?: number | null;
     legal_id?: string | null;
+    professional_headline?: string | null;
     service_types?: number[] | null;
+    address_line1?: string | null;
+    address_line2?: string | null;
+    city?: string | null;
+    postal_code?: string | null;
+    country?: string | null;
   }) {
     try {
       const newAccount = await accountRepository.create({
@@ -48,6 +54,13 @@ export default function AccountOnboardingPage() {
         domain_id: payload.domain_id ?? null,
         default_rate_cents: payload.default_rate_cents ?? null,
         legal_id: payload.legal_id ?? null,
+        professional_headline: payload.professional_headline ?? null,
+        service_type_ids: payload.service_types ?? undefined,
+        address_line1: payload.address_line1 ?? null,
+        address_line2: payload.address_line2 ?? null,
+        city: payload.city ?? null,
+        postal_code: payload.postal_code ?? null,
+        country: payload.country ?? null,
       });
 
       // Set as active account
