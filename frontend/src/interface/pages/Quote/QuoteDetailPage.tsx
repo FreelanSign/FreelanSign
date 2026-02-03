@@ -138,19 +138,17 @@ export default function QuoteDetailPage() {
     const lines = quote.line_items ?? [];
     const sub =
       quote.subtotal ??
-      lines.reduce(
-        (acc, l) =>
-          acc +
-          (l.pre_tax_total ??
-            Math.max(0, l.quantity * l.unit_price - (l.discount ?? 0))),
-        0,
-      );
+      lines.reduce((acc, l) => {
+        const base = l.quantity * l.unit_price;
+        const afterDiscount = base * (1 - (l.discount ?? 0) / 100);
+        return acc + (l.pre_tax_total ?? Math.max(0, afterDiscount));
+      }, 0);
     const taxes =
       quote.tax_total ??
       lines.reduce((acc, l) => {
+        const base = l.quantity * l.unit_price;
         const preTax =
-          l.pre_tax_total ??
-          Math.max(0, l.quantity * l.unit_price - (l.discount ?? 0));
+          l.pre_tax_total ?? Math.max(0, base * (1 - (l.discount ?? 0) / 100));
         return acc + (l.tax_amount ?? preTax * (l.tax_rate ?? 0));
       }, 0);
     const total = quote.total ?? sub + taxes - (quote.discount_total ?? 0);
@@ -435,7 +433,7 @@ export default function QuoteDetailPage() {
                       <TableCell className="py-4 text-right align-top text-sm text-muted-foreground">
                         {l.discount && l.discount > 0 ? (
                           <span className="text-destructive font-medium whitespace-nowrap">
-                            -{money.format(l.discount)}
+                            -{l.discount}%
                           </span>
                         ) : (
                           '—'
@@ -449,7 +447,9 @@ export default function QuoteDetailPage() {
                           l.pre_tax_total ??
                             Math.max(
                               0,
-                              l.quantity * l.unit_price - (l.discount ?? 0),
+                              l.quantity *
+                                l.unit_price *
+                                (1 - (l.discount ?? 0) / 100),
                             ),
                         )}
                       </TableCell>

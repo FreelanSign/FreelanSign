@@ -337,9 +337,11 @@ class QuoteLineItem(models.Model):
     # --- computations ---------------------------------------------------------------------------------
     def pre_tax_total(self) -> Decimal:
         """
-        Compute pre-tax total = qty * unit_price - discount (never below 0).
+        Compute pre-tax total = qty * unit_price with discount percentage applied (never below 0).
         """
-        base = (self.qty * self.unit_price) - self.discount
+        base = self.qty * self.unit_price
+        discount_amount = base * (self.discount / Decimal("100"))
+        base = base - discount_amount
         if base < 0:
             base = Decimal("0.00")
         return base.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
