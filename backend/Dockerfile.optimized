@@ -1,0 +1,100 @@
+# backend/Dockerfile.optimized
+# Version optimisée pour réduire l'usage disque durant le build
+
+# Builder stage
+FROM python:3.11-slim AS builder
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements/requirements.txt .
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+
+# Playwright installation stage (isolé pour économiser espace)
+FROM python:3.11-slim AS playwright-installer
+
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/wheels /wheels
+COPY --from=builder /app/requirements.txt .
+RUN pip install --no-cache /wheels/*
+
+# Nettoyer APT cache AVANT installation Playwright
+RUN apt-get clean && \
+    rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
+
+# Installer Playwright (avec cache nettoyé)
+RUN playwright install --with-deps chromium && \
+    apt-get clean && \
+    rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
+
+# Final stage (plus léger)
+FROM python:3.11-slim
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    postgresql-client \
+    cron \
+    gosu \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+
+# Copier wheels et Playwright depuis stages précédents
+COPY --from=builder /app/wheels /wheels
+COPY --from=builder /app/requirements.txt .
+COPY --from=playwright-installer /ms-playwright /ms-playwright
+COPY --from=playwright-installer /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+
+RUN pip install --no-cache /wheels/*
+
+COPY . /app/
+
+# Create a non-root user
+RUN addgroup --system app && adduser --system --group app
+
+# Create directories that will be mounted as volumes
+RUN mkdir -p /app/logs /app/static /app/media && \
+    chown -R app:app /app && \
+    chown -R app:app /ms-playwright
+
+EXPOSE 8000
+
+# Entrypoint script to handle migrations and static files
+COPY <<EOF /entrypoint.sh
+#!/bin/sh
+set -e
+
+# Fix permissions for volumes (run as root, then drop to app user)
+chown -R app:app /app/logs /app/static /app/media 2>/dev/null || true
+
+if [ "\$1" = 'gunicorn' ]; then
+    gosu app python manage.py migrate
+    gosu app python manage.py collectstatic --noinput
+    exec gosu app gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 60 --max-requests 1000 --max-requests-jitter 50
+fi
+
+exec gosu app "\$@"
+EOF
+
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["gunicorn"]

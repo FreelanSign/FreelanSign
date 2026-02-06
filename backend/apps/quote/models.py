@@ -247,8 +247,8 @@ class Quote(SoftDeleteModel, models.Model):
         """
         Soft-delete Quote with RGPD compliance.
 
-        Blocks deletion if status is active (DRAFT, SENT, ACCEPTED).
-        Allows deletion for terminated statuses (PAID, CANCELLED, EXPIRED, REJECTED).
+        Only DRAFT and CANCELLED quotes can be deleted.
+        All other statuses must be retained for 10 years (legal/accounting obligation).
 
         Args:
             hard: If True, performs hard delete (bypass soft delete)
@@ -256,17 +256,18 @@ class Quote(SoftDeleteModel, models.Model):
             keep_parents: Standard Django delete parameter
 
         Raises:
-            ValidationError: If Quote status is active
+            ValidationError: If Quote status is not DRAFT or CANCELLED
         """
         if hard:
             return super().delete(hard=True, using=using, keep_parents=keep_parents)
 
-        # AIDEV-NOTE: Block deletion for active statuses only
-        # PAID/CANCELLED/EXPIRED/REJECTED = transaction terminated, legal retention with soft delete
-        active_statuses = [self.Status.DRAFT, self.Status.SENT, self.Status.ACCEPTED]
-        if self.status in active_statuses:
+        # AIDEV-NOTE: RGPD Compliance - Only DRAFT and CANCELLED can be deleted
+        # SENT/ACCEPTED/PAID/REJECTED/EXPIRED = client received = 10-year retention required
+        deletable_statuses = [self.Status.DRAFT, self.Status.CANCELLED]
+        if self.status not in deletable_statuses:
             raise ValidationError(
-                "Impossible de supprimer le devis : le statut est actif. " "Veuillez d'abord finaliser ou annuler le devis."
+                f"Impossible de supprimer un devis avec le statut {self.get_status_display()}. "
+                "Seuls les devis BROUILLON et ANNULÉ peuvent être supprimés (conformité RGPD)."
             )
 
         # Soft-delete via SoftDeleteModel mechanism
