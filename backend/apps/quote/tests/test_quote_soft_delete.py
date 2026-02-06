@@ -72,12 +72,12 @@ def quote_paid(user, account, client_obj):
 class TestQuoteSoftDelete:
     """Test Quote soft delete behavior."""
 
-    def test_quote_delete_soft_deletes_by_default(self, quote_paid):
-        """Test that delete() soft deletes by default."""
-        quote_id = quote_paid.id
+    def test_quote_delete_soft_deletes_by_default(self, quote_draft):
+        """Test that delete() soft deletes by default (uses DRAFT which is deletable)."""
+        quote_id = quote_draft.id
 
         # Delete quote
-        quote_paid.delete()
+        quote_draft.delete()
 
         # Should not be in default queryset
         assert not Quote.objects.filter(id=quote_id).exists()
@@ -102,7 +102,7 @@ class TestQuoteSoftDelete:
         assert not Quote.all_objects.filter(id=quote_id).exists()
 
     def test_quote_objects_excludes_soft_deleted(self, user, account, client_obj):
-        """Test that objects manager excludes soft deleted quotes."""
+        """Test that objects manager excludes soft deleted quotes (uses DRAFT which is deletable)."""
         # Create two quotes
         quote1 = Quote.objects.create(
             owner=user,
@@ -110,7 +110,7 @@ class TestQuoteSoftDelete:
             account=account,
             title="Quote 1",
             reference="Q-2025-001",
-            status=Quote.Status.PAID,
+            status=Quote.Status.DRAFT,
             issue_date=timezone.now().date(),
             currency="EUR",
         )
@@ -120,7 +120,7 @@ class TestQuoteSoftDelete:
             account=account,
             title="Quote 2",
             reference="Q-2025-002",
-            status=Quote.Status.PAID,
+            status=Quote.Status.DRAFT,
             issue_date=timezone.now().date(),
             currency="EUR",
         )
@@ -135,32 +135,31 @@ class TestQuoteSoftDelete:
         # all_objects should return both
         assert Quote.all_objects.count() == 2
 
-    def test_quote_undelete_restores(self, quote_paid):
-        """Test that undelete() restores a soft deleted quote."""
+    def test_quote_undelete_restores(self, quote_draft):
+        """Test that undelete() restores a soft deleted quote (uses DRAFT which is deletable)."""
         # Soft delete
-        quote_paid.delete()
-        assert quote_paid.is_deleted is True
+        quote_draft.delete()
+        assert quote_draft.is_deleted is True
 
         # Undelete
-        quote_paid.undelete()
+        quote_draft.undelete()
 
         # Should be restored
-        assert quote_paid.is_deleted is False
-        assert quote_paid.deleted_at is None
-        assert Quote.objects.filter(id=quote_paid.id).exists()
-
-    def test_quote_soft_delete_blocked_with_draft_status(self, quote_draft):
-        """Test that delete is blocked for DRAFT status."""
-        # Should raise ValidationError
-        with pytest.raises(ValidationError, match="le statut est actif"):
-            quote_draft.delete()
-
-        # Quote should still exist and not be deleted
-        assert Quote.objects.filter(id=quote_draft.id).exists()
         assert quote_draft.is_deleted is False
+        assert quote_draft.deleted_at is None
+        assert Quote.objects.filter(id=quote_draft.id).exists()
+
+    def test_quote_soft_delete_allowed_with_draft_status(self, quote_draft):
+        """Test that delete is allowed for DRAFT status (RGPD compliance)."""
+        # Should NOT raise ValidationError
+        quote_draft.delete()
+
+        # Quote should be soft deleted
+        assert not Quote.objects.filter(id=quote_draft.id).exists()
+        assert Quote.all_objects.filter(id=quote_draft.id, is_deleted=True).exists()
 
     def test_quote_soft_delete_blocked_with_sent_status(self, user, account, client_obj):
-        """Test that delete is blocked for SENT status."""
+        """Test that delete is blocked for SENT status (RGPD compliance)."""
         quote = Quote.objects.create(
             owner=user,
             client=client_obj,
@@ -172,13 +171,13 @@ class TestQuoteSoftDelete:
             currency="EUR",
         )
 
-        with pytest.raises(ValidationError, match="le statut est actif"):
+        with pytest.raises(ValidationError, match="BROUILLON et ANNULÉ"):
             quote.delete()
 
         assert Quote.objects.filter(id=quote.id).exists()
 
     def test_quote_soft_delete_blocked_with_accepted_status(self, user, account, client_obj):
-        """Test that delete is blocked for ACCEPTED status."""
+        """Test that delete is blocked for ACCEPTED status (RGPD compliance)."""
         quote = Quote.objects.create(
             owner=user,
             client=client_obj,
@@ -190,22 +189,23 @@ class TestQuoteSoftDelete:
             currency="EUR",
         )
 
-        with pytest.raises(ValidationError, match="le statut est actif"):
+        with pytest.raises(ValidationError, match="BROUILLON et ANNULÉ"):
             quote.delete()
 
         assert Quote.objects.filter(id=quote.id).exists()
 
-    def test_quote_soft_delete_allowed_with_paid_status(self, quote_paid):
-        """Test that soft delete is allowed if status is PAID."""
-        # Should NOT raise ValidationError
-        quote_paid.delete()
+    def test_quote_soft_delete_blocked_with_paid_status(self, quote_paid):
+        """Test that soft delete is blocked if status is PAID (RGPD compliance)."""
+        # Should raise ValidationError
+        with pytest.raises(ValidationError, match="BROUILLON et ANNULÉ"):
+            quote_paid.delete()
 
-        # Quote should be soft deleted
-        assert not Quote.objects.filter(id=quote_paid.id).exists()
-        assert Quote.all_objects.filter(id=quote_paid.id, is_deleted=True).exists()
+        # Quote should still exist and not be deleted
+        assert Quote.objects.filter(id=quote_paid.id).exists()
+        assert quote_paid.is_deleted is False
 
     def test_quote_soft_delete_allowed_with_cancelled_status(self, user, account, client_obj):
-        """Test that soft delete is allowed if status is CANCELLED."""
+        """Test that soft delete is allowed if status is CANCELLED (RGPD compliance)."""
         quote = Quote.objects.create(
             owner=user,
             client=client_obj,
@@ -221,8 +221,8 @@ class TestQuoteSoftDelete:
         quote.delete()
         assert Quote.all_objects.filter(id=quote.id, is_deleted=True).exists()
 
-    def test_quote_soft_delete_allowed_with_expired_status(self, user, account, client_obj):
-        """Test that soft delete is allowed if status is EXPIRED."""
+    def test_quote_soft_delete_blocked_with_expired_status(self, user, account, client_obj):
+        """Test that soft delete is blocked if status is EXPIRED (RGPD compliance)."""
         quote = Quote.objects.create(
             owner=user,
             client=client_obj,
@@ -234,12 +234,14 @@ class TestQuoteSoftDelete:
             currency="EUR",
         )
 
-        # Should succeed
-        quote.delete()
-        assert Quote.all_objects.filter(id=quote.id, is_deleted=True).exists()
+        # Should raise ValidationError
+        with pytest.raises(ValidationError, match="BROUILLON et ANNULÉ"):
+            quote.delete()
 
-    def test_quote_soft_delete_allowed_with_rejected_status(self, user, account, client_obj):
-        """Test that soft delete is allowed if status is REJECTED."""
+        assert Quote.objects.filter(id=quote.id).exists()
+
+    def test_quote_soft_delete_blocked_with_rejected_status(self, user, account, client_obj):
+        """Test that soft delete is blocked if status is REJECTED (RGPD compliance)."""
         quote = Quote.objects.create(
             owner=user,
             client=client_obj,
@@ -251,9 +253,11 @@ class TestQuoteSoftDelete:
             currency="EUR",
         )
 
-        # Should succeed
-        quote.delete()
-        assert Quote.all_objects.filter(id=quote.id, is_deleted=True).exists()
+        # Should raise ValidationError
+        with pytest.raises(ValidationError, match="BROUILLON et ANNULÉ"):
+            quote.delete()
+
+        assert Quote.objects.filter(id=quote.id).exists()
 
     def test_quote_history_deleted_action_exists(self):
         """Test that DELETED action exists in QuoteHistory.Action choices."""

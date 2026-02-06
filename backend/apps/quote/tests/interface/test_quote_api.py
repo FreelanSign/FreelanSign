@@ -69,8 +69,8 @@ class TestQuoteUpdatePermissions:
         resp = api_client.patch(url, payload, format="json")
 
         assert resp.status_code == 400
-        assert "status" in resp.json()
-        assert "Only DRAFT quotes can be edited" in resp.json()["status"]
+        assert "detail" in resp.json()
+        assert "Only DRAFT quotes can be edited" in resp.json()["detail"]
 
         # Verify title didn't change
         quote.refresh_from_db()
@@ -104,7 +104,7 @@ class TestQuoteUpdatePermissions:
         resp = api_client.put(url, payload, format="json")
 
         assert resp.status_code == 400
-        assert "status" in resp.json()
+        assert "detail" in resp.json()
 
         quote.refresh_from_db()
         assert quote.title == "Test Quote"

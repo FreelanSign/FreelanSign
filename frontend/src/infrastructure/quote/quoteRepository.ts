@@ -2,12 +2,12 @@ import { apiClient } from '../../infrastructure/http/apiClient';
 import { API_ENDPOINTS } from '../../shared/endpoints';
 
 import type { PageResponse } from '../../domain/common/pagination';
+import type { QuoteMetricsDto } from '../../domain/quote/metricsTypes';
 import type {
   ApiQuoteResponse,
   ApiQuoteUpdatePayload,
   QuoteCreatePayload, // ← déjà présent chez toi
 } from '../../domain/quote/types';
-import type { QuoteMetricsDto } from '../../domain/quote/metricsTypes';
 
 /**
  * CRUD des devis — typé avec les contrats domain/*
@@ -83,7 +83,7 @@ export const quoteRepository = {
    */
   async update(
     id: string,
-    payload: ApiQuoteUpdatePayload,
+    payload: Partial<ApiQuoteUpdatePayload>,
   ): Promise<ApiQuoteResponse> {
     const { data } = await apiClient.patch<ApiQuoteResponse>(
       `${API_ENDPOINTS.quotes}${id}/`,

@@ -1,6 +1,6 @@
 export const SITE = {
   name: 'FreelanSign',
-  url: 'https://freelansign.com',
+  url: 'https://app.freelansign.fr',
   description: 'Le toolkit des freelances',
   author: 'FreelanSign',
   email: 'contact@freelansign.com',

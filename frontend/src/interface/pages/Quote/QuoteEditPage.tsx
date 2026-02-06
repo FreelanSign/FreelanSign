@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -108,6 +109,41 @@ const EMPTY_CLIENT_CONST: ClientInfo = {
   city: '',
   postal_code: '',
   country: '',
+};
+
+// AIDEV-NOTE: Pas de live reload - changement effectif au clic "Enregistrer" uniquement
+// Dropdown affiche status actuel pour permettre "aucun changement"
+// Status transition rules (matches backend state machine)
+function getAllowedStatusTransitions(currentStatus: string): string[] {
+  const transitions: Record<string, string[]> = {
+    DRAFT: [
+      'DRAFT',
+      'SENT',
+      'ACCEPTED',
+      'PAID',
+      'REJECTED',
+      'EXPIRED',
+      'CANCELLED',
+    ],
+    SENT: ['SENT', 'ACCEPTED', 'PAID', 'REJECTED', 'EXPIRED', 'CANCELLED'],
+    ACCEPTED: ['ACCEPTED', 'PAID', 'EXPIRED', 'CANCELLED'],
+    REJECTED: ['REJECTED'],
+    PAID: ['PAID'],
+    CANCELLED: ['CANCELLED'],
+    EXPIRED: ['EXPIRED'],
+  };
+  return transitions[currentStatus] || [currentStatus];
+}
+
+// French labels for statuses
+const STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Brouillon',
+  SENT: 'Envoyé',
+  ACCEPTED: 'Accepté',
+  REJECTED: 'Refusé',
+  EXPIRED: 'Expiré',
+  PAID: 'Payé',
+  CANCELLED: 'Annulé',
 };
 
 export default function QuoteEditPage() {
@@ -363,6 +399,14 @@ export default function QuoteEditPage() {
   const validate = (): string[] => {
     const errs: string[] = [];
     if (!quote) return ['Formulaire vide'];
+
+    // For non-DRAFT quotes, only validate status (content is read-only)
+    if (quote.status !== 'DRAFT') {
+      if (!quote.status?.trim()) errs.push('Le statut est requis.');
+      return errs;
+    }
+
+    // Full validation for DRAFT quotes
     if (!quote.title?.trim()) errs.push('Le titre est requis.');
     if (!quote.reference?.trim()) errs.push('La référence est requise.');
     if (!quote.status?.trim()) errs.push('Le statut est requis.');
@@ -434,7 +478,16 @@ export default function QuoteEditPage() {
     setSaving(true);
     setError(null);
     try {
-      const payload = toApiPayload(quote);
+      let payload: Partial<ApiQuoteUpdatePayload>;
+
+      if (quote.status === 'DRAFT') {
+        // Full edit for DRAFT quotes
+        payload = toApiPayload(quote);
+      } else {
+        // Status-only update for non-DRAFT quotes (RGPD compliance)
+        payload = { status: quote.status.toUpperCase() };
+      }
+
       console.log('Payload PATCH envoyé', payload);
       await quoteRepository.update(id, payload);
       navigate(`/quotes/${id}`);
@@ -545,6 +598,18 @@ export default function QuoteEditPage() {
         </div>
       )}
 
+      {quote && quote.status !== 'DRAFT' && (
+        <Alert className="border-blue-200 bg-blue-50">
+          <AlertDescription className="text-blue-800">
+            ℹ️ Ce devis est en statut &quot;
+            {STATUS_LABELS[quote.status] || quote.status}&quot;. Seul le statut
+            peut être modifié (conformité RGPD). <br />
+            Si le changement de statut est une erreur, cliquer sur le bouton
+            "Abandonner les modifications" pour revenir en arrière.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
@@ -595,6 +660,7 @@ export default function QuoteEditPage() {
                         onChange={(e) => setField('title', e.target.value)}
                         placeholder="Ex: Refonte du site web"
                         className="h-10"
+                        disabled={quote.status !== 'DRAFT'}
                       />
                     </div>
                   </div>
@@ -615,12 +681,13 @@ export default function QuoteEditPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="DRAFT">Brouillon</SelectItem>
-                          <SelectItem value="SENT">Envoyé</SelectItem>
-                          <SelectItem value="ACCEPTED">Accepté</SelectItem>
-                          <SelectItem value="REJECTED">Refusé</SelectItem>
-                          <SelectItem value="EXPIRED">Expiré</SelectItem>
-                          <SelectItem value="PAID">Payé</SelectItem>
+                          {getAllowedStatusTransitions(quote.status).map(
+                            (status) => (
+                              <SelectItem key={status} value={status}>
+                                {STATUS_LABELS[status] || status}
+                              </SelectItem>
+                            ),
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -637,6 +704,7 @@ export default function QuoteEditPage() {
                         onChange={(e) => setField('currency', e.target.value)}
                         placeholder="EUR"
                         className="h-10"
+                        disabled={quote.status !== 'DRAFT'}
                       />
                     </div>
                   </div>
@@ -659,6 +727,7 @@ export default function QuoteEditPage() {
                           onChange={(e) =>
                             setField('issue_date', e.target.value || null)
                           }
+                          disabled={quote.status !== 'DRAFT'}
                         />
                       </div>
                     </div>
@@ -679,6 +748,7 @@ export default function QuoteEditPage() {
                           onChange={(e) =>
                             setField('due_date', e.target.value || null)
                           }
+                          disabled={quote.status !== 'DRAFT'}
                         />
                       </div>
                     </div>
@@ -718,6 +788,7 @@ export default function QuoteEditPage() {
                       value={quote.client?.name ?? ''}
                       onChange={(e) => setClient('name', e.target.value)}
                       className="h-10"
+                      disabled={quote.status !== 'DRAFT'}
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -733,6 +804,7 @@ export default function QuoteEditPage() {
                       value={quote.client?.email ?? ''}
                       onChange={(e) => setClient('email', e.target.value)}
                       className="h-10"
+                      disabled={quote.status !== 'DRAFT'}
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -747,6 +819,7 @@ export default function QuoteEditPage() {
                       value={quote.client?.company ?? ''}
                       onChange={(e) => setClient('company', e.target.value)}
                       className="h-10"
+                      disabled={quote.status !== 'DRAFT'}
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -763,6 +836,7 @@ export default function QuoteEditPage() {
                         setClient('address_line1', e.target.value)
                       }
                       className="h-10"
+                      disabled={quote.status !== 'DRAFT'}
                     />
                   </div>
                 </div>
@@ -779,6 +853,7 @@ export default function QuoteEditPage() {
                       value={quote.client?.postal_code ?? ''}
                       onChange={(e) => setClient('postal_code', e.target.value)}
                       className="h-10"
+                      disabled={quote.status !== 'DRAFT'}
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -793,6 +868,7 @@ export default function QuoteEditPage() {
                       value={quote.client?.city ?? ''}
                       onChange={(e) => setClient('city', e.target.value)}
                       className="h-10"
+                      disabled={quote.status !== 'DRAFT'}
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -807,6 +883,7 @@ export default function QuoteEditPage() {
                       value={quote.client?.country ?? ''}
                       onChange={(e) => setClient('country', e.target.value)}
                       className="h-10"
+                      disabled={quote.status !== 'DRAFT'}
                     />
                   </div>
                 </div>
@@ -837,6 +914,7 @@ export default function QuoteEditPage() {
                     rows={6}
                     className="resize-none"
                     placeholder="Visibles par le client sur le PDF…"
+                    disabled={quote.status !== 'DRAFT'}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -853,6 +931,7 @@ export default function QuoteEditPage() {
                     rows={6}
                     className="resize-none"
                     placeholder="Paiement, délais, pénalités…"
+                    disabled={quote.status !== 'DRAFT'}
                   />
                 </div>
               </CardContent>
@@ -876,6 +955,7 @@ export default function QuoteEditPage() {
               size="sm"
               onClick={addLine}
               className="bg-brand text-white hover:bg-brand-dark"
+              disabled={quote.status !== 'DRAFT'}
             >
               <PlusCircle className="mr-2 h-4 w-4" />
               Ajouter une ligne
@@ -924,6 +1004,7 @@ export default function QuoteEditPage() {
                               }
                               placeholder="Nom du service ou produit"
                               className="h-10 font-semibold"
+                              disabled={quote.status !== 'DRAFT'}
                             />
                           </div>
 
@@ -943,6 +1024,7 @@ export default function QuoteEditPage() {
                               placeholder="Détaillez ici les spécificités de cette prestation pour ce client..."
                               className="min-h-[60px] text-muted-foreground resize-y text-sm"
                               rows={2}
+                              disabled={quote.status !== 'DRAFT'}
                             />
                           </div>
 
@@ -962,6 +1044,7 @@ export default function QuoteEditPage() {
                                   })
                                 }
                                 className="h-9"
+                                disabled={quote.status !== 'DRAFT'}
                               />
                             </div>
                             <div className="space-y-1.5">
@@ -980,6 +1063,7 @@ export default function QuoteEditPage() {
                                     })
                                   }
                                   className="h-9 pr-8"
+                                  disabled={quote.status !== 'DRAFT'}
                                 />
                                 <span className="absolute right-3 top-2.5 text-[10px] text-muted-foreground font-bold">
                                   €
@@ -1002,6 +1086,7 @@ export default function QuoteEditPage() {
                                     })
                                   }
                                   className="h-9 pr-8"
+                                  disabled={quote.status !== 'DRAFT'}
                                 />
                                 <span className="absolute right-3 top-2.5 text-[10px] text-muted-foreground font-bold">
                                   %
@@ -1018,6 +1103,7 @@ export default function QuoteEditPage() {
                                   onValueChange={(val) =>
                                     updateLine(i, { tax_rate: Number(val) })
                                   }
+                                  disabled={quote.status !== 'DRAFT'}
                                 >
                                   <SelectTrigger className="h-9 w-full">
                                     <SelectValue />
@@ -1050,6 +1136,7 @@ export default function QuoteEditPage() {
                           size="icon"
                           onClick={() => removeLine(i)}
                           className="text-muted-foreground/40 hover:text-destructive hover:bg-destructive/5 shrink-0"
+                          disabled={quote.status !== 'DRAFT'}
                         >
                           <Trash2 size={18} />
                         </Button>

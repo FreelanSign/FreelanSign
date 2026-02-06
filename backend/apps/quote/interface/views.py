@@ -315,17 +315,14 @@ class QuoteViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance: Quote):
         """
         Soft-delete quote with RGPD compliance.
-        If status is active (DRAFT, SENT, ACCEPTED), we first mark it as CANCELLED
-        to allow the soft-delete to proceed (as per business workflow in model).
+        Only DRAFT and CANCELLED quotes can be deleted.
+        SENT/ACCEPTED/PAID/REJECTED/EXPIRED must be retained for 10 years (legal obligation).
         Logs deletion in QuoteHistory for audit trail.
         """
+        # AIDEV-NOTE: RGPD - Seuls DRAFT/CANCELLED supprimables (client n'a jamais reçu)
+        # SENT/ACCEPTED/PAID/REJECTED/EXPIRED = retention 10 ans obligatoire
         try:
-            # AIDEV-NOTE: Maps to the "cancel-on-delete" logic expected by tests
-            if instance.status in [Quote.Status.DRAFT, Quote.Status.SENT, Quote.Status.ACCEPTED]:
-                instance.status = Quote.Status.CANCELLED
-                instance.save(update_fields=["status"])
-
-            # Trigger soft delete
+            # Trigger soft delete - Quote.delete() will validate status
             instance.delete()
 
             # Log deletion in QuoteHistory for audit trail
@@ -350,14 +347,35 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         """
-        Block modifications on non-DRAFT quotes.
-        Only DRAFT quotes can be edited. SENT/PAID/ACCEPTED quotes are immutable.
+        Block modifications on non-DRAFT quotes except status changes.
+        Only DRAFT quotes can be fully edited. For SENT/PAID/ACCEPTED quotes, only status can be changed.
+        Status changes must respect transition rules (validated by ChangeStatus use case).
         """
         instance = serializer.instance
+        validated_data = serializer.validated_data
+
+        # If status not DRAFT, check if only status is being changed
         if instance.status not in [Quote.Status.DRAFT]:
+            # Extract fields being modified (exclude metadata/timestamp fields)
+            modified_fields = set(validated_data.keys()) - {"updated_at"}
+
+            # Allow status-only changes
+            if modified_fields == {"status"}:
+                new_status = validated_data["status"]
+                # Use ChangeStatus use case to validate transition
+                uc = ChangeStatus(repo=self._repo())
+                try:
+                    uc.execute(quote_id=str(instance.pk), new_status=new_status, actor=self.request.user)
+                    # Instance already saved by use case, skip serializer.save()
+                    return
+                except ValueError as e:
+                    raise ValidationError({"status": str(e)})
+
+            # Block all other modifications
             raise ValidationError(
-                {"status": f"Cannot modify quotes with status {instance.status}. Only DRAFT quotes can be edited."}
+                {"detail": f"Cannot modify quotes with status {instance.status}. Only DRAFT quotes can be edited."}
             )
+
         serializer.save()
 
     # ----------------------

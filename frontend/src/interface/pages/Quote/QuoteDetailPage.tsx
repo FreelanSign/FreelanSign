@@ -277,7 +277,7 @@ export default function QuoteDetailPage() {
             <Trash2 className="mr-2 h-4 w-4" />
             Supprimer
           </Button>
-          {quote.status === 'DRAFT' && (
+          {['DRAFT', 'SENT', 'ACCEPTED'].includes(quote.status) && (
             <>
               <div className="h-6 w-px bg-border/60 mx-1 hidden sm:block" />
               <Button
