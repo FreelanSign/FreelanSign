@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
+from django.conf import settings
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
@@ -34,6 +35,7 @@ from apps.user.application.errors import DuplicateEmailError
 from apps.user.application.usecases.change_password import ChangePassword
 from apps.user.application.usecases.list_users import ListUsers
 from apps.user.application.usecases.register_user import RegisterUser
+from apps.user.application.usecases.send_verification_email import SendVerificationEmail
 from apps.user.application.usecases.update_profile import UpdateProfile
 from apps.user.domain.errors import InvalidEmailError, InvalidNameError, InvalidPasswordError, InvalidPhoneError
 
@@ -163,6 +165,15 @@ class UserViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         logger.info("users.create succeeded for user_id=%s", vm.id)
+
+        try:
+            SendVerificationEmail(
+                verification_base_url=settings.EMAIL_VERIFICATION_URL,
+                from_email=settings.EMAIL_FROM,
+            ).execute(user_id=vm.id, email=vm.email)
+        except Exception:
+            logger.exception("Failed to send verification email for user_id=%s", vm.id)
+
         return Response(UserOutputSerializer.from_vm(vm).data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=["get", "patch"], url_path="me", permission_classes=[IsAuthenticated])

@@ -145,6 +145,12 @@ class DjangoUserRepository(UserRepository):
             logger.exception("Erreur lors de la vérification du mot de passe")
             return False
 
+    def set_email_verified(self, user_id: int, verified: bool) -> None:
+        """Sets the email_verified flag for a user."""
+        updated = User.objects.filter(id=user_id).update(email_verified=verified)
+        if not updated:
+            raise RepositoryError(f"Utilisateur {user_id} introuvable")
+
     def delete(self, user_id: int):
         """Supprime un utilisateur."""
         try:

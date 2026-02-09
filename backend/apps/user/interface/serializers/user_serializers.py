@@ -190,3 +190,10 @@ class ResetPasswordSerializer(serializers.Serializer):
         Decode the token from URL-encoded format.
         """
         return unquote(value)
+
+
+class VerifyEmailSerializer(serializers.Serializer):
+    token = serializers.CharField()
+
+    def validate_token(self, value: str) -> str:
+        return unquote(value)

@@ -12,6 +12,7 @@ from apps.user.interface.serializers.user_serializers import (
     UserListOutputSerializer,
     UserOutputSerializer,
     UserRegistrationInputSerializer,
+    VerifyEmailSerializer,
 )
 
 __all__ = [
@@ -26,4 +27,5 @@ __all__ = [
     "UserListOutputSerializer",
     "UserOutputSerializer",
     "UserRegistrationInputSerializer",
+    "VerifyEmailSerializer",
 ]

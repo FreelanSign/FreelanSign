@@ -43,6 +43,7 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     username = None  # Disable the default username field
     email = models.EmailField("email address", unique=True)  # Use email as the unique identifier
+    email_verified = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"  # Set email as the unique identifier for authentication
     REQUIRED_FIELDS = []  # No required fields other than email
