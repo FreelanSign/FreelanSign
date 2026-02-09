@@ -1,5 +1,7 @@
 // frontend/src/interface/components/email/QuoteEmailPreviewDialog.tsx
+import { ExternalLink, Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Alert, AlertDescription } from '../../../components/ui/alert';
 import {
   Dialog,
   DialogContent,
@@ -60,13 +62,21 @@ export default function QuoteEmailPreviewDialog({
       <DialogOverlay className={styles.overlay} />
       <DialogContent className={styles.content}>
         <DialogTitle className={styles.title}>
-          Prévisualisation de l'email
+          Modele d'email a envoyer
         </DialogTitle>
         <DialogDescription className={styles.description}>
           Copiez le contenu de l'email pour l'envoyer à votre client.
         </DialogDescription>
 
         <div className={styles.body}>
+          <Alert className="mb-4 border-blue-200 bg-blue-50">
+            <Info className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800 text-xs">
+              L'envoi automatique d'email n'est pas encore disponible. Copiez
+              les champs ci-dessous et collez-les dans votre client mail (Gmail,
+              Outlook, etc.)
+            </AlertDescription>
+          </Alert>
           {loading && <div className={styles.loading}>Chargement…</div>}
 
           {error && <div className={styles.error}>{error}</div>}
@@ -153,6 +163,21 @@ export default function QuoteEmailPreviewDialog({
         </div>
 
         <div className={styles.footer}>
+          {data && (
+            <a
+              href={`mailto:${encodeURIComponent(data.to)}?subject=${encodeURIComponent(data.subject)}&body=${encodeURIComponent(data.body)}`}
+              className={styles.buttonCopy}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                textDecoration: 'none',
+              }}
+            >
+              <ExternalLink style={{ width: 14, height: 14 }} />
+              Ouvrir dans mon client mail
+            </a>
+          )}
           <button className={styles.buttonClose} onClick={onClose}>
             Fermer
           </button>
