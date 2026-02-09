@@ -7,6 +7,7 @@ import {
 import MainLayout from '../interface/layout/MainLayout';
 import RequestPasswordResetPage from '../interface/pages/Auth/request-password-reset';
 import ResetPasswordPage from '../interface/pages/Auth/reset-password';
+import VerifyEmailPage from '../interface/pages/Auth/VerifyEmailPage';
 import ThemesCreatePage from '../interface/pages/Branding/ThemesCreatePage';
 import ThemesEditPage from '../interface/pages/Branding/ThemesEditPage';
 import ThemesListPage from '../interface/pages/Branding/ThemesListPage';
@@ -71,6 +72,7 @@ const router = createBrowserRouter([
     element: <RequestPasswordResetPage />,
   },
   { path: '/auth/reset-password', element: <ResetPasswordPage /> },
+  { path: '/verify-email', element: <VerifyEmailPage /> },
 ]);
 
 export default function AppRouter() {
