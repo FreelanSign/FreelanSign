@@ -44,4 +44,6 @@ urlpatterns = [
     path("api/", include("apps.email.interface.urls")),
     # Legal Terms
     path("api/legal-terms/", include("apps.legal_terms.interface.urls")),
+    # Feedback
+    path("api/feedback/", include("apps.feedback.interface.urls")),
 ]
