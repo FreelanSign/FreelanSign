@@ -82,14 +82,15 @@ if not DEBUG:
 # Email settings
 # --------------------------------------------------------------------------------------
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
-EMAIL_HOST = env("EMAIL_HOST", default="sandbox.smtp.mailtrap.io")
-EMAIL_PORT = env.int("EMAIL_PORT", default=2525)
-EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
+EMAIL_HOST = env("EMAIL_HOST", default="smtp-relay.brevo.com")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_FROM = env("EMAIL_FROM", default="noreply@example.com")
 RESET_PASSWORD_URL = env("RESET_PASSWORD_URL", default="http://localhost:3000/reset-password")
+EMAIL_VERIFICATION_URL = env("EMAIL_VERIFICATION_URL", default="http://localhost:3000/verify-email")
 
 # --------------------------------------------------------------------------------------
 # Database
@@ -147,6 +148,7 @@ INSTALLED_APPS = [
     "apps.branding.apps.BrandingConfig",
     "apps.email.apps.EmailConfig",
     "apps.legal_terms.apps.LegalTermsConfig",
+    "apps.feedback.apps.FeedbackConfig",
     "django_extensions",
 ]
 
@@ -224,6 +226,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
+    {
+        "NAME": "apps.user.validators.PasswordComplexityValidator",
+    },
 ]
 
 
@@ -268,6 +273,7 @@ REST_FRAMEWORK = {
         "auth": "10/min",  # Limite pour les endpoints d'authentification
         "catalog": "60/min",
         "audit-logs": "100/hour",
+        "feedback": "12/hour",
     },
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
