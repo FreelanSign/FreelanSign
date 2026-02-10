@@ -12,9 +12,9 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
     libffi-dev \
-    libpango-1.0-dev \
+    libpango1.0-dev \
     libcairo2-dev \
-    libgdk-pixbuf2.0-dev \
+    libgdk-pixbuf-2.0-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements/requirements.txt .
@@ -34,7 +34,7 @@ RUN apt-get update && apt-get install -y \
     cron \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
-    libgdk-pixbuf2.0-0 \
+    libgdk-pixbuf-2.0-0 \
     libcairo2 \
     libffi-dev \
     && rm -rf /var/lib/apt/lists/*
