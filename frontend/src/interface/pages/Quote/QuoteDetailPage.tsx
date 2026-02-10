@@ -265,7 +265,7 @@ export default function QuoteDetailPage() {
             onClick={() => setShowEmailDialog(true)}
           >
             <Mail className="mr-2 h-4 w-4" />
-            Envoyer
+            Preparer l'email
           </Button>
           <Button
             variant="ghost"

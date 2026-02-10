@@ -807,6 +807,37 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       │   └── test_prepared_email.py
 │   │   │       └── interface
 │   │   │           └── test_prepared_email_view.py
+│   │   ├── feedback
+│   │   │   ├── __init__.py
+│   │   │   ├── adapters
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── django_feedback_repository.py
+│   │   │   ├── admin.py
+│   │   │   ├── application
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── dtos.py
+│   │   │   │   ├── ports.py
+│   │   │   │   └── usecases
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── create_feedback.py
+│   │   │   ├── apps.py
+│   │   │   ├── domain
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── entities.py
+│   │   │   │   └── policies.py
+│   │   │   ├── interface
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── serializers.py
+│   │   │   │   ├── urls.py
+│   │   │   │   └── views.py
+│   │   │   ├── migrations
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── 0001_initial.py
+│   │   │   ├── models.py
+│   │   │   └── tests
+│   │   │       ├── __init__.py
+│   │   │       ├── test_create_feedback.py
+│   │   │       └── test_policies.py
 │   │   ├── legal_terms
 │   │   │   ├── __init__.py
 │   │   │   ├── adapters
@@ -1070,8 +1101,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │       ├── request_password_reset.py
 │   │       │       ├── reset_password.py
 │   │       │       ├── rgpd_delete_account.py
+│   │       │       ├── send_verification_email.py
 │   │       │       ├── update_account.py
-│   │       │       └── update_profile.py
+│   │       │       ├── update_profile.py
+│   │       │       └── verify_email.py
 │   │       ├── apps.py
 │   │       ├── domain
 │   │       │   ├── entities
@@ -1126,7 +1159,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── 0015_add_professional_headline.py
 │   │       │   ├── 0016_add_logo_url_to_account.py
 │   │       │   ├── 0017_add_account_address.py
-│   │       │   └── 0018_add_subscription_plan_quota.py
+│   │       │   ├── 0018_add_subscription_plan_quota.py
+│   │       │   └── 0019_user_email_verified.py
 │   │       ├── models
 │   │       │   ├── __init__.py
 │   │       │   ├── account.py
@@ -1172,7 +1206,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── test_encryption.py
 │   │       │   ├── test_refresh_rotation.py
 │   │       │   └── test_user_api.py
-│   │       └── urls.py
+│   │       ├── urls.py
+│   │       └── validators.py
 │   ├── config
 │   │   ├── __init__.py
 │   │   ├── api_errors.py
@@ -1561,6 +1596,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── components
 │   │   │   ├── common
 │   │   │   │   └── BetaWarningDialog.tsx
+│   │   │   ├── feedback
+│   │   │   │   ├── FeedbackButton.tsx
+│   │   │   │   └── FeedbackModal.tsx
 │   │   │   └── ui
 │   │   │       ├── alert.tsx
 │   │   │       ├── badge.tsx
@@ -1593,6 +1631,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── types.ts
 │   │   │   ├── common
 │   │   │   │   └── pagination.ts
+│   │   │   ├── feedback
+│   │   │   │   ├── schema.ts
+│   │   │   │   └── types.ts
 │   │   │   ├── legal-terms
 │   │   │   │   └── types.ts
 │   │   │   ├── quote
@@ -1619,6 +1660,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── clientRepository.ts
 │   │   │   ├── email
 │   │   │   │   └── emailRepository.ts
+│   │   │   ├── feedback
+│   │   │   │   └── feedbackRepository.ts
 │   │   │   ├── http
 │   │   │   │   └── apiClient.ts
 │   │   │   ├── legal-terms
@@ -1709,7 +1752,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── Auth
 │   │   │   │   │   ├── request-password-reset.module.css
 │   │   │   │   │   ├── request-password-reset.tsx
-│   │   │   │   │   └── reset-password.tsx
+│   │   │   │   │   ├── reset-password.tsx
+│   │   │   │   │   └── VerifyEmailPage.tsx
 │   │   │   │   ├── Branding
 │   │   │   │   │   ├── ThemesCreatePage.tsx
 │   │   │   │   │   ├── ThemesEditPage.tsx
@@ -1749,6 +1793,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── api
 │   │   │   │   └── auth.ts
 │   │   │   ├── constants
+│   │   │   │   ├── emailjs.ts
 │   │   │   │   └── site.config.ts
 │   │   │   └── utils.ts
 │   │   ├── main.tsx
@@ -1804,7 +1849,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-315 directories, 1033 files
+326 directories, 1067 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1812,10 +1857,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 <!-- BEGIN AUTO: FRONTEND_PACKAGE_JSON -->
 Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
 **name**: `frontend`  •  **version**: `0.4.0`
-**scripts**: 10  •  **dependencies**: 28  •  **devDependencies**: 29
+**scripts**: 10  •  **dependencies**: 29  •  **devDependencies**: 29
 
 <details><summary>Top dependencies</summary>
 
+- @emailjs/browser: ^4.4.1
 - @headlessui/react: ^2.2.9
 - @hookform/resolvers: ^5.2.2
 - @radix-ui/react-checkbox: ^1.3.3
@@ -1835,7 +1881,6 @@ Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
 - lucide-react: ^0.544.0
 - react: ^19.1.0
 - react-color: ^2.19.3
-- react-dom: ^19.1.0
 
 </details>
 
@@ -1866,6 +1911,7 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 | Model | File |
 |---|---|
 | `BrandTheme` | `apps/branding/models.py` |
+| `Feedback` | `apps/feedback/models.py` |
 | `LegalTemplateModel` | `apps/legal_terms/adapters/persistence/models.py` |
 | `LegalProfileModel` | `apps/legal_terms/adapters/persistence/models.py` |
 | `AttachedTermsModel` | `apps/legal_terms/adapters/persistence/models.py` |
@@ -1879,5 +1925,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-02-06 11:04:01 CET**
+_Updated_: **2026-02-09 16:38:01 CET**
 <!-- END AUTO: LAST_UPDATED -->

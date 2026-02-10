@@ -296,6 +296,17 @@
     .mb-section { margin-bottom: var(--space-section); }
     .mt-section { margin-top: var(--space-section); }
 
+    /* Page numbering */
+    @page {
+      margin: 10mm;
+      @bottom-right {
+        content: "Page " counter(page) " / " counter(pages);
+        font-size: 8px;
+        color: #6b7280;
+        font-family: var(--font-body);
+      }
+    }
+
     /* Print optimizations */
     @media print {
       .page {

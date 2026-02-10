@@ -10,8 +10,9 @@ const schema = z.object({
   email: z.string().email('Email invalide'),
   password: z
     .string()
-    .min(8, 'Min. 8 caractères')
-    .regex(/[a-zA-Z]/, 'Doit contenir une lettre')
+    .min(8, 'Min. 8 caracteres')
+    .regex(/[A-Z]/, 'Doit contenir une majuscule')
+    .regex(/[a-z]/, 'Doit contenir une minuscule')
     .regex(/\d/, 'Doit contenir un chiffre'),
   full_name: z.string().optional(),
   profile: z.object({
@@ -28,6 +29,29 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+const PASSWORD_RULES = [
+  { label: '8+ caracteres', test: (p: string) => p.length >= 8 },
+  { label: '1 majuscule', test: (p: string) => /[A-Z]/.test(p) },
+  { label: '1 minuscule', test: (p: string) => /[a-z]/.test(p) },
+  { label: '1 chiffre', test: (p: string) => /\d/.test(p) },
+] as const;
+
+function PasswordChecklist({ password }: { password: string }) {
+  if (!password) return null;
+  return (
+    <ul className="mt-1.5 space-y-0.5 text-xs">
+      {PASSWORD_RULES.map(({ label, test }) => {
+        const pass = test(password);
+        return (
+          <li key={label} className={pass ? 'text-green-600' : 'text-gray-400'}>
+            {pass ? '\u2713' : '\u2717'} {label}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 export default function RegisterForm() {
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
@@ -36,6 +60,7 @@ export default function RegisterForm() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -45,15 +70,36 @@ export default function RegisterForm() {
     mode: 'onBlur',
   });
 
+  const [registered, setRegistered] = useState(false);
+
   const onSubmit = handleSubmit(async (data) => {
     setBackendError(null);
     try {
       await registerUser(data);
+      setRegistered(true);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erreur inscription';
       setBackendError(message);
     }
   });
+
+  if (registered) {
+    return (
+      <div className="space-y-4 text-center py-4">
+        <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+          Compte cree avec succes ! Un email de verification a ete envoye.
+          Verifiez votre boite de reception.
+        </div>
+        <button
+          type="button"
+          className={styles.submit}
+          onClick={() => navigate('/login')}
+        >
+          Se connecter
+        </button>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={onSubmit} className={styles.form} noValidate>
@@ -98,6 +144,7 @@ export default function RegisterForm() {
               {errors.password.message}
             </small>
           )}
+          <PasswordChecklist password={watch('password') || ''} />
         </div>
 
         <div className={styles.field}>

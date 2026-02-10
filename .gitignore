@@ -6,7 +6,9 @@ docs/good-practices
 docs/tmp
 backend/docs
 database/
-
+docs/DEPLOY_VPS_BUILD_LOCAL.md
+docs/docker-compose*
+*db-sync*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

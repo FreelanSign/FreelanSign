@@ -2,6 +2,7 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { BetaWarningDialog } from '@/components/common/BetaWarningDialog';
+import { FeedbackButton } from '@/components/feedback/FeedbackButton';
 import { useAccountStore } from '../../infrastructure/account/accountStore';
 import { useUIStore } from '../../infrastructure/ui/uiStore';
 import Footer from '../components/footer/Footer';
@@ -66,6 +67,7 @@ export default function MainLayout() {
         onClose={() => setShowBetaWarning(false)}
         onDismissForever={handleDismissForever}
       />
+      <FeedbackButton />
     </div>
   );
 }

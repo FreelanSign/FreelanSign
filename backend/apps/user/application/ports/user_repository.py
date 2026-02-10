@@ -113,6 +113,11 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
+    def set_email_verified(self, user_id: int, verified: bool) -> None:
+        """Sets the email_verified flag for a user."""
+        pass
+
+    @abstractmethod
     def delete(self, user_id: int):
         """Supprime un utilisateur."""
         pass
