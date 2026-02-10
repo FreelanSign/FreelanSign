@@ -1,6 +1,7 @@
 asgiref==3.9.1
 astroid==3.3.11
 attrs==25.3.0
+bleach==6.2.0
 Brotli==1.1.0
 cffi==2.0.0
 click==8.3.0

@@ -509,7 +509,9 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
         # Global metrics
         total_quotes = queryset.count()
-        estimated_revenue = queryset.aggregate(total=Sum("total", output_field=DecimalField()))["total"] or Decimal("0.00")
+        estimated_revenue = queryset.filter(status__in=["DRAFT", "SENT", "ACCEPTED", "PAID"]).aggregate(
+            total=Sum("total", output_field=DecimalField())
+        )["total"] or Decimal("0.00")
 
         # Acceptance rate: (ACCEPTED + PAID) / actionable quotes
         # Exclude DRAFT, CANCELLED, EXPIRED as they weren't sent to clients
