@@ -1,6 +1,6 @@
 {
 	"name": "freelansign",
-	"version": "v0.4.0-SNAPSHOT",
+	"version": "v0.4.0",
 	"description": "FreelanSign - A modern quote management platform",
 	"scripts": {
 		"release": "standard-version",

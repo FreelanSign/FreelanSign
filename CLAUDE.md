@@ -7,7 +7,7 @@
 - **FreelanSign**: SaaS for freelancer quotes/invoices.
 - **Architecture**: Monorepo. Django (Backend) + React/TS (Frontend).
 - **Stack**: Django, React, TS, venv, pytest, pnpm.
-- **Version**: v0.3.0-SNAPSHOT | **Branch**: `dev`
+- **Version**: v0.4.0 | **Branch**: `dev`
 
 ## 🛠 Workflow (HOW)
 

@@ -5,7 +5,7 @@
 ## Project
 
 **FreelanSign**: SaaS for quotes/invoices (freelancers). Monorepo: Django backend + React/TS frontend.
-**Version**: 0.3.0-SNAPSHOT | **Main branch**: `dev`
+**Version**: 0.4.0 | **Main branch**: `dev`
 
 ## Architecture
 

@@ -298,7 +298,7 @@ SIMPLE_JWT = {
 SPECTACULAR_SETTINGS = {
     "TITLE": "FreelanSign REST API",
     "DESCRIPTION": "API documentation for the FreelanSign REST application",
-    "VERSION": "v0.4.0-SNAPSHOT",
+    "VERSION": "v0.4.0",
     "TAGS": [
         {"name": "Auth", "description": "JWT Authentication & session endpoints"},
         {"name": "Users", "description": "User & profile management"},

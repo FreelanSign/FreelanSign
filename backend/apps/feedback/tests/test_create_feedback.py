@@ -15,7 +15,7 @@ def _make_input(**overrides):
         "message": "This is a valid bug report message",
         "user_email": "test@example.com",
         "page_url": "https://app.freelansign.fr/dashboard",
-        "app_version": "v0.3.0-SNAPSHOT",
+        "app_version": "v0.4.0",
         "user_agent": "Mozilla/5.0",
     }
     return CreateFeedbackInput(**{**defaults, **overrides})
@@ -28,7 +28,7 @@ def _make_entity(**overrides):
         "category": FeedbackCategory.BUG,
         "message": "This is a valid bug report message",
         "page_url": "https://app.freelansign.fr/dashboard",
-        "app_version": "v0.3.0-SNAPSHOT",
+        "app_version": "v0.4.0",
         "user_agent": "Mozilla/5.0",
     }
     return FeedbackEntity(**{**defaults, **overrides})

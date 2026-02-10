@@ -6,5 +6,5 @@ export const SITE = {
   email: 'contact@freelansign.com',
   twitter: 'https://twitter.com/freelansign',
   github: 'https://github.com/freelansign',
-  version: 'v0.3.0-SNAPSHOT',
+  version: 'v0.4.0',
 } as const;
