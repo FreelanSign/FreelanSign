@@ -76,10 +76,10 @@ def prepared_email_view(request, quote_id: UUID):
     - Logs contextualized, no sensitive data exposed.
     """
 
-    uc = get_prepare_quote_email_uc()
     locale = parse_locale(request.headers.get("Accept-Language"))
 
     try:
+        uc = get_prepare_quote_email_uc()
         command = PrepareQuoteEmailCommand(
             quote_id=quote_id,
             requester=request.user,
