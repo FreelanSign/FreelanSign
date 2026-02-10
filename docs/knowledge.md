@@ -1858,7 +1858,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ## Frontend package.json
 <!-- BEGIN AUTO: FRONTEND_PACKAGE_JSON -->
 Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
-**name**: `frontend`  •  **version**: `0.4.0`
+**name**: `frontend`  •  **version**: `0.4.0-SNAPSHOT`
 **scripts**: 10  •  **dependencies**: 29  •  **devDependencies**: 29
 
 <details><summary>Top dependencies</summary>
@@ -1927,5 +1927,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-02-10 11:24:09 CET**
+_Updated_: **2026-02-10 11:33:39 CET**
 <!-- END AUTO: LAST_UPDATED -->
