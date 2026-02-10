@@ -29,13 +29,12 @@ mccabe==0.7.0
 packaging==25.0
 pillow==12.0.0
 platformdirs==4.5.0
-playwright==1.55.0
+weasyprint>=62.0
 pluggy==1.6.0
 psycopg2-binary==2.9.10
 pycparser==2.23
 pydeps==3.0.1
-pydyf==0.10.0
-pyee==13.0.0
+pydyf>=0.11.0
 Pygments==2.19.2
 PyJWT==2.10.1
 pylint==3.3.9
@@ -56,7 +55,7 @@ six==1.17.0
 sqlparse==0.5.3
 stdlib-list==0.11.1
 svgwrite==1.4.3
-tinycss2==1.4.0
+tinycss2>=1.4.0
 tomlkit==0.13.3
 typing_extensions==4.14.1
 tzdata==2025.2

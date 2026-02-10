@@ -941,7 +941,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   └── django_email_sender.py
 │   │   │   │   ├── pdf
 │   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── playwright_generator.py
+│   │   │   │   │   └── weasyprint_generator.py
 │   │   │   │   ├── persistence
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── django_prestation_repository.py
@@ -1027,9 +1027,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── test_django_quote_repository.py
 │   │   │   │   │   ├── test_pdf_context_presenter.py
-│   │   │   │   │   ├── test_playwright_pdf.py
 │   │   │   │   │   ├── test_reference_generator_concurrency.py
-│   │   │   │   │   └── test_reference_generator.py
+│   │   │   │   │   ├── test_reference_generator.py
+│   │   │   │   │   └── test_weasyprint_pdf.py
 │   │   │   │   ├── application
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── test_add_prestation_line.py
@@ -1479,6 +1479,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── db_prod_2026-01-12_19h25.dump
 │   │   ├── dump_local_20251120_094504.sql
 │   │   ├── dump_local_20260130_111502.sql
+│   │   ├── dump_local_20260210_110859.sql
 │   │   ├── freelansign_db_20260130_112711.sql
 │   │   ├── freelansign_db_20260130_112948.sql
 │   │   └── freelansign_db_20260130_113038.sql
@@ -1533,6 +1534,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   └── senior_mindset.md
 │   ├── knowledge.md
 │   ├── knowledge.sh
+│   ├── OPERATIONS.md
 │   ├── plans
 │   │   └── production-ready.md
 │   ├── release
@@ -1849,7 +1851,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-326 directories, 1067 files
+326 directories, 1069 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1925,5 +1927,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-02-09 16:38:01 CET**
+_Updated_: **2026-02-10 11:24:09 CET**
 <!-- END AUTO: LAST_UPDATED -->

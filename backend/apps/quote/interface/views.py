@@ -29,7 +29,7 @@ from rest_framework.views import APIView
 
 from apps.core.interface.pagination import StandardResultsSetPagination
 from apps.core.logging import get_logger
-from apps.quote.adapters.pdf.playwright_generator import PlaywrightPdfGenerator  # type: ignore
+from apps.quote.adapters.pdf.weasyprint_generator import WeasyPrintPdfGenerator
 from apps.quote.adapters.persistence.django_prestation_repository import DjangoPrestationRepository
 
 # --- NEW: Clean Arch imports (use cases + adapters) -----------------------------------
@@ -141,8 +141,8 @@ class QuoteViewSet(viewsets.ModelViewSet):
     def _renderer(self) -> DjangoTemplateRenderer:
         return DjangoTemplateRenderer()
 
-    def _pdf(self) -> PlaywrightPdfGenerator:
-        return PlaywrightPdfGenerator()
+    def _pdf(self) -> WeasyPrintPdfGenerator:
+        return WeasyPrintPdfGenerator()
 
     def _mailer(self) -> DjangoEmailSender:
         return DjangoEmailSender()
@@ -734,7 +734,7 @@ class QuotePreviewPdfView(APIView):
 
         # Adapters: PDF Preview Renderer
         renderer = DjangoTemplateRenderer()
-        pdfgen = PlaywrightPdfGenerator()
+        pdfgen = WeasyPrintPdfGenerator()
         try:
             # Use document.html template (same as download) with legal terms
             html = renderer.render("quote/pdf/document.html", vm, legal_terms_html=legal_terms_html)
