@@ -2,6 +2,7 @@
 """
 Services de calcul purs pour les utilisateurs.
 """
+
 from decimal import Decimal
 
 

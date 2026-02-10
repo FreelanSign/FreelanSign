@@ -2,6 +2,7 @@
 """
 Use case: Mettre à jour le profil d'un utilisateur.
 """
+
 import logging
 
 from apps.user.application.dto.user_inputs import UpdateProfileInput
@@ -71,9 +72,6 @@ class UpdateProfile:
             UserPolicy.validate_phone(input_dto.phone)
             profile_data["phone"] = input_dto.phone
 
-        if input_dto.birthday is not None:
-            profile_data["birthday"] = input_dto.birthday
-
         if input_dto.avatar_url is not None:
             profile_data["avatar_url"] = input_dto.avatar_url
 
@@ -108,7 +106,6 @@ class UpdateProfile:
             profile=ProfileViewModel(
                 first_name=profile.first_name,
                 last_name=profile.last_name,
-                birthday=profile.birthday,
                 phone=profile.phone,
                 avatar_url=profile.avatar_url,
                 role=profile.role,

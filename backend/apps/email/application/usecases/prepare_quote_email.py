@@ -77,6 +77,7 @@ class PrepareQuoteEmail:
             quote_date=quote.issue_date,
             expiration_date=quote.valid_until,
             locale=command.locale,
+            sender_name=quote.account.display_name,
         )
 
         email = PreparedEmail(

@@ -33,6 +33,37 @@ DEBUG = env("DEBUG", default=False)
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 # --------------------------------------------------------------------------------------
+# Field-level encryption (RGPD compliance - SPECIFICATIONS_RGPD.md Section 3.1.1)
+# --------------------------------------------------------------------------------------
+# 32-byte Fernet key for encrypting sensitive personal data:
+# - Client: email, phone, vat_number
+# - Account: legal_id (SIRET)
+# Generate new key: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+# Security: Rotate annually, backup to AWS Secrets Manager in production
+FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY")
+
+# --------------------------------------------------------------------------------------
+# RGPD Retention Policy (SPECIFICATIONS_RGPD.md Section 3.4)
+# --------------------------------------------------------------------------------------
+# Automated data purge to comply with GDPR Article 5(1)(e) storage limitation
+# - AuditLog: 13 months (395 days) - CNIL recommendation
+# - Soft-deleted Accounts/Clients: 10 years - French accounting law (CGI Art. L.102 B)
+# Runs weekly via CRON (Sunday 3am) in production
+# Default: DISABLED (must be explicitly enabled in production)
+RETENTION_POLICY_ENABLED = env.bool("RETENTION_POLICY_ENABLED", default=False)
+RETENTION_AUDIT_LOGS_DAYS = env.int("RETENTION_AUDIT_LOGS_DAYS", default=395)  # 13 months
+RETENTION_ACCOUNTING_YEARS = env.int("RETENTION_ACCOUNTING_YEARS", default=10)
+
+# --------------------------------------------------------------------------------------
+# Supabase Storage (for avatars and logos)
+# --------------------------------------------------------------------------------------
+SUPABASE_URL = env("SUPABASE_URL", default=None)
+SUPABASE_SERVICE_KEY = env("SUPABASE_SERVICE_KEY", default=None)
+SUPABASE_STORAGE_BUCKET = env("SUPABASE_STORAGE_BUCKET", default="avatars")
+
+USE_X_FORWARDED_HOST = True
+
+# --------------------------------------------------------------------------------------
 # Security settings (Production)
 # --------------------------------------------------------------------------------------
 if not DEBUG:
@@ -51,14 +82,15 @@ if not DEBUG:
 # Email settings
 # --------------------------------------------------------------------------------------
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
-EMAIL_HOST = env("EMAIL_HOST", default="sandbox.smtp.mailtrap.io")
-EMAIL_PORT = env.int("EMAIL_PORT", default=2525)
-EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
+EMAIL_HOST = env("EMAIL_HOST", default="smtp-relay.brevo.com")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
-EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="54e99456c8cc20")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="04ef95b11a8fce")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_FROM = env("EMAIL_FROM", default="noreply@example.com")
 RESET_PASSWORD_URL = env("RESET_PASSWORD_URL", default="http://localhost:3000/reset-password")
+EMAIL_VERIFICATION_URL = env("EMAIL_VERIFICATION_URL", default="http://localhost:3000/verify-email")
 
 # --------------------------------------------------------------------------------------
 # Database
@@ -115,6 +147,8 @@ INSTALLED_APPS = [
     "apps.client.apps.ClientConfig",
     "apps.branding.apps.BrandingConfig",
     "apps.email.apps.EmailConfig",
+    "apps.legal_terms.apps.LegalTermsConfig",
+    "apps.feedback.apps.FeedbackConfig",
     "django_extensions",
 ]
 
@@ -126,6 +160,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "apps.user.interface.middleware.AccountContextMiddleware",  # Phase 4
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.core.middleware.request_logging.RequestLoggingMiddleware",
@@ -191,6 +226,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
+    {
+        "NAME": "apps.user.validators.PasswordComplexityValidator",
+    },
 ]
 
 
@@ -218,7 +256,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "EXCEPTION_HANDLER": "config.api_errors.custom_exception_handler",
     "DEFAULT_THROTTLE_CLASSES": [
@@ -231,6 +272,8 @@ REST_FRAMEWORK = {
         "anon": "30/min",
         "auth": "10/min",  # Limite pour les endpoints d'authentification
         "catalog": "60/min",
+        "audit-logs": "100/hour",
+        "feedback": "12/hour",
     },
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
@@ -255,7 +298,7 @@ SIMPLE_JWT = {
 SPECTACULAR_SETTINGS = {
     "TITLE": "FreelanSign REST API",
     "DESCRIPTION": "API documentation for the FreelanSign REST application",
-    "VERSION": "0.1.0",
+    "VERSION": "v0.4.0",
     "TAGS": [
         {"name": "Auth", "description": "JWT Authentication & session endpoints"},
         {"name": "Users", "description": "User & profile management"},
@@ -268,6 +311,11 @@ SPECTACULAR_SETTINGS = {
 # Models
 AUTH_USER_MODEL = "user.User"
 
+# --------------------------------------------------------------------------------------
+# Account Feature Flags (Phase 4)
+# --------------------------------------------------------------------------------------
+ENABLE_ACCOUNT_MODEL = env.bool("ENABLE_ACCOUNT_MODEL", default=False)
+
 # CORS settings
 import os
 
@@ -278,16 +326,9 @@ if os.getenv("DEBUG", "False").lower() == "true":
         "http://127.0.0.1:3000",  # Alternative localhost
         "http://0.0.0.0:3000",  # Docker internal
     ]
-
-    # Pour le développement, on peut être plus permissif
-    CORS_ALLOW_ALL_ORIGINS = True  # ⚠️ UNIQUEMENT en développement !
-
 else:
     # En production, spécifier les domaines autorisés
-    CORS_ALLOWED_ORIGINS = [
-        "https://votre-frontend-prod.com",
-        # Ajouter d'autres domaines autorisés
-    ]
+    CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS")
 
 # Headers autorisés
 CORS_ALLOW_HEADERS = [
@@ -298,6 +339,7 @@ CORS_ALLOW_HEADERS = [
     "dnt",
     "origin",
     "user-agent",
+    "x-account-id",  # Phase 4: Account context header
     "x-csrftoken",
     "x-requested-with",
 ]
@@ -365,6 +407,16 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
+        "django.request": {
+            "handlers": ["console", "file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "django.server": {
+            "handlers": ["console", "file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
         # loggers spécifiques si tu veux niveauter différemment
         # "apps.catalog": {"handlers": ["console","file"], "level": "DEBUG", "propagate": False},
     },
@@ -373,15 +425,25 @@ LOGGING = {
 # --------------------------------------------------------------------------------------
 # Sentry (Error Tracking)
 # --------------------------------------------------------------------------------------
-SENTRY_DSN = env("SENTRY_DSN", default=None)
-if SENTRY_DSN and SENTRY_DSN.startswith("http"):
-    import sentry_sdk
-    from sentry_sdk.integrations.django import DjangoIntegration
+# SENTRY_DSN = env("SENTRY_DSN", default=None)
 
-    sentry_sdk.init(
-        dsn=SENTRY_DSN,
-        environment=env("SENTRY_ENVIRONMENT", default="production"),
-        traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.1),
-        integrations=[DjangoIntegration()],
-        send_default_pii=False,
-    )
+
+# def init_sentry():
+#     if SENTRY_DSN and SENTRY_DSN.startswith("http"):
+#         import sentry_sdk
+#         from sentry_sdk.integrations.django import DjangoIntegration
+
+#         sentry_sdk.init(
+#             dsn=SENTRY_DSN,
+#             environment=env("SENTRY_ENVIRONMENT", default="production"),
+#             traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.1),
+#             integrations=[DjangoIntegration()],
+#             send_default_pii=False,
+#         )
+
+
+# # Initialize Sentry only if we are not in the middle of a settings setup that could cause circularity.
+# # In Django, it's safer to initialize Sentry in wsgi.py or asgi.py, or at the end of settings
+# # but wrapped to avoid immediate execution during some import phases.
+# if SENTRY_DSN:
+#     init_sentry()

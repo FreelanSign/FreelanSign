@@ -1,39 +1,39 @@
-# CLAUDE.md
+# CLAUDE.md - FreelanSign
 
-**Be extremely concise. Sacrifice grammar for concision.**
+**CRITICAL: Be extremely concise. Sacrifice grammar for concision. No yapping.**
 
-## Project
+## 🎯 Context (WHY/WHAT)
 
-**FreelanSign**: SaaS for quotes/invoices (freelancers). Monorepo: Django backend + React/TS frontend.
-**Version**: 0.2.0 | **Main branch**: `dev`
+- **FreelanSign**: SaaS for freelancer quotes/invoices.
+- **Architecture**: Monorepo. Django (Backend) + React/TS (Frontend).
+- **Stack**: Django, React, TS, venv, pytest, pnpm.
+- **Version**: v0.4.0 | **Branch**: `dev`
 
-## Architecture
+## 🛠 Workflow (HOW)
 
-### Clean Architecture + DDD (Backend)
+### Commands
 
-```
-apps/<domain>/
-├── domain/       # Pure business logic (no framework deps)
-├── application/  # Use cases, DTOs, ports
-├── adapters/     # Infrastructure (ORM, email, PDF)
-└── interface/    # API (views, serializers)
-```
+- **Backend**: `source venv/bin/activate`, `pytest`, `python manage.py runserver`
+- **Frontend**: `pnpm dev`, `pnpm test`, `pnpm build`, `pnpm check` (types)
+- **Linting**: `pnpm lint` (Front), `black .` (Back)
 
-**Backend bounded contexts**: user, client, quote, branding, catalog, core, email
+### Non-Negotiable Rules
 
-**Frontend structure**: domain/ (types), infrastructure/ (repos, API), interface/ (UI, pages, hooks), app/ (router)
+1. **Clean Arch**: Domain layer = Pure Python. NEVER import Django models here.
+2. **Data Flow**: Use DTOs for Use Cases. No Django models in/out.
+3. **Imports**: Absolute only (`from apps.quote.domain import ...`).
+4. **Logic**: Keep it simple. One file if possible. No unasked abstractions.
+5. **Commits**: Strictly Conventional Commits.
 
-## Non-Negotiable
+## 📝 Code Style
 
-1. **Clean Architecture**: Never import Django models in domain layer
-2. **Absolute imports**: Always `from apps.quote.domain import ...`
-3. **DTOs**: Use for input/output, not Django models in use cases
-4. **Conventional commits**: Required for changelog/versioning
-5. **Type safety**: Strict TS, type-check before commit
-6. **TDD**: Domain/application layers must have tests
+- **Python**: PEP8, Black formatting.
+- **JS/TS**: No semicolons, single quotes, no unnecessary braces, 2-space indent.
+- **Imports**: External → Internal → Types.
+- **TDD**: Domain/Application layers must have 100% test coverage.
 
-## Plan
+## 📄 PDF Templates
 
-End each plan with concise unresolved questions.
-
-- Do not mention Claude Code in any Commit message, PR description or Github issues.
+- **Conditional logic**: Add flags in `pdf_context_presenter.py:preview_context()` (e.g., `has_uniform_tax`)
+- **Template width**: Always sum to 100% (use conditional widths if needed)
+- **Signature box**: 120px height for stamps/digital signatures

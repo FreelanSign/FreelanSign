@@ -27,16 +27,18 @@ class DjangoQuoteEmailRenderer(EmailTemplateRenderer):
     """
 
     def render_plain(self, data: PreparedEmailData) -> str:
+        # AIDEV-NOTE: Force French locale as only supported language
+        locale = "fr"
         try:
-            return render_to_string(f"emails/quote_{data.locale}.txt", {"data": data})
+            return render_to_string(f"emails/quote_{locale}.txt", {"data": data})
         except TemplateDoesNotExist as e:
             logger.error(
                 "Missing email template",
                 extra={
-                    "template": f"emails/quote_{data.locale}.txt",
+                    "template": f"emails/quote_{locale}.txt",
                     "quote_id": str(data.quote_reference),
                     "client_email": data.client_email,
-                    "locale": data.locale,
+                    "locale": locale,
                 },
             )
             raise
@@ -45,17 +47,19 @@ class DjangoQuoteEmailRenderer(EmailTemplateRenderer):
             raise
 
     def render_html(self, data: PreparedEmailData) -> str:
+        # AIDEV-NOTE: Force French locale as only supported language
+        locale = "fr"
         try:
-            raw_html = render_to_string(f"emails/quote_{data.locale}.html", {"data": data})
+            raw_html = render_to_string(f"emails/quote_{locale}.html", {"data": data})
             return bleach.clean(raw_html, tags=["p", "b", "strong", "em", "ul", "ol", "li", "br"], attributes={}, strip=True)
         except TemplateDoesNotExist as e:
             logger.error(
                 "Missing email template",
                 extra={
-                    "template": f"emails/quote_{data.locale}.txt",
+                    "template": f"emails/quote_{locale}.txt",
                     "quote_id": str(data.quote_reference),
                     "client_email": data.client_email,
-                    "locale": data.locale,
+                    "locale": locale,
                 },
             )
             return "<p>Erreur de génération d'email.</p>"

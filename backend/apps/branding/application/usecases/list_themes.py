@@ -8,27 +8,28 @@ from apps.branding.application.ports.theme_repository import ThemeRepository
 
 
 class ListThemesUseCase:
-    """Use case for listing all themes for a professional."""
+    """Use case for listing all themes for an account."""
 
     def __init__(self, theme_repository: ThemeRepository):
         self.theme_repository = theme_repository
 
-    def execute(self, professional_id: UUID) -> list[ThemeListItemViewModel]:
+    def execute(self, account_id: UUID) -> list[ThemeListItemViewModel]:
         """
-        List all themes for a professional.
+        List all themes for an account.
 
         Args:
-            professional_id: The ID of the professional to list the themes for.
+            account_id: The ID of the account to list the themes for.
 
         Returns:
             A list of theme list item view models.
         """
-        themes = self.theme_repository.list_themes(professional_id=professional_id)
+        themes = self.theme_repository.list_themes(account_id=account_id)
         return [
             ThemeListItemViewModel(
                 id=theme.id,
                 name=theme.name,
                 is_active=theme.is_active,
+                colors=theme.colors,
                 logo_url=theme.logo_url,
                 updated_at=theme.updated_at.isoformat(),
             )

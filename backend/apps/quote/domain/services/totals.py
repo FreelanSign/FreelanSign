@@ -11,8 +11,10 @@ def q2(v: Decimal) -> Decimal:
     return Decimal(str(v)).quantize(CENT, rounding=ROUND_HALF_UP)
 
 
-def line_pre_tax_total(qty: Decimal, unit_price: Decimal, discount_abs: Decimal) -> Decimal:
-    base = Decimal(str(qty)) * Decimal(str(unit_price)) - Decimal(str(discount_abs))
+def line_pre_tax_total(qty: Decimal, unit_price: Decimal, discount_pct: Decimal) -> Decimal:
+    base = Decimal(str(qty)) * Decimal(str(unit_price))
+    discount_amount = base * (Decimal(str(discount_pct)) / Decimal("100"))
+    base = base - discount_amount
     if base < ZERO:
         base = ZERO
     return q2(base)

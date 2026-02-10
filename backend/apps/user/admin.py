@@ -3,18 +3,10 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models.models import ProfessionalUser, Profile
+from .models.account import Account
+from .models.models import Profile
 
 User = get_user_model()
-
-
-@admin.register(ProfessionalUser)
-class ProfessionalUserAdmin(admin.ModelAdmin):
-    list_display = ("user", "name", "domaine", "tjm_cents", "status_juridique", "created_at")
-    search_fields = ("user__email", "name", "number_pro")
-    list_filter = ("status_juridique", "domaine")
-    readonly_fields = ("created_at", "updated_at")
-    filter_horizontal = ("service_types",)
 
 
 # Custom User and Profile admin registrations
@@ -56,3 +48,25 @@ class ProfileAdmin(admin.ModelAdmin):
 
     user_email.admin_order_field = "user__email"
     user_email.short_description = "Email"
+
+
+@admin.register(Account)
+class AccountAdmin(admin.ModelAdmin):
+    list_display = ("display_name", "user_email", "legal_form", "legal_id", "is_active", "created_at")
+    search_fields = ("display_name", "user__email", "legal_id")
+    list_filter = ("legal_form", "is_active", "domain")
+    readonly_fields = ("created_at", "updated_at")
+    filter_horizontal = ("service_types",)
+
+    fieldsets = (
+        (None, {"fields": ("user", "display_name", "is_active")}),
+        ("Legal Info", {"fields": ("legal_form", "legal_id")}),
+        ("Business", {"fields": ("domain", "default_rate_cents", "service_types")}),
+        ("Timestamps", {"fields": ("created_at", "updated_at")}),
+    )
+
+    def user_email(self, obj):
+        return obj.user.email
+
+    user_email.admin_order_field = "user__email"
+    user_email.short_description = "User Email"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from types import SimpleNamespace
 
 from django.template.loader import render_to_string
@@ -9,9 +10,24 @@ from django.template.loader import render_to_string
 from apps.quote.application.dto.quote_viewmodels import QuoteViewModel
 from apps.quote.application.ports.template_renderer import TemplateRenderer
 
+log = logging.getLogger(__name__)
+
 
 class DjangoTemplateRenderer(TemplateRenderer):
-    def render(self, template_key: str, vm: QuoteViewModel) -> str:
+    def render(
+        self,
+        template_key: str,
+        vm: QuoteViewModel,
+        legal_terms_html: str | None = None,
+        is_download: bool = False,
+    ) -> str:
+        # AIDEV-NOTE: Diagnostic logs added to debug legal terms generation issue (#87)
+        log.debug(
+            "renderer.render.start template=%s has_legal_terms=%s legal_terms_length=%s",
+            template_key,
+            legal_terms_html is not None,
+            len(legal_terms_html) if legal_terms_html else 0,
+        )
         quote_map = {
             "reference": vm.meta.get("number"),
             "issue_date": vm.meta.get("date"),
@@ -26,7 +42,7 @@ class DjangoTemplateRenderer(TemplateRenderer):
 
         lines = [
             {
-                # “nouveau” jeu de clés
+                # "nouveau" jeu de clés
                 "designation": l.designation,
                 "description": l.description,
                 "quantity": l.quantity,
@@ -34,7 +50,7 @@ class DjangoTemplateRenderer(TemplateRenderer):
                 "tax_rate": l.tax_rate_display / 100.0,  # 0..1 pour le template
                 "tax_rate_display": l.tax_rate_display,  # % pour affichage
                 "total_ht": l.total_ht,
-                "discount": 0.0,
+                "discount": getattr(l, "discount", 0.0) or 0.0,
                 # alias legacy
                 "qty": l.quantity,
                 "unit": l.unit_price,
@@ -68,7 +84,8 @@ class DjangoTemplateRenderer(TemplateRenderer):
             "totals": totals_fmt,  # ⬅️ le template lit `totals.*` => prêt à afficher
             "totals_raw": totals_raw,  # ⬅️ dispo si besoin de calculs ailleurs
             "branding": vm.branding or {},
-            "is_download": False,
+            "is_download": is_download,
+            "legal_terms_html": legal_terms_html,  # Phase 7: legal terms for PDF
         }
 
         # Compatibilité "vm.*" si des templates l'utilisent
@@ -82,4 +99,11 @@ class DjangoTemplateRenderer(TemplateRenderer):
             branding=ctx["branding"],
             quote=SimpleNamespace(**quote_map),
         )
+
+        # AIDEV-NOTE: Log context to confirm legal_terms_html is passed to template
+        log.debug(
+            "renderer.render.context_prepared has_legal_terms_in_ctx=%s",
+            "legal_terms_html" in ctx and ctx["legal_terms_html"] is not None,
+        )
+
         return render_to_string(template_key, ctx)

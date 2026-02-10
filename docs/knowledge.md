@@ -460,21 +460,40 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   └── rules
 │       └── overall-guide.md
 ├── .claude
+│   ├── agents
 │   ├── commands
 │   │   ├── dev-docs-update.md
-│   │   └── dev-docs.md
+│   │   ├── dev-docs.md
+│   │   └── jarvis.md
+│   ├── scripts
 │   ├── settings.json
-│   └── settings.local.json
+│   ├── settings.local.json
+│   └── skills
+│       ├── jarvis
+│       │   ├── jarvis.md
+│       │   ├── step-00-init.md
+│       │   ├── step-00b-economy.md
+│       │   ├── step-01-analyze.md
+│       │   ├── step-02-plan.md
+│       │   ├── step-03-execute.md
+│       │   ├── step-04-validate.md
+│       │   ├── step-05-review.md
+│       │   ├── step-06-fix.md
+│       │   ├── step-07-tests.md
+│       │   ├── step-08-verify.md
+│       │   ├── step-09-claude-md.md
+│       │   └── step-10-create-pr.md
+│       └── skill-creator
+│           └── scripts
 ├── .coverage
+├── .db-sync.config
+├── .db-sync.config.example
 ├── .dockerignore
 ├── .env
 ├── .env.docker
-├── .env.example
 ├── .env.local
 ├── .github
 │   ├── CODEOWNERS
-│   ├── hooks
-│   ├── test
 │   └── workflows
 │       ├── ci.yml
 │       └── enforce-dev-to-main.yml
@@ -485,6 +504,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── .sonarignore
 ├── AGENT.md
 ├── backend
+│   ├── .claude
+│   │   └── settings.local.json
 │   ├── .coverage
 │   ├── .coveragerc
 │   ├── .dockerignore
@@ -548,7 +569,10 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── views.py
 │   │   │   ├── migrations
 │   │   │   │   ├── __init__.py
-│   │   │   │   └── 0001_initial.py
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_add_account_fk.py
+│   │   │   │   ├── 0003_migrate_to_account.py
+│   │   │   │   └── 0004_account_not_null_drop_professional.py
 │   │   │   ├── models.py
 │   │   │   └── tests
 │   │   │       ├── __init__.py
@@ -556,6 +580,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       │   └── __init__.py
 │   │   │       ├── application
 │   │   │       │   └── __init__.py
+│   │   │       ├── conftest.py
 │   │   │       ├── domain
 │   │   │       │   └── __init__.py
 │   │   │       └── interface
@@ -592,10 +617,16 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── migrations
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── 0001_initial.py
-│   │   │   │   └── 0002_remove_prestation_unique_area_prestation_name_and_more.py
+│   │   │   │   ├── 0002_remove_prestation_unique_area_prestation_name_and_more.py
+│   │   │   │   ├── 0003_add_account_fk.py
+│   │   │   │   ├── 0004_migrate_to_account.py
+│   │   │   │   ├── 0005_account_not_null_drop_professional_user.py
+│   │   │   │   ├── 0006_remove_prestation_unique_area_prestation_name_global_and_more.py
+│   │   │   │   └── 0007_remove_prestation_unique_area_prestation_name_global.py
 │   │   │   ├── models.py
 │   │   │   ├── tests
 │   │   │   │   ├── __init__.py
+│   │   │   │   ├── conftest.py
 │   │   │   │   ├── domain
 │   │   │   │   │   ├── test_prestation_calculator.py
 │   │   │   │   │   └── test_prestation_policy.py
@@ -617,6 +648,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── client_repository.py
 │   │   │   │   │   └── clock.py
 │   │   │   │   └── usecases
+│   │   │   │       ├── anonymize_client.py
 │   │   │   │       ├── create_client.py
 │   │   │   │       ├── delete_client.py
 │   │   │   │       ├── get_client.py
@@ -634,43 +666,81 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── views.py
 │   │   │   ├── migrations
 │   │   │   │   ├── __init__.py
-│   │   │   │   └── 0001_initial.py
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_client_account.py
+│   │   │   │   ├── 0003_migrate_client_to_account.py
+│   │   │   │   ├── 0004_alter_client_account.py
+│   │   │   │   ├── 0005_update_client_index.py
+│   │   │   │   ├── 0006_add_soft_delete_to_client.py
+│   │   │   │   ├── 0007_add_field_encryption.py
+│   │   │   │   ├── 0008_add_structured_address.py
+│   │   │   │   ├── 0009_migrate_address_data.py
+│   │   │   │   └── 0010_remove_legacy_address_field.py
 │   │   │   ├── models.py
+│   │   │   ├── signals.py
 │   │   │   ├── tests
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── adapters
 │   │   │   │   │   └── test_django_client_repository.py
 │   │   │   │   ├── application
 │   │   │   │   │   └── test_create_client.py
+│   │   │   │   ├── conftest.py
 │   │   │   │   ├── domain
 │   │   │   │   │   └── test_name_policy.py
+│   │   │   │   ├── test_anonymize_client.py
 │   │   │   │   ├── test_api_client_endpoint.py
 │   │   │   │   ├── test_client_policies.py
-│   │   │   │   └── test_create_client.py
+│   │   │   │   ├── test_client_soft_delete.py
+│   │   │   │   ├── test_create_client.py
+│   │   │   │   └── test_encryption.py
 │   │   │   └── views.py
 │   │   ├── core
 │   │   │   ├── __init__.py
 │   │   │   ├── admin.py
 │   │   │   ├── apps.py
+│   │   │   ├── CLAUDE.md
 │   │   │   ├── enums.py
 │   │   │   ├── exceptions.py
+│   │   │   ├── fields.py
+│   │   │   ├── interface
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── api
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── audit_views.py
+│   │   │   │   │   └── serializers.py
+│   │   │   │   └── pagination.py
 │   │   │   ├── logging.py
+│   │   │   ├── management
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── commands
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── apply_retention_policy.py
+│   │   │   │       └── test_anonymization.py
 │   │   │   ├── managers.py
 │   │   │   ├── middleware
 │   │   │   │   └── request_logging.py
 │   │   │   ├── migrations
 │   │   │   │   ├── __init__.py
-│   │   │   │   └── 0001_initial.py
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_auditlog.py
+│   │   │   │   └── 0003_auditlog_core_audit__timesta_9f170b_idx.py
 │   │   │   ├── models
 │   │   │   │   ├── __init__.py
+│   │   │   │   ├── audit.py
 │   │   │   │   └── mixins.py
 │   │   │   ├── models.py
 │   │   │   ├── permissions.py
+│   │   │   ├── services
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── audit.py
+│   │   │   │   └── CLAUDE.md
 │   │   │   ├── tests
 │   │   │   │   ├── __init__.py
+│   │   │   │   ├── test_audit_logging.py
 │   │   │   │   ├── test_enums.py
 │   │   │   │   ├── test_mixins.py
-│   │   │   │   └── test_money.py
+│   │   │   │   ├── test_money.py
+│   │   │   │   └── test_retention_policy.py
 │   │   │   ├── utils
 │   │   │   │   ├── __init__.py
 │   │   │   │   └── money.py
@@ -737,6 +807,131 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │       │   └── test_prepared_email.py
 │   │   │       └── interface
 │   │   │           └── test_prepared_email_view.py
+│   │   ├── feedback
+│   │   │   ├── __init__.py
+│   │   │   ├── adapters
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── django_feedback_repository.py
+│   │   │   ├── admin.py
+│   │   │   ├── application
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── dtos.py
+│   │   │   │   ├── ports.py
+│   │   │   │   └── usecases
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── create_feedback.py
+│   │   │   ├── apps.py
+│   │   │   ├── domain
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── entities.py
+│   │   │   │   └── policies.py
+│   │   │   ├── interface
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── serializers.py
+│   │   │   │   ├── urls.py
+│   │   │   │   └── views.py
+│   │   │   ├── migrations
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── 0001_initial.py
+│   │   │   ├── models.py
+│   │   │   └── tests
+│   │   │       ├── __init__.py
+│   │   │       ├── test_create_feedback.py
+│   │   │       └── test_policies.py
+│   │   ├── legal_terms
+│   │   │   ├── __init__.py
+│   │   │   ├── adapters
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── persistence
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── django_attached_terms_repository.py
+│   │   │   │   │   ├── django_legal_profile_repository.py
+│   │   │   │   │   ├── django_legal_template_repository.py
+│   │   │   │   │   └── models.py
+│   │   │   │   ├── rendering
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── template_renderer.py
+│   │   │   │   └── services
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── account_service_adapter.py
+│   │   │   ├── admin.py
+│   │   │   ├── application
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── dtos
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── attach_dto.py
+│   │   │   │   │   ├── legal_profile_dto.py
+│   │   │   │   │   └── preview_dto.py
+│   │   │   │   ├── ports
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── account_service.py
+│   │   │   │   │   ├── attached_terms_repository.py
+│   │   │   │   │   ├── legal_profile_repository.py
+│   │   │   │   │   ├── legal_template_repository.py
+│   │   │   │   │   └── template_renderer.py
+│   │   │   │   └── use_cases
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── attach_terms_to_quote.py
+│   │   │   │       ├── preview_legal_terms.py
+│   │   │   │       └── update_legal_profile.py
+│   │   │   ├── apps.py
+│   │   │   ├── domain
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── entities
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── attached_terms.py
+│   │   │   │   │   ├── legal_profile.py
+│   │   │   │   │   └── legal_template.py
+│   │   │   │   ├── exceptions.py
+│   │   │   │   ├── services
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── address_formatter.py
+│   │   │   │   │   └── legal_terms_assembler.py
+│   │   │   │   └── value_objects
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── clause_category.py
+│   │   │   │       ├── clause_content.py
+│   │   │   │       ├── rendered_clause.py
+│   │   │   │       └── template_variables.py
+│   │   │   ├── interface
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── api
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── serializers.py
+│   │   │   │   │   └── views.py
+│   │   │   │   └── urls.py
+│   │   │   ├── migrations
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   └── 0002_seed_base_fr_template.py
+│   │   │   ├── models.py
+│   │   │   └── tests
+│   │   │       ├── __init__.py
+│   │   │       ├── bdd
+│   │   │       │   ├── __init__.py
+│   │   │       │   ├── features
+│   │   │       │   │   ├── attach_legal_terms_to_quote.feature
+│   │   │       │   │   ├── legal_terms_assembly.feature
+│   │   │       │   │   └── manage_legal_profile.feature
+│   │   │       │   └── steps
+│   │   │       │       ├── test_bdd_attach.py
+│   │   │       │       ├── test_legal_terms_assembly_steps.py
+│   │   │       │       └── test_manage_legal_profile_steps.py
+│   │   │       ├── conftest.py
+│   │   │       ├── test_adapters_account_service.py
+│   │   │       ├── test_admin.py
+│   │   │       ├── test_api_legal_profile.py
+│   │   │       ├── test_api_preview.py
+│   │   │       ├── test_app_smoke.py
+│   │   │       ├── test_domain_address_formatter.py
+│   │   │       ├── test_domain_assembler.py
+│   │   │       ├── test_domain_entities.py
+│   │   │       ├── test_domain_value_objects.py
+│   │   │       ├── test_persistence_repositories.py
+│   │   │       ├── test_rendering_template_renderer.py
+│   │   │       ├── test_use_case_attach.py
+│   │   │       ├── test_use_case_preview.py
+│   │   │       └── test_use_case_update_profile.py
 │   │   ├── quote
 │   │   │   ├── __init__.py
 │   │   │   ├── adapters
@@ -746,7 +941,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   └── django_email_sender.py
 │   │   │   │   ├── pdf
 │   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── playwright_generator.py
+│   │   │   │   │   └── weasyprint_generator.py
 │   │   │   │   ├── persistence
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── django_prestation_repository.py
@@ -773,6 +968,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── email_sender.py
 │   │   │   │   │   ├── pdf_generator.py
 │   │   │   │   │   ├── prestation_repository.py
+│   │   │   │   │   ├── quote_repository_extensions.py
 │   │   │   │   │   ├── quote_repository.py
 │   │   │   │   │   ├── reference_gen.py
 │   │   │   │   │   └── template_renderer.py
@@ -798,17 +994,31 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │       └── totals.py
 │   │   │   ├── interface
 │   │   │   │   ├── __init__.py
+│   │   │   │   ├── filter.py
 │   │   │   │   ├── permissions.py
 │   │   │   │   ├── renderers.py
 │   │   │   │   ├── serializers.py
 │   │   │   │   ├── urls.py
 │   │   │   │   └── views.py
+│   │   │   ├── management
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── commands
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── attach_legal_terms_to_quotes.py
 │   │   │   ├── migrations
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── 0001_initial.py
 │   │   │   │   ├── 0002_alter_quotelineitem_options_and_more.py
 │   │   │   │   ├── 0003_alter_paymentterms_owner_and_more.py
-│   │   │   │   └── 0004_alter_quote_reference.py
+│   │   │   │   ├── 0004_alter_quote_reference.py
+│   │   │   │   ├── 0005_add_account_fk.py
+│   │   │   │   ├── 0006_migrate_to_account.py
+│   │   │   │   ├── 0007_account_not_null.py
+│   │   │   │   ├── 0008_alter_quote_account.py
+│   │   │   │   ├── 0009_quote_ix_quote_account_updated_at_and_more.py
+│   │   │   │   ├── 0010_add_soft_delete_to_quote.py
+│   │   │   │   ├── 0011_alter_quotelineitem_description_to_text.py
+│   │   │   │   └── 0012_add_details_to_lineitem.py
 │   │   │   ├── models.py
 │   │   │   ├── signals.py
 │   │   │   ├── tests
@@ -816,12 +1026,14 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── adapters
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── test_django_quote_repository.py
-│   │   │   │   │   ├── test_playwright_pdf.py
+│   │   │   │   │   ├── test_pdf_context_presenter.py
 │   │   │   │   │   ├── test_reference_generator_concurrency.py
-│   │   │   │   │   └── test_reference_generator.py
+│   │   │   │   │   ├── test_reference_generator.py
+│   │   │   │   │   └── test_weasyprint_pdf.py
 │   │   │   │   ├── application
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── test_add_prestation_line.py
+│   │   │   │   │   ├── test_build_seller_address.py
 │   │   │   │   │   ├── test_generate_preview.py
 │   │   │   │   │   └── usecases
 │   │   │   │   │       ├── test_create_quote.py
@@ -829,8 +1041,14 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── conftest.py
 │   │   │   │   ├── domain
 │   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── test_status_policy.py
 │   │   │   │   │   ├── test_tax_policy.py
 │   │   │   │   │   └── test_totals.py
+│   │   │   │   ├── interface
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── test_quota_enforcement.py
+│   │   │   │   │   └── test_quote_api.py
+│   │   │   │   ├── temp_fixtures.py
 │   │   │   │   ├── test_add_prestation_line_api.py
 │   │   │   │   ├── test_mock_verification.py
 │   │   │   │   ├── test_models.py
@@ -838,52 +1056,90 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── test_permissions.py
 │   │   │   │   ├── test_preview.py
 │   │   │   │   ├── test_quote_actions_api.py
-│   │   │   │   └── test_serializers.py
+│   │   │   │   ├── test_quote_soft_delete.py
+│   │   │   │   ├── test_repository_bug_repro.py
+│   │   │   │   ├── test_serializers.py
+│   │   │   │   └── test_status_change_via_patch.py
 │   │   │   └── views.py
 │   │   └── user
 │   │       ├── __init__.py
 │   │       ├── adapters
+│   │       │   ├── __init__.py
 │   │       │   ├── persistence
+│   │       │   │   ├── __init__.py
+│   │       │   │   ├── django_account_repository.py
 │   │       │   │   └── django_user_repository.py
-│   │       │   └── providers
-│   │       │       ├── logging_token_sender.py
-│   │       │       └── smtp_token_provider.py
+│   │       │   ├── providers
+│   │       │   │   ├── logging_token_sender.py
+│   │       │   │   └── smtp_token_provider.py
+│   │       │   ├── storage
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── supabase_storage.py
+│   │       │   └── system_clock.py
 │   │       ├── admin.py
 │   │       ├── application
 │   │       │   ├── dto
+│   │       │   │   ├── account_inputs.py
+│   │       │   │   ├── account_viewmodels.py
 │   │       │   │   ├── user_inputs.py
 │   │       │   │   └── user_viewmodels.py
 │   │       │   ├── errors.py
 │   │       │   ├── ports
+│   │       │   │   ├── account_repository.py
+│   │       │   │   ├── clock.py
 │   │       │   │   ├── token_sender.py
 │   │       │   │   └── user_repository.py
 │   │       │   └── usecases
+│   │       │       ├── anonymize_account.py
 │   │       │       ├── change_password.py
-│   │       │       ├── create_professional.py
+│   │       │       ├── check_quota_available.py
+│   │       │       ├── create_account.py
+│   │       │       ├── deactivate_account.py
+│   │       │       ├── get_user_accounts.py
 │   │       │       ├── list_users.py
 │   │       │       ├── register_user.py
 │   │       │       ├── request_password_reset.py
 │   │       │       ├── reset_password.py
-│   │       │       ├── update_professional.py
-│   │       │       └── update_profile.py
+│   │       │       ├── rgpd_delete_account.py
+│   │       │       ├── send_verification_email.py
+│   │       │       ├── update_account.py
+│   │       │       ├── update_profile.py
+│   │       │       └── verify_email.py
 │   │       ├── apps.py
-│   │       ├── backend
-│   │       │   └── apps
-│   │       │       └── user
-│   │       │           └── logs
 │   │       ├── domain
+│   │       │   ├── entities
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── account.py
 │   │       │   ├── errors.py
 │   │       │   ├── policies
+│   │       │   │   ├── account_policy.py
+│   │       │   │   ├── quota_policy.py
 │   │       │   │   └── user_policy.py
-│   │       │   └── services
-│   │       │       └── user_calculator.py
+│   │       │   ├── services
+│   │       │   │   └── user_calculator.py
+│   │       │   └── value_objects.py
 │   │       ├── interface
 │   │       │   ├── __init__.py
 │   │       │   ├── auth_urls.py
 │   │       │   ├── auth_views.py
 │   │       │   ├── errors_handler.py
-│   │       │   ├── serializers.py
-│   │       │   └── views.py
+│   │       │   ├── exceptions
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── account_exceptions.py
+│   │       │   ├── middleware
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── account_context.py
+│   │       │   ├── permissions
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── account_permissions.py
+│   │       │   ├── serializers
+│   │       │   │   ├── __init__.py
+│   │       │   │   ├── account_serializers.py
+│   │       │   │   └── user_serializers.py
+│   │       │   └── views
+│   │       │       ├── __init__.py
+│   │       │       ├── account_views.py
+│   │       │       └── user_views.py
 │   │       ├── migrations
 │   │       │   ├── __init__.py
 │   │       │   ├── 0001_initial.py
@@ -893,9 +1149,21 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   ├── 0005_alter_user_options_user_uniq_user_email_ci.py
 │   │       │   ├── 0006_professionaluser.py
 │   │       │   ├── 0007_professionaluser_allowed_areas.py
-│   │       │   └── 0008_remove_professionaluser_allowed_areas.py
+│   │       │   ├── 0008_remove_professionaluser_allowed_areas.py
+│   │       │   ├── 0009_account.py
+│   │       │   ├── 0010_migrate_professional_to_account.py
+│   │       │   ├── 0011_cleanup_phase6.py
+│   │       │   ├── 0012_add_rate_and_service_types_to_account.py
+│   │       │   ├── 0013_add_soft_delete_to_account.py
+│   │       │   ├── 0014_add_field_encryption.py
+│   │       │   ├── 0015_add_professional_headline.py
+│   │       │   ├── 0016_add_logo_url_to_account.py
+│   │       │   ├── 0017_add_account_address.py
+│   │       │   ├── 0018_add_subscription_plan_quota.py
+│   │       │   └── 0019_user_email_verified.py
 │   │       ├── models
 │   │       │   ├── __init__.py
+│   │       │   ├── account.py
 │   │       │   └── models.py
 │   │       ├── services
 │   │       │   ├── __init__.py
@@ -903,20 +1171,43 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       ├── signals.py
 │   │       ├── tests
 │   │       │   ├── __init__.py
+│   │       │   ├── adapters
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── persistence
+│   │       │   │       ├── __init__.py
+│   │       │   │       └── test_django_account_repository.py
 │   │       │   ├── application
+│   │       │   │   ├── __init__.py
 │   │       │   │   └── usecases
+│   │       │   │       ├── __init__.py
+│   │       │   │       ├── test_check_quota.py
+│   │       │   │       ├── test_create_account.py
+│   │       │   │       ├── test_deactivate_account.py
+│   │       │   │       ├── test_get_user_accounts.py
 │   │       │   │       ├── test_request_password_reset.py
-│   │       │   │       └── test_reset_password.py
+│   │       │   │       ├── test_reset_password.py
+│   │       │   │       └── test_update_account.py
+│   │       │   ├── domain
+│   │       │   │   ├── __init__.py
+│   │       │   │   ├── test_account_entity.py
+│   │       │   │   ├── test_account_policy.py
+│   │       │   │   ├── test_legal_form_value_object.py
+│   │       │   │   └── test_quota_policy.py
 │   │       │   ├── interface
-│   │       │   │   └── serializers
-│   │       │   │       └── test_reset_password_serializer.py
+│   │       │   │   ├── __init__.py
+│   │       │   │   ├── serializers
+│   │       │   │   │   └── test_reset_password_serializer.py
+│   │       │   │   ├── test_account_api.py
+│   │       │   │   └── test_account_logo.py
+│   │       │   ├── test_account_soft_delete.py
+│   │       │   ├── test_anonymize_account.py
 │   │       │   ├── test_auth_api.py
 │   │       │   ├── test_auth_logout.py
-│   │       │   ├── test_professional_api.py
-│   │       │   ├── test_professional_serializer_minimal.py
+│   │       │   ├── test_encryption.py
 │   │       │   ├── test_refresh_rotation.py
 │   │       │   └── test_user_api.py
-│   │       └── urls.py
+│   │       ├── urls.py
+│   │       └── validators.py
 │   ├── config
 │   │   ├── __init__.py
 │   │   ├── api_errors.py
@@ -927,6 +1218,14 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   └── wsgi.py
 │   ├── conftest.py
 │   ├── coverage.xml
+│   ├── diagrams
+│   │   ├── branding_diagram.mermaid
+│   │   ├── catalog_diagram.mermaid
+│   │   ├── client_diagram.mermaid
+│   │   ├── core_diagram.mermaid
+│   │   ├── quote_diagram.mermaid
+│   │   ├── user_class_diagram.mermaid
+│   │   └── user_diagram.mermaid
 │   ├── doc
 │   │   └── classes
 │   │       └── quote
@@ -937,15 +1236,29 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │           ├── packages_quote_arch.dot
 │   │           └── packages_quote_arch.png
 │   ├── Dockerfile
+│   ├── Dockerfile.optimized
+│   ├── docs
+│   │   ├── ENCRYPTION_KEY_BACKUP.md
+│   │   └── FIELD_ENCRYPTION.md
+│   ├── generate_diagrams.py
 │   ├── logs
-│   │   └── app.log
+│   │   ├── app.log
+│   │   └── app.log.1
 │   ├── manage.py
+│   ├── management
+│   │   ├── __init__.py
+│   │   └── commands
+│   │       ├── __init__.py
+│   │       └── generate_mermaid.py
 │   ├── media
 │   ├── pyproject.toml
 │   ├── pytest.ini
 │   ├── requirements
 │   │   ├── dev-requirements.txt
 │   │   └── requirements.txt
+│   ├── scripts
+│   │   ├── clear_encrypted_fields.py
+│   │   └── migrate_encryption_key.py
 │   ├── setup.cfg
 │   ├── static
 │   ├── staticfiles
@@ -1156,20 +1469,51 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │       ├── jsons
 │       │   ├── areas.json
 │       │   └── prestations.json
+│       ├── migrate_encrypt_data.py
 │       └── prestations.csv
 ├── CHANGELOG.md
 ├── CLAUDE.md
 ├── coverage.xml
 ├── database
 │   ├── dumps
-│   │   └── dump_local_20251120_094504.sql
-│   └── init
+│   │   ├── db_prod_2026-01-12_19h25.dump
+│   │   ├── dump_local_20251120_094504.sql
+│   │   ├── dump_local_20260130_111502.sql
+│   │   ├── dump_local_20260210_110859.sql
+│   │   ├── freelansign_db_20260130_112711.sql
+│   │   ├── freelansign_db_20260130_112948.sql
+│   │   └── freelansign_db_20260130_113038.sql
+│   ├── init
+│   └── README.md
+├── db-sync.sh
 ├── docker-compose.certbot.yml
 ├── docker-compose.prod.yml
 ├── docker-compose.yml
 ├── docs
+│   ├── agents
+│   ├── architecture
+│   │   ├── architecture.md
+│   │   ├── bc_branding.md
+│   │   ├── bc_catalog.md
+│   │   ├── bc_client.md
+│   │   ├── bc_core.md
+│   │   ├── bc_email.md
+│   │   ├── bc_quote.md
+│   │   ├── bc_user.md
+│   │   ├── decisions
+│   │   │   └── ADR-001-cross-context-repository-dependencies.md
+│   │   ├── template_bounded_context.md
+│   │   └── work
+│   │       ├── account_phase1_domain.md
+│   │       ├── auth_user_refacto.md
+│   │       ├── DEPRECATED_FILES_ACCOUNT.md
+│   │       ├── legal_terms_v0.md
+│   │       ├── subscription_v0.md
+│   │       ├── TODO_FAVORITE_PRESTATIONS.md
+│   │       └── user_refacto_analysis.md
 │   ├── backup.md
 │   ├── database_management.md
+│   ├── DEPLOY_VPS_BUILD_LOCAL.md
 │   ├── deployment
 │   │   ├── backups.md
 │   │   ├── build-and-deploy.md
@@ -1178,29 +1522,47 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── environment-config.md
 │   │   ├── monitoring.md
 │   │   ├── production-checklist.md
+│   │   ├── retention-policy.md
 │   │   └── vps-setup.md
+│   ├── docker-compose.prod.patch
 │   ├── good-practices
 │   │   ├── claud-good-habits.md
 │   │   ├── dev-docs-pattern.md
 │   │   ├── development.md
 │   │   ├── git-workflow.md
-│   │   └── paradigms.md
+│   │   ├── paradigms.md
+│   │   └── senior_mindset.md
 │   ├── knowledge.md
 │   ├── knowledge.sh
+│   ├── OPERATIONS.md
 │   ├── plans
 │   │   └── production-ready.md
 │   ├── release
 │   │   ├── RELEASE_PLAN_v0.1.0.md
 │   │   └── RELEASE_PLAN_v0.2.0.md
 │   └── tmp
+│       ├── feature-job-title.md
+│       └── Jarvis.md
+├── environment
+│   ├── .env.docker.local.example
+│   ├── .env.example
+│   ├── .env.local.exemple
+│   └── .env.prod.example
 ├── FreelanSign.code-workspace
 ├── frontend
 │   ├── .dockerignore
+│   ├── .env
 │   ├── .env.development.local
 │   ├── .eslintrc.cjs
 │   ├── .gitignore
+│   ├── CLAUDE.md
 │   ├── components.json
 │   ├── Dockerfile
+│   ├── docs
+│   │   └── tests
+│   │       ├── account_header.feature.md
+│   │       ├── account_store.feature.md
+│   │       └── use_require_account.feature.md
 │   ├── eslint.config.js
 │   ├── index.html
 │   ├── nginx.conf
@@ -1220,6 +1582,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── AuthProvider.tsx
 │   │   │   └── router.tsx
 │   │   ├── App.css
+│   │   ├── application
+│   │   │   └── quote
+│   │   │       └── metricsMapper.ts
 │   │   ├── assets
 │   │   │   ├── fonts
 │   │   │   │   ├── FiraCode-Bold.ttf
@@ -1231,11 +1596,35 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── pen-nib-line.svg
 │   │   │   └── react.svg
 │   │   ├── components
+│   │   │   ├── common
+│   │   │   │   └── BetaWarningDialog.tsx
+│   │   │   ├── feedback
+│   │   │   │   ├── FeedbackButton.tsx
+│   │   │   │   └── FeedbackModal.tsx
 │   │   │   └── ui
+│   │   │       ├── alert.tsx
+│   │   │       ├── badge.tsx
 │   │   │       ├── button.tsx
+│   │   │       ├── card.tsx
+│   │   │       ├── checkbox.tsx
 │   │   │       ├── dialog.tsx
-│   │   │       └── textarea.tsx
+│   │   │       ├── dropdown-menu.tsx
+│   │   │       ├── form-context.ts
+│   │   │       ├── form.tsx
+│   │   │       ├── input.tsx
+│   │   │       ├── label.tsx
+│   │   │       ├── popover.tsx
+│   │   │       ├── select.tsx
+│   │   │       ├── skeleton.tsx
+│   │   │       ├── table.tsx
+│   │   │       ├── tabs.tsx
+│   │   │       ├── textarea.tsx
+│   │   │       └── tooltip.tsx
 │   │   ├── domain
+│   │   │   ├── account
+│   │   │   │   ├── api.ts
+│   │   │   │   ├── types.ts
+│   │   │   │   └── utils.ts
 │   │   │   ├── auth
 │   │   │   │   └── usecases.ts
 │   │   │   ├── catalog
@@ -1244,13 +1633,24 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── types.ts
 │   │   │   ├── common
 │   │   │   │   └── pagination.ts
+│   │   │   ├── feedback
+│   │   │   │   ├── schema.ts
+│   │   │   │   └── types.ts
+│   │   │   ├── legal-terms
+│   │   │   │   └── types.ts
 │   │   │   ├── quote
 │   │   │   │   ├── mappers.ts
+│   │   │   │   ├── metricsTypes.ts
 │   │   │   │   └── types.ts
 │   │   │   ├── types.ts
 │   │   │   └── user
+│   │   │       ├── api.ts
 │   │   │       └── types.ts
 │   │   ├── infrastructure
+│   │   │   ├── account
+│   │   │   │   ├── accountContext.ts
+│   │   │   │   ├── accountRepository.ts
+│   │   │   │   └── accountStore.ts
 │   │   │   ├── api.ts
 │   │   │   ├── auth
 │   │   │   │   └── authRepository.ts
@@ -1262,16 +1662,25 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   └── clientRepository.ts
 │   │   │   ├── email
 │   │   │   │   └── emailRepository.ts
+│   │   │   ├── feedback
+│   │   │   │   └── feedbackRepository.ts
 │   │   │   ├── http
 │   │   │   │   └── apiClient.ts
+│   │   │   ├── legal-terms
+│   │   │   │   └── legalTermsRepository.ts
 │   │   │   ├── quote
 │   │   │   │   └── quoteRepository.ts
 │   │   │   ├── storage
 │   │   │   │   └── tokenStorage.ts
+│   │   │   ├── ui
+│   │   │   │   └── uiStore.ts
 │   │   │   └── user
 │   │   │       └── userRepository.ts
 │   │   ├── interface
 │   │   │   ├── components
+│   │   │   │   ├── account
+│   │   │   │   │   ├── AccountDataForm.tsx
+│   │   │   │   │   └── LogoUpload.tsx
 │   │   │   │   ├── AppToBar.tsx
 │   │   │   │   ├── auth
 │   │   │   │   │   ├── request-password-reset-form.module.css
@@ -1281,15 +1690,27 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── branding
 │   │   │   │   │   └── ThemesForm.tsx
 │   │   │   │   ├── client
+│   │   │   │   │   ├── client-columns.tsx
 │   │   │   │   │   ├── client-create-drawer.module.css
-│   │   │   │   │   └── ClientCreateDrawer.tsx
+│   │   │   │   │   ├── client-form-fields.module.css
+│   │   │   │   │   ├── ClientActionsCell.tsx
+│   │   │   │   │   ├── ClientCreateDrawer.tsx
+│   │   │   │   │   ├── ClientFormFields.tsx
+│   │   │   │   │   └── clientFormSchema.ts
 │   │   │   │   ├── common
 │   │   │   │   │   ├── card.module.css
 │   │   │   │   │   ├── Card.tsx
 │   │   │   │   │   ├── confirm-modal.module.css
 │   │   │   │   │   ├── ConfirmModal.tsx
+│   │   │   │   │   ├── DeleteConfirmDialog.tsx
 │   │   │   │   │   ├── Modal.css
 │   │   │   │   │   └── Modal.tsx
+│   │   │   │   ├── dashboard
+│   │   │   │   │   ├── MetricCard.tsx
+│   │   │   │   │   ├── MonthlyQuoteCountChart.tsx
+│   │   │   │   │   └── MonthlyRevenueChart.tsx
+│   │   │   │   ├── data-table
+│   │   │   │   │   └── DataTable.tsx
 │   │   │   │   ├── email
 │   │   │   │   │   ├── quote-email-preview-dialog.module.css
 │   │   │   │   │   └── QuoteEmailPreviewDialog.tsx
@@ -1300,58 +1721,70 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── login-form.module.css
 │   │   │   │   │   └── LoginForm.tsx
 │   │   │   │   ├── navbar
-│   │   │   │   │   ├── Navbar.module.css
 │   │   │   │   │   └── Navbar.tsx
 │   │   │   │   ├── profile
+│   │   │   │   │   ├── AvatarUpload.tsx
 │   │   │   │   │   ├── PersonalUserDataForm.tsx
 │   │   │   │   │   ├── PrestationSelector.tsx
 │   │   │   │   │   ├── ProfessionalInfoForm.tsx
 │   │   │   │   │   └── ProfessionalUserDataForm.tsx
 │   │   │   │   ├── quote
-│   │   │   │   │   ├── PdfPreviewPane.tsx
-│   │   │   │   │   └── QuotesTable.tsx
+│   │   │   │   │   ├── LatestQuotesTable.tsx
+│   │   │   │   │   ├── PdfPreviewPanel.tsx
+│   │   │   │   │   ├── quote-column-components.tsx
+│   │   │   │   │   ├── quote-utils.ts
+│   │   │   │   │   ├── QuoteActionsCell.tsx
+│   │   │   │   │   └── quotes-columns.tsx
 │   │   │   │   ├── register
 │   │   │   │   │   ├── register-form.module.css
 │   │   │   │   │   └── RegisterForm.tsx
 │   │   │   │   └── sidebar
-│   │   │   │       ├── sidebar.module.css
 │   │   │   │       └── Sidebar.tsx
 │   │   │   ├── hooks
 │   │   │   │   ├── useDebouncedValue.ts
 │   │   │   │   ├── usePdfPreview.ts
+│   │   │   │   ├── useRequireAccount.ts
 │   │   │   │   └── useThemes.ts
 │   │   │   ├── layout
-│   │   │   │   ├── main-layout.module.css
 │   │   │   │   ├── MainLayout.tsx
 │   │   │   │   └── RootSeo.tsx
 │   │   │   ├── pages
+│   │   │   │   ├── Account
+│   │   │   │   │   └── AccountOnboardingPage.tsx
 │   │   │   │   ├── Auth
 │   │   │   │   │   ├── request-password-reset.module.css
 │   │   │   │   │   ├── request-password-reset.tsx
-│   │   │   │   │   └── reset-password.tsx
+│   │   │   │   │   ├── reset-password.tsx
+│   │   │   │   │   └── VerifyEmailPage.tsx
 │   │   │   │   ├── Branding
-│   │   │   │   │   ├── themes.module.css
 │   │   │   │   │   ├── ThemesCreatePage.tsx
 │   │   │   │   │   ├── ThemesEditPage.tsx
 │   │   │   │   │   └── ThemesListPage.tsx
+│   │   │   │   ├── Client
+│   │   │   │   │   ├── client-detail.module.css
+│   │   │   │   │   ├── client-edit.module.css
+│   │   │   │   │   ├── ClientDetailPage.tsx
+│   │   │   │   │   ├── ClientEditPage.tsx
+│   │   │   │   │   └── ClientsListPage.tsx
 │   │   │   │   ├── dashboard.module.css
 │   │   │   │   ├── DashboardPage.tsx
+│   │   │   │   ├── Legal
+│   │   │   │   │   ├── legal-page.module.css
+│   │   │   │   │   ├── PrivacyPolicyPage.tsx
+│   │   │   │   │   └── TermsOfServicePage.tsx
+│   │   │   │   ├── LegalTerms
+│   │   │   │   │   └── LegalTermsPage.tsx
 │   │   │   │   ├── Login
 │   │   │   │   │   ├── LoginPage.module.css
 │   │   │   │   │   └── LoginPage.tsx
 │   │   │   │   ├── Profile
-│   │   │   │   │   ├── profile-edit-page.module.css
-│   │   │   │   │   ├── profile-page.module.css
 │   │   │   │   │   ├── ProfileEditPage.tsx
 │   │   │   │   │   └── ProfilePage.tsx
 │   │   │   │   ├── Quote
-│   │   │   │   │   ├── quote-detail.module.css
-│   │   │   │   │   ├── quote-edit-create.module.css
 │   │   │   │   │   ├── QuoteCreatePage.tsx
 │   │   │   │   │   ├── QuoteDetailPage.tsx
 │   │   │   │   │   ├── QuoteEditPage.tsx
-│   │   │   │   │   ├── QuoteListPage.tsx
-│   │   │   │   │   └── quotes-list.module.css
+│   │   │   │   │   └── QuoteListPage.tsx
 │   │   │   │   └── Register
 │   │   │   │       ├── RegisterPage.module.css
 │   │   │   │       └── RegisterPage.tsx
@@ -1362,21 +1795,32 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   ├── api
 │   │   │   │   └── auth.ts
 │   │   │   ├── constants
+│   │   │   │   ├── emailjs.ts
 │   │   │   │   └── site.config.ts
 │   │   │   └── utils.ts
 │   │   ├── main.tsx
 │   │   ├── shared
 │   │   │   ├── apiErrors.ts
+│   │   │   ├── countries.ts
 │   │   │   ├── endpoints.ts
 │   │   │   ├── env.ts
+│   │   │   ├── legalInfo.ts
 │   │   │   └── utils
 │   │   │       └── obj.ts
 │   │   ├── styles
 │   │   │   └── index.css
+│   │   ├── tests
+│   │   │   ├── accountStore.test.ts
+│   │   │   ├── apiClient.account-header.test.ts
+│   │   │   ├── BetaWarningDialog.test.tsx
+│   │   │   ├── noAccount_ProfileEditPage.test.tsx
+│   │   │   ├── noAccount_ProfilePage.test.tsx
+│   │   │   └── useRequireAccount.test.tsx
 │   │   └── vite-env.d.ts
 │   ├── tsconfig.app.json
 │   ├── tsconfig.json
 │   ├── tsconfig.node.json
+│   ├── tsconfig.test.json
 │   ├── vite.config.ts
 │   └── vitest.config.ts
 ├── LICENSE
@@ -1388,6 +1832,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── package.json
 ├── pnpm-lock.yaml
 ├── postgres.conf
+├── README.md
 ├── release.md
 ├── scripts
 │   ├── backup.sh
@@ -1397,6 +1842,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── precommit.sh
 │   └── restore.sh
 ├── sonar-project.properties
+├── SPECIFICATIONS_RGPD.md
 └── typings
     └── rest_framework
         ├── __init__.pyi
@@ -1405,37 +1851,38 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-247 directories, 702 files
+326 directories, 1069 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
 ## Frontend package.json
 <!-- BEGIN AUTO: FRONTEND_PACKAGE_JSON -->
 Path: `/Users/bertrandrenaudin/Desktop/DEV/FreelanSign/frontend/package.json`
-**name**: `frontend`  •  **version**: `0.2.0`
-**scripts**: 10  •  **dependencies**: 19  •  **devDependencies**: 26
+**name**: `frontend`  •  **version**: `0.4.0`
+**scripts**: 10  •  **dependencies**: 29  •  **devDependencies**: 29
 
 <details><summary>Top dependencies</summary>
 
+- @emailjs/browser: ^4.4.1
 - @headlessui/react: ^2.2.9
 - @hookform/resolvers: ^5.2.2
+- @radix-ui/react-checkbox: ^1.3.3
 - @radix-ui/react-dialog: ^1.1.15
+- @radix-ui/react-dropdown-menu: ^2.1.16
+- @radix-ui/react-label: ^2.1.8
+- @radix-ui/react-popover: ^1.1.15
+- @radix-ui/react-select: ^2.2.6
 - @radix-ui/react-slot: ^1.2.4
+- @radix-ui/react-tabs: ^1.1.13
+- @radix-ui/react-tooltip: ^1.2.8
 - @tailwindcss/vite: ^4.1.13
+- @tanstack/react-table: ^8.21.3
 - axios: ^1.12.2
 - class-variance-authority: ^0.7.1
 - clsx: ^2.1.1
 - lucide-react: ^0.544.0
 - react: ^19.1.0
 - react-color: ^2.19.3
-- react-dom: ^19.1.0
-- react-helmet-async: ^2.0.5
-- react-hook-form: ^7.62.0
-- react-hot-toast: ^2.6.0
-- react-router-dom: ^7.9.1
-- tailwind-merge: ^3.3.1
-- tailwindcss: ^4.1.13
-- zod: ^4.1.9
 
 </details>
 
@@ -1466,18 +1913,19 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 | Model | File |
 |---|---|
 | `BrandTheme` | `apps/branding/models.py` |
-| `Client` | `apps/client/models.py` |
+| `Feedback` | `apps/feedback/models.py` |
+| `LegalTemplateModel` | `apps/legal_terms/adapters/persistence/models.py` |
+| `LegalProfileModel` | `apps/legal_terms/adapters/persistence/models.py` |
+| `AttachedTermsModel` | `apps/legal_terms/adapters/persistence/models.py` |
 | `PaymentTerms` | `apps/quote/models.py` |
-| `Quote` | `apps/quote/models.py` |
 | `QuoteLineItem` | `apps/quote/models.py` |
 | `QuoteHistory` | `apps/quote/models.py` |
 | `Profile` | `apps/user/models/models.py` |
-| `ProfessionalUser` | `apps/user/models/models.py` |
 <!-- END AUTO: DJANGO_MODELS -->
 
 ---
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2025-11-23 17:54:24 CET**
+_Updated_: **2026-02-10 15:41:18 CET**
 <!-- END AUTO: LAST_UPDATED -->

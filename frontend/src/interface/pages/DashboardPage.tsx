@@ -1,40 +1,308 @@
-import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { DashboardLatestQuotesTable } from '@/interface/components/quote/LatestQuotesTable';
+import {
+  Briefcase,
+  CheckCircle,
+  Euro,
+  FileText,
+  List,
+  User,
+  Users,
+  Sparkles,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../app/providers/AuthProvider';
-import QuotesTable from '../components/quote/QuotesTable';
-import styles from './dashboard.module.css';
+import { mapMetricsToUi } from '../../application/quote/metricsMapper';
+import type { AccountDto } from '../../domain/account/types';
+import type { QuoteMetricsUi } from '../../domain/quote/metricsTypes';
+import { accountRepository } from '../../infrastructure/account/accountRepository';
+import { useAccountStore } from '../../infrastructure/account/accountStore';
+import { quoteRepository } from '../../infrastructure/quote/quoteRepository';
+import { MetricCard } from '../components/dashboard/MetricCard';
+import { MonthlyQuoteCountChart } from '../components/dashboard/MonthlyQuoteCountChart';
+import { MonthlyRevenueChart } from '../components/dashboard/MonthlyRevenueChart';
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const activeAccountId = useAccountStore((state) => state.activeAccountId);
+  const [metrics, setMetrics] = useState<QuoteMetricsUi | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [account, setAccount] = useState<AccountDto | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (!activeAccountId) {
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      setError(null);
+      try {
+        const [metricsData, accountData] = await Promise.all([
+          quoteRepository.getMetrics(),
+          accountRepository.retrieve(activeAccountId),
+        ]);
+        if (!active) return;
+        setMetrics(mapMetricsToUi(metricsData));
+        setAccount(accountData);
+      } catch (err) {
+        console.error('Load dashboard data error', err);
+        setError('Erreur de chargement des données');
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [activeAccountId]);
+
+  const welcomeName =
+    user?.profile?.first_name || user?.email?.split('@')[0] || 'Aventurier';
 
   return (
-    <div className="grid gap-6">
-      <div className={styles.headerRow}>
-        <h1 className={styles.title}>Dashboard</h1>
-        <div className={styles.headerCta}>
-          <Link to="/profile" className={`${styles.btn} ${styles.btnPrimary}`}>
-            Mon profil
-          </Link>
-          <Link to="/quotes" className={`${styles.btn} ${styles.btnIndigo}`}>
-            Mes devis
-          </Link>
-          <Link
-            to="/quotes/new"
-            className={`${styles.btn} ${styles.btnSuccess}`}
+    <div className="container mx-auto py-8 px-4 space-y-8 max-w-7xl animate-in fade-in duration-500">
+      {/* Header Row */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border/60">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight font-playfair">
+            Tableau de bord
+          </h1>
+          <p className="text-muted-foreground">
+            Ravi de vous revoir,{' '}
+            <span className="text-brand font-semibold">{welcomeName}</span> 👋
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/profile')}
+            className="h-9 px-4"
           >
-            + Créer un devis
-          </Link>
+            <User className="mr-2 h-4 w-4" />
+            Profil
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/quotes')}
+            className="h-9 px-4"
+          >
+            <List className="mr-2 h-4 w-4" />
+            Mes devis
+          </Button>
+          {/* <Button
+            size="sm"
+            onClick={() => navigate('/quotes/new')}
+            className="bg-brand text-white hover:bg-brand-dark h-9 px-4 shadow-sm"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Créer un devis
+          </Button> */}
         </div>
       </div>
-      <p className={styles.welcome}>
-        Bienvenue {user?.profile?.first_name ?? user?.email} 👋
-      </p>
-      <div className={styles.card}>
-        <div className={styles.containerOverride}>
-          <QuotesTable />
+
+      {/* Alert missing SIRET */}
+      {account && !account.legal_id && !loading && (
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded shadow-sm">
+          <div className="flex">
+            <div className="shrink-0">
+              <svg
+                className="h-5 w-5 text-amber-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-amber-700">
+                Votre profil est incomplet.{' '}
+                <span className="font-bold">Le numéro SIRET est manquant.</span>{' '}
+                <button
+                  onClick={() => navigate('/profile/edit')}
+                  className="font-medium underline hover:text-amber-600 focus:outline-none"
+                >
+                  Complétez-le maintenant
+                </button>
+                .
+              </p>
+            </div>
+          </div>
         </div>
-        <div className={styles.cardMeta}>
-          Affichage limité — tu peux ajuster le widget depuis le dashboard.
+      )}
+
+      {activeAccountId === null && !loading && (
+        <Card className="border-brand/20 bg-brand/5 shadow-none overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-8 opacity-5">
+            <Briefcase size={120} />
+          </div>
+          <CardHeader>
+            <CardTitle className="text-xl font-bold text-brand-dark">
+              Commencez votre aventure freelance
+            </CardTitle>
+            <CardDescription className="text-muted-foreground/80 max-w-2xl">
+              Créez votre compte professionnel en quelques minutes pour
+              commencer à générer vos devis et factures professionnels.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              onClick={() => navigate('/onboarding-account')}
+              className="bg-brand text-white hover:bg-brand-dark shadow-md"
+            >
+              Créer mon compte professionnel
+            </Button>
+            <p className="text-xs text-muted-foreground italic">
+              * Vous pourrez modifier ces informations à tout moment depuis
+              votre profil.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Métriques */}
+      {activeAccountId && (
+        <div className="space-y-8">
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-32 w-full rounded-xl" />
+              ))}
+            </div>
+          ) : error ? (
+            <div className="p-4 rounded-lg bg-destructive/10 text-destructive text-sm border border-destructive/20">
+              {error}
+            </div>
+          ) : metrics ? (
+            <>
+              {/* Cartes métriques */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <MetricCard
+                  title="Devis émis"
+                  value={metrics.totalQuotes}
+                  icon={<FileText className="h-5 w-5" />}
+                  subtitle="Volume total d'activité"
+                />
+                <MetricCard
+                  title="CA estimé"
+                  value={`${metrics.estimatedRevenue.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`}
+                  icon={<Euro className="h-5 w-5" />}
+                  subtitle="Sur la base des devis acceptés"
+                />
+                <MetricCard
+                  title="Taux d'acceptation"
+                  value={`${metrics.acceptanceRate.toFixed(1)}%`}
+                  icon={<CheckCircle className="h-5 w-5" />}
+                  subtitle="Ratio devis acceptés / envoyés"
+                />
+              </div>
+
+              {/* Graphiques ou message d'aide */}
+              {metrics.totalQuotes > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <MonthlyRevenueChart data={metrics.monthlyBreakdown} />
+                  <MonthlyQuoteCountChart data={metrics.monthlyBreakdown} />
+                </div>
+              ) : (
+                <Card className="border-brand/20 bg-gradient-to-br from-brand/5 to-brand/10 shadow-sm overflow-hidden relative">
+                  <div className="absolute top-0 right-0 p-8 opacity-10">
+                    <Sparkles size={140} />
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="text-xl font-bold text-brand-dark flex items-center gap-2">
+                      <Sparkles className="h-5 w-5" />
+                      Créez votre premier devis
+                    </CardTitle>
+                    <CardDescription className="text-muted-foreground/80 max-w-2xl leading-relaxed">
+                      Pour commencer, vous pouvez créer votre premier client,
+                      choisir des prestations prédéfinies dans votre profil, ou
+                      directement créer un devis.
+                      <br />
+                      <span className="text-xs italic mt-2 block">
+                        💡 Pas de panique si vous ne trouvez pas votre
+                        prestation, vous pourrez la créer lors de la création du
+                        devis !
+                      </span>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-wrap gap-3">
+                    <Button
+                      onClick={() => navigate('/quotes/new')}
+                      className="bg-brand text-white hover:bg-brand-dark shadow-md"
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      Créer un devis
+                    </Button>
+                    <Button
+                      onClick={() => navigate('/clients')}
+                      variant="outline"
+                      className="border-brand text-brand hover:bg-brand/10"
+                    >
+                      <Users className="mr-2 h-4 w-4" />
+                      Ajouter un client
+                    </Button>
+                    <Button
+                      onClick={() => navigate('/profile/edit')}
+                      variant="outline"
+                      className="border-brand text-brand hover:bg-brand/10"
+                    >
+                      <User className="mr-2 h-4 w-4" />
+                      Configurer mon profil
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          ) : null}
         </div>
+      )}
+
+      {/* Latest Activity */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h3 className="text-lg font-semibold tracking-tight font-playfair">
+              Derniers devis
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Vos 5 activités les plus récentes
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/quotes')}
+            className="h-8 text-xs font-bold uppercase tracking-wider"
+          >
+            Tout voir
+          </Button>
+        </div>
+
+        <Card className="shadow-none border border-border overflow-hidden bg-white">
+          <CardContent className="p-0">
+            <DashboardLatestQuotesTable pageSize={5} />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

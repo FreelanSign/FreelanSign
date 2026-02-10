@@ -5,10 +5,17 @@ from typing import Optional
 @dataclass(frozen=True)
 class CreateClientInput:
     owner_id: int
+    account_id: int  # Phase 5
     name: str
     email: Optional[str] = None
     phone: Optional[str] = None
-    address: Optional[str] = None
+    # Structured address fields
+    address_line1: Optional[str] = None
+    address_line2: Optional[str] = None
+    city: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: Optional[str] = None
+    company: Optional[str] = None
     vat_number: Optional[str] = None
     metadata: dict | None = None
 
@@ -19,7 +26,13 @@ class UpdateClientInput:
     name: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
-    address: Optional[str] = None
+    # Structured address fields
+    address_line1: Optional[str] = None
+    address_line2: Optional[str] = None
+    city: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: Optional[str] = None
+    company: Optional[str] = None
     vat_number: Optional[str] = None
     metadata: dict | None = None
 
@@ -32,6 +45,7 @@ class GetClientInput:
 @dataclass(frozen=True)
 class ListClientsInput:
     owner_id: Optional[int] = None
+    account_id: Optional[int] = None  # Phase 5
     search: Optional[str] = None
     ordering: Optional[str] = "-created_at"
 

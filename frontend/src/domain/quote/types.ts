@@ -26,12 +26,13 @@ export type QuoteCreatePayload = {
 export type ApiQuoteItem = {
   id?: string | number;
   description?: string | null;
+  details?: string | null;
   qty?: string | number | null;
   unit_price?: string | number | null;
   tax_rate?: string | number | null; // 0–100 (%)
   discount?: string | number | null;
   order?: number;
-  metadata?: { details?: string | null } | Record<string, unknown> | null;
+  metadata?: Record<string, unknown> | null;
   pre_tax_total?: string | number | null;
   tax_amount?: string | number | null;
 };
@@ -65,21 +66,30 @@ export type ApiQuoteUpdatePayload = {
   valid_until: string | null;
   currency: string | null;
   note: string | null;
+  payment_terms_text?: string | null;
   metadata: Record<string, unknown>;
   client: string | undefined; // UUID
   client_update: {
     name: string;
     email: string | null;
-    // ajoute: phone/address/vat_number/metadata si supportés
+    phone?: string | null;
+    // Structured address fields
+    address_line1?: string | null;
+    address_line2?: string | null;
+    city?: string | null;
+    postal_code?: string | null;
+    country?: string | null;
+    company?: string | null;
+    vat_number?: string | null;
   };
   items?: Array<{
     description: string;
+    details?: string | null;
     qty: string;
     unit_price: string;
     tax_rate: string; // "20.00"
     discount: string; // "0.00"
     order: number;
-    metadata: Record<string, unknown>;
   }>;
 };
 
@@ -91,6 +101,7 @@ export type UiQuoteLine = {
   quantity: number;
   unit_price: number;
   tax_rate?: number | null; // 0.2 => 20%
+  discount?: number | null; // absolute amount (EUR)
 };
 
 export type UiQuote = {
@@ -115,6 +126,7 @@ export type UiQuoteLineDetail = {
   quantity: number;
   unit_price: number;
   tax_rate?: number | null; // fraction 0..1
+  discount?: number | null; // absolute amount (EUR)
   pre_tax_total?: number | null;
   tax_amount?: number | null;
   total?: number | null;

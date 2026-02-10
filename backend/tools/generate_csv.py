@@ -11,6 +11,7 @@ Usage (as a module):
   # or with a custom output directory:
   generate_csv(out_dir="path/to/out")
 """
+
 import csv
 import json
 import os

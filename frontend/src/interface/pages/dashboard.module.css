@@ -1,15 +1,4 @@
-:global(:root) {
-  /* palette */
-  --brand: #2456c2;
-  --success: #3ccf91;
-  --accent: #ff8a3d;
-  --dark: #0d0d0d;
-  --paper: #f5f7fa;
-  --sidebar-bg: #f5f7fa;
-  --icon-bg: rgba(255, 255, 255, 0.92);
-  --icon-border: #3ccf91;
-  --text: #222;
-}
+/* Variables définies dans Modal.css (global) */
 
 /* wrapper global de la page (garde l'espace pour la sidebar) */
 .page {
@@ -94,21 +83,26 @@
 
 .btnPrimary {
   background: var(--brand);
-  box-shadow: 0 6px 14px rgba(36, 86, 194, 0.12);
+  box-shadow: 0 6px 14px rgba(0, 200, 150, 0.12);
 }
 .btnIndigo {
-  background: #4f46e5; /* indigo-600 */
+  background: var(--accent); /* indigo-600 */
   box-shadow: 0 6px 14px rgba(79, 70, 229, 0.12);
 }
 .btnSuccess {
   background: var(--success);
-  box-shadow: 0 6px 14px rgba(60, 207, 145, 0.12);
-  color: #06281a;
+  box-shadow: 0 6px 14px rgba(0, 200, 150, 0.12);
+  color: var(--brand-foreground);
 }
 .btnGhost {
   background: rgba(0, 0, 0, 0.06);
   color: var(--dark);
   font-weight: 500;
+}
+.btnAccent {
+  background: var(--accent);
+  box-shadow: 0 6px 14px rgba(255, 138, 61, 0.12);
+  color: #111;
 }
 
 /* petite carte pour le tableau des devis */
@@ -153,4 +147,19 @@
   display: flex;
   gap: 0.5rem;
   align-items: center;
+}
+
+/* CTA card styling */
+.cardTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--dark);
+  margin: 0 0 0.5rem 0;
+}
+
+.cardDescription {
+  color: var(--text);
+  font-size: 0.95rem;
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
 }

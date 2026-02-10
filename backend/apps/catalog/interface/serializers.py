@@ -3,6 +3,7 @@
 Serializers DRF pour l'API catalog.
 Gèrent la validation d'entrée et la sérialisation de sortie.
 """
+
 import logging
 
 from rest_framework import serializers
@@ -40,7 +41,7 @@ class PrestationSerializer(serializers.Serializer):
     default_rate_eur = serializers.SerializerMethodField()
     status = serializers.CharField(read_only=True)
     custom = serializers.BooleanField(read_only=True)
-    professional_user = serializers.IntegerField(source="professional_user_id", read_only=True, allow_null=True)
+    account = serializers.IntegerField(source="account_id", read_only=True, allow_null=True)  # Phase 5.4
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
 

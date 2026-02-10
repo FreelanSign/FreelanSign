@@ -53,6 +53,28 @@ class ProfessionalNotFoundError(UserApplicationError):
         self.professional_id = professional_id
 
 
+class AccountNotFoundError(UserApplicationError):
+    """Compte introuvable."""
+
+    def __init__(self, account_id: int = None):
+        if account_id:
+            msg = f"Compte {account_id} introuvable"
+        else:
+            msg = "Compte introuvable"
+        super().__init__(msg, code="ACCOUNT_NOT_FOUND")
+        self.account_id = account_id
+
+        self.account_id = account_id
+
+
+class DuplicateAccountNameError(UserApplicationError):
+    """Nom de compte déjà utilisé."""
+
+    def __init__(self, name: str):
+        super().__init__(f"Un compte avec le nom '{name}' existe déjà", code="DUPLICATE_ACCOUNT_NAME")
+        self.name = name
+
+
 class DuplicateEmailError(UserApplicationError):
     """Email déjà utilisé."""
 
@@ -91,3 +113,25 @@ class UnauthorizedOperationError(UserApplicationError):
 
     def __init__(self, message: str):
         super().__init__(message, code="UNAUTHORIZED_OPERATION")
+
+
+class CannotDeactivateAccountError(Exception):
+    """Raised when trying to deactivate an account that has quotes."""
+
+    def __init__(self, account_id: int):
+        self.account_id = account_id
+        super().__init__(f"Cannot deactivate account {account_id}: has associated quotes")
+
+
+class CannotDeleteAccountError(UserApplicationError):
+    """Raised when trying to RGPD delete an account with active quotes."""
+
+    def __init__(self, account_id: int, reason: str = ""):
+        msg = f"Impossible de supprimer le compte {account_id}"
+        if reason:
+            msg += f": {reason}"
+        else:
+            msg += ": des devis actifs existent"
+        super().__init__(msg, code="CANNOT_DELETE_ACCOUNT")
+        self.account_id = account_id
+        self.reason = reason

@@ -36,10 +36,10 @@ class UpdateThemeUseCase:
             RepositoryError: If the theme update fails.
         """
         # 1. Get existing theme
-        theme = self.theme_repository.get_by_id(theme_id=dto.theme_id, professional_id=dto.professional_id)
+        theme = self.theme_repository.get_by_id(theme_id=dto.theme_id, account_id=dto.account_id)
 
         # 2. Validate ownership
-        validate_theme_ownership(theme_professional_id=theme.professional_id, requester_professional_id=dto.professional_id)
+        validate_theme_ownership(theme_account_id=theme.account_id, requester_account_id=dto.account_id)
 
         # 3. Validate new values if provided
         if dto.colors:
@@ -62,7 +62,7 @@ class UpdateThemeUseCase:
 
         # 4. Check active theme policy
         if dto.is_active is not None and dto.is_active and not theme.is_active:
-            existing_themes = self.theme_repository.list_themes(professional_id=dto.professional_id)
+            existing_themes = self.theme_repository.list_themes(account_id=dto.account_id)
             active_count = sum(1 for t in existing_themes if t.is_active and t.id != dto.theme_id)
             validate_single_active_theme(active_count, is_activating=True)
 
@@ -80,14 +80,14 @@ class UpdateThemeUseCase:
             # Upload new logo
             logo_path = self.logo_storage.save_logo(
                 file=dto.logo_file,
-                professional_id=str(dto.professional_id),
+                account_id=str(dto.account_id),
                 theme_name=theme.name,
             )
 
         # 6. Update theme via repository
         updated_theme = self.theme_repository.update_theme(
             theme_id=dto.theme_id,
-            professional_id=dto.professional_id,
+            account_id=dto.account_id,
             name=dto.name,
             is_active=dto.is_active,
             colors=colors.to_dict(),
@@ -103,7 +103,7 @@ class UpdateThemeUseCase:
         """Convert repository result to view model."""
         return ThemeViewModel(
             id=theme.id,
-            professional_id=theme.professional_id,
+            account_id=theme.account_id,
             name=theme.name,
             is_active=theme.is_active,
             colors=theme.colors,

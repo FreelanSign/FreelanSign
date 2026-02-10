@@ -8,8 +8,10 @@ from decimal import Decimal
 from textwrap import dedent
 from typing import Any, List, Optional
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import Count, DecimalField, Prefetch, Sum
+from django.db.models.functions import TruncMonth
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -25,8 +27,9 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.core.interface.pagination import StandardResultsSetPagination
 from apps.core.logging import get_logger
-from apps.quote.adapters.pdf.playwright_generator import PlaywrightPdfGenerator  # type: ignore
+from apps.quote.adapters.pdf.weasyprint_generator import WeasyPrintPdfGenerator
 from apps.quote.adapters.persistence.django_prestation_repository import DjangoPrestationRepository
 
 # --- NEW: Clean Arch imports (use cases + adapters) -----------------------------------
@@ -40,10 +43,18 @@ from apps.quote.application.usecases.download_pdf import DownloadPdf  # type: ig
 from apps.quote.application.usecases.duplicate_quote import DuplicateQuote  # type: ignore
 from apps.quote.application.usecases.generate_preview import generate_preview
 from apps.quote.application.usecases.send_quote import SendQuote  # type: ignore
+from apps.quote.interface.filter import QuoteFilter
 from apps.quote.interface.permissions import IsOwnerOrAdmin
 from apps.quote.interface.renderers import PDFRenderer
-from apps.quote.interface.serializers import QuoteCreateUpdateSerializer, QuotePreviewPayloadSerializer, QuoteSerializer
+from apps.quote.interface.serializers import (
+    QuoteCreateUpdateSerializer,
+    QuoteListSerializer,
+    QuoteMetricsSerializer,
+    QuotePreviewPayloadSerializer,
+    QuoteSerializer,
+)
 from apps.quote.models import Quote, QuoteHistory, QuoteLineItem
+from apps.user.interface.permissions.account_permissions import HasAccountContext, IsAccountOwner
 
 logger = logging.getLogger(__name__)
 
@@ -115,14 +126,13 @@ class QuoteViewSet(viewsets.ModelViewSet):
     Views minces : délèguent au coeur applicatif (use cases).
     """
 
-    queryset = Quote.objects.all().select_related("client").prefetch_related("items")
     serializer_class = QuoteSerializer
-    permission_classes = [IsOwnerOrAdmin]
+    permission_classes = [IsOwnerOrAdmin, HasAccountContext]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
-    filterset_fields = ["status", "client", "owner"]
-    ordering_fields = ["issue_date", "total"]
-    search_fields = ["reference", "title", "metadata"]
+    filterset_class = QuoteFilter
+    ordering_fields = ["issue_date", "total", "updated_at"]
+    search_fields = ["reference", "title", "client__name", "client__email", "metadata"]
 
     # --- helpers clean ----------------------------------------------------------------
     def _repo(self) -> DjangoQuoteRepository:
@@ -131,8 +141,8 @@ class QuoteViewSet(viewsets.ModelViewSet):
     def _renderer(self) -> DjangoTemplateRenderer:
         return DjangoTemplateRenderer()
 
-    def _pdf(self) -> PlaywrightPdfGenerator:
-        return PlaywrightPdfGenerator()
+    def _pdf(self) -> WeasyPrintPdfGenerator:
+        return WeasyPrintPdfGenerator()
 
     def _mailer(self) -> DjangoEmailSender:
         return DjangoEmailSender()
@@ -167,31 +177,31 @@ class QuoteViewSet(viewsets.ModelViewSet):
                     return str(meta[key]).upper()
         return None
 
-    def _load_theme(self, professional_id) -> dict | None:
+    def _load_theme(self, account_id) -> dict | None:
         """
-        Load active theme for a professional.
+        Load active theme for an account.
         Returns None if branding module is not available or no active theme is found.
         """
         log = get_logger(__name__)
-        log.debug("quote.load_theme.start professional_id=%s", professional_id)
+        log.debug("quote.load_theme.start account_id=%s", account_id)
         try:
             from apps.branding.adapters.persistence.django_theme_repository import DjangoThemeRepository
             from apps.branding.application.usecases.get_theme_for_rendering import GetThemeForRenderingUseCase
 
             repository = DjangoThemeRepository()
             use_case = GetThemeForRenderingUseCase(theme_repository=repository)
-            theme = use_case.execute(professional_id=professional_id)
+            theme = use_case.execute(account_id=account_id)
             if theme:
                 log.debug("quote.load_theme.done theme_name=%s", theme.get("name", None))
                 log.debug("quote.load_theme theme data=%s", theme)
             else:
-                log.error("quote.load_theme.failure professional_id=%s", professional_id)
+                log.error("quote.load_theme.failure account_id=%s", account_id)
             return theme
         except ImportError:
-            log.error("quote.load_theme.skipped_no_branding_module professional_id=%s", professional_id)
+            log.error("quote.load_theme.skipped_no_branding_module account_id=%s", account_id)
             return None
         except Exception:
-            log.exception("quote.load_theme.skipped_unexpected_error professional_id=%s", professional_id)
+            log.exception("quote.load_theme.skipped_unexpected_error account_id=%s", account_id)
             return None
 
     # ----------------------------------------------------------------------------------
@@ -200,17 +210,30 @@ class QuoteViewSet(viewsets.ModelViewSet):
         import logging
 
         logging.getLogger(__name__).info(f"[DEBUG] serializer_class – action: {self.action}")
+        if self.action == "list":
+            return QuoteListSerializer
         if self.action in ("create", "update", "partial_update"):
             return QuoteCreateUpdateSerializer
         return QuoteSerializer
 
     def get_queryset(self):
-        queryset = Quote.objects.select_related("client").prefetch_related(
-            Prefetch("items", queryset=QuoteLineItem.objects.select_related().order_by("order"))
-        )
+        # AIDEV_NOTE: on ne veut pas charger les lignes pour la page liste.
+        # on conditionne le chargement des lignes sur l'action
+        queryset = Quote.objects.select_related("client")
+        if self.action in ("retrieve", "update", "partial_update"):
+            queryset = queryset.prefetch_related(
+                Prefetch("items", queryset=QuoteLineItem.objects.select_related().order_by("order"))
+            )
         user = getattr(self.request, "user", None)
+        account = getattr(self.request, "account", None)
+
         if user and (user.is_staff or user.is_superuser):
             return queryset
+
+        if account:
+            return queryset.filter(account=account)
+
+        # Fallback for backward compat (if no account context but user authenticated)
         return queryset.filter(owner=user)
 
     def _get_detail_obj(self, pk: str) -> Quote:
@@ -290,19 +313,70 @@ class QuoteViewSet(viewsets.ModelViewSet):
             raise
 
     def perform_destroy(self, instance: Quote):
-        instance.status = Quote.Status.CANCELLED
-        instance.save(update_fields=["status", "updated_at"])
-        QuoteHistory.objects.create(
-            quote=instance,
-            payload_snapshot={"action": "partial_delete"},
-            action=QuoteHistory.Action.UPDATED,
-            actor=getattr(self.request, "user", None),
-        )
+        """
+        Soft-delete quote with RGPD compliance.
+        Only DRAFT and CANCELLED quotes can be deleted.
+        SENT/ACCEPTED/PAID/REJECTED/EXPIRED must be retained for 10 years (legal obligation).
+        Logs deletion in QuoteHistory for audit trail.
+        """
+        # AIDEV-NOTE: RGPD - Seuls DRAFT/CANCELLED supprimables (client n'a jamais reçu)
+        # SENT/ACCEPTED/PAID/REJECTED/EXPIRED = retention 10 ans obligatoire
+        try:
+            # Trigger soft delete - Quote.delete() will validate status
+            instance.delete()
+
+            # Log deletion in QuoteHistory for audit trail
+            QuoteHistory.objects.create(
+                quote=instance,
+                payload_snapshot={"action": "soft_delete", "status": instance.status},
+                action=QuoteHistory.Action.DELETED,
+                actor=getattr(self.request, "user", None),
+            )
+        except DjangoValidationError as e:
+            # Re-raise as DRF ValidationError to return 400 instead of 500
+            error_dict = e.message_dict if hasattr(e, "message_dict") else {"detail": str(e)}
+            raise ValidationError(error_dict)
+        except Exception as e:
+            logger.exception("quote.destroy.error", extra={"quote_id": instance.id})
+            raise
 
     def destroy(self, request, *args, **kwargs):
         obj = self.get_object()
         self.perform_destroy(obj)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_update(self, serializer):
+        """
+        Block modifications on non-DRAFT quotes except status changes.
+        Only DRAFT quotes can be fully edited. For SENT/PAID/ACCEPTED quotes, only status can be changed.
+        Status changes must respect transition rules (validated by ChangeStatus use case).
+        """
+        instance = serializer.instance
+        validated_data = serializer.validated_data
+
+        # If status not DRAFT, check if only status is being changed
+        if instance.status not in [Quote.Status.DRAFT]:
+            # Extract fields being modified (exclude metadata/timestamp fields)
+            modified_fields = set(validated_data.keys()) - {"updated_at"}
+
+            # Allow status-only changes
+            if modified_fields == {"status"}:
+                new_status = validated_data["status"]
+                # Use ChangeStatus use case to validate transition
+                uc = ChangeStatus(repo=self._repo())
+                try:
+                    uc.execute(quote_id=str(instance.pk), new_status=new_status, actor=self.request.user)
+                    # Instance already saved by use case, skip serializer.save()
+                    return
+                except ValueError as e:
+                    raise ValidationError({"status": str(e)})
+
+            # Block all other modifications
+            raise ValidationError(
+                {"detail": f"Cannot modify quotes with status {instance.status}. Only DRAFT quotes can be edited."}
+            )
+
+        serializer.save()
 
     # ----------------------
     # Custom actions (CLEAN ARCH)
@@ -348,7 +422,13 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
         uc = DuplicateQuote(repo=self._repo(), reference_gen=self._reference_gen())
         with transaction.atomic():
-            new_quote = uc.execute(quote_id=str(original.pk), actor=request.user)
+            # Phase 5: Pass account_id
+            account = getattr(request, "account", None)
+            if not account:
+                # Should be caught by permission, but safe fallback
+                return Response({"detail": "Account context required"}, status=400)
+
+            new_quote = uc.execute(quote_id=str(original.pk), account_id=account.id, actor=request.user)
 
         return Response(QuoteSerializer(new_quote, context={"request": request}).data, status=201)
 
@@ -395,9 +475,11 @@ class QuoteViewSet(viewsets.ModelViewSet):
         vat_exempt, default_rate = self._owner_vat_config_from_user(request.user)
         client_country = self._client_country_from_model(quote.client)
 
-        theme = self._load_theme(request.user.id)
-        if theme:
-            logger.debug("quote.download_pdf.theme_loaded theme_name=%s", theme.get("name", None))
+        theme = None
+        if hasattr(request, "account") and request.account:
+            theme = self._load_theme(request.account.id)
+            if theme:
+                logger.debug("quote.download_pdf.theme_loaded theme_name=%s", theme.get("name", None))
 
         uc = DownloadPdf(repo=self._repo(), renderer=self._renderer(), pdf=self._pdf(), theme_loader=self._load_theme)
         pdf_bytes = uc.execute(
@@ -412,6 +494,52 @@ class QuoteViewSet(viewsets.ModelViewSet):
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         response["Cache-Control"] = "no-store"
         return response
+
+    @action(detail=False, methods=["get"], url_path="metrics")
+    def metrics(self, request):
+        """
+        Dashboard metrics endpoint
+        Returns: total quotes, estimated revenue, acceptance rate, monthly breakdown
+        """
+        log = get_logger(__name__, request)
+        log.info("quote.metrics.start")
+
+        # Filter quotes by account
+        queryset = Quote.objects.filter(account=request.account)
+
+        # Global metrics
+        total_quotes = queryset.count()
+        estimated_revenue = queryset.filter(status__in=["DRAFT", "SENT", "ACCEPTED", "PAID"]).aggregate(
+            total=Sum("total", output_field=DecimalField())
+        )["total"] or Decimal("0.00")
+
+        # Acceptance rate: (ACCEPTED + PAID) / actionable quotes
+        # Exclude DRAFT, CANCELLED, EXPIRED as they weren't sent to clients
+        actionable = queryset.exclude(status__in=["DRAFT", "CANCELLED", "EXPIRED"])
+        accepted = actionable.filter(status__in=["ACCEPTED", "PAID"]).count()
+        total_actionable = actionable.count()
+        acceptance_rate = (accepted / total_actionable * 100) if total_actionable > 0 else 0
+
+        # Monthly breakdown (quotes with issue_date only)
+        monthly_data = (
+            queryset.filter(issue_date__isnull=False)
+            .annotate(month=TruncMonth("issue_date"))
+            .values("month")
+            .annotate(quote_count=Count("id"), revenue=Sum("total"))
+            .order_by("month")
+        )
+
+        # Serialize response
+        data = {
+            "total_quotes": total_quotes,
+            "estimated_revenue": estimated_revenue,
+            "acceptance_rate": acceptance_rate,
+            "monthly_breakdown": list(monthly_data),
+        }
+
+        serializer = QuoteMetricsSerializer(data)
+        log.info("quote.metrics.success total_quotes=%s", total_quotes)
+        return Response(serializer.data)
 
     # ----------------------
     # Update handlers
@@ -456,7 +584,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
 
 class QuotePreviewPdfView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, HasAccountContext]
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
 
     def post(self, request):
@@ -471,16 +599,18 @@ class QuotePreviewPdfView(APIView):
         vat_exempt, default_rate = QuoteViewSet._owner_vat_config_from_user(self, request.user)
         client_country = self._client_country_from_payload(data.get("client"))
 
-        branding = self._load_theme(request.user.id)
-        if branding:
-            log = get_logger(__name__)
-            log.debug(
-                "quote.preview.branding_loaded professional_id=%s, has_theme=%s, theme_id=%s, theme_name=%s",
-                request.user.id,
-                bool(branding),
-                branding.get("id") if isinstance(branding, dict) else None,
-                branding.get("name") if isinstance(branding, dict) else None,
-            )
+        branding = None
+        if hasattr(request, "account") and request.account:
+            branding = self._load_theme(request.account.id)
+            if branding:
+                log = get_logger(__name__)
+                log.debug(
+                    "quote.preview.branding_loaded account_id=%s, has_theme=%s, theme_id=%s, theme_name=%s",
+                    request.account.id,
+                    bool(branding),
+                    branding.get("id") if isinstance(branding, dict) else None,
+                    branding.get("name") if isinstance(branding, dict) else None,
+                )
 
         # Mapper payload -> DTO (tax_rate en %)
         from decimal import Decimal as D
@@ -496,16 +626,49 @@ class QuotePreviewPdfView(APIView):
             discount_dec = D(str(discount_val)) if discount_val is not None else None
             lines_dto.append(
                 LineItemInputDTO(
-                    description=str(line.get("designation") or line.get("name") or ""),
+                    designation=str(line.get("designation") or line.get("name") or ""),
                     qty=D(str(line["quantity"])),
                     unit_price=D(str(line["unit_price"])),
                     discount=discount_dec,
                     tax_rate_pct=tax_rate_pct,
+                    description=line.get("description"),
                 )
             )
 
+        # Enrich seller data with account info (logo_url, phone, address) if not provided
+        seller_data = dict(data["seller"])
+        if hasattr(request, "account") and request.account:
+            account = request.account
+            if not seller_data.get("logo_url"):
+                seller_data["logo_url"] = getattr(account, "logo_url", None)
+            if not seller_data.get("professional_headline"):
+                seller_data["professional_headline"] = getattr(account, "professional_headline", None)
+            # AIDEV-NOTE: Add address fields from Account (feat/account-address)
+            if not seller_data.get("address_line1"):
+                seller_data["address_line1"] = getattr(account, "address_line1", None)
+            if not seller_data.get("address_line2"):
+                seller_data["address_line2"] = getattr(account, "address_line2", None)
+            if not seller_data.get("city"):
+                seller_data["city"] = getattr(account, "city", None)
+            if not seller_data.get("postal_code"):
+                seller_data["postal_code"] = getattr(account, "postal_code", None)
+            if not seller_data.get("country"):
+                seller_data["country"] = getattr(account, "country", None)
+            # Build formatted address if not already set
+            if not seller_data.get("address"):
+                parts = [p for p in [seller_data.get("address_line1"), seller_data.get("address_line2")] if p]
+                loc = [p for p in [seller_data.get("postal_code"), seller_data.get("city")] if p]
+                if loc:
+                    parts.append(" ".join(loc))
+                if seller_data.get("country"):
+                    parts.append(seller_data["country"])
+                seller_data["address"] = ", ".join(parts) if parts else None
+        if hasattr(request.user, "profile") and request.user.profile:
+            if not seller_data.get("phone"):
+                seller_data["phone"] = getattr(request.user.profile, "phone", None)
+
         dto = PreviewPayloadDTO(
-            seller=data["seller"],
+            seller=seller_data,
             client=data["client"],
             meta=data["meta"],
             lines=lines_dto,
@@ -519,11 +682,64 @@ class QuotePreviewPdfView(APIView):
         except Exception as e:
             return Response({"code": "QUOTE_PREVIEW_VALIDATION", "detail": str(e)}, status=422)
 
+        # AIDEV-NOTE: Phase 3 - Fetch legal terms for preview PDF (#87)
+        legal_terms_html = None
+        try:
+            from apps.legal_terms.adapters.persistence.django_legal_profile_repository import (
+                DjangoLegalProfileRepository,
+            )
+            from apps.legal_terms.adapters.persistence.django_legal_template_repository import (
+                DjangoLegalTemplateRepository,
+            )
+            from apps.legal_terms.adapters.rendering.template_renderer import TemplateRenderer as LegalTermsRenderer
+            from apps.legal_terms.adapters.services.account_service import AccountServiceAdapter
+            from apps.legal_terms.application.dtos.preview_dto import PreviewLegalTermsInput
+            from apps.legal_terms.application.use_cases.preview_legal_terms import PreviewLegalTermsUseCase
+            from apps.legal_terms.domain.services.legal_terms_assembler import LegalTermsAssembler
+
+            log = get_logger(__name__)
+
+            # Get account_id from user
+            account_id = request.user.account.id if hasattr(request.user, "account") else None
+            if account_id:
+                log.debug("quote.preview.legal_terms_fetch.start account_id=%s", account_id)
+
+                # Build use case
+                use_case = PreviewLegalTermsUseCase(
+                    profile_repository=DjangoLegalProfileRepository(),
+                    template_repository=DjangoLegalTemplateRepository(),
+                    account_service=AccountServiceAdapter(),
+                    template_renderer=LegalTermsRenderer(),
+                    assembler=LegalTermsAssembler(),
+                )
+
+                # Execute
+                output = use_case.execute(PreviewLegalTermsInput(account_id=account_id))
+                legal_terms_html = output.rendered_html
+
+                log.info(
+                    "quote.preview.legal_terms_loaded account_id=%s html_length=%s",
+                    account_id,
+                    len(legal_terms_html) if legal_terms_html else 0,
+                )
+            else:
+                log.warning("quote.preview.no_account_id user_id=%s", request.user.id)
+        except Exception as e:
+            log = get_logger(__name__)
+            log.warning(
+                "quote.preview.legal_terms_error user_id=%s error=%s",
+                request.user.id,
+                str(e),
+                exc_info=True,
+            )
+            # Continue without legal terms instead of failing the entire preview
+
         # Adapters: PDF Preview Renderer
         renderer = DjangoTemplateRenderer()
-        pdfgen = PlaywrightPdfGenerator()
+        pdfgen = WeasyPrintPdfGenerator()
         try:
-            html = renderer.render("quote/pdf/preview.html", vm)
+            # Use document.html template (same as download) with legal terms
+            html = renderer.render("quote/pdf/document.html", vm, legal_terms_html=legal_terms_html)
             pdf_bytes = pdfgen.generate(html)
         except Exception as e:
             return Response({"code": "QUOTE_PREVIEW_RENDERING", "detail": str(e)}, status=503)
@@ -542,33 +758,33 @@ class QuotePreviewPdfView(APIView):
                 return str(val).upper()
         return None
 
-    def _load_theme(self, professional_id) -> dict | None:
+    def _load_theme(self, account_id) -> dict | None:
         """
-        Load active theme for a professional.
+        Load active theme for an account.
         Returns None if branding module is not available or no active theme is found.
         """
         log = get_logger(__name__)
-        log.debug("quote.preview.load_theme.start professional_id=%s", professional_id)
+        log.debug("quote.preview.load_theme.start account_id=%s", account_id)
         try:
             from apps.branding.adapters.persistence.django_theme_repository import DjangoThemeRepository
             from apps.branding.application.usecases.get_theme_for_rendering import GetThemeForRenderingUseCase
 
             repository = DjangoThemeRepository()
             use_case = GetThemeForRenderingUseCase(theme_repository=repository)
-            theme = use_case.execute(professional_id=professional_id)
+            theme = use_case.execute(account_id=account_id)
             if theme:
                 log.debug(
-                    "quote.theme.load.success professional_id=%s, theme_id=%s, theme_name=%s",
-                    professional_id,
+                    "quote.theme.load.success account_id=%s, theme_id=%s, theme_name=%s",
+                    account_id,
                     theme.get("id") if isinstance(theme, dict) else None,
                     theme.get("name") if isinstance(theme, dict) else None,
                 )
             else:
-                log.debug("quote.theme.load.failure professional_id=%s", professional_id)
+                log.debug("quote.theme.load.failure account_id=%s", account_id)
             return theme
         except ImportError:
-            log.debug("quote.theme.load.skipped_no_branding_module professional_id=%s", professional_id)
+            log.debug("quote.theme.load.skipped_no_branding_module account_id=%s", account_id)
             return None
         except Exception as e:
-            log.debug("quote.theme.load.skipped_unexpected_error professional_id=%s, error=%s", professional_id, str(e))
+            log.debug("quote.theme.load.skipped_unexpected_error account_id=%s, error=%s", account_id, str(e))
             return None

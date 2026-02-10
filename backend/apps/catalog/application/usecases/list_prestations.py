@@ -2,6 +2,7 @@
 """
 Use case: Lister les prestations.
 """
+
 import logging
 
 from apps.catalog.application.dto.prestation_inputs import ListPrestationsInput
@@ -67,7 +68,7 @@ class ListPrestations:
             default_rate_display=PrestationCalculator.format_rate_display(prestation.default_rate_cents),
             status=prestation.status,
             custom=prestation.custom,
-            professional_user_id=prestation.professional_user_id,
+            account_id=prestation.account_id,  # Phase 5.4
             created_at=prestation.created_at,
             updated_at=prestation.updated_at,
         )

@@ -23,12 +23,20 @@ export default function LoginPage() {
       </Helmet>
       <Navbar />
       <main className={styles.loginPage} data-component="LoginPage">
+        <div className={styles.heroSection}>
+          <h2 className={styles.heroTitle}>
+            Vos <span className="text-accent-orange">devis professionnels</span>{' '}
+            en quelques <span className="text-brand">minutes</span>.
+          </h2>
+          <p className={styles.heroSubtitle}>
+            FreelanSign simplifie votre administratif : créez, personnalisez et
+            envoyez vos devis conformes à la réglementation française.
+          </p>
+        </div>
+
         <section className={styles.card}>
           <h1 className={styles.title}>Connexion</h1>
-
-          {/* LoginForm reste séparé et peut avoir son propre LoginForm.module.css */}
           <LoginForm />
-
           <p className={styles.cta}>
             Pas encore de compte ?{' '}
             <Link to="/register" className={styles.link}>

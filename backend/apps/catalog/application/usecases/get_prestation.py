@@ -2,6 +2,7 @@
 """
 Use case: Récupérer une prestation par ID.
 """
+
 import logging
 
 from apps.catalog.application.dto.prestation_inputs import GetPrestationInput
@@ -65,7 +66,7 @@ class GetPrestation:
             default_rate_display=PrestationCalculator.format_rate_display(prestation.default_rate_cents),
             status=prestation.status,
             custom=prestation.custom,
-            professional_user_id=prestation.professional_user_id,
+            account_id=prestation.account_id,
             created_at=prestation.created_at,
             updated_at=prestation.updated_at,
         )

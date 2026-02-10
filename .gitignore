@@ -1,3 +1,15 @@
+environment/
+
+# Perso
+docs/perso
+docs/good-practices
+docs/tmp
+backend/docs
+database/
+docs/DEPLOY_VPS_BUILD_LOCAL.md
+docs/docker-compose*
+*db-sync*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -224,13 +236,12 @@ node_modules/
 *.env.production
 *.sql
 
+# DB sync config (contains credentials and VPS info)
+.db-sync.config
+
 workspace/
 
 backend/logs/
 .DS_Store
 backend/.DS_Store
 backend/tools/.DS_Store
-
-
-# Perso
-docs/perso

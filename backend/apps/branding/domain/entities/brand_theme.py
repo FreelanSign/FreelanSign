@@ -18,7 +18,7 @@ class BrandTheme:
     """
 
     id: uuid.UUID
-    professional_id: uuid.UUID
+    account_id: uuid.UUID
     name: str
     is_active: bool
     colors: ColorPalette
@@ -67,7 +67,7 @@ class BrandTheme:
         """Convert to dictionary for JSON serialization."""
         return {
             "id": str(self.id),
-            "professional_id": str(self.professional_id),
+            "account_id": str(self.account_id),
             "name": self.name,
             "is_active": self.is_active,
             "colors": self.colors.to_dict(),

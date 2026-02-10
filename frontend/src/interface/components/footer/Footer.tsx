@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import pkg from '../../../../package.json';
+import { LEGAL_INFO } from '../../../shared/legalInfo';
 import styles from './footer.module.css';
 
 export default function Footer() {
@@ -27,12 +28,12 @@ export default function Footer() {
           <a href="#" onClick={handleNotAvailable} className={styles.link}>
             Support
           </a>
-          <a href="#" onClick={handleNotAvailable} className={styles.link}>
+          <Link to="/cgu" className={styles.link}>
             CGU
-          </a>
-          <a href="#" onClick={handleNotAvailable} className={styles.link}>
+          </Link>
+          <Link to="/confidentialite" className={styles.link}>
             Confidentialité
-          </a>
+          </Link>
         </div>
 
         <div className={styles.column}>
@@ -52,8 +53,11 @@ export default function Footer() {
 
         <div className={styles.column}>
           <h3 className={styles.title}>Contact</h3>
-          <a href="mailto:freelansign@gmail.com" className={styles.link}>
-            freelansign@gmail.com
+          <a
+            href={`mailto:${LEGAL_INFO.company.email}`}
+            className={styles.link}
+          >
+            {LEGAL_INFO.company.email}
           </a>
         </div>
       </div>

@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 
 from apps.branding.domain.services.theme_normalizer import normalize_theme_dict
+from apps.legal_terms.adapters.persistence.django_attached_terms_repository import DjangoAttachedTermsRepository
 from apps.quote.application.dto.quote_inputs import LineItemInputDTO, PreviewPayloadDTO
 from apps.quote.application.ports.pdf_generator import PdfGenerator
 from apps.quote.application.ports.quote_repository import QuoteRepository
@@ -31,7 +32,7 @@ class DownloadPdf:
         log.info("download_pdf.start quote_id=%s, actor_id=%s", quote_id, getattr(actor, "id", None))
 
         # 1) récupérer le devis
-        quote = self.repo.get(quote_id, requester_id=actor.id, include_lines=True)
+        quote = self.repo.get(quote_id, requester_id=str(actor.id), include_lines=True)
         log.info(
             "download_pdf.quote_loaded quote_id=%s, client_id=%s, nb_lines=%s",
             quote.id,
@@ -39,53 +40,61 @@ class DownloadPdf:
             quote.items.count(),
         )
 
-        # 2) charger le thème (sans forcer en UUID)
+        # 2) charger le thème (via quote.account)
         branding = None
         raw_theme = None
-        if self.theme_loader and hasattr(actor, "id"):
-            raw_id = actor.id
-            log.debug("download_pdf.theme_loader.call actor_id=%s, actor_id_type=%s", raw_id, type(raw_id).__name__)
+        # Phase 5: Use account from quote instead of actor
+        account_id = getattr(quote.account, "id", None)
+
+        if self.theme_loader and account_id:
+            log.debug("download_pdf.theme_loader.call account_id=%s", account_id)
             try:
-                raw_theme = self.theme_loader(raw_id)
+                raw_theme = self.theme_loader(account_id)
                 log.debug(
-                    "download_pdf.theme_loader.done actor_id=%s, has_branding=%s, theme_name=%s",
-                    raw_id,
+                    "download_pdf.theme_loader.done account_id=%s, has_branding=%s, theme_name=%s",
+                    account_id,
                     bool(raw_theme),
                     raw_theme.get("name") if isinstance(raw_theme, dict) else None,
                 )
             except Exception as e:
-                log.exception("download_pdf.theme_loader.error actor_id=%s", raw_id)
+                log.exception("download_pdf.theme_loader.error account_id=%s", account_id)
                 raw_theme = None
             branding = normalize_theme_dict(raw_theme)
         else:
             log.debug(
-                "download_pdf.theme_loader.skipped_no_theme_loader has_loader=%s, actor_id=%s",
+                "download_pdf.theme_loader.skipped has_loader=%s, has_account=%s",
                 bool(self.theme_loader),
-                getattr(actor, "id", None),
+                bool(account_id),
             )
+            branding = normalize_theme_dict(None)
 
         # 3) mapper les lignes
+        # AIDEV-NOTE: Model's `description` = designation (item name), `details` = description (optional detail)
         lines = [
             LineItemInputDTO(
-                description=li.description,
+                designation=li.description,  # Item name/title
                 qty=li.qty,
                 unit_price=li.unit_price,
                 discount=li.discount,
                 tax_rate_pct=li.tax_rate,
+                description=li.details or None,  # Optional detailed description
             )
             for li in quote.items.all()
         ]
-        seller_payload = _build_seller_from_actor(actor)
+        seller_payload = _build_seller_from_actor(actor, quote.account, owner_vat_exempt=owner_vat_exempt)
         log.debug("download_pdf.seller_payload seller_payload=%s", seller_payload)
+
+        # Build complete client data
+        client_data = _build_client_from_quote(quote.client, client_country)
+
+        # Build complete meta data
+        meta_data = _build_meta_from_quote(quote)
+
         # 4) construire le DTO de preview
         dto = PreviewPayloadDTO(
             seller=seller_payload,
-            client={"name": getattr(quote.client, "name", ""), "country": client_country},
-            # ⚠️ ton template lit meta.number / meta.date → on les met bien comme ça
-            meta={
-                "number": quote.reference,
-                "date": str(quote.issue_date),
-            },
+            client=client_data,
+            meta=meta_data,
             lines=lines,
             branding=branding,
             owner_vat_exempt=owner_vat_exempt,
@@ -96,26 +105,52 @@ class DownloadPdf:
         # 5) générer le viewmodel (OBJET)
         vm = generate_preview(dto)
 
+        # Phase 7: Fetch legal terms for PDF
+        # AIDEV-NOTE: Diagnostic logs added to debug legal terms generation issue (#87)
+        legal_terms_html = None
+        try:
+            attached_terms_repo = DjangoAttachedTermsRepository()
+            log.debug("download_pdf.legal_terms_fetch.start quote_id=%s", quote_id)
+            attached_terms = attached_terms_repo.get_by_quote(quote_id)
+            if attached_terms:
+                legal_terms_html = attached_terms.rendered_html
+                log.info(
+                    "download_pdf.legal_terms_loaded quote_id=%s html_length=%s html_preview=%s",
+                    quote_id,
+                    len(legal_terms_html) if legal_terms_html else 0,
+                    legal_terms_html[:100] if legal_terms_html else "EMPTY",
+                )
+            else:
+                log.warning("download_pdf.no_legal_terms quote_id=%s attached_terms_is_none=True", quote_id)
+        except Exception as e:
+            log.error(
+                "download_pdf.legal_terms_error quote_id=%s error=%s",
+                quote_id,
+                str(e),
+                exc_info=True,
+            )
+
         # 6) logs sans casser le type
         log.debug(
-            "download_pdf.before_render quote_id=%s has_branding=%s meta_keys=%s",
+            "download_pdf.before_render quote_id=%s has_branding=%s meta_keys=%s has_legal_terms=%s",
             quote_id,
             bool(getattr(vm, "branding", None)),
             list(vm.meta.keys()) if hasattr(vm, "meta") and isinstance(vm.meta, dict) else None,
+            bool(legal_terms_html),
         )
 
-        # 7) rendu
-        html = self.renderer.render("quote/pdf/document.html", vm)
+        # 7) rendu - is_download=True removes the "BROUILLON" watermark
+        html = self.renderer.render("quote/pdf/document.html", vm, legal_terms_html=legal_terms_html, is_download=True)
         pdf_bytes = self.pdf.generate(html)
 
         log.info("download_pdf.done quote_id=%s, pdf_len=%s", quote_id, len(pdf_bytes))
         return pdf_bytes
 
 
-def _build_seller_from_actor(actor) -> dict:
+def _build_seller_from_actor(actor, account=None, *, owner_vat_exempt: bool = False) -> dict:
     """
-    Construit le payload 'seller' pour le PDF à partir du user connecté.
-    On agrège: user, profile, professional.
+    Construit le payload 'seller' pour le PDF à partir du user connecté et du compte.
+    On agrège: user, profile, professional, account.
     """
     if actor is None:
         return {"name": "FreelanSign"}
@@ -129,26 +164,106 @@ def _build_seller_from_actor(actor) -> dict:
     profile = getattr(actor, "profile", None)
     first_name = getattr(profile, "first_name", None) if profile else None
     last_name = getattr(profile, "last_name", None) if profile else None
+    phone = getattr(profile, "phone", None) if profile else None
 
-    # 3) professional
+    # 3) professional (legacy)
     pro = getattr(actor, "professional", None)
     pro_name = getattr(pro, "name", None) if pro else None
     siret = getattr(pro, "number_pro", None) if pro else None
     statut = getattr(pro, "status_juridique", None) if pro else None
 
-    # priorité d’affichage: nom métier > nom profil > nom legacy > email
+    # 4) account (new architecture)
+    account_name = getattr(account, "display_name", None) if account else None
+    account_siret = getattr(account, "legal_id", None) if account else None
+    account_legal_form = getattr(account, "legal_form", None) if account else None
+    professional_headline = getattr(account, "professional_headline", None) if account else None
+    logo_url = getattr(account, "logo_url", None) if account else None
+    # AIDEV-NOTE: Address fields from Account (feat/account-address)
+    address_line1 = getattr(account, "address_line1", None) if account else None
+    address_line2 = getattr(account, "address_line2", None) if account else None
+    city = getattr(account, "city", None) if account else None
+    postal_code = getattr(account, "postal_code", None) if account else None
+    country = getattr(account, "country", None) if account else None
+
+    # priorité d'affichage: account > professional > profile > legacy > email
     display_name = (
-        pro_name or (" ".join(p for p in [first_name, last_name] if p) or None) or legacy_name or email or "FreelanSign"
+        account_name
+        or pro_name
+        or (" ".join(p for p in [first_name, last_name] if p) or None)
+        or legacy_name
+        or email
+        or "FreelanSign"
     )
+
+    # Priorité SIRET: account > professional
+    final_siret = account_siret or siret
+    # Priorité statut juridique: account > professional
+    final_statut = account_legal_form or statut
+
+    # Build formatted address string from account fields
+    address_parts = [p for p in [address_line1, address_line2] if p]
+    location_parts = [p for p in [postal_code, city] if p]
+    if location_parts:
+        address_parts.append(" ".join(location_parts))
+    if country:
+        address_parts.append(country)
+    formatted_address = ", ".join(address_parts) if address_parts else None
 
     seller = {
         "name": display_name,
-        # ce sont les champs que ton template sait afficher :
-        "siret": siret,
+        "professional_headline": professional_headline,
+        "siret": final_siret,
         "vat_number": None,  # tu pourras le mapper depuis un autre modèle plus tard
-        "address": None,
+        "address": formatted_address,
+        "address_line1": address_line1,
+        "address_line2": address_line2,
+        "city": city,
+        "postal_code": postal_code,
+        "country": country,
         "email": email,
-        "legal_status": statut,
+        "phone": phone,
+        "legal_status": final_statut,
+        "vat_exempt": owner_vat_exempt,
+        "logo_url": logo_url,
     }
 
     return seller
+
+
+def _build_client_from_quote(client, client_country: str | None) -> dict:
+    """Build complete client data for PDF template."""
+    if client is None:
+        return {"name": "", "country": client_country}
+
+    return {
+        "name": getattr(client, "name", "") or "",
+        "company": getattr(client, "company", None),
+        "email": getattr(client, "email", None),
+        "phone": getattr(client, "phone", None),
+        "address_line1": getattr(client, "address_line1", None),
+        "address_line2": getattr(client, "address_line2", None),
+        "city": getattr(client, "city", None),
+        "postal_code": getattr(client, "postal_code", None),
+        "country": client_country or getattr(client, "country", None),
+        "vat_number": getattr(client, "vat_number", None),
+    }
+
+
+def _build_meta_from_quote(quote) -> dict:
+    """Build complete meta data for PDF template."""
+    # Get payment terms text
+    payment_terms_text = None
+    if quote.payment_terms:
+        payment_terms_text = quote.payment_terms.name
+    elif quote.payment_terms_text:
+        payment_terms_text = quote.payment_terms_text
+
+    return {
+        "number": quote.reference,
+        "date": str(quote.issue_date) if quote.issue_date else None,
+        "valid_until": str(quote.valid_until) if quote.valid_until else None,
+        "payment_terms": payment_terms_text,
+        "title": getattr(quote, "title", None),
+        "note": getattr(quote, "note", None),
+        "terms": getattr(quote, "terms", None),
+    }

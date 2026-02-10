@@ -2,6 +2,7 @@
 """
 Services de calcul purs pour les prestations.
 """
+
 from decimal import Decimal
 from typing import Any, Dict, List
 

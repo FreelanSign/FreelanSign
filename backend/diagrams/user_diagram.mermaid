@@ -1,0 +1,41 @@
+classDiagram
+    class User {
+        +String id
+        +String password
+        +DateTime last_login
+        +Boolean is_superuser
+        +String first_name
+        +String last_name
+        +Boolean is_staff
+        +Boolean is_active
+        +DateTime date_joined
+        +String email
+        +String full_name
+        +String phone
+    }
+    class Profile {
+        +String id
+        +String first_name
+        +String last_name
+        +Date birthday
+        +String phone
+        +String avatar_url
+        +String role
+        +DateTime created_at
+        +DateTime updated_at
+    }
+    class ProfessionalUser {
+        +String id
+        +String name
+        +String status_juridique
+        +Number tjm_cents
+        +String number_pro
+        +DateTime created_at
+        +DateTime updated_at
+    }
+    User "*" --> "*" Group : groups
+    User "*" --> "*" Permission : user_permissions
+    Profile "*" --> "1" User : user
+    ProfessionalUser "*" --> "1" User : user
+    ProfessionalUser "*" --> "1" Area : domaine
+    ProfessionalUser "*" --> "*" Prestation : service_types

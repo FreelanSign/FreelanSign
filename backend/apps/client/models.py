@@ -4,33 +4,48 @@ import uuid
 from django.conf import settings
 from django.db import models
 
+from apps.core.fields import EncryptedCharField, EncryptedEmailField
+from apps.core.models import SoftDeleteModel, TimestampedModel
 
-class Client(models.Model):
+
+class Client(TimestampedModel, SoftDeleteModel):
     """
     Simple client model for quotes.
     Keep it compact — extend later with addresses, contacts, VAT, etc.
+
+    Soft delete enabled for RGPD compliance.
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="clients", help_text="Owner who created this client."
     )
+    account = models.ForeignKey(
+        "user.Account",
+        on_delete=models.PROTECT,
+        related_name="clients",
+        help_text="Account owning this client.",
+    )
     name = models.CharField(max_length=255)
-    email = models.EmailField(blank=True)
-    phone = models.CharField(max_length=64, blank=True)
-    address = models.TextField(blank=True)
-    vat_number = models.CharField(max_length=64, blank=True)
+    # RGPD: Encrypted fields for sensitive personal data (SPECIFICATIONS_RGPD.md Section 3.1.1)
+    email = EncryptedEmailField(blank=True)
+    phone = EncryptedCharField(max_length=64, blank=True)
+    # Structured address fields
+    address_line1 = EncryptedCharField(max_length=255, blank=True)
+    address_line2 = EncryptedCharField(max_length=255, blank=True)
+    city = EncryptedCharField(max_length=100, blank=True)
+    postal_code = EncryptedCharField(max_length=20, blank=True)
+    country = models.CharField(max_length=2, blank=True)  # ISO 3166-1 alpha-2, not encrypted for VAT validation queries
+    company = EncryptedCharField(max_length=255, blank=True)
+    vat_number = EncryptedCharField(max_length=64, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "client_client"
         verbose_name = "Client"
         verbose_name_plural = "Clients"
         indexes = [
-            models.Index(fields=["owner", "name"], name="ix_client_owner_name"),
+            models.Index(fields=["account", "name"], name="ix_client_account_name"),
         ]
 
     def __str__(self):

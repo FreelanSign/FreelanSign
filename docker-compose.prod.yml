@@ -9,12 +9,10 @@ services:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
-      # On retire le fichier conf externe pour simplifier, on passe les commandes en ligne
-      # C'est plus sûr pour un MVP que de gérer un fichier externe
     command:
       - "postgres"
       - "-c"
-      - "shared_buffers=128MB" # Optimisé pour 2GB RAM
+      - "shared_buffers=128MB"
       - "-c"
       - "max_connections=50"
       - "-c"
@@ -35,8 +33,9 @@ services:
       retries: 5
 
   backend:
-    # REMPLACÉ: On utilise l'image buildée localement
-    image: ghcr.io/freelansign/freelansign-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: freelansign_backend_prod
     restart: always
     environment:
@@ -45,10 +44,29 @@ services:
       - DATABASE_NAME=${DATABASE_NAME}
       - DATABASE_USER=${DATABASE_USER}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
-      - DEBUG=False
+      - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD} # N'oublie pas les autres vars email
+      - FIELD_ENCRYPTION_KEY=${FIELD_ENCRYPTION_KEY}
+      - EMAIL_BACKEND=${EMAIL_BACKEND}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - RESET_PASSWORD_URL=${RESET_PASSWORD_URL}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT:-production}
+      - SENTRY_TRACES_SAMPLE_RATE=${SENTRY_TRACES_SAMPLE_RATE:-0.1}
+      - RETENTION_POLICY_ENABLED=${RETENTION_POLICY_ENABLED:-True}
+      - RETENTION_AUDIT_LOGS_DAYS=${RETENTION_AUDIT_LOGS_DAYS:-395}
+      - RETENTION_ACCOUNTING_YEARS=${RETENTION_ACCOUNTING_YEARS:-10}
+      - ENABLE_ACCOUNT_MODEL=${ENABLE_ACCOUNT_MODEL:-True}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
     volumes:
       - backend_static_prod:/app/static
       - backend_media_prod:/app/media
@@ -66,29 +84,83 @@ services:
     networks:
       - freelansign_network_prod
 
-  frontend:
-    # REMPLACÉ: On utilise l'image buildée localement
-    image: ghcr.io/freelansign/freelansign-frontend:latest
-    container_name: freelansign_frontend_prod
+  cron:
+    # RGPD retention policy CRON job (GitHub Issue #72)
+    # Runs weekly (Sunday 3am) to purge old data:
+    # - AuditLog records > 395 days (13 months)
+    # - Soft-deleted Accounts/Clients > 10 years
+    image: ghcr.io/freelansign/freelansign-backend:latest
+    container_name: freelansign_cron_prod
     restart: always
-    ports:
-      - "80:80"
-      # Le port 443 est ajouté via le fichier certbot override
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DEBUG=False
+      - SECRET_KEY=${SECRET_KEY}
+      - FIELD_ENCRYPTION_KEY=${FIELD_ENCRYPTION_KEY}
+      - RETENTION_POLICY_ENABLED=True
+      - RETENTION_AUDIT_LOGS_DAYS=395
+      - RETENTION_ACCOUNTING_YEARS=10
+      - SENTRY_DSN=${SENTRY_DSN}
+      - SENTRY_ENVIRONMENT=production
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - EMAIL_BACKEND=${EMAIL_BACKEND}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+    volumes:
+      - backend_logs_prod:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - freelansign_network_prod
+    # Run CRON daemon with weekly retention policy
+    # Schedule: Sunday at 3:00 AM (low-traffic period)
+    command: >
+      sh -c "
+      mkdir -p /etc/crontabs &&
+      echo '0 3 * * 0 cd /app && python manage.py apply_retention_policy >> /app/logs/retention_policy.log 2>&1' > /etc/crontabs/root &&
+      crond -f -l 2
+      "
     deploy:
       resources:
         limits:
-          cpus: '0.25'
-          memory: 256M
-    depends_on:
-      - backend
-    volumes:
-      - backend_static_prod:/app/static:ro
-      - backend_media_prod:/app/media:ro
-      - nginx_logs_prod:/var/log/nginx
-      # VOLUME CRITIQUE POUR LE CHALLENGE ACME
-      - certbot_www:/var/www/certbot:ro
-    networks:
-      - freelansign_network_prod
+          cpus: '0.1'
+          memory: 128M
+        reservations:
+          memory: 64M
+
+  frontend:
+      build:
+        context: ./frontend
+        dockerfile: Dockerfile
+        target: production-server  # ← Build le stage nginx
+      container_name: freelansign_frontend_prod
+      restart: always
+      ports:
+        - "80:80"
+      deploy:
+        resources:
+          limits:
+            cpus: '0.25'
+            memory: 256M
+      depends_on:
+        - backend
+      volumes:
+        - backend_static_prod:/app/static:ro
+        - backend_media_prod:/app/media:ro
+        - nginx_logs_prod:/var/log/nginx
+        - certbot_www:/var/www/certbot:ro
+        - certbot_conf:/etc/letsencrypt:ro
+      networks:
+        - freelansign_network_prod
 
 volumes:
   postgres_data_prod:
@@ -96,7 +168,8 @@ volumes:
   backend_media_prod:
   backend_logs_prod:
   nginx_logs_prod:
-  certbot_www: # On déclare le volume ici
+  certbot_www:
+  certbot_conf:
 
 networks:
   freelansign_network_prod:

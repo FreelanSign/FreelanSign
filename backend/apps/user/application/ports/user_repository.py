@@ -3,6 +3,7 @@
 Ports des repositories pour le domaine user.
 Interfaces abstraites utilisées par les use cases.
 """
+
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -112,65 +113,11 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
+    def set_email_verified(self, user_id: int, verified: bool) -> None:
+        """Sets the email_verified flag for a user."""
+        pass
+
+    @abstractmethod
     def delete(self, user_id: int):
         """Supprime un utilisateur."""
-        pass
-
-
-class ProfessionalRepository(ABC):
-    """Port pour l'accès aux professionnels."""
-
-    @abstractmethod
-    def get_by_id(self, professional_id: int):
-        """Récupère un professionnel par son ID."""
-        pass
-
-    @abstractmethod
-    def get_by_user_id(self, user_id: int):
-        """Récupère un professionnel par l'ID de l'utilisateur."""
-        pass
-
-    @abstractmethod
-    def list_all(self, user_id: Optional[int] = None):
-        """
-        Liste tous les professionnels.
-        Si user_id fourni, filtre par utilisateur.
-        """
-        pass
-
-    @abstractmethod
-    def exists_for_user(self, user_id: int) -> bool:
-        """Vérifie si un profil professionnel existe pour cet utilisateur."""
-        pass
-
-    @abstractmethod
-    def create(self, professional_data: dict):
-        """
-        Crée un nouveau profil professionnel.
-
-        Args:
-            professional_data: Données du professionnel
-
-        Returns:
-            Instance ProfessionalUser créée
-        """
-        pass
-
-    @abstractmethod
-    def update(self, professional_id: int, professional_data: dict):
-        """
-        Met à jour un profil professionnel.
-
-        Args:
-            professional_id: ID du professionnel
-            professional_data: Données à mettre à jour
-
-        Returns:
-            Instance ProfessionalUser mise à jour
-        """
-        pass
-
-    @abstractmethod
-    def delete(self, professional_id: int):
-        """Supprime un profil professionnel."""
         pass

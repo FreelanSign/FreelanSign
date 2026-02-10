@@ -9,6 +9,8 @@ from django.utils import timezone
 
 from apps.client.models import Client
 from apps.core.utils.money import cents_to_euros, euros_to_cents
+from apps.legal_terms.application.dtos.attach_dto import AttachTermsInput
+from apps.legal_terms.application.use_cases.attach_terms_to_quote import AttachTermsToQuoteUseCase
 from apps.quote.application.ports.quote_repository import QuoteRepository
 from apps.quote.application.ports.reference_gen import QuoteReferenceGeneratorPort
 from apps.quote.models import Quote, QuoteLineItem
@@ -35,15 +37,23 @@ class CreateQuoteUseCase:
     This use case remains agnostic of the persistence layer (via QuoteRepository).
     """
 
-    def __init__(self, *, ref_generator: QuoteReferenceGeneratorPort, quote_repository: QuoteRepository):
+    def __init__(
+        self,
+        *,
+        ref_generator: QuoteReferenceGeneratorPort,
+        quote_repository: QuoteRepository,
+        attach_terms_use_case: AttachTermsToQuoteUseCase,
+    ):
         self.ref_generator = ref_generator
         self.quote_repository = quote_repository
+        self.attach_terms_use_case = attach_terms_use_case
 
     @transaction.atomic
     def execute(
         self,
         *,
-        owner,
+        account_id: int,  # Phase 5: account FK
+        requester_id: int,  # For permission checks
         validated_data: dict,
         client_patch: Optional[Dict[str, Any]] = None,
     ) -> Quote:
@@ -53,17 +63,20 @@ class CreateQuoteUseCase:
 
         if client_patch:
             logger.info("client.update.before_create", extra={"client_id": str(client.id)})
-            self._apply_client_update(client, client_patch, requester=owner)
+            self._apply_client_update(client, client_patch, requester_id=requester_id)
 
         validated_data.pop("reference", None)
         raw_discount_total = validated_data.pop("discount_total", ZERO)
-        reference = self.ref_generator.next_reference(owner_id=owner.id, when=issue_date)
+        # Phase 5: Use account_id for reference generation
+        reference = self.ref_generator.next_reference(owner_id=account_id, when=issue_date)
         validated_data["reference"] = reference
 
-        # On utilise le repository pour créer et récupérer le devis
-        quote_id = self.quote_repository.create(owner_id=str(owner.id), fields=validated_data)
+        # Phase 5: Create with account_id
+        # Backward compat: Ensure owner_id is set (requester is owner)
+        validated_data["owner_id"] = requester_id
+        quote_id = self.quote_repository.create(account_id=account_id, fields=validated_data)
         logger.info("quote.created", extra={"quote_id": str(quote_id)})
-        quote = self.quote_repository.get(quote_id=quote_id, requester_id=owner.id)
+        quote = self.quote_repository.get(quote_id=quote_id, requester_id=requester_id)
         logger.debug("quote.loaded.after_creation", extra={"quote_id": quote_id})
 
         subtotal, tax_total = self._create_items_and_compute_totals(quote, items)
@@ -78,6 +91,28 @@ class CreateQuoteUseCase:
         )
         quote.refresh_from_db()
 
+        # Phase 6: Attach legal terms (MVP requirement: quote cannot be created without legal terms)
+        # AIDEV-NOTE: Diagnostic logs added to debug legal terms generation issue (#87)
+        logger.info("quote.attach_legal_terms.start", extra={"quote_id": str(quote.id), "account_id": account_id})
+        try:
+            attach_output = self.attach_terms_use_case.execute(AttachTermsInput(quote_id=str(quote.id), account_id=account_id))
+            logger.info(
+                "quote.attach_legal_terms.done",
+                extra={
+                    "quote_id": str(quote.id),
+                    "attached_terms_id": str(attach_output.attached_terms_id) if attach_output else "NONE",
+                    "template_version": attach_output.template_version if attach_output else "NONE",
+                },
+            )
+        except Exception as e:
+            logger.error(
+                "quote.attach_legal_terms.failed",
+                extra={"quote_id": str(quote.id), "account_id": account_id, "error": str(e)},
+                exc_info=True,
+            )
+            # Re-raise to fail the transaction
+            raise
+
         logger.info(
             "quote.create.finish",
             extra={
@@ -91,9 +126,10 @@ class CreateQuoteUseCase:
 
         return quote
 
-    def _apply_client_update(self, client: Client, patch: dict, *, requester) -> None:
-        if client.owner_id != requester.id:
-            logger.warning("client.update.forbidden", extra={"client_id": str(client.id), "requester_id": requester.id})
+    def _apply_client_update(self, client: Client, patch: dict, *, requester_id: int) -> None:
+        # TODO Phase 5.2: Update when Client has account FK
+        if client.owner_id != requester_id:
+            logger.warning("client.update.forbidden", extra={"client_id": str(client.id), "requester_id": requester_id})
             raise ValidationError({"client": "You do not own this client."})
 
         allowed_fields = {"name", "email", "phone", "address", "vat_number", "metadata"}

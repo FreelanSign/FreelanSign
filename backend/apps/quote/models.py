@@ -13,6 +13,8 @@ from django.db.models import F, Index, Q, UniqueConstraint, Value
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
+from apps.core.models import SoftDeleteModel
+
 # Reusable decimal options for money-like fields
 DECIMAL_KWARGS = dict(max_digits=12, decimal_places=2, default=Decimal("0.00"))
 
@@ -55,10 +57,12 @@ class PaymentTerms(models.Model):
         return f"{self.name} ({self.days}d)"
 
 
-class Quote(models.Model):
+class Quote(SoftDeleteModel, models.Model):
     """
     Commercial quote document. Stores header amounts separately from line items
     to allow integrity checks and faster reads.
+
+    Soft delete enabled for RGPD compliance (10 years retention).
     """
 
     class Status(models.TextChoices):
@@ -83,6 +87,13 @@ class Quote(models.Model):
         on_delete=models.PROTECT,
         related_name="quotes",
         help_text="Client associated with this quote.",
+    )
+
+    account = models.ForeignKey(
+        "user.Account",
+        on_delete=models.PROTECT,
+        related_name="quotes",
+        help_text="Account owning this quote.",
     )
 
     title = models.CharField(max_length=255)
@@ -145,6 +156,10 @@ class Quote(models.Model):
         indexes = [
             Index(fields=["owner", "reference"], name="ix_quote_owner_reference"),
             Index(fields=["status"], name="ix_quote_status"),
+            Index(fields=["account", "updated_at"], name="ix_quote_account_updated_at"),
+            Index(fields=["account", "issue_date"], name="ix_quote_account_issue_date"),
+            Index(fields=["account", "status"], name="ix_quote_account_status"),
+            Index(fields=["account", "reference"], name="ix_quote_account_reference"),
         ]
         ordering = ["-created_at"]
 
@@ -228,6 +243,39 @@ class Quote(models.Model):
         if (self.total or Decimal("0.00")).quantize(Decimal("0.01")) != expected:
             raise ValidationError({"total": f"Total mismatch: expected {expected} but got {self.total}"})
 
+    def delete(self, hard: bool = False, using=None, keep_parents=False):
+        """
+        Soft-delete Quote with RGPD compliance.
+
+        Only DRAFT and CANCELLED quotes can be deleted.
+        All other statuses must be retained for 10 years (legal/accounting obligation).
+
+        Args:
+            hard: If True, performs hard delete (bypass soft delete)
+            using: Database alias
+            keep_parents: Standard Django delete parameter
+
+        Raises:
+            ValidationError: If Quote status is not DRAFT or CANCELLED
+        """
+        if hard:
+            return super().delete(hard=True, using=using, keep_parents=keep_parents)
+
+        # AIDEV-NOTE: RGPD Compliance - Only DRAFT and CANCELLED can be deleted
+        # SENT/ACCEPTED/PAID/REJECTED/EXPIRED = client received = 10-year retention required
+        deletable_statuses = [self.Status.DRAFT, self.Status.CANCELLED]
+        if self.status not in deletable_statuses:
+            raise ValidationError(
+                f"Impossible de supprimer un devis avec le statut {self.get_status_display()}. "
+                "Seuls les devis BROUILLON et ANNULÉ peuvent être supprimés (conformité RGPD)."
+            )
+
+        # Soft-delete via SoftDeleteModel mechanism
+        if not self.is_deleted:
+            self.is_deleted = True
+            self.deleted_at = timezone.now()
+            self.save(update_fields=["is_deleted", "deleted_at"])
+
 
 class QuoteLineItem(models.Model):
     """
@@ -238,7 +286,8 @@ class QuoteLineItem(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     quote = models.ForeignKey("quote.Quote", on_delete=models.CASCADE, related_name="items", help_text="Owning quote.")
-    description = models.CharField(max_length=255)
+    description = models.TextField(blank=True, default="")  # Item name/designation
+    details = models.TextField(blank=True, default="", help_text="Optional detailed description for the line item.")
     qty = models.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -289,9 +338,11 @@ class QuoteLineItem(models.Model):
     # --- computations ---------------------------------------------------------------------------------
     def pre_tax_total(self) -> Decimal:
         """
-        Compute pre-tax total = qty * unit_price - discount (never below 0).
+        Compute pre-tax total = qty * unit_price with discount percentage applied (never below 0).
         """
-        base = (self.qty * self.unit_price) - self.discount
+        base = self.qty * self.unit_price
+        discount_amount = base * (self.discount / Decimal("100"))
+        base = base - discount_amount
         if base < 0:
             base = Decimal("0.00")
         return base.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
@@ -324,6 +375,7 @@ class QuoteHistory(models.Model):
         UPDATED = "updated", "Updated"
         SENT = "sent", "Sent"
         STATUS_CHANGED = "status_changed", "Status changed"
+        DELETED = "deleted", "Deleted"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="history", help_text="Related quote.")

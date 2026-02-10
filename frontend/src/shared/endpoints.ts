@@ -18,14 +18,22 @@ export const API_ENDPOINTS = {
   // Si absent, tu peux l'ignorer et te baser sur le token.
   me: '/api/user/me/',
   meProfile: '/api/user/me/profile/',
-  professionalMe: '/api/user/professional/me/',
+  meAvatar: '/api/user/me/avatar/',
+  exportData: '/api/user/export-data/',
+  accounts: '/api/user/accounts/',
+  account: (id: string) => `/api/user/accounts/${id}/`,
   catalogPrestation: '/api/catalog/prestations/',
   catalogArea: '/api/catalog/areas/',
   clients: '/api/clients/',
   quotes: '/api/quotes/',
   quotePreview: '/api/quotes/preview-pdf/',
   quotePdf: (id: string | number) => `/api/quotes/${id}/pdf/`,
+  quoteMetrics: '/api/quotes/metrics/',
   requestPasswordReset: 'api/auth/request-password-reset/',
+  verifyEmail: '/api/auth/verify-email/',
+  resendVerification: '/api/auth/resend-verification/',
   preparedEmail: (quoteId: string | number) =>
     `api/quote/${quoteId}/prepared-email`,
+  legalTermsPreview: '/api/legal-terms/preview/',
+  legalTermsProfile: '/api/legal-terms/profile/',
 } as const;

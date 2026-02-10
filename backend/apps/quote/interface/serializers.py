@@ -14,6 +14,13 @@ from rest_framework.exceptions import ValidationError
 from apps.client.interface.serializers import ClientReadSerializer
 from apps.client.models import Client
 from apps.core.logging import get_logger
+from apps.legal_terms.adapters.persistence.django_attached_terms_repository import DjangoAttachedTermsRepository
+from apps.legal_terms.adapters.persistence.django_legal_profile_repository import DjangoLegalProfileRepository
+from apps.legal_terms.adapters.persistence.django_legal_template_repository import DjangoLegalTemplateRepository
+from apps.legal_terms.adapters.rendering.template_renderer import TemplateRenderer
+from apps.legal_terms.adapters.services.account_service_adapter import AccountServiceAdapter
+from apps.legal_terms.application.use_cases.attach_terms_to_quote import AttachTermsToQuoteUseCase
+from apps.legal_terms.domain.services.legal_terms_assembler import LegalTermsAssembler
 from apps.quote.adapters.persistence.django_quote_repository import DjangoQuoteRepository
 from apps.quote.adapters.reference.django_quote_reference_generator import get_quote_reference_generator
 from apps.quote.application.usecases.create_quote import CreateQuoteUseCase
@@ -62,6 +69,7 @@ class QuoteLineItemSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "description",
+            "details",
             "qty",
             "unit_price",
             "tax_rate",
@@ -181,7 +189,8 @@ def _create_and_accumulate_line(
 ) -> Tuple[Decimal, Decimal]:
     line = QuoteLineItem.objects.create(
         quote=quote,
-        description=(item.get("description", "") or "")[:255],
+        description=item.get("description", "") or "",
+        details=item.get("details", "") or "",
         qty=Decimal(str(item.get("qty"))),
         unit_price=quantize_money(Decimal(str(item.get("unit_price")))),
         tax_rate=tax_rate,
@@ -253,7 +262,7 @@ def _create_items_and_compute_totals(
 # Write serializer
 # --------------------------------------------------------------------------------------
 class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
-    items = QuoteLineItemSerializer(many=True)
+    items = QuoteLineItemSerializer(many=True, allow_empty=False)
     client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all())
     client_update = serializers.DictField(required=False, write_only=True)
 
@@ -290,10 +299,24 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
         Raises:
             ValidationError: If the quote data is invalid.
         """
-        items = data.get("items", None)
+        items = data.get("items")
         if not self.partial:
-            if not items or len(items) < 1:
+            if items is None or len(items) < 1:
                 raise ValidationError({"items": "A quote must contain at least one line item."})
+
+            # Check if at least one item is non-default
+            is_empty_selection = True
+            for item in items:
+                # An item is considered "default" if it has the default description AND 0 unit price
+                # If a prestation was selected, description and price would likely have changed.
+                if Decimal(str(item.get("unit_price", 0))) > ZERO or item.get("description") != "Nouvelle prestation":
+                    is_empty_selection = False
+                    break
+
+            if is_empty_selection:
+                raise ValidationError(
+                    {"items": "Veuillez modifier au moins une prestation (nom ou prix) avant de créer le devis."}
+                )
         else:
             if items is not None and len(items) < 1:
                 raise ValidationError({"items": "When provided, 'items' must contain at least one line item."})
@@ -309,8 +332,20 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
         owner = request.user
 
         vat_exempt, owner_default_tax = _owner_vat_config(owner)
-        client_country = _get_client_country(data.get("client"))
-        item_tax_rates = _collect_item_tax_rates(items, vat_exempt, owner_default_tax)
+        # Phase 5+: robust partial update handling for tax validation
+        client = data.get("client")
+        if client is None and self.instance:
+            client = self.instance.client
+
+        client_country = _get_client_country(client)
+
+        if items is not None:
+            item_tax_rates = _collect_item_tax_rates(items, vat_exempt, owner_default_tax)
+        elif self.instance:
+            # Fallback to existing items' tax rates for validation
+            item_tax_rates = [li.tax_rate for li in self.instance.items.all()]
+        else:
+            item_tax_rates = []
 
         _qlog(
             self,
@@ -319,7 +354,7 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
             owner_id=getattr(owner, "id", None),
             vat_exempt=vat_exempt,
             client_country=client_country,
-            item_count=len(items),
+            item_count=len(item_tax_rates),
             has_client_update=bool(self.initial_data.get("client_update")),
         )
 
@@ -336,6 +371,9 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
 
         Delegates all business logic (reference generation, client patch, line item creation, total calculation) to the CreateQuoteUseCase.
 
+        Phase 5: Uses account from middleware (request.account)
+        Phase 6: Injects AttachTermsToQuoteUseCase (MVP: quote cannot be created without legal terms)
+
         Args:
             validated_data (dict): Pre-validated input data from the serializer.
 
@@ -343,11 +381,45 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
             Quote: The created quote instance.
         """
         request = self.context["request"]
-        owner = request.user
+        # Phase 5: account from middleware, user for requester_id
+        account = getattr(request, "account", None)
+        if not account:
+            raise ValidationError("Account context required (X-Account-Id header or fallback)")
+
+        # v0.4.0+: Check subscription quota before creating quote
+        from apps.user.adapters.persistence.django_account_repository import DjangoAccountRepository
+        from apps.user.application.usecases.check_quota_available import CheckQuotaAvailableUseCase
+        from apps.user.domain.errors import QuotaExceededError
+
+        check_quota_use_case = CheckQuotaAvailableUseCase(
+            account_repository=DjangoAccountRepository(),
+            quote_repository=DjangoQuoteRepository(),
+        )
+        try:
+            check_quota_use_case.execute(account_id=account.id)
+        except QuotaExceededError as e:
+            raise ValidationError({"quota": str(e.message)})
+
         client_patch = self.initial_data.get("client_update", None)
 
-        usecase = CreateQuoteUseCase(ref_generator=get_quote_reference_generator(), quote_repository=DjangoQuoteRepository())
-        return usecase.execute(owner=owner, validated_data=validated_data, client_patch=client_patch)
+        # Phase 6: Instantiate AttachTermsToQuoteUseCase with dependencies
+        attach_terms_use_case = AttachTermsToQuoteUseCase(
+            profile_repository=DjangoLegalProfileRepository(),
+            template_repository=DjangoLegalTemplateRepository(),
+            attached_terms_repository=DjangoAttachedTermsRepository(),
+            account_service=AccountServiceAdapter(),
+            template_renderer=TemplateRenderer(),
+            assembler=LegalTermsAssembler(),
+        )
+
+        usecase = CreateQuoteUseCase(
+            ref_generator=get_quote_reference_generator(),
+            quote_repository=DjangoQuoteRepository(),
+            attach_terms_use_case=attach_terms_use_case,
+        )
+        return usecase.execute(
+            account_id=account.id, requester_id=request.user.id, validated_data=validated_data, client_patch=client_patch
+        )
 
     def update(self, instance: Quote, validated_data: dict) -> Quote:
         """
@@ -355,6 +427,8 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
 
         Delegates business logic such as Client patching, line item replacement, and total recalculation
         to the application layer. The serializer is only responsible for I/O and orchestration.
+
+        Phase 5: Uses requester_id (no owner object)
 
         Args:
             instance (Quote): The quote instance to update.
@@ -364,7 +438,7 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
             Quote: The updated quote instance.
         """
         request = self.context["request"]
-        owner = request.user
+        requester_id = request.user.id  # Phase 5
         client_patch = self.initial_data.get("client_update", None)
         items_field_provided = "items" in (self.initial_data or {})
         # remove field not meant for model
@@ -374,7 +448,7 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
         usecase = UpdateQuoteUseCase(quote_repo=DjangoQuoteRepository())
         return usecase.execute(
             quote=instance,
-            owner=owner,
+            requester_id=requester_id,
             validated_data=validated_data,
             client_patch=client_patch,
             items_field_provided=items_field_provided,
@@ -486,3 +560,52 @@ class QuotePreviewPayloadSerializer(serializers.Serializer):
             normalized_lines.append(line)
         data["lines"] = normalized_lines
         return data
+
+
+# --------------------------------------------------------------------------------------
+# List serializer
+# --------------------------------------------------------------------------------------
+class ClientMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Client
+        fields = ["id", "name", "email"]
+
+
+class QuoteListSerializer(serializers.ModelSerializer):
+    client = ClientMiniSerializer(read_only=True)
+
+    class Meta:
+        model = Quote
+        fields = [
+            "id",
+            "reference",
+            "title",
+            "status",
+            "issue_date",
+            "total",
+            "updated_at",
+            "client",
+        ]
+        read_only_fields = fields
+
+
+# --------------------------------------------------------------------------------------
+# Dashboard Metrics Serializers
+# --------------------------------------------------------------------------------------
+
+
+class QuoteMonthlyMetricSerializer(serializers.Serializer):
+    """Serializer for monthly quote metrics (count + revenue)"""
+
+    month = serializers.DateField()
+    quote_count = serializers.IntegerField()
+    revenue = serializers.DecimalField(max_digits=12, decimal_places=2)
+
+
+class QuoteMetricsSerializer(serializers.Serializer):
+    """Serializer for dashboard metrics endpoint"""
+
+    total_quotes = serializers.IntegerField()
+    estimated_revenue = serializers.DecimalField(max_digits=12, decimal_places=2)
+    acceptance_rate = serializers.FloatField()
+    monthly_breakdown = QuoteMonthlyMetricSerializer(many=True)

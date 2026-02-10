@@ -20,8 +20,10 @@ ME = "/api/user/me/"
 class UserApiTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(email="john@example.com", password="Secret123!")
-        if not hasattr(self.user, "profile"):
-            Profile.objects.create(user=self.user, first_name="John", last_name="Doe")
+        # Profile created automatically by signal, update it with test data
+        self.user.profile.first_name = "John"
+        self.user.profile.last_name = "Doe"
+        self.user.profile.save()
         self.token = str(AccessToken.for_user(self.user))
 
     # ---------- Inscription ----------
@@ -34,7 +36,6 @@ class UserApiTests(APITestCase):
                 "first_name": "Jeanne",
                 "last_name": "Dupont",
                 "phone": "0712345678",
-                "birthday": "1995-06-15",
                 "role": "freelance",
                 "avatar_url": "https://cdn.test/avatar.png",
             },
@@ -49,19 +50,17 @@ class UserApiTests(APITestCase):
         self.assertEqual(body["profile"]["last_name"], "Dupont")
         self.assertEqual(body["profile"]["role"], "freelance")
 
-    def test_register_user_legacy_full_name_phone(self):
+    def test_register_user_with_phone(self):
         payload = {
-            "email": "legacy@example.com",
+            "email": "phonetest@example.com",
             "password": "Secret123!",
-            "full_name": "Marie Curie",
             "phone": "0600000000",
         }
         res = self.client.post(BASE, data=payload, format="json")
         self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.content)
         body = res.json()
-        self.assertEqual(body["email"], "legacy@example.com")
-        self.assertEqual(body["profile"]["first_name"], "Marie")
-        self.assertEqual(body["profile"]["last_name"], "Curie")
+        self.assertEqual(body["email"], "phonetest@example.com")
+        self.assertEqual(body["profile"]["phone"], "0600000000")
         self.assertEqual(body["profile"]["phone"], "0600000000")
         self.assertEqual(body["profile"]["role"], "freelance")
 
@@ -122,6 +121,32 @@ class UserApiTests(APITestCase):
         self.assertTrue(body["profile"]["avatar_url"].endswith("john.png"))
         self.assertEqual(body["profile"]["role"], "freelance")
 
+    def test_update_profile_persists_changes(self):
+        """Test that profile changes are actually persisted and not just cached."""
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+
+        # Update profile with new values
+        patch_data = {"first_name": "UpdatedName", "last_name": "UpdatedLastName", "phone": "+33612345678"}
+        update_res = self.client.patch(ME, data=patch_data, format="json")
+        self.assertEqual(update_res.status_code, status.HTTP_200_OK)
+
+        # Verify immediate response has new values
+        body = update_res.json()
+        self.assertEqual(body["profile"]["first_name"], "UpdatedName")
+        self.assertEqual(body["profile"]["last_name"], "UpdatedLastName")
+        self.assertEqual(body["profile"]["phone"], "+33612345678")
+
+        # Critical: Fetch profile again to verify persistence
+        # This would FAIL with the caching bug (issue #93)
+        get_res = self.client.get(ME)
+        self.assertEqual(get_res.status_code, status.HTTP_200_OK)
+        body = get_res.json()
+
+        # These assertions verify data was actually saved to DB
+        self.assertEqual(body["profile"]["first_name"], "UpdatedName")
+        self.assertEqual(body["profile"]["last_name"], "UpdatedLastName")
+        self.assertEqual(body["profile"]["phone"], "+33612345678")
+
     def test_non_staff_cannot_promote_self_to_admin_role_is_ignored(self):
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
         res1 = self.client.get(ME)
@@ -134,8 +159,10 @@ class UserApiTests(APITestCase):
 
     def test_staff_can_set_admin_role_on_self(self):
         staff = User.objects.create_user(email="staff@example.com", password="Secret123!", is_staff=True)
-        if not hasattr(staff, "profile"):
-            Profile.objects.create(user=staff, first_name="Staff", last_name="User")
+        # Profile created automatically by signal, update it with test data
+        staff.profile.first_name = "Staff"
+        staff.profile.last_name = "User"
+        staff.profile.save()
         staff_token = str(AccessToken.for_user(staff))
 
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {staff_token}")
@@ -146,3 +173,59 @@ class UserApiTests(APITestCase):
         res = self.client.patch(ME, data={"role": "admin"}, format="json")
         self.assertEqual(res.status_code, status.HTTP_200_OK, res.content)
         self.assertEqual(res.json()["profile"]["role"], "admin")
+
+    # ---------- Export Data (RGPD) ----------
+
+    def test_export_data_requires_auth(self):
+        """Test that export-data endpoint requires authentication"""
+        res = self.client.get("/api/user/export-data/")
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_export_data_returns_complete_user_data(self):
+        """Test that export-data returns all user data"""
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+        res = self.client.get("/api/user/export-data/")
+        self.assertEqual(res.status_code, status.HTTP_200_OK, res.content)
+
+        data = res.json()
+
+        # Check user data
+        self.assertIn("user", data)
+        self.assertEqual(data["user"]["email"], "john@example.com")
+        self.assertIn("id", data["user"])
+        self.assertIn("date_joined", data["user"])
+
+        # Check profile data
+        self.assertIn("profile", data)
+        self.assertEqual(data["profile"]["first_name"], "John")
+        self.assertEqual(data["profile"]["last_name"], "Doe")
+
+        # Check accounts, clients, quotes arrays exist
+        self.assertIn("accounts", data)
+        self.assertIn("clients", data)
+        self.assertIn("quotes", data)
+        self.assertIsInstance(data["accounts"], list)
+        self.assertIsInstance(data["clients"], list)
+        self.assertIsInstance(data["quotes"], list)
+
+    def test_export_data_logs_audit_entry(self):
+        """Test that export-data creates an audit log entry"""
+        from apps.core.models.audit import AuditLog
+
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+
+        # Count audit logs before
+        initial_count = AuditLog.objects.filter(action=AuditLog.Action.DATA_EXPORT_REQUESTED, actor=self.user).count()
+
+        res = self.client.get("/api/user/export-data/")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        # Check audit log was created
+        final_count = AuditLog.objects.filter(action=AuditLog.Action.DATA_EXPORT_REQUESTED, actor=self.user).count()
+        self.assertEqual(final_count, initial_count + 1)
+
+        # Verify audit log details
+        audit_log = AuditLog.objects.filter(action=AuditLog.Action.DATA_EXPORT_REQUESTED, actor=self.user).latest("timestamp")
+        self.assertEqual(audit_log.target_model, "User")
+        self.assertEqual(audit_log.target_id, str(self.user.id))
+        self.assertEqual(audit_log.metadata.get("export_type"), "full")

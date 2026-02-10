@@ -12,6 +12,14 @@
 		"python.analysis.extraPaths": [
 			"backend",
 			"backend/apps"
-		]
+		],
+		"cursorpyright.analysis.extraPaths": [
+			"backend",
+			"backend/apps"
+		],
+		"cSpell.words": [
+			"AIDEV"
+		],
+		"makefile.configureOnOpen": false
 	}
 }

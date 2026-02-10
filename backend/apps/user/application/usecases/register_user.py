@@ -2,6 +2,7 @@
 """
 Use case: Enregistrer un nouvel utilisateur.
 """
+
 import logging
 
 from apps.user.application.dto.user_inputs import RegisterUserInput
@@ -63,18 +64,11 @@ class RegisterUser:
         if input_dto.phone:
             UserPolicy.validate_phone(input_dto.phone)
 
-        # Gestion du nom (legacy full_name ou first/last)
-        first_name = input_dto.first_name
-        last_name = input_dto.last_name
-
-        if input_dto.full_name and not first_name and not last_name:
-            first_name, last_name = ProfilePolicy.split_full_name(input_dto.full_name)
-
         # Validation des noms
-        if first_name:
-            ProfilePolicy.validate_name(first_name, "first_name")
-        if last_name:
-            ProfilePolicy.validate_name(last_name, "last_name")
+        if input_dto.first_name:
+            ProfilePolicy.validate_name(input_dto.first_name, "first_name")
+        if input_dto.last_name:
+            ProfilePolicy.validate_name(input_dto.last_name, "last_name")
 
         # 2) Vérifier que l'email n'existe pas déjà
         if self.user_repository.exists_by_email(email_clean):
@@ -87,10 +81,9 @@ class RegisterUser:
                 "email": email_clean,
                 "password": input_dto.password,
                 "profile": {
-                    "first_name": first_name or "",
-                    "last_name": last_name or "",
+                    "first_name": input_dto.first_name or "",
+                    "last_name": input_dto.last_name or "",
                     "phone": input_dto.phone or "",
-                    "birthday": input_dto.birthday,
                     "avatar_url": input_dto.avatar_url or "",
                     "role": role,
                 },
@@ -116,7 +109,6 @@ class RegisterUser:
             profile=ProfileViewModel(
                 first_name=profile.first_name,
                 last_name=profile.last_name,
-                birthday=profile.birthday,
                 phone=profile.phone,
                 avatar_url=profile.avatar_url,
                 role=profile.role,

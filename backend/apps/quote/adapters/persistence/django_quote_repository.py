@@ -1,16 +1,18 @@
 # apps/quote/adapters/persistence/django_quote_repository.py
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
 
 from django.db import transaction
 
 from apps.quote.application.errors import QuoteNotFoundError
 from apps.quote.application.ports.quote_repository import QuoteRepository
+from apps.quote.application.ports.quote_repository_extensions import QuoteRepositoryQuotaExt
 from apps.quote.models import Quote, QuoteLineItem
 
 
-class DjangoQuoteRepository(QuoteRepository):
+class DjangoQuoteRepository(QuoteRepository, QuoteRepositoryQuotaExt):
     """
     DjangoQuoteRepository – Django ORM implementation of the @QuoteRepository port.
 
@@ -32,7 +34,7 @@ class DjangoQuoteRepository(QuoteRepository):
         # pour vérifier la propriété de la quote avant retour (vérification de sécurité).
         # Attention : nécessite adaptation de toutes les implémentations du repo.
 
-        qs = Quote.objects.select_related("client")
+        qs = Quote.objects.select_related("client", "account")
         if include_lines:
             qs = qs.prefetch_related("items")
         try:
@@ -40,10 +42,15 @@ class DjangoQuoteRepository(QuoteRepository):
         except Quote.DoesNotExist:
             raise QuoteNotFoundError()
 
-    def create(self, *, owner_id: str, fields: dict) -> str:
-        """Create a new quote header with initial totals set to zero."""
+    def create(self, *, account_id: int, fields: dict) -> str:
+        """
+        Create a new quote header with initial totals set to zero.
+
+        Phase 5: Uses account FK (owner kept for backward compat until Phase 6).
+        """
         quote = Quote.objects.create(
-            owner_id=owner_id,
+            account_id=account_id,
+            owner_id=fields.pop("owner_id", None),  # Backward compat (optional)
             **fields,
             subtotal=Decimal(0.00),
             tax_total=Decimal(0.00),
@@ -64,9 +71,10 @@ class DjangoQuoteRepository(QuoteRepository):
             QuoteLineItem.objects.create(
                 quote=quote,
                 description=it["description"][:255],
+                details=it.get("details", "") or "",
                 qty=it["qty"],
                 unit_price=it["unit_price"],
-                tax_rate=it["tax_rate"],
+                tax_rate=it.get("tax_rate") or it.get("tax_rate_pct") or Decimal("0.00"),
                 discount=it.get("discount", Decimal("0.00")),
                 order=i,
                 metadata=it.get("metadata", {}),
@@ -78,6 +86,7 @@ class DjangoQuoteRepository(QuoteRepository):
         quote_id: str,
         *,
         description: str,
+        details: str = "",
         qty: Decimal,
         unit_price: Decimal,
         tax_rate_pct: Decimal,
@@ -91,6 +100,7 @@ class DjangoQuoteRepository(QuoteRepository):
             line = QuoteLineItem.objects.create(
                 quote=quote,
                 description=description[:255],
+                details=details,
                 qty=qty,
                 unit_price=unit_price,
                 tax_rate=tax_rate_pct,
@@ -113,3 +123,7 @@ class DjangoQuoteRepository(QuoteRepository):
             "discount_total": quote.discount_total,
             "total": quote.total,
         }
+
+    def count_by_account_since(self, account_id: int, since: datetime) -> int:
+        """Count quotes for account created since given datetime."""
+        return Quote.objects.filter(account_id=account_id, created_at__gte=since).count()

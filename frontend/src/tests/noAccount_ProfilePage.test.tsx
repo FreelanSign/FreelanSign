@@ -1,0 +1,78 @@
+import { render, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+// 1) Mock router
+const mockNavigate = vi.fn();
+let mockLocation = { pathname: '/profile' };
+
+vi.mock('react-router-dom', async () => {
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>(
+      'react-router-dom',
+    );
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+    useLocation: () => mockLocation,
+  };
+});
+
+type MockAccountState = {
+  accounts: { id: number }[];
+  activeAccountId: number | null;
+};
+
+// 2) Mock account store
+let mockAccountState: MockAccountState = {
+  accounts: [],
+  activeAccountId: null,
+};
+
+vi.mock('../infrastructure/account/accountStore', () => ({
+  useAccountStore: (selector: (s: MockAccountState) => unknown) =>
+    selector(mockAccountState),
+}));
+
+// ⬇️ 3) Mock useAuth avec LE BON CHEMIN depuis /src/tests
+vi.mock('../app/providers/AuthProvider', () => ({
+  useAuth: () => ({
+    user: { email: 'test@example.com' },
+  }),
+}));
+
+// 4) Ensuite seulement on importe ProfilePage
+import ProfilePage from '../interface/pages/Profile/ProfilePage';
+
+describe('ProfilePage – no-account handling', () => {
+  beforeEach(() => {
+    mockNavigate.mockClear();
+    mockAccountState = { accounts: [], activeAccountId: null };
+    mockLocation = { pathname: '/profile' };
+  });
+
+  it('redirige vers onboarding quand aucun compte', async () => {
+    mockAccountState = { accounts: [], activeAccountId: null };
+
+    render(<ProfilePage />);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding-account', {
+        replace: true,
+      });
+    });
+  });
+
+  it('ne redirige pas quand un compte existe', async () => {
+    mockAccountState = {
+      accounts: [{ id: 1 }],
+      activeAccountId: 1,
+    };
+
+    render(<ProfilePage />);
+
+    await waitFor(() => {
+      const calls = mockNavigate.mock.calls.map(([path]) => path);
+      expect(calls).not.toContain('/onboarding-account');
+    });
+  });
+});

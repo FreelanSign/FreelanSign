@@ -2,6 +2,7 @@
 """
 Use case: Changer le mot de passe d'un utilisateur.
 """
+
 import logging
 
 from apps.user.application.dto.user_inputs import ChangePasswordInput

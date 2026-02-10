@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 from apps.client.models import Client
 from apps.quote.models import Quote
 from apps.user.models import User
+from apps.user.models.account import Account
 
 FAKE_UUID = "00000000-0000-0000-0000-000000000000"
 
@@ -33,9 +34,13 @@ def user_authenticated(api_client, django_user_model, email, context):
 @given(parsers.parse('un devis "{ref}" appartenant à "{email}"'))
 def create_quote(django_user_model, ref, email, context):
     owner, _ = django_user_model.objects.get_or_create(email=email)
-    client = Client.objects.create(owner=owner, name="Client Inc", email="client@example.com")
+    account, _ = Account.objects.get_or_create(
+        user=owner, defaults={"display_name": "Test Account", "legal_form": "micro", "is_active": True}
+    )
+    client = Client.objects.create(owner=owner, account=account, name="Client Inc", email="client@example.com")
     quote = Quote.objects.create(
         owner=owner,
+        account=account,
         client=client,
         issue_date=datetime.now(),
         reference=ref,

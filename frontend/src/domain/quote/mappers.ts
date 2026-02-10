@@ -3,8 +3,8 @@ import type {
   ApiQuoteResponse,
   ApiQuoteUpdatePayload,
   UiQuote,
-  UiQuoteLine,
   UiQuoteDetail,
+  UiQuoteLine,
   UiQuoteLineDetail,
 } from './types';
 
@@ -17,15 +17,11 @@ export function apiItemsToUi(items: ApiQuoteItem[] | undefined): UiQuoteLine[] {
     (it, idx): UiQuoteLine => ({
       id: it.id ?? idx,
       designation: it.description ?? '',
-      description:
-        typeof it.metadata === 'object' &&
-        it.metadata &&
-        'details' in it.metadata
-          ? ((it.metadata as { details?: string | null }).details ?? '')
-          : '',
+      description: it.details ?? '',
       quantity: Number(it.qty ?? 0),
       unit_price: Number(it.unit_price ?? 0),
       tax_rate: it.tax_rate != null ? Number(it.tax_rate) / 100 : 0,
+      discount: it.discount != null ? Number(it.discount) : 0,
     }),
   );
 }
@@ -53,7 +49,12 @@ export function apiToUiQuote(api: Partial<ApiQuoteResponse>): UiQuote {
           name: api.client.name ?? '',
           email: api.client.email ?? '',
           phone: api.client.phone ?? '',
-          address: api.client.address ?? '',
+          address_line1: api.client.address_line1 ?? '',
+          address_line2: api.client.address_line2 ?? '',
+          city: api.client.city ?? '',
+          postal_code: api.client.postal_code ?? '',
+          country: api.client.country ?? '',
+          company: api.client.company ?? '',
           vat_number: api.client.vat_number ?? '',
           metadata: api.client.metadata ?? null,
         }
@@ -62,7 +63,12 @@ export function apiToUiQuote(api: Partial<ApiQuoteResponse>): UiQuote {
           name: '',
           email: '',
           phone: '',
-          address: '',
+          address_line1: '',
+          address_line2: '',
+          city: '',
+          postal_code: '',
+          country: '',
+          company: '',
           vat_number: '',
           metadata: null,
         },
@@ -79,23 +85,33 @@ export function uiToUpdatePayload(q: UiQuote): ApiQuoteUpdatePayload {
     valid_until: q.due_date ?? null,
     currency: q.currency ?? 'EUR',
     note: q.notes ?? '',
+    payment_terms_text: q.terms ?? '',
     metadata: {},
     client: q.client?.id,
     client_update: {
       name: q.client?.name ?? '',
       email: q.client?.email ?? '',
+      phone: q.client?.phone ?? null,
+      // Structured address fields
+      address_line1: q.client?.address_line1 ?? null,
+      address_line2: q.client?.address_line2 ?? null,
+      city: q.client?.city ?? null,
+      postal_code: q.client?.postal_code ?? null,
+      country: q.client?.country ?? null,
+      company: q.client?.company ?? null,
+      vat_number: q.client?.vat_number ?? null,
     },
   };
 
   if ((q.line_items?.length ?? 0) > 0) {
     payload.items = q.line_items.map((l, i) => ({
       description: l.designation,
+      details: l.description || null,
       qty: String(l.quantity),
       unit_price: String(Number(l.unit_price).toFixed(2)),
       tax_rate: String(((l.tax_rate ?? 0) * 100).toFixed(2)),
-      discount: '0.00',
+      discount: String(Number(l.discount ?? 0).toFixed(2)),
       order: i,
-      metadata: {},
     }));
   }
 
@@ -114,22 +130,20 @@ export function apiToUiQuoteDetail(
   const line_items: UiQuoteLineDetail[] = items.map((it, idx) => {
     const qty = num(it.qty);
     const up = num(it.unit_price);
+    const disc = num(it.discount);
     const taxPct = it.tax_rate != null ? num(it.tax_rate) : 0; // 0..100
-    const pre = it.pre_tax_total != null ? num(it.pre_tax_total) : qty * up;
+    const pre =
+      it.pre_tax_total != null ? num(it.pre_tax_total) : qty * up - disc;
     const tax =
       it.tax_amount != null ? num(it.tax_amount) : pre * (taxPct / 100);
     return {
       id: (it.id ?? idx) as string | number,
       designation: it.description ?? '',
-      description:
-        typeof it.metadata === 'object' &&
-        it.metadata &&
-        'details' in it.metadata
-          ? ((it.metadata as { details?: string | null }).details ?? '')
-          : '',
+      description: it.details ?? '',
       quantity: qty,
       unit_price: up,
       tax_rate: taxPct / 100,
+      discount: disc,
       pre_tax_total: pre,
       tax_amount: tax,
       total: pre + tax,
@@ -151,7 +165,13 @@ export function apiToUiQuoteDetail(
           name: api.client.name ?? '',
           email: api.client.email ?? null,
           phone: api.client.phone ?? null,
-          address: api.client.address ?? null,
+          // Structured address fields
+          address_line1: api.client.address_line1 ?? null,
+          address_line2: api.client.address_line2 ?? null,
+          city: api.client.city ?? null,
+          postal_code: api.client.postal_code ?? null,
+          country: api.client.country ?? null,
+          company: api.client.company ?? null,
           vat_number: api.client.vat_number ?? null,
           metadata: api.client.metadata ?? null,
         }

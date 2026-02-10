@@ -2,17 +2,15 @@
 """
 Implémentation Django des repositories user.
 """
+
 import logging
 from typing import Optional
 
 from django.db import IntegrityError, transaction
 
 from apps.user.application.errors import DuplicateEmailError, RepositoryError
-from apps.user.application.ports.user_repository import (
-    ProfessionalRepository,
-    UserRepository,
-)
-from apps.user.models.models import ProfessionalUser, Profile, User
+from apps.user.application.ports.user_repository import UserRepository
+from apps.user.models.models import Profile, User
 
 logger = logging.getLogger(__name__)
 
@@ -68,11 +66,16 @@ class DjangoUserRepository(UserRepository):
             password = user_data.pop("password")
             email = user_data.pop("email")
 
-            # Créer l'utilisateur
+            # Créer l'utilisateur (Profile créé automatiquement via signal)
             user = User.objects.create_user(email=email, password=password, **user_data)
 
-            # Créer le profil
-            Profile.objects.create(user=user, **profile_data)
+            # Mettre à jour le profil avec les données fournies
+            # AIDEV-NOTE: Profile créé par signal post_save, on recharge avec select_related
+            user = User.objects.select_related("profile").get(pk=user.pk)
+            if profile_data:
+                for key, value in profile_data.items():
+                    setattr(user.profile, key, value)
+                user.profile.save()
 
             return user
 
@@ -103,6 +106,7 @@ class DjangoUserRepository(UserRepository):
 
             user.profile.save()
             user.refresh_from_db()
+            user.profile.refresh_from_db()  # AIDEV-NOTE: Refresh profile to avoid returning stale cached data
 
             return user
 
@@ -141,6 +145,12 @@ class DjangoUserRepository(UserRepository):
             logger.exception("Erreur lors de la vérification du mot de passe")
             return False
 
+    def set_email_verified(self, user_id: int, verified: bool) -> None:
+        """Sets the email_verified flag for a user."""
+        updated = User.objects.filter(id=user_id).update(email_verified=verified)
+        if not updated:
+            raise RepositoryError(f"Utilisateur {user_id} introuvable")
+
     def delete(self, user_id: int):
         """Supprime un utilisateur."""
         try:
@@ -148,124 +158,3 @@ class DjangoUserRepository(UserRepository):
         except Exception as e:
             logger.exception("Erreur lors de la suppression de l'utilisateur")
             raise RepositoryError(f"Erreur technique lors de la suppression de l'utilisateur {user_id}", original_error=e)
-
-
-class DjangoProfessionalRepository(ProfessionalRepository):
-    """
-    Implémentation concrète du repository Professional avec Django ORM.
-    """
-
-    def get_by_id(self, professional_id: int):
-        """Récupère un professionnel par ID."""
-        try:
-            return (
-                ProfessionalUser.objects.select_related("user", "domaine")
-                .prefetch_related("service_types")
-                .get(id=professional_id)
-            )
-        except ProfessionalUser.DoesNotExist:
-            return None
-        except Exception as e:
-            logger.exception("Erreur lors de get_by_id professional(%s)", professional_id)
-            raise RepositoryError(
-                f"Erreur technique lors de la récupération du professionnel {professional_id}", original_error=e
-            )
-
-    def get_by_user_id(self, user_id: int):
-        """Récupère un professionnel par l'ID de l'utilisateur."""
-        try:
-            return (
-                ProfessionalUser.objects.select_related("user", "domaine")
-                .prefetch_related("service_types")
-                .get(user_id=user_id)
-            )
-        except ProfessionalUser.DoesNotExist:
-            return None
-        except Exception as e:
-            logger.exception("Erreur lors de get_by_user_id(%s)", user_id)
-            raise RepositoryError(f"Erreur technique lors de la récupération du professionnel", original_error=e)
-
-    def list_all(self, user_id: Optional[int] = None):
-        """Liste tous les professionnels."""
-        try:
-            qs = ProfessionalUser.objects.select_related("user", "domaine").prefetch_related("service_types").all()
-
-            if user_id is not None:
-                qs = qs.filter(user_id=user_id)
-
-            return qs
-        except Exception as e:
-            logger.exception("Erreur lors du listing des professionnels")
-            raise RepositoryError("Erreur technique lors du listing des professionnels", original_error=e)
-
-    def exists_for_user(self, user_id: int) -> bool:
-        """Vérifie si un profil professionnel existe pour cet utilisateur."""
-        try:
-            return ProfessionalUser.objects.filter(user_id=user_id).exists()
-        except Exception as e:
-            logger.exception("Erreur lors de exists_for_user")
-            raise RepositoryError("Erreur technique lors de la vérification d'existence", original_error=e)
-
-    def create(self, professional_data: dict):
-        """Crée un nouveau profil professionnel."""
-        try:
-            service_type_ids = professional_data.pop("service_type_ids", [])
-
-            professional = ProfessionalUser.objects.create(**professional_data)
-
-            if service_type_ids:
-                professional.service_types.set(service_type_ids)
-
-            return professional
-
-        except Exception as e:
-            logger.exception("Erreur lors de la création du professionnel")
-            raise RepositoryError("Erreur technique lors de la création du professionnel", original_error=e)
-
-    def update(self, professional_id: int, professional_data: dict):
-        """Met à jour un profil professionnel."""
-        try:
-            professional = self.get_by_id(professional_id)
-            if not professional:
-                raise RepositoryError(f"Professionnel {professional_id} introuvable")
-
-            service_type_ids = professional_data.pop("service_type_ids", None)
-
-            # 🔍 DEBUG
-            logger.info(
-                "Repository update: professional_id=%s, service_type_ids=%s",
-                professional_id,
-                service_type_ids,
-            )
-
-            # Mettre à jour les champs
-            for key, value in professional_data.items():
-                if value is not None:
-                    setattr(professional, key, value)
-
-            professional.save()
-
-            # Mettre à jour les service_types si fournis
-            if service_type_ids is not None:
-                logger.info("Repository: calling service_types.set(%s)", service_type_ids)
-                professional.service_types.set(service_type_ids)
-                # 🔍 Vérifier immédiatement après
-                actual = list(professional.service_types.values_list("id", flat=True))
-                logger.info("Repository: after set(), actual service_types=%s", actual)
-
-            professional.refresh_from_db()
-
-            return professional
-        except Exception as e:
-            logger.exception("Erreur lors de la mise à jour du professionnel")
-            raise RepositoryError("Erreur technique lors de la mise à jour du professionnel", original_error=e)
-
-    def delete(self, professional_id: int):
-        """Supprime un profil professionnel."""
-        try:
-            return ProfessionalUser.objects.filter(id=professional_id).delete()
-        except Exception as e:
-            logger.exception("Erreur lors de la suppression du professionnel")
-            raise RepositoryError(
-                f"Erreur technique lors de la suppression du professionnel {professional_id}", original_error=e
-            )

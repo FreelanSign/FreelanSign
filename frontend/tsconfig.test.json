@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "composite": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vitest", "node"]
+  },
+  "include": ["src", "src/**/*.test.ts", "src/**/*.test.tsx", "src/tests/**/*"],
+  "exclude": []
+}

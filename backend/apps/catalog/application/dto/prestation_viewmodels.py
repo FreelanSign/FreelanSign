@@ -3,6 +3,7 @@
 ViewModels de sortie pour les use cases.
 Structures prêtes pour présentation.
 """
+
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
@@ -32,7 +33,7 @@ class PrestationViewModel:
     default_rate_display: str  # Format "1200.00"
     status: str
     custom: bool
-    professional_user_id: Optional[int]
+    account_id: Optional[int]  # Phase 5.4: renamed from professional_user_id
     created_at: datetime
     updated_at: datetime
 

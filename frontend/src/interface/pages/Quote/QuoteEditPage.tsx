@@ -1,19 +1,51 @@
 // src/interface/pages/QuoteEditPage.tsx
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Briefcase,
+  Calendar,
+  ChevronLeft,
+  Eye,
+  FileText,
+  List,
+  PlusCircle,
+  Save,
+  Trash2,
+  User,
+} from 'lucide-react';
+
+import type { AccountDto } from '../../../domain/account/types';
 import { apiToUiQuote } from '../../../domain/quote/mappers';
 import type {
   ApiQuoteResponse,
   ApiQuoteUpdatePayload,
 } from '../../../domain/quote/types';
+import type { UserDto } from '../../../domain/user/types';
+import { accountRepository } from '../../../infrastructure/account/accountRepository';
+import { useAccountStore } from '../../../infrastructure/account/accountStore';
 import { quoteRepository } from '../../../infrastructure/quote/quoteRepository';
 import { userRepository } from '../../../infrastructure/user/userRepository';
 import Modal from '../../components/common/Modal';
-import { PdfPreviewPane } from '../../components/quote/PdfPreviewPane';
+import { PdfPreviewPanel } from '../../components/quote/PdfPreviewPanel';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { usePdfPreview, type PreviewPayload } from '../../hooks/usePdfPreview';
-import { openBlobUrlInNewTab, saveBlobUrlAs } from '../../utils/saveFile';
-import styles from './quote-edit-create.module.css';
+import { useRequireAccount } from '../../hooks/useRequireAccount';
+import { openBlobUrlInNewTab } from '../../utils/saveFile';
 
 type QuoteLine = {
   id?: string | number;
@@ -23,18 +55,22 @@ type QuoteLine = {
   unit_price: number;
   /** 0.2 => 20% (fraction UI) */
   tax_rate?: number | null;
+  /** discount percentage (10 => 10%) */
+  discount?: number | null;
 };
 
 type ClientInfo = {
   id?: string; // UUID renvoyé par l'API
   name: string;
   email?: string | null;
+  phone?: string | null;
   company?: string | null;
   address_line1?: string | null;
   address_line2?: string | null;
   city?: string | null;
   postal_code?: string | null;
   country?: string | null;
+  vat_number?: string | null;
 };
 
 type Quote = {
@@ -75,43 +111,83 @@ const EMPTY_CLIENT_CONST: ClientInfo = {
   country: '',
 };
 
+// AIDEV-NOTE: Pas de live reload - changement effectif au clic "Enregistrer" uniquement
+// Dropdown affiche status actuel pour permettre "aucun changement"
+// Status transition rules (matches backend state machine)
+function getAllowedStatusTransitions(currentStatus: string): string[] {
+  const transitions: Record<string, string[]> = {
+    DRAFT: [
+      'DRAFT',
+      'SENT',
+      'ACCEPTED',
+      'PAID',
+      'REJECTED',
+      'EXPIRED',
+      'CANCELLED',
+    ],
+    SENT: ['SENT', 'ACCEPTED', 'PAID', 'REJECTED', 'EXPIRED', 'CANCELLED'],
+    ACCEPTED: ['ACCEPTED', 'PAID', 'EXPIRED', 'CANCELLED'],
+    REJECTED: ['REJECTED'],
+    PAID: ['PAID'],
+    CANCELLED: ['CANCELLED'],
+    EXPIRED: ['EXPIRED'],
+  };
+  return transitions[currentStatus] || [currentStatus];
+}
+
+// French labels for statuses
+const STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Brouillon',
+  SENT: 'Envoyé',
+  ACCEPTED: 'Accepté',
+  REJECTED: 'Refusé',
+  EXPIRED: 'Expiré',
+  PAID: 'Payé',
+  CANCELLED: 'Annulé',
+};
+
 export default function QuoteEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [quote, setQuote] = useState<Quote | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [me, setMe] = useState<{
-    name?: string | null;
-    email?: string | null;
-    siret?: string | null;
-  } | null>(null);
+  const [user, setUser] = useState<UserDto | null>(null);
+  const [account, setAccount] = useState<AccountDto | null>(null);
+  const activeAccountId = useAccountStore((state) => state.activeAccountId);
 
-  // --- Load me ---
+  // TODO: ajouter un message d'erreur si pas de compte
+  // Redirect vers l'onboarding si aucun compte après chargement
+  useRequireAccount({ loading });
+
+  // --- Load user and account ---
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const meResp = await userRepository.getProfessionalMe();
+        const [userData, accountData] = await Promise.all([
+          userRepository.getMe(),
+          activeAccountId
+            ? accountRepository.retrieve(activeAccountId)
+            : Promise.resolve(null),
+        ]);
         if (!active) return;
-        setMe(
-          meResp
-            ? { name: meResp.name, email: meResp.email, siret: meResp.siret }
-            : null,
-        );
+        setUser(userData);
+        setAccount(accountData);
       } catch (e) {
         if (!active) return;
-        console.error('Erreur chargement me', e);
-        setMe(null);
+        console.error('Erreur chargement user/account', e);
+        setUser(null);
+        setAccount(null);
       }
     })();
     return () => {
       active = false;
     };
-  }, []);
+  }, [activeAccountId]);
 
   // --- Load ---
   useEffect(() => {
@@ -144,12 +220,12 @@ export default function QuoteEditPage() {
                 id: uiBase.client.id,
                 name: uiBase.client.name ?? '',
                 email: uiBase.client.email ?? '',
-                company: '', // champs spécifiques à ton formulaire
-                address_line1: uiBase.client.address ?? '',
-                address_line2: '',
-                city: '',
-                postal_code: '',
-                country: '',
+                company: uiBase.client.company ?? '',
+                address_line1: uiBase.client.address_line1 ?? '',
+                address_line2: uiBase.client.address_line2 ?? '',
+                city: uiBase.client.city ?? '',
+                postal_code: uiBase.client.postal_code ?? '',
+                country: uiBase.client.country ?? '',
               }
             : {
                 id: undefined,
@@ -170,6 +246,7 @@ export default function QuoteEditPage() {
               quantity: l.quantity,
               unit_price: l.unit_price,
               tax_rate: l.tax_rate ?? 0,
+              discount: l.discount ?? 0,
             }),
           ),
         };
@@ -203,9 +280,9 @@ export default function QuoteEditPage() {
   // --- Build du payload de preview ---
   const previewPayload: PreviewPayload | null = useMemo(() => {
     const seller = {
-      name: me?.name ?? 'FreelanSign - Professional',
-      email: me?.email ?? 'professional@freelansign.com',
-      siret: me?.siret ?? '12345678901234',
+      name: account?.display_name ?? 'FreelanSign',
+      email: user?.email ?? 'contact@freelansign.com',
+      siret: account?.legal_id ?? '',
     };
     const client = quote?.client
       ? {
@@ -233,11 +310,11 @@ export default function QuoteEditPage() {
       quantity: Number(l.quantity),
       unit_price: Number(l.unit_price ?? 0),
       tax_rate: typeof l.tax_rate === 'number' ? l.tax_rate : null,
-      discount: 0,
+      discount: Number(l.discount ?? 0),
     }));
     const branding = { name: 'FreelanSign' };
     return { seller, client, meta, lines, branding };
-  }, [quote, me?.name, me?.email, me?.siret]);
+  }, [quote, account?.display_name, user?.email, account?.legal_id]);
 
   const debouncedPreviewPayload = useDebouncedValue<PreviewPayload | null>(
     previewPayload,
@@ -258,10 +335,16 @@ export default function QuoteEditPage() {
   // Derived totals (UI)
   const totals = useMemo(() => {
     const lines = quote?.line_items ?? [];
-    const sub = lines.reduce((acc, l) => acc + l.quantity * l.unit_price, 0);
+    const sub = lines.reduce((acc, l) => {
+      const base = l.quantity * l.unit_price;
+      const afterDiscount = base * (1 - (l.discount ?? 0) / 100);
+      return acc + Math.max(0, afterDiscount);
+    }, 0);
     const tax = lines.reduce((acc, l) => {
+      const base = l.quantity * l.unit_price;
+      const preTax = Math.max(0, base * (1 - (l.discount ?? 0) / 100));
       const rate = l.tax_rate ?? 0;
-      return acc + l.quantity * l.unit_price * rate;
+      return acc + preTax * rate;
     }, 0);
     return { sub, tax, total: sub + tax };
   }, [quote]);
@@ -299,6 +382,7 @@ export default function QuoteEditPage() {
         quantity: 1,
         unit_price: 0,
         tax_rate: 0.2,
+        discount: 0,
       };
       return { ...q, line_items: [...q.line_items, next] };
     });
@@ -315,6 +399,14 @@ export default function QuoteEditPage() {
   const validate = (): string[] => {
     const errs: string[] = [];
     if (!quote) return ['Formulaire vide'];
+
+    // For non-DRAFT quotes, only validate status (content is read-only)
+    if (quote.status !== 'DRAFT') {
+      if (!quote.status?.trim()) errs.push('Le statut est requis.');
+      return errs;
+    }
+
+    // Full validation for DRAFT quotes
     if (!quote.title?.trim()) errs.push('Le titre est requis.');
     if (!quote.reference?.trim()) errs.push('La référence est requise.');
     if (!quote.status?.trim()) errs.push('Le statut est requis.');
@@ -339,23 +431,33 @@ export default function QuoteEditPage() {
       valid_until: q.due_date ?? null,
       currency: q.currency ?? 'EUR',
       note: q.notes ?? '',
+      payment_terms_text: q.terms ?? '',
       metadata: {},
       client: q.client?.id, // UUID attendu par l'API
       client_update: {
         name: q.client?.name ?? '',
         email: q.client?.email ?? '',
-        // ajoute ici phone/address/vat_number/metadata si supportés côté Client
+        phone: q.client?.phone ?? null,
+        // Structured address fields
+        address_line1: q.client?.address_line1 ?? null,
+        address_line2: q.client?.address_line2 ?? null,
+        city: q.client?.city ?? null,
+        postal_code: q.client?.postal_code ?? null,
+        country: q.client?.country ?? null,
+        company: q.client?.company ?? null,
+        vat_number: q.client?.vat_number ?? null,
       },
     };
 
     if ((q.line_items?.length ?? 0) > 0) {
       payload.items = q.line_items.map((l, i) => ({
         description: l.designation,
+        details: l.description || '',
         qty: String(l.quantity),
         unit_price: String(Number(l.unit_price).toFixed(2)),
         // 0.2 (20%) -> "20.00"
         tax_rate: String(((l.tax_rate ?? 0) * 100).toFixed(2)),
-        discount: '0.00',
+        discount: String(Number(l.discount ?? 0).toFixed(2)),
         order: i,
         metadata: {},
       }));
@@ -376,17 +478,42 @@ export default function QuoteEditPage() {
     setSaving(true);
     setError(null);
     try {
-      const payload = toApiPayload(quote);
+      let payload: Partial<ApiQuoteUpdatePayload>;
+
+      if (quote.status === 'DRAFT') {
+        // Full edit for DRAFT quotes
+        payload = toApiPayload(quote);
+      } else {
+        // Status-only update for non-DRAFT quotes (RGPD compliance)
+        payload = { status: quote.status.toUpperCase() };
+      }
+
       console.log('Payload PATCH envoyé', payload);
       await quoteRepository.update(id, payload);
       navigate(`/quotes/${id}`);
     } catch (err) {
-      const e = err as { response?: { data?: unknown }; message?: string };
-      setError(
-        e.response?.data
-          ? JSON.stringify(e.response.data)
-          : (e.message ?? 'Erreur'),
-      );
+      console.error('Update quote error', err);
+      const e = err as {
+        response?: { data?: Record<string, unknown> };
+        message?: string;
+      };
+      if (e.response?.data) {
+        const data = e.response.data;
+        if (typeof data === 'object' && !Array.isArray(data)) {
+          // If specific fields have errors, show them cleanly
+          const messages = Object.entries(data)
+            .map(
+              ([key, val]) =>
+                `${key}: ${Array.isArray(val) ? val.join(' ') : JSON.stringify(val)}`,
+            )
+            .join('\n');
+          setError(messages);
+        } else {
+          setError(JSON.stringify(data));
+        }
+      } else {
+        setError(e.message ?? 'Une erreur est survenue lors de la sauvegarde.');
+      }
     } finally {
       setSaving(false);
     }
@@ -394,460 +521,679 @@ export default function QuoteEditPage() {
 
   if (loading || !quote) {
     return (
-      <div className="grid gap-6">
-        <div className={styles.skeletonHeader} />
-        <div className={styles.skeletonCard} />
+      <div className="container mx-auto py-8 px-4 max-w-7xl space-y-8">
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid gap-6">
+          <Skeleton className="h-48 w-full rounded-xl" />
+          <Skeleton className="h-96 w-full rounded-xl" />
+        </div>
       </div>
     );
   }
+
   return (
-    <div className="grid gap-6">
-      <header className={styles.header}>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className={styles.title}>
-              Éditer le devis — {quote.reference}
-            </h1>
-            <p className={styles.meta}>
-              Modifiez les informations puis enregistrez.
-            </p>
+    <div className="container mx-auto py-8 px-4 space-y-8 max-w-7xl animate-in fade-in duration-500">
+      {/* Header Row */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border/60">
+        <div className="space-y-1">
+          <button
+            onClick={() => navigate(`/quotes/${id}`)}
+            className="flex items-center text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-brand transition-colors mb-2 group"
+          >
+            <ChevronLeft className="mr-1 h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
+            Retour au devis
+          </button>
+          <h1 className="text-3xl font-bold tracking-tight font-playfair">
+            Édition du devis
+          </h1>
+          <p className="text-muted-foreground">
+            Référence{' '}
+            <span className="text-brand font-semibold">{quote.reference}</span>{' '}
+            — Modifiez les détails et enregistrez vos changements.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-9 px-4 font-bold text-xs uppercase tracking-wider"
+            onClick={() => setPreviewOpen(true)}
+          >
+            <Eye className="mr-2 h-4 w-4" />
+            Aperçu PDF
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-9 px-4 font-bold text-xs uppercase tracking-wider"
+            asChild
+          >
+            <Link to={`/quotes/${quote.id}`}>Annuler</Link>
+          </Button>
+          <Button
+            className="h-9 px-6 bg-brand text-white hover:bg-brand-dark shadow-sm font-bold text-xs uppercase tracking-wider"
+            onClick={handleSubmit}
+            disabled={saving}
+          >
+            {saving ? (
+              <>Enregistrement…</>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Enregistrer
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {error && (
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
+          ⚠️ {error}
+        </div>
+      )}
+
+      {quote && quote.status !== 'DRAFT' && (
+        <Alert className="border-blue-200 bg-blue-50">
+          <AlertDescription className="text-blue-800">
+            ℹ️ Ce devis est en statut &quot;
+            {STATUS_LABELS[quote.status] || quote.status}&quot;. Seul le statut
+            peut être modifié (conformité RGPD). <br />
+            Si le changement de statut est une erreur, cliquer sur le bouton
+            "Abandonner les modifications" pour revenir en arrière.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            {/* Bloc Devis */}
+            <Card className="shadow-none border border-border bg-white">
+              <CardHeader className="border-b border-border/50 bg-muted/20">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-md bg-brand/10 text-brand">
+                    <FileText size={18} />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-semibold">
+                      Détails du devis
+                    </CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                      Informations générales et dates de validité
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid gap-6">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="reference"
+                        className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Référence (Auto)
+                      </Label>
+                      <Input
+                        id="reference"
+                        value={quote.reference}
+                        disabled
+                        className="bg-muted/30 font-mono text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="title"
+                        className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Titre du devis
+                      </Label>
+                      <Input
+                        id="title"
+                        value={quote.title}
+                        onChange={(e) => setField('title', e.target.value)}
+                        placeholder="Ex: Refonte du site web"
+                        className="h-10"
+                        disabled={quote.status !== 'DRAFT'}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="status"
+                        className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Statut
+                      </Label>
+                      <Select
+                        value={quote.status}
+                        onValueChange={(val) => setField('status', val)}
+                      >
+                        <SelectTrigger id="status" className="h-10">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getAllowedStatusTransitions(quote.status).map(
+                            (status) => (
+                              <SelectItem key={status} value={status}>
+                                {STATUS_LABELS[status] || status}
+                              </SelectItem>
+                            ),
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="currency"
+                        className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Devise
+                      </Label>
+                      <Input
+                        id="currency"
+                        value={quote.currency ?? 'EUR'}
+                        onChange={(e) => setField('currency', e.target.value)}
+                        placeholder="EUR"
+                        className="h-10"
+                        disabled={quote.status !== 'DRAFT'}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="issue_date"
+                        className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Date d'émission
+                      </Label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="issue_date"
+                          type="date"
+                          value={quote.issue_date ?? ''}
+                          className="pl-9 h-10"
+                          onChange={(e) =>
+                            setField('issue_date', e.target.value || null)
+                          }
+                          disabled={quote.status !== 'DRAFT'}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="due_date"
+                        className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Valable jusqu'au
+                      </Label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="due_date"
+                          type="date"
+                          value={quote.due_date ?? ''}
+                          className="pl-9 h-10"
+                          onChange={(e) =>
+                            setField('due_date', e.target.value || null)
+                          }
+                          disabled={quote.status !== 'DRAFT'}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Bloc Client */}
+            <Card className="shadow-none border border-border bg-white">
+              <CardHeader className="border-b border-border/50 bg-muted/20">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-md bg-brand/10 text-brand">
+                    <User size={18} />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-semibold">
+                      Client
+                    </CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                      Coordonnées du destinataire
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="client_name"
+                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Nom / Raison sociale
+                    </Label>
+                    <Input
+                      id="client_name"
+                      value={quote.client?.name ?? ''}
+                      onChange={(e) => setClient('name', e.target.value)}
+                      className="h-10"
+                      disabled={quote.status !== 'DRAFT'}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="client_email"
+                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Email de contact
+                    </Label>
+                    <Input
+                      id="client_email"
+                      type="email"
+                      value={quote.client?.email ?? ''}
+                      onChange={(e) => setClient('email', e.target.value)}
+                      className="h-10"
+                      disabled={quote.status !== 'DRAFT'}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="client_company"
+                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Entreprise (facultatif)
+                    </Label>
+                    <Input
+                      id="client_company"
+                      value={quote.client?.company ?? ''}
+                      onChange={(e) => setClient('company', e.target.value)}
+                      className="h-10"
+                      disabled={quote.status !== 'DRAFT'}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="client_address1"
+                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Adresse
+                    </Label>
+                    <Input
+                      id="client_address1"
+                      value={quote.client?.address_line1 ?? ''}
+                      onChange={(e) =>
+                        setClient('address_line1', e.target.value)
+                      }
+                      className="h-10"
+                      disabled={quote.status !== 'DRAFT'}
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-6 md:grid-cols-3 mt-6">
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="client_postal"
+                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      CP
+                    </Label>
+                    <Input
+                      id="client_postal"
+                      value={quote.client?.postal_code ?? ''}
+                      onChange={(e) => setClient('postal_code', e.target.value)}
+                      className="h-10"
+                      disabled={quote.status !== 'DRAFT'}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="client_city"
+                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Ville
+                    </Label>
+                    <Input
+                      id="client_city"
+                      value={quote.client?.city ?? ''}
+                      onChange={(e) => setClient('city', e.target.value)}
+                      className="h-10"
+                      disabled={quote.status !== 'DRAFT'}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="client_country"
+                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Pays
+                    </Label>
+                    <Input
+                      id="client_country"
+                      value={quote.client?.country ?? ''}
+                      onChange={(e) => setClient('country', e.target.value)}
+                      className="h-10"
+                      disabled={quote.status !== 'DRAFT'}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className={styles.buttonGhost}
-              onClick={() => setPreviewOpen(true)}
-            >
-              Aperçu
-            </button>
-            <Link to={`/quotes/${quote.id}`} className={styles.buttonGhost}>
-              Annuler
-            </Link>
-            <button
-              className={styles.buttonPrimary}
-              onClick={handleSubmit}
-              disabled={saving}
-            >
-              {saving ? 'Enregistrement…' : 'Enregistrer'}
-            </button>
+
+          <div className="space-y-8">
+            {/* Colonne latérale: Notes & Conditions */}
+            <Card className="shadow-none border border-border bg-white h-full">
+              <CardHeader className="border-b border-border/50 bg-muted/20">
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                  Informations Légales
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-6">
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="notes"
+                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                  >
+                    Notes publiques
+                  </Label>
+                  <Textarea
+                    id="notes"
+                    value={quote.notes ?? ''}
+                    onChange={(e) => setField('notes', e.target.value)}
+                    rows={6}
+                    className="resize-none"
+                    placeholder="Visibles par le client sur le PDF…"
+                    disabled={quote.status !== 'DRAFT'}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="terms"
+                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                  >
+                    Conditions de vente
+                  </Label>
+                  <Textarea
+                    id="terms"
+                    value={quote.terms ?? ''}
+                    onChange={(e) => setField('terms', e.target.value)}
+                    rows={6}
+                    className="resize-none"
+                    placeholder="Paiement, délais, pénalités…"
+                    disabled={quote.status !== 'DRAFT'}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
-      </header>
 
-      {error && <div className={styles.errorBox}>⚠️ {error}</div>}
-
-      <form onSubmit={handleSubmit} className="grid gap-6">
-        {/* Bloc Devis */}
-        <section className={styles.card}>
-          <h2 className={styles.h2}>Devis</h2>
-          <div className={styles.formGrid}>
-            <label className={styles.label}>
-              <span>Référence</span>
-              <input
-                className={styles.input}
-                value={quote.reference}
-                disabled
-                placeholder="FS-2025-001"
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Titre</span>
-              <input
-                className={styles.input}
-                value={quote.title}
-                onChange={(e) => setField('title', e.target.value)}
-                placeholder="Site vitrine 5 pages"
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Statut</span>
-              <select
-                className={styles.input}
-                value={quote.status}
-                onChange={(e) => setField('status', e.target.value)}
-              >
-                <option value="DRAFT">draft</option>
-                <option value="SENT">sent</option>
-                <option value="ACCEPTED">accepted</option>
-                <option value="REJECTED">refused</option>
-                <option value="EXPIRED">expired</option>
-                <option value="PAID">paid</option>
-              </select>
-            </label>
-            <label className={styles.label}>
-              <span>Devise</span>
-              <input
-                className={styles.input}
-                value={quote.currency ?? 'EUR'}
-                onChange={(e) => setField('currency', e.target.value)}
-                placeholder="EUR"
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Date d’émission</span>
-              <input
-                type="date"
-                className={styles.input}
-                value={quote.issue_date ?? ''}
-                onChange={(e) => setField('issue_date', e.target.value || null)}
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Date de validité</span>
-              <input
-                type="date"
-                className={styles.input}
-                value={quote.due_date ?? ''}
-                onChange={(e) => setField('due_date', e.target.value || null)}
-              />
-            </label>
-          </div>
-          <div className={styles.formGrid}>
-            <label className={styles.labelCol}>
-              <span>Notes</span>
-              <textarea
-                className={styles.textarea}
-                value={quote.notes ?? ''}
-                onChange={(e) => setField('notes', e.target.value)}
-                rows={3}
-                placeholder="Informations complémentaires visibles par le client…"
-              />
-            </label>
-            <label className={styles.labelCol}>
-              <span>Conditions</span>
-              <textarea
-                className={styles.textarea}
-                value={quote.terms ?? ''}
-                onChange={(e) => setField('terms', e.target.value)}
-                rows={3}
-                placeholder="Modalités de paiement, délais, pénalités, etc."
-              />
-            </label>
-          </div>
-        </section>
-
-        {/* Bloc Client */}
-        <section className={styles.card}>
-          <h2 className={styles.h2}>Client</h2>
-          <div className={styles.formGrid}>
-            <label className={styles.label}>
-              <span>Nom</span>
-              <input
-                className={styles.input}
-                value={quote.client?.name ?? ''}
-                onChange={(e) => setClient('name', e.target.value)}
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Email</span>
-              <input
-                type="email"
-                className={styles.input}
-                value={quote.client?.email ?? ''}
-                onChange={(e) => setClient('email', e.target.value)}
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Entreprise</span>
-              <input
-                className={styles.input}
-                value={quote.client?.company ?? ''}
-                onChange={(e) => setClient('company', e.target.value)}
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Adresse (ligne 1)</span>
-              <input
-                className={styles.input}
-                value={quote.client?.address_line1 ?? ''}
-                onChange={(e) => setClient('address_line1', e.target.value)}
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Adresse (ligne 2)</span>
-              <input
-                className={styles.input}
-                value={quote.client?.address_line2 ?? ''}
-                onChange={(e) => setClient('address_line2', e.target.value)}
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Ville</span>
-              <input
-                className={styles.input}
-                value={quote.client?.city ?? ''}
-                onChange={(e) => setClient('city', e.target.value)}
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Code postal</span>
-              <input
-                className={styles.input}
-                value={quote.client?.postal_code ?? ''}
-                onChange={(e) => setClient('postal_code', e.target.value)}
-              />
-            </label>
-            <label className={styles.label}>
-              <span>Pays</span>
-              <input
-                className={styles.input}
-                value={quote.client?.country ?? ''}
-                onChange={(e) => setClient('country', e.target.value)}
-              />
-            </label>
-          </div>
-        </section>
-
-        <section className={styles.card}>
-          <div
-            className="flex items-center justify-between"
-            style={{ marginBottom: '16px' }}
-          >
-            <h2 className={styles.h2}>Lignes</h2>
-            <button
+        {/* Bloc Lignes */}
+        <Card className="shadow-none border border-border bg-white overflow-hidden">
+          <CardHeader className="border-b border-border/50 bg-muted/20 flex flex-row items-center justify-between py-4">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-md bg-brand/10 text-brand">
+                <List size={18} />
+              </div>
+              <CardTitle className="text-lg font-semibold leading-none">
+                Prestations
+              </CardTitle>
+            </div>
+            <Button
               type="button"
+              size="sm"
               onClick={addLine}
-              className={styles.buttonAccent}
+              className="bg-brand text-white hover:bg-brand-dark"
+              disabled={quote.status !== 'DRAFT'}
             >
-              + Ajouter
-            </button>
-          </div>
-
-          {quote.line_items.length === 0 ? (
-            <div className={styles.empty}>Aucune ligne</div>
-          ) : (
-            <>
-              <div style={{ display: 'grid', gap: '12px' }}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Ajouter une ligne
+            </Button>
+          </CardHeader>
+          <CardContent className="p-0">
+            {quote.line_items.length === 0 ? (
+              <div className="text-center py-12">
+                <Briefcase className="mx-auto h-12 w-12 text-muted-foreground/20 mb-4" />
+                <p className="text-muted-foreground text-sm font-medium">
+                  Votre devis ne contient aucune ligne de prestation.
+                </p>
+                <Button variant="link" onClick={addLine} className="text-brand">
+                  Commencez par en ajouter une.
+                </Button>
+              </div>
+            ) : (
+              <div className="divide-y divide-border/50">
                 {quote.line_items.map((l, i) => {
                   const base = l.quantity * l.unit_price;
-                  const tot = base * (1 + (l.tax_rate ?? 0));
+                  const preTax = Math.max(
+                    0,
+                    base * (1 - (l.discount ?? 0) / 100),
+                  );
+                  const tot = preTax * (1 + (l.tax_rate ?? 0));
                   return (
                     <div
                       key={i}
-                      style={{
-                        padding: '16px',
-                        border: '1px solid rgba(13,13,13,0.1)',
-                        borderRadius: '8px',
-                        background: '#fff',
-                        display: 'grid',
-                        gap: '12px',
-                      }}
+                      className="p-6 hover:bg-muted/5 transition-colors group relative"
                     >
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '12px',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <span
-                          style={{
-                            minWidth: '32px',
-                            height: '32px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            background: '#f0f4ff',
-                            borderRadius: '6px',
-                            fontWeight: '600',
-                            fontSize: '0.9rem',
-                            color: 'var(--brand)',
-                          }}
-                        >
+                      <div className="flex items-start gap-4">
+                        <div className="h-8 w-8 rounded-full bg-brand/5 border border-brand/10 text-brand flex items-center justify-center text-xs font-bold shrink-0 mt-1">
                           {i + 1}
-                        </span>
+                        </div>
 
-                        <input
-                          className={styles.input}
-                          value={l.designation}
-                          onChange={(e) =>
-                            updateLine(i, { designation: e.target.value })
-                          }
-                          placeholder="Prestation"
-                          style={{ flex: 1 }}
-                        />
-
-                        <button
-                          type="button"
-                          onClick={() => removeLine(i)}
-                          style={{
-                            padding: '8px 12px',
-                            border: '1px solid rgba(13,13,13,0.1)',
-                            borderRadius: '6px',
-                            background: '#fff',
-                            cursor: 'pointer',
-                            fontSize: '0.85rem',
-                          }}
-                        >
-                          ✕
-                        </button>
-                      </div>
-
-                      <input
-                        className={styles.input}
-                        value={l.description ?? ''}
-                        onChange={(e) =>
-                          updateLine(i, { description: e.target.value })
-                        }
-                        placeholder="Description (optionnel)"
-                      />
-
-                      <div
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns:
-                            'repeat(auto-fit, minmax(100px, 1fr))',
-                          gap: '12px',
-                        }}
-                      >
-                        <label style={{ display: 'grid', gap: '4px' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
-                            Quantité
-                          </span>
-                          <input
-                            className={styles.input}
-                            type="number"
-                            min={0}
-                            step="1"
-                            value={l.quantity}
-                            onChange={(e) =>
-                              updateLine(i, {
-                                quantity: Number(e.target.value),
-                              })
-                            }
-                          />
-                        </label>
-
-                        <label style={{ display: 'grid', gap: '4px' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
-                            Prix unitaire
-                          </span>
-                          <div
-                            style={{ display: 'flex', alignItems: 'stretch' }}
-                          >
-                            <input
-                              className={styles.input}
-                              type="number"
-                              min={0}
-                              step="0.01"
-                              value={l.unit_price}
+                        <div className="flex-1 space-y-3">
+                          {/* Row 1: Désignation */}
+                          <div>
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">
+                              Désignation
+                            </Label>
+                            <Input
+                              value={l.designation}
                               onChange={(e) =>
-                                updateLine(i, {
-                                  unit_price: Number(e.target.value),
-                                })
+                                updateLine(i, { designation: e.target.value })
                               }
-                              style={{
-                                borderTopRightRadius: 0,
-                                borderBottomRightRadius: 0,
-                                borderRight: 'none',
-                              }}
+                              placeholder="Nom du service ou produit"
+                              className="h-10 font-semibold"
+                              disabled={quote.status !== 'DRAFT'}
                             />
-                            <span
-                              style={{
-                                padding: '0 12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                border: '1px solid rgba(13,13,13,0.12)',
-                                borderTopRightRadius: '12px',
-                                borderBottomRightRadius: '12px',
-                                background: '#f8fafc',
-                                fontSize: '0.9rem',
-                              }}
-                            >
-                              €
-                            </span>
                           </div>
-                        </label>
 
-                        <label style={{ display: 'grid', gap: '4px' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
-                            TVA
-                          </span>
-                          <select
-                            className={styles.input}
-                            value={(l.tax_rate ?? 0).toString()}
-                            onChange={(e) =>
-                              updateLine(i, {
-                                tax_rate: Number(e.target.value),
-                              })
-                            }
-                          >
-                            <option value="0">0%</option>
-                            <option value="0.055">5,5%</option>
-                            <option value="0.1">10%</option>
-                            <option value="0.2">20%</option>
-                          </select>
-                        </label>
+                          {/* Row 2: Description détaillée */}
+                          <div>
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">
+                              Détails{' '}
+                              <span className="font-normal text-muted-foreground/60">
+                                (optionnel)
+                              </span>
+                            </Label>
+                            <Textarea
+                              value={l.description ?? ''}
+                              onChange={(e) =>
+                                updateLine(i, { description: e.target.value })
+                              }
+                              placeholder="Détaillez ici les spécificités de cette prestation pour ce client..."
+                              className="min-h-[60px] text-muted-foreground resize-y text-sm"
+                              rows={2}
+                              disabled={quote.status !== 'DRAFT'}
+                            />
+                          </div>
 
-                        <div style={{ display: 'grid', gap: '4px' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#666' }}>
-                            Total TTC
-                          </span>
-                          <div
-                            style={{
-                              padding: '12px 16px',
-                              background: '#f8fafc',
-                              borderRadius: '12px',
-                              fontWeight: '600',
-                              fontSize: '1rem',
-                            }}
-                          >
-                            {money.format(tot)}
+                          {/* Row 3: Quantité, Prix, Remise, TVA, Total */}
+                          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-start pt-2">
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                Quantité
+                              </Label>
+                              <Input
+                                type="number"
+                                min={0}
+                                value={l.quantity}
+                                onChange={(e) =>
+                                  updateLine(i, {
+                                    quantity: Number(e.target.value),
+                                  })
+                                }
+                                className="h-9"
+                                disabled={quote.status !== 'DRAFT'}
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                Prix unitaire HT
+                              </Label>
+                              <div className="relative">
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  value={l.unit_price}
+                                  onChange={(e) =>
+                                    updateLine(i, {
+                                      unit_price: Number(e.target.value),
+                                    })
+                                  }
+                                  className="h-9 pr-8"
+                                  disabled={quote.status !== 'DRAFT'}
+                                />
+                                <span className="absolute right-3 top-2.5 text-[10px] text-muted-foreground font-bold">
+                                  €
+                                </span>
+                              </div>
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                Remise (%)
+                              </Label>
+                              <div className="relative">
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  value={l.discount ?? 0}
+                                  onChange={(e) =>
+                                    updateLine(i, {
+                                      discount: Number(e.target.value),
+                                    })
+                                  }
+                                  className="h-9 pr-8"
+                                  disabled={quote.status !== 'DRAFT'}
+                                />
+                                <span className="absolute right-3 top-2.5 text-[10px] text-muted-foreground font-bold">
+                                  %
+                                </span>
+                              </div>
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                TVA
+                              </Label>
+                              <div>
+                                <Select
+                                  value={(l.tax_rate ?? 0).toString()}
+                                  onValueChange={(val) =>
+                                    updateLine(i, { tax_rate: Number(val) })
+                                  }
+                                  disabled={quote.status !== 'DRAFT'}
+                                >
+                                  <SelectTrigger className="h-9 w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="0">
+                                      0% (Exonéré)
+                                    </SelectItem>
+                                    <SelectItem value="0.055">5,5%</SelectItem>
+                                    <SelectItem value="0.1">10%</SelectItem>
+                                    <SelectItem value="0.2">20%</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            <div className="space-y-1.5 text-right">
+                              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                Total TTC
+                              </Label>
+                              <div className="h-9 flex items-center justify-end font-bold text-brand">
+                                {money.format(tot)}
+                              </div>
+                            </div>
                           </div>
                         </div>
+
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeLine(i)}
+                          className="text-muted-foreground/40 hover:text-destructive hover:bg-destructive/5 shrink-0"
+                          disabled={quote.status !== 'DRAFT'}
+                        >
+                          <Trash2 size={18} />
+                        </Button>
                       </div>
                     </div>
                   );
                 })}
               </div>
+            )}
 
-              <div
-                style={{
-                  marginTop: '16px',
-                  padding: '16px',
-                  background: '#f8fafc',
-                  borderRadius: '8px',
-                  display: 'grid',
-                  gap: '8px',
-                }}
-              >
-                <div
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
-                >
-                  <span>Sous-total HT</span>
-                  <strong>{money.format(totals.sub)}</strong>
+            {/* Récapitulatif Final */}
+            <div className="p-6 bg-muted/20 border-t border-border/50">
+              <div className="flex flex-col items-end space-y-2">
+                <div className="flex justify-between w-full max-w-[300px] text-sm text-muted-foreground">
+                  <span>Total HT</span>
+                  <span className="font-semibold">
+                    {money.format(totals.sub)}
+                  </span>
                 </div>
-                <div
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
-                >
+                <div className="flex justify-between w-full max-w-[300px] text-sm text-muted-foreground">
                   <span>TVA</span>
-                  <strong>{money.format(totals.tax)}</strong>
+                  <span className="font-semibold">
+                    {money.format(totals.tax)}
+                  </span>
                 </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    paddingTop: '8px',
-                    borderTop: '2px solid rgba(13,13,13,0.1)',
-                    fontSize: '1.1rem',
-                  }}
-                >
-                  <strong>Total TTC</strong>
-                  <strong>{money.format(totals.total)}</strong>
+                <div className="flex justify-between w-full max-w-[300px] text-xl font-bold text-brand pt-2 border-t border-border">
+                  <span>Total TTC</span>
+                  <span>{money.format(totals.total)}</span>
                 </div>
               </div>
-            </>
-          )}
-        </section>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Actions bas de page (fallback submit) */}
-        <div className="flex items-center gap-2">
-          <button className={styles.buttonPrimary} disabled={saving}>
-            {saving ? 'Enregistrement…' : 'Enregistrer'}
-          </button>
-          <Link to={`/quotes/${quote.id}`} className={styles.buttonGhost}>
-            Annuler
-          </Link>
+        {/* Actions bas de page flottantes ou fixes */}
+        <div className="flex items-center justify-end gap-3 pt-6 border-t border-border/30">
+          <Button
+            variant="ghost"
+            className="font-bold text-xs uppercase tracking-widest text-muted-foreground"
+            asChild
+          >
+            <Link to={`/quotes/${quote.id}`}>Abandonner les modifications</Link>
+          </Button>
+          <Button
+            className="bg-brand text-white hover:bg-brand-dark px-8 h-10 font-bold text-xs uppercase tracking-widest shadow-md"
+            onClick={handleSubmit}
+            disabled={saving}
+          >
+            {saving ? (
+              <>Enregistrement…</>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Mettre à jour le devis
+              </>
+            )}
+          </Button>
         </div>
       </form>
       <Modal
@@ -872,7 +1218,7 @@ export default function QuoteEditPage() {
                 >
                   Ouvrir dans un nouvel onglet
                 </button>
-                <button
+                {/* <button
                   type="button"
                   className="fs-btn fs-btn--primary"
                   onClick={() =>
@@ -883,14 +1229,14 @@ export default function QuoteEditPage() {
                   }
                 >
                   Télécharger
-                </button>
+                </button> */}
               </>
             )}
           </>
         }
       >
         <div className="fs-pdf-shell">
-          <PdfPreviewPane url={pdfUrl} loading={pdfLoading} error={pdfError} />
+          <PdfPreviewPanel url={pdfUrl} loading={pdfLoading} error={pdfError} />
         </div>
       </Modal>
     </div>

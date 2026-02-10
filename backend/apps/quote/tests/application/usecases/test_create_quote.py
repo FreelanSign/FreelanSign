@@ -7,22 +7,43 @@ from django.utils import timezone
 from pytest_mock import MockerFixture
 
 from apps.client.models import Client
+from apps.legal_terms.application.dtos.attach_dto import AttachTermsOutput
 from apps.quote.application.usecases.create_quote import CreateQuoteUseCase
 from apps.quote.models import Quote, QuoteLineItem
 
 
-@pytest.mark.django_db  # Accéder aux données
+def create_mock_attach_terms_use_case(mocker):
+    """Create a mock AttachTermsToQuoteUseCase that doesn't interfere with tests."""
+    mock_attach = mocker.Mock()
+    # Mock successful execution that returns a simple output
+    mock_attach.execute.return_value = AttachTermsOutput(
+        attached_terms_id="mock-terms-id",
+        template_version="1.0.0",
+    )
+    return mock_attach
+
+
+@pytest.mark.django_db
 def test_create_quote_success(mocker):
-    # Créé un User
+    """
+    Test création quote avec nouveau système Account.
+
+    Changements:
+    - owner (User) → account_id (int) + requester_id (int)
+    - Création d'un Account avant le test
+    - ref_generator prend account_id au lieu de owner_id
+    """
     from django.contrib.auth import get_user_model
+
+    from apps.user.models import Account
 
     User = get_user_model()
     owner = User.objects.create_user(email="owner@example.test", password="test")
 
-    # Créé un Client
-    client = Client.objects.create(name="Test Client", owner=owner)
+    account = Account.objects.create(user=owner, display_name="Test Account", legal_form="EI")
 
-    # Définir un item du modèle QuoteLineItem
+    client = Client.objects.create(name="Test Client", owner=owner, account=account)
+
     item = {
         "description": "Test item",
         "qty": Decimal("2.00"),
@@ -33,7 +54,6 @@ def test_create_quote_success(mocker):
         "metadata": {},
     }
 
-    # Simule ce que le serializer .create(validated_data) transmettrait
     validated_data = {
         "title": "Devis Test",
         "currency": "EUR",
@@ -49,15 +69,15 @@ def test_create_quote_success(mocker):
         "items": [item],
     }
 
-    # mock qui retourne la référence
+    # Mock ref generator
     fake_ref_generator = mocker.Mock()
     fake_ref_generator.next_reference.return_value = "Q-2025-11-0001"
 
-    # mock du repository
+    # Mock repository
     fake_repo = mocker.Mock()
-    fake_repo.create.side_effect = lambda owner_id, fields: str(
+    fake_repo.create.side_effect = lambda account_id, fields: str(
         Quote.objects.create(
-            owner_id=owner_id,
+            account_id=account_id,
             **fields,
             subtotal=Decimal("0.00"),
             tax_total=Decimal("0.00"),
@@ -68,15 +88,23 @@ def test_create_quote_success(mocker):
 
     fake_repo.get.side_effect = lambda quote_id, requester_id: Quote.objects.get(pk=quote_id)
 
-    # instancie le usecase
-    usecase = CreateQuoteUseCase(ref_generator=fake_ref_generator, quote_repository=fake_repo)
-    quote = usecase.execute(
-        owner=owner, validated_data=validated_data.copy()
-    )  # copie du validated_data pour pas qu'il soit mute dans le test
+    # Mock attach terms use case (Phase 6)
+    mock_attach = create_mock_attach_terms_use_case(mocker)
 
-    # Assertions
+    usecase = CreateQuoteUseCase(
+        ref_generator=fake_ref_generator,
+        quote_repository=fake_repo,
+        attach_terms_use_case=mock_attach,
+    )
+
+    quote = usecase.execute(
+        account_id=account.id,
+        requester_id=owner.id,
+        validated_data=validated_data.copy(),
+    )
+
     assert quote.reference == "Q-2025-11-0001"
-    assert quote.owner == owner
+    assert quote.account_id == account.id
     assert quote.client == client
     assert quote.subtotal == Decimal("200.00")
     assert quote.tax_total == Decimal("40.00")
@@ -89,24 +117,32 @@ def test_create_quote_success(mocker):
     assert items[0].unit_price == Decimal("100.00")
     assert items[0].tax_rate == Decimal("20.00")
 
-    fake_ref_generator.next_reference.assert_called_once_with(owner_id=owner.id, when=date(2025, 11, 6))
+    fake_ref_generator.next_reference.assert_called_once_with(owner_id=account.id, when=date(2025, 11, 6))
     fake_repo.create.assert_called_once()
     fake_repo.get.assert_called_once()
 
 
 @pytest.mark.django_db
 def test_client_patch_forbidden(mocker):
-    # Créé un User
+    """
+    Test qu'un User ne peut pas patcher le Client d'un autre User.
+
+    Changements:
+    - owner → account_id + requester_id
+    - Vérification: requester_id != client.owner_id → 403
+    """
     from django.contrib.auth import get_user_model
+
+    from apps.user.models import Account
 
     User = get_user_model()
     owner = User.objects.create_user(email="owner@example.test", password="test")
-
     other_user = User.objects.create_user(email="otheruser@example.test", password="password")
 
-    client = Client.objects.create(name="Client Toto", owner=other_user)
+    account = Account.objects.create(user=owner, display_name="Owner Account", legal_form="EI")
 
-    # Définir un item du modèle QuoteLineItem
+    client = Client.objects.create(name="Client Toto", owner=other_user, account=account)
+
     item = {
         "description": "Test item",
         "qty": Decimal("2.00"),
@@ -117,7 +153,6 @@ def test_client_patch_forbidden(mocker):
         "metadata": {},
     }
 
-    # Simule ce que le serializer .create(validated_data) transmettrait
     validated_data = {
         "title": "Devis Test",
         "currency": "EUR",
@@ -137,11 +172,11 @@ def test_client_patch_forbidden(mocker):
 
     fake_ref_generator = mocker.Mock()
     fake_ref_generator.next_reference.return_value = "Q-2025-11-0001"
-    # mock du repository
+
     fake_repo = mocker.Mock()
-    fake_repo.create.side_effect = lambda owner_id, fields: str(
+    fake_repo.create.side_effect = lambda account_id, fields: str(
         Quote.objects.create(
-            owner_id=owner_id,
+            account_id=account_id,
             **fields,
             subtotal=Decimal("0.00"),
             tax_total=Decimal("0.00"),
@@ -152,24 +187,45 @@ def test_client_patch_forbidden(mocker):
 
     fake_repo.get.side_effect = lambda quote_id, requester_id: Quote.objects.get(pk=quote_id)
 
-    # Instancie le use case
-    usecase = CreateQuoteUseCase(ref_generator=fake_ref_generator, quote_repository=fake_repo)
+    # Mock attach terms use case (Phase 6)
+    mock_attach = create_mock_attach_terms_use_case(mocker)
+
+    usecase = CreateQuoteUseCase(
+        ref_generator=fake_ref_generator,
+        quote_repository=fake_repo,
+        attach_terms_use_case=mock_attach,
+    )
+
     with pytest.raises(ValidationError) as execution_info:
-        usecase.execute(owner=owner, validated_data=validated_data.copy(), client_patch=client_patch.copy())
+        usecase.execute(
+            account_id=account.id,
+            requester_id=owner.id,
+            validated_data=validated_data.copy(),
+            client_patch=client_patch.copy(),
+        )
 
     assert "You do not own this client." in str(execution_info)
 
 
 @pytest.mark.django_db
 def test_create_quote_no_changes_to_client(mocker):
-    # Créé un User
+    """
+    Test création quote sans patch client (client_patch vide).
+
+    Changements:
+    - owner → account_id + requester_id
+    """
     from django.contrib.auth import get_user_model
+
+    from apps.user.models import Account
 
     User = get_user_model()
     owner = User.objects.create_user(email="owner@example.test", password="test")
-    client = Client.objects.create(name="Client Toto", owner=owner)
 
-    # Définir un item du modèle QuoteLineItem
+    account = Account.objects.create(user=owner, display_name="Test Account", legal_form="EI")
+
+    client = Client.objects.create(name="Client Toto", owner=owner, account=account)
+
     item = {
         "description": "Test item",
         "qty": Decimal("2.00"),
@@ -180,7 +236,6 @@ def test_create_quote_no_changes_to_client(mocker):
         "metadata": {},
     }
 
-    # Simule ce que le serializer .create(validated_data) transmettrait
     validated_data = {
         "title": "Devis Test",
         "currency": "EUR",
@@ -200,11 +255,11 @@ def test_create_quote_no_changes_to_client(mocker):
 
     fake_ref_generator = mocker.Mock()
     fake_ref_generator.next_reference.return_value = "Q-2025-11-0001"
-    # mock du repository
+
     fake_repo = mocker.Mock()
-    fake_repo.create.side_effect = lambda owner_id, fields: str(
+    fake_repo.create.side_effect = lambda account_id, fields: str(
         Quote.objects.create(
-            owner_id=owner_id,
+            account_id=account_id,
             **fields,
             subtotal=Decimal("0.00"),
             tax_total=Decimal("0.00"),
@@ -215,9 +270,22 @@ def test_create_quote_no_changes_to_client(mocker):
 
     fake_repo.get.side_effect = lambda quote_id, requester_id: Quote.objects.get(pk=quote_id)
 
-    # Instancie le use case
-    usecase = CreateQuoteUseCase(ref_generator=fake_ref_generator, quote_repository=fake_repo)
-    quote = usecase.execute(owner=owner, validated_data=validated_data.copy(), client_patch=client_patch.copy())
+    # Mock attach terms use case (Phase 6)
+    mock_attach = create_mock_attach_terms_use_case(mocker)
+
+    usecase = CreateQuoteUseCase(
+        ref_generator=fake_ref_generator,
+        quote_repository=fake_repo,
+        attach_terms_use_case=mock_attach,
+    )
+
+    # ✅ CHANGEMENT
+    quote = usecase.execute(
+        account_id=account.id,
+        requester_id=owner.id,
+        validated_data=validated_data.copy(),
+        client_patch=client_patch.copy(),
+    )
 
     assert quote.client == client
     fake_repo.create.assert_called_once()
@@ -226,14 +294,23 @@ def test_create_quote_no_changes_to_client(mocker):
 
 @pytest.mark.django_db
 def test_totals_are_computed(mocker):
-    # Créé un User
+    """
+    Test calcul des totaux avec plusieurs items.
+
+    Changements:
+    - owner → account_id + requester_id
+    """
     from django.contrib.auth import get_user_model
+
+    from apps.user.models import Account
 
     User = get_user_model()
     owner = User.objects.create_user(email="owner@example.test", password="test")
-    client = Client.objects.create(name="Client Toto", owner=owner)
 
-    # Définir un item du modèle QuoteLineItem
+    account = Account.objects.create(user=owner, display_name="Test Account", legal_form="EI")
+
+    client = Client.objects.create(name="Client Toto", owner=owner, account=account)
+
     item1 = {
         "description": "Test item",
         "qty": Decimal("2.00"),
@@ -258,7 +335,6 @@ def test_totals_are_computed(mocker):
 
     items = [item1, item2]
 
-    # Simule ce que le serializer .create(validated_data) transmettrait
     validated_data = {
         "title": "Devis Test",
         "currency": "EUR",
@@ -279,11 +355,11 @@ def test_totals_are_computed(mocker):
 
     fake_ref_generator = mocker.Mock()
     fake_ref_generator.next_reference.return_value = "Q-2025-11-0001"
-    # mock du repository
+
     fake_repo = mocker.Mock()
-    fake_repo.create.side_effect = lambda owner_id, fields: str(
+    fake_repo.create.side_effect = lambda account_id, fields: str(
         Quote.objects.create(
-            owner_id=owner_id,
+            account_id=account_id,
             **fields,
             subtotal=Decimal("0.00"),
             tax_total=Decimal("0.00"),
@@ -294,9 +370,21 @@ def test_totals_are_computed(mocker):
 
     fake_repo.get.side_effect = lambda quote_id, requester_id: Quote.objects.get(pk=quote_id)
 
-    # Instancie le use case
-    usecase = CreateQuoteUseCase(ref_generator=fake_ref_generator, quote_repository=fake_repo)
-    quote = usecase.execute(owner=owner, validated_data=validated_data.copy(), client_patch=client_patch.copy())
+    # Mock attach terms use case (Phase 6)
+    mock_attach = create_mock_attach_terms_use_case(mocker)
+
+    usecase = CreateQuoteUseCase(
+        ref_generator=fake_ref_generator,
+        quote_repository=fake_repo,
+        attach_terms_use_case=mock_attach,
+    )
+
+    quote = usecase.execute(
+        account_id=account.id,
+        requester_id=owner.id,
+        validated_data=validated_data.copy(),
+        client_patch=client_patch.copy(),
+    )
 
     subtotal_expected = Decimal("1420.00")
     tax_expected = Decimal("284.00")  # 20% de 1420

@@ -2,6 +2,7 @@ import { apiClient } from '../../infrastructure/http/apiClient';
 import { API_ENDPOINTS } from '../../shared/endpoints';
 
 import type { PageResponse } from '../../domain/common/pagination';
+import type { QuoteMetricsDto } from '../../domain/quote/metricsTypes';
 import type {
   ApiQuoteResponse,
   ApiQuoteUpdatePayload,
@@ -40,9 +41,13 @@ export const quoteRepository = {
   async list(params?: {
     page?: number;
     page_size?: number;
-    status?: string;
-    client?: string;
+
+    ordering?: string;
     search?: string;
+    status?: string[];
+    client?: string;
+    issue_date_after?: string;
+    issue_date_before?: string;
   }): Promise<PageResponse<ApiQuoteResponse>> {
     const { data } = await apiClient.get<PageResponse<ApiQuoteResponse>>(
       API_ENDPOINTS.quotes,
@@ -50,9 +55,12 @@ export const quoteRepository = {
         params: {
           page: params?.page,
           page_size: params?.page_size,
-          status: params?.status,
+          ordering: params?.ordering,
+          search: params?.search?.trim() || undefined,
           client: params?.client,
-          search: params?.search,
+          status: params?.status?.length ? params.status.join(',') : undefined,
+          issue_date_after: params?.issue_date_after,
+          issue_date_before: params?.issue_date_before,
         },
       },
     );
@@ -75,7 +83,7 @@ export const quoteRepository = {
    */
   async update(
     id: string,
-    payload: ApiQuoteUpdatePayload,
+    payload: Partial<ApiQuoteUpdatePayload>,
   ): Promise<ApiQuoteResponse> {
     const { data } = await apiClient.patch<ApiQuoteResponse>(
       `${API_ENDPOINTS.quotes}${id}/`,
@@ -110,5 +118,23 @@ export const quoteRepository = {
       }
       throw error;
     }
+  },
+
+  /**
+   * Récupère les métriques dashboard (totaux, taux acceptation, évolution mensuelle)
+   */
+  async getMetrics(): Promise<QuoteMetricsDto> {
+    const { data } = await apiClient.get<QuoteMetricsDto>(
+      API_ENDPOINTS.quoteMetrics,
+    );
+    return data;
+  },
+
+  /**
+   * Supprime un devis (soft delete avec protection statut).
+   * Bloque la suppression si statut actif (DRAFT, SENT, ACCEPTED).
+   */
+  async delete(id: string): Promise<void> {
+    await apiClient.delete(`${API_ENDPOINTS.quotes}${id}/`);
   },
 };

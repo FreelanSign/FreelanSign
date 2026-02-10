@@ -21,10 +21,12 @@ from apps.user.adapters.providers.smtp_token_provider import SmtpTokenSender
 from apps.user.application.dto.user_inputs import ResetPasswordInput
 from apps.user.application.usecases.request_password_reset import RequestPasswordReset
 from apps.user.application.usecases.reset_password import ResetPassword
+from apps.user.application.usecases.send_verification_email import SendVerificationEmail
+from apps.user.application.usecases.verify_email import InvalidVerificationTokenError, VerifyEmail
 from apps.user.interface.errors_handler import UserErrorHandler
 from config import settings
 
-from .serializers import LogoutSerializer, RequestPasswordResetSerializer, ResetPasswordSerializer
+from .serializers import LogoutSerializer, RequestPasswordResetSerializer, ResetPasswordSerializer, VerifyEmailSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -308,5 +310,60 @@ class ResetPasswordView(APIView):
 
             return Response({"detail": "Password has been reset."}, status=status.HTTP_200_OK)
 
+        except Exception as e:
+            return UserErrorHandler.handle_error(e)
+
+
+@extend_schema(
+    tags=["Auth"],
+    summary="Verify email address",
+    request=VerifyEmailSerializer,
+    responses={
+        200: OpenApiResponse({"detail": "Email verified."}),
+        400: OpenApiResponse({"detail": "Token invalide ou expire"}),
+    },
+)
+class VerifyEmailView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        ser = VerifyEmailSerializer(data=request.data)
+        if not ser.is_valid():
+            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            use_case = VerifyEmail(user_repository=DjangoUserRepository())
+            use_case.execute(token=ser.validated_data["token"])
+            return Response({"detail": "Email verified."}, status=status.HTTP_200_OK)
+        except InvalidVerificationTokenError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(
+    tags=["Auth"],
+    summary="Resend verification email",
+    responses={
+        200: OpenApiResponse({"detail": "Verification email sent."}),
+    },
+)
+class ResendVerificationEmailView(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        user = request.user
+        if user.email_verified:
+            return Response({"detail": "Email already verified."}, status=status.HTTP_200_OK)
+
+        try:
+            uc = SendVerificationEmail(
+                verification_base_url=settings.EMAIL_VERIFICATION_URL,
+                from_email=settings.EMAIL_FROM,
+            )
+            uc.execute(user_id=user.id, email=user.email)
+            return Response({"detail": "Verification email sent."}, status=status.HTTP_200_OK)
         except Exception as e:
             return UserErrorHandler.handle_error(e)

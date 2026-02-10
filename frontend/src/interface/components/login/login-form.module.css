@@ -1,14 +1,4 @@
-:global(:root) {
-  --brand: #2456c2;
-  --dark: #0d0d0d;
-  --paper: #f5f7fa;
-  --text: #222;
-  --muted: #6b7280;
-  --border: rgba(10, 10, 10, 0.08);
-  --ring: rgba(36, 86, 194, 0.25);
-  --danger: #dc2626;
-  --input-bg: #fff;
-}
+/* Variables définies dans Modal.css (global) */
 
 .form {
   background: var(--paper);
@@ -81,10 +71,10 @@
   color: #fff;
   font-weight: 700;
   border: none;
-  border-radius: 12px;
+  border-radius: 999px;
   padding: 0.7rem 1rem;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgba(36, 86, 194, 0.18);
+  box-shadow: 0 8px 20px rgba(0, 200, 150, 0.18);
   transition:
     transform 120ms ease,
     box-shadow 120ms ease,
@@ -92,7 +82,7 @@
 }
 .submit:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(36, 86, 194, 0.22);
+  box-shadow: 0 10px 24px rgba(0, 200, 150, 0.22);
 }
 .submit:active {
   transform: translateY(0);

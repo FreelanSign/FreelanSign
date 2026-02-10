@@ -1,13 +1,22 @@
 // src/interface/pages/ProfilePage.tsx
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { useAuth } from '../../../app/providers/AuthProvider';
+import type { AccountDto } from '../../../domain/account/types';
 import type { PrestationDto } from '../../../domain/catalog/types';
-import type { ProfessionalUserDto, UserDto } from '../../../domain/user/types';
+import type { UserDto } from '../../../domain/user/types';
+import { accountRepository } from '../../../infrastructure/account/accountRepository';
+import { useAccountStore } from '../../../infrastructure/account/accountStore';
 import { catalogRepository } from '../../../infrastructure/catalog/catalogRepository';
 import { userRepository } from '../../../infrastructure/user/userRepository';
 
-import styles from './profile-page.module.css';
+import { Briefcase, Mail, PencilLine, Phone, User } from 'lucide-react';
+import { useRequireAccount } from '../../hooks/useRequireAccount';
 
 /**
  * Page profil: affiche user.profile + professional (si présent)
@@ -16,16 +25,19 @@ import styles from './profile-page.module.css';
 
 export default function ProfilePage() {
   const { user: authUser } = useAuth();
+  const activeAccountId = useAccountStore((state) => state.activeAccountId);
   const [user, setUser] = useState<UserDto | null>(null);
-  const [professional, setProfessional] = useState<
-    ProfessionalUserDto | null | 'loading'
-  >('loading');
+  const [account, setAccount] = useState<AccountDto | null | 'loading'>(
+    'loading',
+  );
   const [prestations, setPrestations] = useState<
     PrestationDto[] | 'loading' | null
   >(null);
   const [areaName, setAreaName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  useRequireAccount({ loading });
 
   // helper type-guard
   function isApiError(e: unknown): e is { response?: { status?: number } } {
@@ -46,35 +58,38 @@ export default function ProfilePage() {
         if (!mounted) return;
         setUser(me);
 
-        const prof = await userRepository.getProfessionalMe();
-        if (!mounted) return;
-        setProfessional(prof ?? null);
+        if (activeAccountId) {
+          const acc = await accountRepository.retrieve(activeAccountId);
+          if (!mounted) return;
+          setAccount(acc ?? null);
 
-        if (prof) {
-          setPrestations('loading');
+          if (acc) {
+            setPrestations('loading');
 
-          const ids = prof.service_type_ids ?? [];
-          try {
-            const prestationsResult =
-              await catalogRepository.getPrestationsByIds(ids);
-            if (!mounted) return;
-            setPrestations(prestationsResult);
-          } catch (err) {
-            console.error('Erreur récupération prestations', err);
-            if (!mounted) return;
-            setPrestations(null);
+            const ids = acc.service_type_ids ?? [];
+            try {
+              const prestationsResult =
+                await catalogRepository.getPrestationsByIds(ids);
+              if (!mounted) return;
+              setPrestations(prestationsResult);
+            } catch (err) {
+              console.error('Erreur récupération prestations', err);
+              if (!mounted) return;
+              setPrestations(null);
+            }
+
+            try {
+              const area = await catalogRepository.getAreaById(acc.domain_id);
+              if (!mounted) return;
+              setAreaName(area?.name ?? null);
+            } catch (err) {
+              console.warn('Erreur récupération domaine', err);
+              if (!mounted) return;
+              setAreaName(null);
+            }
           }
-
-          try {
-            const domaineId = prof.domaine as unknown as number | null;
-            const area = await catalogRepository.getAreaById(domaineId);
-            if (!mounted) return;
-            setAreaName(area?.name ?? null);
-          } catch (err) {
-            console.warn('Erreur récupération domaine', err);
-            if (!mounted) return;
-            setAreaName(null);
-          }
+        } else {
+          setAccount(null);
         }
       } catch (e: unknown) {
         if (isApiError(e) && e.response?.status === 401) {
@@ -90,9 +105,10 @@ export default function ProfilePage() {
     return () => {
       mounted = false;
     };
-  }, [navigate]);
+  }, [navigate, activeAccountId]);
 
-  if (loading) return <div>Chargement du profil…</div>;
+  if (loading)
+    return <div className="text-center py-8">Chargement du profil…</div>;
 
   const fullName = user
     ? `${user.profile?.first_name || ''} ${user.profile?.last_name || ''}`.trim() ||
@@ -100,86 +116,150 @@ export default function ProfilePage() {
     : 'Utilisateur';
 
   return (
-    <div className="grid gap-6">
-      {/* Compact User Header */}
-      <header className={styles.header}>
-        <div className={styles.avatarWrap}>
-          <img
-            src={user?.profile?.avatar_url || '/img/default-avatar.jpeg'}
-            alt="Avatar"
-            className={styles.avatarImg}
-          />
+    <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+      {/* Header Profil */}
+      <header className="flex flex-col sm:flex-row items-center gap-6 p-8 bg-white rounded-xl border border-border shadow-sm">
+        <div className="relative group">
+          <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-muted shadow-inner">
+            {user?.profile?.avatar_url ? (
+              <img
+                src={user.profile.avatar_url}
+                alt="Avatar"
+                className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground">
+                <User className="h-10 w-10" />
+              </div>
+            )}
+          </div>
         </div>
-        <div className={styles.headerContent}>
-          <h1 className={styles.userName}>{fullName}</h1>
-          <div className={styles.meta}>
-            <span className={styles.metaItem}>
+
+        <div className="flex-1 text-center sm:text-left space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 font-playfair">
+            {fullName}
+          </h1>
+          <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-x-4 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <Mail className="h-3.5 w-3.5" />{' '}
               {user?.email || authUser?.email || '—'}
             </span>
             {user?.profile?.phone && (
-              <span className={styles.metaItem}>{user.profile.phone}</span>
+              <span className="flex items-center gap-1.5">
+                <Phone className="h-3.5 w-3.5" /> {user.profile.phone}
+              </span>
             )}
           </div>
         </div>
-        <button
+
+        <Button
           onClick={() => navigate('/profile/edit')}
-          className={`${styles.buttonPrimary} ${styles.editButton}`}
+          className="btn-add-client"
         >
+          <PencilLine className="mr-2 h-4 w-4" />
           Modifier
-        </button>
+        </Button>
       </header>
 
-      {/* Professional Info Card */}
-      {professional && professional !== 'loading' && (
-        <section className={styles.card}>
-          <h2 className={styles.h2}>
-            {professional.name || 'Structure professionnelle'}
-            {professional.status_juridique && (
-              <span className={`${styles.badge} ${styles.badgeInfo}`}>
-                {professional.status_juridique}
+      {/* Carte Informations Pro */}
+      {account && account !== 'loading' && (
+        <Card className="shadow-sm border border-border overflow-hidden">
+          <CardHeader className="bg-muted/30 border-b border-border/50 py-4">
+            <CardTitle className="text-base flex items-center gap-3">
+              <Briefcase className="h-4 w-4 text-brand" />
+              {account.display_name || 'Structure professionnelle'}
+              {account.legal_form && (
+                <Badge variant="tag" className="ml-1">
+                  {account.legal_form}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="py-2 px-6">
+            <div className="info-row">
+              <span className="info-label">Domaine d'activité</span>
+              <span className="info-value">{areaName || '—'}</span>
+            </div>
+
+            <div className="info-row">
+              <span className="info-label">Tarif Journalier (TJM)</span>
+              <span className="info-value text-brand">
+                {account.default_rate_cents
+                  ? `${(account.default_rate_cents / 100).toFixed(2)} €`
+                  : '—'}
               </span>
-            )}
-          </h2>
+            </div>
 
-          <div className={styles.kv}>
-            <span>Domaine</span>
-            <strong>{areaName || '—'}</strong>
-          </div>
+            <div className="info-row">
+              <span className="info-label">Numéro SIRET</span>
+              <span className="info-value tracking-wider font-mono">
+                {account.legal_id || '—'}
+              </span>
+            </div>
 
-          <div className={styles.kv}>
-            <span>TJM</span>
-            <strong>
-              {professional.tjm_cents
-                ? `${(professional.tjm_cents / 100).toFixed(2)} €`
-                : '—'}
-            </strong>
-          </div>
-
-          <div className={styles.kv}>
-            <span>SIRET</span>
-            <strong>{professional.number_pro || '—'}</strong>
-          </div>
-        </section>
+            <div className="info-row">
+              <span className="info-label">Adresse professionnelle</span>
+              <span className="info-value">
+                {account.address_line1 || account.city ? (
+                  <div className="flex flex-col">
+                    {account.address_line1 && (
+                      <span>{account.address_line1}</span>
+                    )}
+                    {account.address_line2 && (
+                      <span>{account.address_line2}</span>
+                    )}
+                    {(account.postal_code || account.city) && (
+                      <span>
+                        {[account.postal_code, account.city]
+                          .filter(Boolean)
+                          .join(' ')}
+                      </span>
+                    )}
+                    {account.country && <span>{account.country}</span>}
+                  </div>
+                ) : (
+                  '—'
+                )}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Services Card */}
-      {professional && professional !== 'loading' && (
-        <section className={styles.card}>
-          <h2 className={styles.h2}>Prestations</h2>
-          {prestations === 'loading' ? (
-            <p className={styles.emptyServices}>Chargement des prestations…</p>
-          ) : prestations && prestations.length > 0 ? (
-            <div className={styles.servicesGrid}>
-              {prestations.map((p) => (
-                <span key={p.id} className={styles.chip}>
-                  {p.name || p.title || p.label || 'Service'}
+      {/* Carte Prestations */}
+      {account && account !== 'loading' && (
+        <Card className="shadow-sm border border-border">
+          <CardHeader className="py-4 border-b border-border/30">
+            <CardTitle className="text-base">
+              Prestations au catalogue
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {prestations === 'loading' ? (
+              <div className="flex items-center gap-2 text-muted-foreground italic text-sm">
+                <span className="animate-pulse">
+                  Chargement des services...
                 </span>
-              ))}
-            </div>
-          ) : (
-            <p className={styles.emptyServices}>Aucune prestation configurée</p>
-          )}
-        </section>
+              </div>
+            ) : prestations && prestations.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {prestations.map((p) => (
+                  <Badge
+                    key={p.id}
+                    variant="outline"
+                    className="bg-brand/5 text-brand border-brand/20 px-3 py-1 font-medium"
+                  >
+                    {p.name || p.title || p.label || 'Service'}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">
+                Aucune prestation configurée pour ce profil.
+              </p>
+            )}
+          </CardContent>
+        </Card>
       )}
     </div>
   );

@@ -10,7 +10,7 @@ REFRESH = "/api/auth/refresh/"
 class TestAuthApi(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(email="john@example.com", password="password123")
-        Profile.objects.create(user=self.user)
+        # Profile created automatically by signal
 
     def test_login_success_returns_tokens(self):
         res = self.client.post(LOGIN, {"email": "john@example.com", "password": "password123"}, format="json")

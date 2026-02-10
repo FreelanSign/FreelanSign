@@ -9,10 +9,16 @@ class FakeClient:
     def __init__(self, **kwargs):
         self.id = kwargs.get("id", "fake-uuid")
         self.owner_id = kwargs.get("owner_id")
+        self.account_id = kwargs.get("account_id")
         self.name = kwargs.get("name")
         self.email = kwargs.get("email", "")
         self.phone = kwargs.get("phone", "")
-        self.address = kwargs.get("address", "")
+        self.address_line1 = kwargs.get("address_line1", "")
+        self.address_line2 = kwargs.get("address_line2", "")
+        self.city = kwargs.get("city", "")
+        self.postal_code = kwargs.get("postal_code", "")
+        self.country = kwargs.get("country", "")
+        self.company = kwargs.get("company", "")
         self.vat_number = kwargs.get("vat_number", "")
         self.metadata = kwargs.get("metadata", {})
 
@@ -43,19 +49,25 @@ class FakeClientRepository:
     def exists_by_owner_name(self, owner_id: int, name: str) -> bool:
         return any(c.owner_id == owner_id and c.name == name for c in self.clients)
 
+    def exists_by_account_name(self, account_id: int, name: str) -> bool:
+        return any(c.account_id == account_id and c.name == name for c in self.clients)
+
 
 class TestCreateClientUseCase:
     def test_create_client_success(self):
-        """Should create client when name is unique for owner"""
+        """Should create client when name is unique for account"""
         repo = FakeClientRepository()
         use_case = CreateClient(repo=repo)
 
         inp = CreateClientInput(
             owner_id=1,
+            account_id=10,
             name="New Client",
             email="client@example.com",
             phone="123456",
-            address="Paris",
+            address_line1="123 Street",
+            city="Paris",
+            country="FR",
             vat_number="FR123",
             metadata={"key": "value"},
         )
@@ -66,35 +78,37 @@ class TestCreateClientUseCase:
         assert result.email == "client@example.com"
         assert result.phone == "123456"
         assert result.owner_id == 1
+        assert result.account_id == 10
         assert repo.create_called is True
 
     def test_create_client_raises_error_when_duplicate_name(self):
-        """Should raise ClientAlreadyExistsError when client name exists for owner"""
+        """Should raise ClientAlreadyExistsError when client name exists for account"""
         repo = FakeClientRepository()
         # Pre-create a client
-        repo.create({"owner_id": 1, "name": "Existing Client"})
+        repo.create({"owner_id": 1, "account_id": 10, "name": "Existing Client"})
 
         use_case = CreateClient(repo=repo)
 
-        inp = CreateClientInput(owner_id=1, name="Existing Client", email="new@example.com")
+        inp = CreateClientInput(owner_id=1, account_id=10, name="Existing Client", email="new@example.com")
 
         with pytest.raises(ClientAlreadyExistsError) as exc:
             use_case.execute(inp)
 
         assert "Client already exists: Existing Client" in str(exc.value)
 
-    def test_create_client_allows_duplicate_name_for_different_owner(self):
-        """Should allow same name for different owners"""
+    def test_create_client_allows_duplicate_name_for_different_account(self):
+        """Should allow same name for different accounts"""
         repo = FakeClientRepository()
-        # Pre-create a client for owner 1
-        repo.create({"owner_id": 1, "name": "Shared Name"})
+        # Pre-create a client for account 10
+        repo.create({"owner_id": 1, "account_id": 10, "name": "Shared Name"})
 
         use_case = CreateClient(repo=repo)
 
-        # Should succeed for owner 2
-        inp = CreateClientInput(owner_id=2, name="Shared Name", email="owner2@example.com")
+        # Should succeed for account 20
+        inp = CreateClientInput(owner_id=2, account_id=20, name="Shared Name", email="owner2@example.com")
 
         result = use_case.execute(inp)
 
         assert result.name == "Shared Name"
         assert result.owner_id == 2
+        assert result.account_id == 20

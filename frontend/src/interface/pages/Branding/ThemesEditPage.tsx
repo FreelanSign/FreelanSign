@@ -1,4 +1,8 @@
 // pages/branding/ThemeEditPage.tsx
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ArrowLeft, Palette, Settings2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { themeRepository } from '../../../infrastructure/branding/themeRepository';
@@ -6,7 +10,6 @@ import ThemeForm, {
   type ThemeFormData,
 } from '../../components/branding/ThemesForm';
 import { normalizeSpacing, normalizeTypography } from '../../utils/branding';
-import styles from './themes.module.css';
 
 export default function ThemeEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,7 +37,7 @@ export default function ThemeEditPage() {
           colors: theme.colors,
           typography: normalizeTypography(theme.typography),
           spacing: normalizeSpacing(theme.spacing),
-          logo: null, // On ne charge pas le fichier existant
+          logo: null,
         });
       } catch (err: unknown) {
         const error = err as { message?: string };
@@ -81,68 +84,75 @@ export default function ThemeEditPage() {
 
   if (loadingTheme) {
     return (
-      <div className="grid gap-6">
-        <div className={styles.headerRow}>
-          <div>
-            <h1 className={styles.title}>Chargement...</h1>
-          </div>
+      <div className="container mx-auto max-w-7xl py-8 space-y-10 animate-in fade-in duration-500">
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-4 w-96 opacity-60" />
         </div>
-        <div className={styles.card}>
-          <div className={styles.skel}></div>
-          <div className={styles.skel} style={{ marginTop: '1rem' }}></div>
-          <div className={styles.skel} style={{ marginTop: '1rem' }}></div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8 space-y-8">
+            <Skeleton className="h-[400px] w-full rounded-3xl" />
+          </div>
+          <div className="lg:col-span-4">
+            <Skeleton className="h-[400px] w-full rounded-3xl" />
+          </div>
         </div>
       </div>
     );
-  }
-
-  if (error && !initialData) {
-    return (
-      <div className="grid gap-6">
-        <div className={styles.headerRow}>
-          <div>
-            <h1 className={styles.title}>Erreur</h1>
-          </div>
-          <Link
-            to="/branding/themes"
-            className={`${styles.btn} ${styles.btnGhost}`}
-          >
-            ← Retour
-          </Link>
-        </div>
-        <div className={styles.error}>{error}</div>
-      </div>
-    );
-  }
-
-  if (!initialData) {
-    return null;
   }
 
   return (
-    <div className="grid gap-6">
-      <div className={styles.headerRow}>
-        <div>
-          <h1 className={styles.title}>Modifier le thème</h1>
-          <p className={styles.headerSubtitle}>
-            Ajustez les paramètres de votre thème
+    <div className="container mx-auto max-w-7xl py-8 space-y-10 animate-in fade-in duration-700">
+      {/* Header Section */}
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-gray-100">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 text-muted-foreground mb-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              asChild
+              className="h-8 w-8 -ml-2 rounded-full"
+            >
+              <Link to="/branding/themes">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <span className="text-xs font-bold uppercase tracking-widest">
+              Configuration visuelle
+            </span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 font-playfair flex items-center gap-3">
+            Modifier le template
+            <Settings2 className="h-6 w-6 text-brand/40" />
+          </h1>
+          <p className="text-muted-foreground text-sm flex items-center gap-2">
+            <Palette className="h-4 w-4 text-brand" />
+            Personnalisez les réglages de votre thème existant :{' '}
+            <span className="font-bold text-gray-900">{initialData?.name}</span>
           </p>
         </div>
-        <Link
-          to="/branding/themes"
-          className={`${styles.btn} ${styles.btnGhost}`}
-        >
-          ← Retour
-        </Link>
-      </div>
+      </section>
 
-      <ThemeForm
-        initialData={initialData}
-        onSubmit={handleSubmit}
-        submitLabel="💾  Enregistrer les modifications"
-        isLoading={loading}
-        error={error}
-      />
+      {error && !initialData && (
+        <Card className="border-destructive/20 bg-destructive/5 rounded-2xl">
+          <CardContent className="pt-6">
+            <p className="text-destructive font-bold">{error}</p>
+            <Button asChild variant="outline" className="mt-4 rounded-xl">
+              <Link to="/branding/themes">Retourner à la liste</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {initialData && (
+        <ThemeForm
+          initialData={initialData}
+          onSubmit={handleSubmit}
+          submitLabel="Enregistrer les modifications"
+          isLoading={loading}
+          error={error}
+        />
+      )}
     </div>
   );
 }

@@ -5,11 +5,14 @@ Status policy for quotes.
 
 from __future__ import annotations
 
+# AIDEV-NOTE: Matrice transitions validée 2026-02-04
+# DRAFT = état initial, toutes transitions possibles (workflows variés)
+# REJECTED devient terminal (pas de réutilisation brouillon)
 ALLOWED_TRANSITIONS = {
-    "DRAFT": {"SENT", "CANCELLED"},
-    "SENT": {"ACCEPTED", "REJECTED", "CANCELLED"},
-    "ACCEPTED": {"PAID", "CANCELLED"},
-    "REJECTED": {"DRAFT"},
+    "DRAFT": {"SENT", "ACCEPTED", "PAID", "REJECTED", "EXPIRED", "CANCELLED"},
+    "SENT": {"ACCEPTED", "PAID", "REJECTED", "EXPIRED", "CANCELLED"},
+    "ACCEPTED": {"PAID", "EXPIRED", "CANCELLED"},
+    "REJECTED": set(),
     "PAID": set(),
     "CANCELLED": set(),
     "EXPIRED": set(),

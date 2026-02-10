@@ -3,6 +3,7 @@
 Politiques métier pour les prestations.
 Règles pures, sans dépendance Django.
 """
+
 from typing import Optional
 
 from apps.catalog.domain.errors import (

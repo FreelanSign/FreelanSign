@@ -11,7 +11,7 @@ class ChangeStatus:
         self.repo = repo
 
     def execute(self, *, quote_id: str, new_status: str, actor):
-        quote = self.repo.get(quote_id, include_lines=False)
+        quote = self.repo.get(quote_id, requester_id=str(actor.id), include_lines=False)
         if not can_transition(quote.status, new_status):
             raise ValueError(f"Transition from {quote.status} to {new_status} is not allowed.")
         quote.status = new_status

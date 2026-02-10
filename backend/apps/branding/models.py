@@ -19,11 +19,11 @@ class BrandTheme(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     # owner
-    professional = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+    account = models.ForeignKey(
+        "user.Account",
         on_delete=models.CASCADE,
         related_name="brand_themes",
-        help_text="Professional user who owns the theme.",
+        help_text="Account that owns the theme.",
     )
 
     # Basic info
@@ -61,47 +61,47 @@ class BrandTheme(models.Model):
         verbose_name = "Brand Theme"
         verbose_name_plural = "Brand Themes"
         constraints = [
-            # Ensure theme names are unique per professional
+            # Ensure theme names are unique per account
             models.UniqueConstraint(
-                fields=["professional", "name"],
-                name="uq_brand_professional_name",
+                fields=["account", "name"],
+                name="uq_brand_account_name",
             ),
-            # Ensure only one theme can be active at a time per professional
+            # Ensure only one theme can be active at a time per account
             models.UniqueConstraint(
-                fields=["professional"],
+                fields=["account"],
                 condition=models.Q(is_active=True),
-                name="uq_brand_professional_active",
+                name="uq_brand_account_active",
             ),
         ]
         indexes = [
-            models.Index(fields=["professional", "is_active"], name="ix_brand_professional_active"),
-            models.Index(fields=["professional"], name="ix_brand_professional"),
+            models.Index(fields=["account", "is_active"], name="ix_brand_account_active"),
+            models.Index(fields=["account"], name="ix_brand_account"),
         ]
         ordering = ["-is_active", "-updated_at"]
 
     def __str__(self) -> str:
         status = "Active" if self.is_active else "Inactive"
-        return f"{self.name} - {status} ({self.professional.username})"
+        return f"{self.name} - {status} ({self.account.display_name})"
 
     def clean(self):
-        """Validate that only one theme can be active at a time per professional."""
+        """Validate that only one theme can be active at a time per account."""
         if self.is_active:
             # Check if another theme is already active
             active_themes = BrandTheme.objects.filter(
-                professional=self.professional,
+                account=self.account,
                 is_active=True,
             ).exclude(pk=self.pk)
 
             if active_themes.exists():
-                raise ValidationError("Only one theme can be active at a time per professional.")
+                raise ValidationError("Only one theme can be active at a time per account.")
 
     def save(self, *args, **kwargs) -> None:
-        """Override save to ensure only one active theme per professional."""
+        """Override save to ensure only one active theme per account."""
         if self.is_active:
-            # Deactivate all other themes for this professional
+            # Deactivate all other themes for this account
             with transaction.atomic():
                 BrandTheme.objects.filter(
-                    professional=self.professional,
+                    account=self.account,
                     is_active=True,
                 ).exclude(
                     pk=self.pk

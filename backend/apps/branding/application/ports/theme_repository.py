@@ -10,25 +10,25 @@ class ThemeRepository(Protocol):
     Concrete implementations (Django ORM) live in adapters/persistence.
     """
 
-    def get_by_id(self, *, theme_id: int | str, professional_id) -> Any:
+    def get_by_id(self, *, theme_id: int | str, account_id) -> Any:
         """
         Get a theme by ID, ensuring it belongs to the specified professional.
 
         Args:
             theme_id: The ID of the theme to get.
-            professional_id: The ID of the professional who owns the theme.
+            account_id: The ID of the professional who owns the theme.
 
         Returns:
             The theme if found, otherwise None.
         """
         ...
 
-    def get_active_theme(self, *, professional_id) -> list[Any]:
+    def get_active_theme(self, *, account_id) -> list[Any]:
         """
         Get the active theme for a professional.
 
         Args:
-            professional_id: The ID of the professional to get the active theme for.
+            account_id: The ID of the professional to get the active theme for.
 
         Returns:
             The active theme if found, otherwise None.
@@ -38,7 +38,7 @@ class ThemeRepository(Protocol):
     def create_theme(
         self,
         *,
-        professional_id,
+        account_id,
         name: str,
         is_active: bool,
         colors: dict,
@@ -50,7 +50,7 @@ class ThemeRepository(Protocol):
         Create a new theme for a professional.
 
         Args:
-            professional_id: The ID of the professional to create the theme for.
+            account_id: The ID of the professional to create the theme for.
             name: The name of the theme.
             is_active: Whether the theme is active.
             colors: The color palette of the theme.
@@ -67,7 +67,7 @@ class ThemeRepository(Protocol):
         self,
         *,
         theme_id: int | str,
-        professional_id,
+        account_id,
         name: str | None = None,
         is_active: bool | None = None,
         colors: dict | None = None,
@@ -80,7 +80,7 @@ class ThemeRepository(Protocol):
 
         Args:
             theme_id: The ID of the theme to update.
-            professional_id: The ID of the professional who owns the theme.
+            account_id: The ID of the professional who owns the theme.
             name: The name of the theme.
             is_active: Whether the theme is active.
             colors: The color palette of the theme.
@@ -93,42 +93,42 @@ class ThemeRepository(Protocol):
         """
         ...
 
-    def delete_theme(self, *, theme_id: int | str, professional_id) -> None:
+    def delete_theme(self, *, theme_id: int | str, account_id) -> None:
         """
         Delete a theme.
 
         Args:
             theme_id: The theme UUID.
-            professional_id: The professional UUID (for ownership check).
+            account_id: The professional UUID (for ownership check).
         """
         ...
 
-    def deactivate_all_themes(self, *, professional_id) -> None:
+    def deactivate_all_themes(self, *, account_id) -> None:
         """
         Deactivate all themes for a professional.
 
         Args:
-            professional_id: The professional UUID.
+            account_id: The professional UUID.
         """
         ...
 
-    def deactivate_theme(self, *, theme_id: int | str, professional_id) -> None:
+    def deactivate_theme(self, *, theme_id: int | str, account_id) -> None:
         """
         Deactivate a theme.
 
         Args:
             theme_id: The theme UUID.
-            professional_id: The professional UUID (for ownership check).
+            account_id: The professional UUID (for ownership check).
         """
         ...
 
-    def activate_theme(self, *, theme_id: int | str, professional_id) -> None:
+    def activate_theme(self, *, theme_id: int | str, account_id) -> None:
         """
         Activate a theme.
 
         Args:
             theme_id: The theme UUID.
-            professional_id: The professional UUID (for ownership check).
+            account_id: The professional UUID (for ownership check).
 
         Returns:
             The activated theme.

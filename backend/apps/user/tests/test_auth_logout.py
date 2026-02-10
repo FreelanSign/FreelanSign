@@ -11,7 +11,7 @@ LOGOUT = "/api/auth/logout/"
 class TestAuthLogout(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(email="john@example.com", password="Secret123!")
-        Profile.objects.create(user=self.user)
+        # Profile created automatically by signal
 
         login = self.client.post(LOGIN, {"email": "john@example.com", "password": "Secret123!"}, format="json").json()
         self.access = login["access"]

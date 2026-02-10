@@ -22,6 +22,7 @@ def test_email_template_renderer_methods_raise_not_implemented():
         quote_date="2024-01-01",
         expiration_date="2024-01-31",
         locale="fr",
+        sender_name="Test Company",
     )
 
     with pytest.raises(NotImplementedError):
