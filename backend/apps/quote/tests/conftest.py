@@ -22,10 +22,9 @@ def mock_pdf_and_email():
     mock_renderer.render.return_value = "<html><body>OK</body></html>"
 
     with (
-        patch("apps.quote.interface.views.PlaywrightPdfGenerator", return_value=mock_pdf),
+        patch("apps.quote.interface.views.WeasyPrintPdfGenerator", return_value=mock_pdf),
         patch("apps.quote.interface.views.QuoteViewSet._mailer", return_value=mock_email),
         patch("apps.quote.interface.views.QuoteViewSet._renderer", return_value=mock_renderer),
-        patch("apps.quote.interface.views.PlaywrightPdfGenerator", return_value=mock_pdf),
         patch("apps.quote.interface.views.DjangoTemplateRenderer", return_value=mock_renderer),
     ):
         yield {"pdf": mock_pdf, "email": mock_email, "renderer": mock_renderer}

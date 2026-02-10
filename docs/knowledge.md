@@ -941,7 +941,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   └── django_email_sender.py
 │   │   │   │   ├── pdf
 │   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── playwright_generator.py
+│   │   │   │   │   └── weasyprint_generator.py
 │   │   │   │   ├── persistence
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── django_prestation_repository.py
@@ -1027,9 +1027,9 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── test_django_quote_repository.py
 │   │   │   │   │   ├── test_pdf_context_presenter.py
-│   │   │   │   │   ├── test_playwright_pdf.py
 │   │   │   │   │   ├── test_reference_generator_concurrency.py
-│   │   │   │   │   └── test_reference_generator.py
+│   │   │   │   │   ├── test_reference_generator.py
+│   │   │   │   │   └── test_weasyprint_pdf.py
 │   │   │   │   ├── application
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── test_add_prestation_line.py
@@ -1925,5 +1925,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-02-09 16:38:01 CET**
+_Updated_: **2026-02-10 10:38:48 CET**
 <!-- END AUTO: LAST_UPDATED -->

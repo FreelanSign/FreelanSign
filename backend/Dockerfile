@@ -11,6 +11,10 @@ ENV PYTHONUNBUFFERED=1
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
+    libffi-dev \
+    libpango-1.0-dev \
+    libcairo2-dev \
+    libgdk-pixbuf2.0-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements/requirements.txt .
@@ -28,16 +32,17 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     postgresql-client \
     cron \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf2.0-0 \
+    libcairo2 \
+    libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
 
 RUN pip install --no-cache /wheels/*
-
-# Install Playwright browsers and dependencies
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-RUN playwright install --with-deps chromium
 
 
 COPY . /app/
@@ -50,8 +55,7 @@ RUN apt-get update && apt-get install -y gosu && rm -rf /var/lib/apt/lists/*
 
 # Create directories that will be mounted as volumes
 RUN mkdir -p /app/logs /app/static /app/media && \
-    chown -R app:app /app && \
-    chown -R app:app /ms-playwright
+    chown -R app:app /app
 
 EXPOSE 8000
 
