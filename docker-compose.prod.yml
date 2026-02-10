@@ -65,6 +65,8 @@ services:
       - RETENTION_ACCOUNTING_YEARS=${RETENTION_ACCOUNTING_YEARS:-10}
       - ENABLE_ACCOUNT_MODEL=${ENABLE_ACCOUNT_MODEL:-True}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
     volumes:
       - backend_static_prod:/app/static
       - backend_media_prod:/app/media
