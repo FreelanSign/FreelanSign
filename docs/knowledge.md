@@ -1486,6 +1486,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── init
 │   └── README.md
 ├── db-sync.sh
+├── DEPLOY_CHECKLIST.md
 ├── docker-compose.certbot.yml
 ├── docker-compose.prod.yml
 ├── docker-compose.yml
@@ -1534,9 +1535,13 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   └── senior_mindset.md
 │   ├── knowledge.md
 │   ├── knowledge.sh
+│   ├── MONOREPO_DEPLOYMENT.md
+│   ├── MONOREPO_VISUAL.md
 │   ├── OPERATIONS.md
 │   ├── plans
 │   │   └── production-ready.md
+│   ├── RAILWAY_FAQ.md
+│   ├── RAILWAY_VS_DOCKER.md
 │   ├── release
 │   │   ├── RELEASE_PLAN_v0.1.0.md
 │   │   └── RELEASE_PLAN_v0.2.0.md
@@ -1829,15 +1834,20 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── logs
 │   └── app.log
 ├── Makefile
+├── nixpacks.toml
 ├── package.json
 ├── pnpm-lock.yaml
 ├── postgres.conf
+├── Procfile
+├── RAILWAY_SETUP.md
+├── railway.json
 ├── README.md
 ├── release.md
 ├── scripts
 │   ├── backup.sh
 │   ├── db-dump.sh
 │   ├── db-restore.sh
+│   ├── generate_secrets.py
 │   ├── load-env.sh
 │   ├── precommit.sh
 │   └── restore.sh
@@ -1851,7 +1861,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-326 directories, 1069 files
+326 directories, 1079 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1927,5 +1937,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-02-10 15:41:18 CET**
+_Updated_: **2026-02-11 15:01:56 CET**
 <!-- END AUTO: LAST_UPDATED -->
