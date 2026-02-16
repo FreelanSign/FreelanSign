@@ -2,10 +2,10 @@
 nixPkgs = ["python311", "postgresql"]
 
 [phases.install]
-cmds = ["pip install -r requirements/requirements.txt"]
+cmds = ["cd backend && pip install -r requirements/requirements.txt"]
 
 [phases.build]
-cmds = ["python manage.py collectstatic --noinput"]
+cmds = ["cd backend && python manage.py collectstatic --noinput"]
 
 [start]
-cmd = "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+cmd = "cd backend && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
