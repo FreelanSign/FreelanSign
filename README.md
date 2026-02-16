@@ -46,7 +46,7 @@ FreelanSign est conçu pour les freelances et les auto-entrepreneurs français, 
 
 ## Statut actuel
 
-**Version**: 0.4.0
+**Version**: 0.4.1
 
 **Status**: Active development
 
