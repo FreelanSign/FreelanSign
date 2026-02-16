@@ -1235,7 +1235,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │           ├── packages_quote_arch_packages.png
 │   │           ├── packages_quote_arch.dot
 │   │           └── packages_quote_arch.png
-│   ├── Dockerfile
+│   ├── Dockerfile.backup
 │   ├── Dockerfile.optimized
 │   ├── docs
 │   │   ├── ENCRYPTION_KEY_BACKUP.md
@@ -1937,5 +1937,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-02-16 08:43:10 CET**
+_Updated_: **2026-02-16 09:26:57 CET**
 <!-- END AUTO: LAST_UPDATED -->
