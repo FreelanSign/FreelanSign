@@ -188,28 +188,6 @@ TEMPLATES[0]["DIRS"] = [BASE_DIR / "templates"]
 WSGI_APPLICATION = "config.wsgi.application"
 
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("DATABASE_NAME"),
-        "USER": env("DATABASE_USER"),
-        "PASSWORD": env("DATABASE_PASSWORD"),
-        "HOST": env("DATABASE_HOST"),
-        "PORT": env("DATABASE_PORT"),
-        # Connection pooling settings
-        "CONN_MAX_AGE": env.int("CONN_MAX_AGE", default=600),  # 10 minutes
-        "CONN_HEALTH_CHECKS": True,  # Check connections before use
-        "OPTIONS": {
-            "connect_timeout": 10,
-            "options": "-c statement_timeout=30000",  # 30s query timeout
-        },
-    }
-}
-
-
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
