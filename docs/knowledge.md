@@ -1256,6 +1256,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── requirements
 │   │   ├── dev-requirements.txt
 │   │   └── requirements.txt
+│   ├── requirements.txt
 │   ├── scripts
 │   │   ├── clear_encrypted_fields.py
 │   │   └── migrate_encryption_key.py
@@ -1861,7 +1862,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-326 directories, 1079 files
+326 directories, 1080 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1937,5 +1938,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-02-16 15:53:00 CET**
+_Updated_: **2026-02-16 16:23:52 CET**
 <!-- END AUTO: LAST_UPDATED -->
