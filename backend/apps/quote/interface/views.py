@@ -742,6 +742,8 @@ class QuotePreviewPdfView(APIView):
             html = renderer.render("quote/pdf/document.html", vm, legal_terms_html=legal_terms_html)
             pdf_bytes = pdfgen.generate(html)
         except Exception as e:
+            log = get_logger(__name__)
+            log.error("quote.preview.rendering_error error=%s", str(e), exc_info=True)
             return Response({"code": "QUOTE_PREVIEW_RENDERING", "detail": str(e)}, status=503)
 
         response = HttpResponse(pdf_bytes, content_type="application/pdf")

@@ -30,7 +30,7 @@ mccabe==0.7.0
 packaging==25.0
 pillow==12.0.0
 platformdirs==4.5.0
-weasyprint>=62.0
+weasyprint>=68.1
 pluggy==1.6.0
 psycopg2-binary==2.9.10
 pycparser==2.23
