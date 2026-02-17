@@ -1253,6 +1253,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── media
 │   ├── pyproject.toml
 │   ├── pytest.ini
+│   ├── railway.json
 │   ├── requirements
 │   │   ├── dev-requirements.txt
 │   │   └── requirements.txt
@@ -1862,7 +1863,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-326 directories, 1080 files
+326 directories, 1081 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1938,5 +1939,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-02-16 16:30:40 CET**
+_Updated_: **2026-02-17 08:45:23 CET**
 <!-- END AUTO: LAST_UPDATED -->
