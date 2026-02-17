@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from threading import Thread
 from typing import Optional
 
 from django.conf import settings
@@ -167,12 +168,18 @@ class UserViewSet(viewsets.ViewSet):
         logger.info("users.create succeeded for user_id=%s", vm.id)
 
         try:
-            SendVerificationEmail(
-                verification_base_url=settings.EMAIL_VERIFICATION_URL,
-                from_email=settings.EMAIL_FROM,
-            ).execute(user_id=vm.id, email=vm.email)
+            # Send verification email in background thread (non-blocking)
+            thread = Thread(
+                target=SendVerificationEmail(
+                    verification_base_url=settings.EMAIL_VERIFICATION_URL,
+                    from_email=settings.EMAIL_FROM,
+                ).execute,
+                kwargs={"user_id": vm.id, "email": vm.email},
+                daemon=True,
+            )
+            thread.start()
         except Exception:
-            logger.exception("Failed to send verification email for user_id=%s", vm.id)
+            logger.exception("Failed to queue verification email for user_id=%s", vm.id)
 
         return Response(UserOutputSerializer.from_vm(vm).data, status=status.HTTP_201_CREATED)
 

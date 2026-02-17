@@ -1,6 +1,7 @@
 # apps/user/interface/auth_views.py
 import logging
 from datetime import datetime, timezone
+from threading import Thread
 
 from django.contrib.auth import get_user_model
 from drf_spectacular.utils import OpenApiResponse, extend_schema
@@ -239,7 +240,13 @@ class RequestPasswordResetView(APIView):
                     from_email=settings.EMAIL_FROM,
                 ),
             )
-            use_case.execute(email=ser.validated_data["email"])
+            # Execute password reset in background thread (non-blocking)
+            thread = Thread(
+                target=use_case.execute,
+                kwargs={"email": ser.validated_data["email"]},
+                daemon=True,
+            )
+            thread.start()
 
             return Response(
                 {"detail": "If the email exists, a reset link was sent."},
@@ -359,11 +366,16 @@ class ResendVerificationEmailView(APIView):
             return Response({"detail": "Email already verified."}, status=status.HTTP_200_OK)
 
         try:
-            uc = SendVerificationEmail(
-                verification_base_url=settings.EMAIL_VERIFICATION_URL,
-                from_email=settings.EMAIL_FROM,
+            # Send verification email in background thread (non-blocking)
+            thread = Thread(
+                target=SendVerificationEmail(
+                    verification_base_url=settings.EMAIL_VERIFICATION_URL,
+                    from_email=settings.EMAIL_FROM,
+                ).execute,
+                kwargs={"user_id": user.id, "email": user.email},
+                daemon=True,
             )
-            uc.execute(user_id=user.id, email=user.email)
+            thread.start()
             return Response({"detail": "Verification email sent."}, status=status.HTTP_200_OK)
         except Exception as e:
             return UserErrorHandler.handle_error(e)
