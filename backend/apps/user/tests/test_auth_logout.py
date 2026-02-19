@@ -27,7 +27,7 @@ class TestAuthLogout(APITestCase):
         res2 = self.client.post(REFRESH, {"refresh": self.refresh}, format="json")
         assert res2.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_400_BAD_REQUEST)
 
-    def test_logout_with_invalid_token_returns_400(self):
+    def test_logout_with_invalid_token_returns_204(self):
+        # Logout is idempotent: even an invalid/expired token returns 204
         res = self.client.post(LOGOUT, {"refresh": "not-a-token"}, format="json")
-        assert res.status_code == status.HTTP_400_BAD_REQUEST
-        assert "refresh" in res.json()
+        assert res.status_code == status.HTTP_204_NO_CONTENT

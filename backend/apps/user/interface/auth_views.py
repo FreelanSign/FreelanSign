@@ -51,11 +51,10 @@ class AuthLoginView(TokenObtainPairView):
     request=LogoutSerializer,
     responses={
         204: OpenApiResponse({"detail": "Logged out successfully"}),
-        400: OpenApiResponse({"refresh": ["Invalid token"]}),
     },
 )
 class AuthLogoutView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
     throttle_classes = (ScopedRateThrottle,)
     throttle_scope = "auth"
 
@@ -66,7 +65,7 @@ class AuthLogoutView(APIView):
             token = RefreshToken(ser.validated_data["refresh"])
             token.blacklist()
         except TokenError:
-            return Response({"refresh": ["Invalid token"]}, status=status.HTTP_400_BAD_REQUEST)
+            pass  # Token already invalid/expired — user is already logged out
         return Response({"detail": "Logged out successfully"}, status=status.HTTP_204_NO_CONTENT)
 
 

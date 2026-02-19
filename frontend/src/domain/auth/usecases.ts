@@ -19,10 +19,10 @@ export function makeAuthUseCases(port: AuthPort) {
     async logout() {
       const refresh = tokenStorage.getRefresh();
       if (refresh) {
-        await port.logout(refresh);
+        await port.logout(refresh); // clearAll handled in finally inside repository
+      } else {
+        tokenStorage.clearAll();
       }
-      // Même si pas de refresh, on purge tout localement
-      tokenStorage.clearAll();
     },
     async getMe(): Promise<AuthUser> {
       return port.getMe();

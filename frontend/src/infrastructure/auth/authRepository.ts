@@ -49,8 +49,11 @@ export const authRepository: AuthPort = {
 
   async logout(refreshToken: string): Promise<void> {
     // AuthLogoutView attend { refresh } et renvoie 204
-    await apiClient.post(API_ENDPOINTS.logout, { refresh: refreshToken });
-    tokenStorage.clearAll();
+    try {
+      await apiClient.post(API_ENDPOINTS.logout, { refresh: refreshToken });
+    } finally {
+      tokenStorage.clearAll();
+    }
   },
 
   async getMe(): Promise<AuthUser> {
