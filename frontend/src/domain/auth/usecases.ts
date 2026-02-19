@@ -19,9 +19,12 @@ export function makeAuthUseCases(port: AuthPort) {
     async logout() {
       const refresh = tokenStorage.getRefresh();
       if (refresh) {
-        await port.logout(refresh);
+        try {
+          await port.logout(refresh);
+        } catch {
+          // Ignore server errors (expired/invalid token) — always clear locally
+        }
       }
-      // Même si pas de refresh, on purge tout localement
       tokenStorage.clearAll();
     },
     async getMe(): Promise<AuthUser> {

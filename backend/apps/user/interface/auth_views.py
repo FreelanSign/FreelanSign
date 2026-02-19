@@ -55,7 +55,7 @@ class AuthLoginView(TokenObtainPairView):
     },
 )
 class AuthLogoutView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
     throttle_classes = (ScopedRateThrottle,)
     throttle_scope = "auth"
 
