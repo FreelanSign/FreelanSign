@@ -1,4 +1,5 @@
 """
+@Deprecated
 Importe Areas + Prestations depuis backend/tools/areas.csv et prestations.csv.
 
 Lancer :
@@ -17,6 +18,25 @@ from pathlib import Path
 
 _TWO_PLACES = Decimal("0.01")
 
+# --- Localisation des CSV (dans le même dossier que ce script) ---
+SCRIPT_DIR = Path(__file__).resolve().parent
+AREAS_CSV = SCRIPT_DIR / "areas.csv"
+PRESTAS_CSV = SCRIPT_DIR / "prestations.csv"
+
+# Assure que <repo>/backend est dans le PYTHONPATH (utile en mode script standalone)
+BACKEND_DIR = SCRIPT_DIR.parent
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
+# Bootstrap Django si pas encore initialisé (mode script standalone)
+import django  # noqa: E402
+
+if not django.apps.registry.apps.ready:
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+    django.setup()
+
+from apps.catalog.models import Area, Prestation, PrestationStatus  # noqa: E402
+
 
 def euros_to_cents_local(value: Decimal | str | float | int) -> int:
     """
@@ -26,27 +46,6 @@ def euros_to_cents_local(value: Decimal | str | float | int) -> int:
     d = value if isinstance(value, Decimal) else Decimal(str(value))
     q = d.quantize(_TWO_PLACES, rounding=ROUND_HALF_UP)
     return int(q * 100)
-
-
-# --- Localisation des CSV (dans le même dossier que ce script) ---
-SCRIPT_DIR = Path(__file__).resolve().parent
-AREAS_CSV = SCRIPT_DIR / "areas.csv"
-PRESTAS_CSV = SCRIPT_DIR / "prestations.csv"
-
-# --- Bootstrap Django ---
-# On place d'abord <repo>/backend sur le PYTHONPATH pour importer config, apps, etc.
-BACKEND_DIR = SCRIPT_DIR.parent  # .../backend
-if str(BACKEND_DIR) not in sys.path:
-    sys.path.insert(0, str(BACKEND_DIR))
-
-# Tes settings sont dans backend/config/settings.py
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-
-import django  # noqa: E402
-
-django.setup()
-
-from apps.catalog.models import Area, Prestation, PrestationStatus  # noqa: E402
 
 
 def _read_csv(path: Path) -> list[dict]:

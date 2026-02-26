@@ -614,6 +614,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── serializers.py
 │   │   │   │   ├── urls.py
 │   │   │   │   └── views.py
+│   │   │   ├── management
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── commands
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── import_catalog.py
 │   │   │   ├── migrations
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── 0001_initial.py
@@ -1249,7 +1254,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── __init__.py
 │   │   └── commands
 │   │       ├── __init__.py
-│   │       └── generate_mermaid.py
+│   │       ├── generate_mermaid.py
+│   │       └── import_catalog.py
 │   ├── media
 │   ├── pyproject.toml
 │   ├── pytest.ini
@@ -1465,6 +1471,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │           ├── document.html
 │   │           └── preview.html
 │   └── tools
+│       ├── __init__.py
 │       ├── areas.csv
 │       ├── generate_csv.py
 │       ├── import_catalog.py
@@ -1864,7 +1871,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-326 directories, 1082 files
+328 directories, 1087 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1940,5 +1947,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-02-26 11:31:22 CET**
+_Updated_: **2026-02-26 16:04:50 CET**
 <!-- END AUTO: LAST_UPDATED -->

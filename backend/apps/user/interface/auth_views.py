@@ -50,7 +50,7 @@ class AuthLoginView(TokenObtainPairView):
     summary="Logout (invalidate refresh token)",
     request=LogoutSerializer,
     responses={
-        204: OpenApiResponse({"detail": "Logged out successfully"}),
+        204: OpenApiResponse(description="Logged out successfully"),
     },
 )
 class AuthLogoutView(APIView):
@@ -66,7 +66,7 @@ class AuthLogoutView(APIView):
             token.blacklist()
         except TokenError:
             pass  # Token already invalid/expired — user is already logged out
-        return Response({"detail": "Logged out successfully"}, status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema(

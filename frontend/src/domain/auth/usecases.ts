@@ -19,7 +19,12 @@ export function makeAuthUseCases(port: AuthPort) {
     async logout() {
       const refresh = tokenStorage.getRefresh();
       if (refresh) {
-        await port.logout(refresh); // clearAll handled in finally inside repository
+        try {
+          await port.logout(refresh);
+        } catch (error) {
+          // Network error or invalid token — tokens already cleared in repository
+          console.error('Logout failed', error);
+        }
       } else {
         tokenStorage.clearAll();
       }
