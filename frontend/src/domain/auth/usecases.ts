@@ -3,10 +3,9 @@ import type {
   LoginPayload,
   RegisterPayload,
   AuthUser,
+  TokenPair,
 } from '../types';
 import { tokenStorage } from '../../infrastructure/storage/tokenStorage';
-
-/** Les use-cases orchestrent l’implémentation du port et la persistance locale. */
 
 export function makeAuthUseCases(port: AuthPort) {
   return {
@@ -16,16 +15,19 @@ export function makeAuthUseCases(port: AuthPort) {
     async register(data: RegisterPayload) {
       await port.register(data);
     },
+    async refresh(): Promise<TokenPair | null> {
+      try {
+        return await port.refresh();
+      } catch {
+        return null;
+      }
+    },
     async logout() {
-      const refresh = tokenStorage.getRefresh();
-      if (refresh) {
-        try {
-          await port.logout(refresh);
-        } catch (error) {
-          // Network error or invalid token — tokens already cleared in repository
-          console.error('Logout failed', error);
-        }
-      } else {
+      try {
+        await port.logout();
+      } catch {
+        // Network error — clear local state anyway
+      } finally {
         tokenStorage.clearAll();
       }
     },

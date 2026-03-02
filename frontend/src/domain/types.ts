@@ -41,8 +41,8 @@ export type AuthUser = {
 export interface AuthPort {
   login(payload: LoginPayload): Promise<TokenPair>;
   register(payload: RegisterPayload): Promise<void>;
-  refresh(refreshToken: string): Promise<TokenPair>;
-  logout(refreshToken: string): Promise<void>;
+  refresh(): Promise<TokenPair>;
+  logout(): Promise<void>;
   getMe(): Promise<AuthUser>;
   requestPasswordReset(email: string): Promise<void>;
 }

@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 @extend_schema(
     tags=["Auth"],
     summary="Login with email and password",
-    description="Obtain JWT tokens using email and password.",
+    description="Obtain JWT tokens using email and password. Access token returned in body; refresh token set as httpOnly cookie.",
     request=TokenObtainPairSerializer,
     responses={200: TokenObtainPairSerializer},
 )
@@ -43,6 +43,23 @@ class AuthLoginView(TokenObtainPairView):
     permission_classes = (AllowAny,)
     throttle_classes = (ScopedRateThrottle,)
     throttle_scope = "auth"
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            refresh = response.data.pop("refresh", None)
+            if refresh:
+                secure = not settings.DEBUG
+                response.set_cookie(
+                    "fs_refresh",
+                    refresh,
+                    httponly=True,
+                    secure=secure,
+                    samesite="None" if secure else "Lax",
+                    max_age=7 * 24 * 3600,
+                    path="/",
+                )
+        return response
 
 
 @extend_schema(
@@ -59,14 +76,16 @@ class AuthLogoutView(APIView):
     throttle_scope = "auth"
 
     def post(self, request):
-        ser = LogoutSerializer(data=request.data)
-        ser.is_valid(raise_exception=True)
-        try:
-            token = RefreshToken(ser.validated_data["refresh"])
-            token.blacklist()
-        except TokenError:
-            pass  # Token already invalid/expired — user is already logged out
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        raw = request.COOKIES.get("fs_refresh") or request.data.get("refresh")
+        if raw:
+            try:
+                token = RefreshToken(raw)
+                token.blacklist()
+            except TokenError:
+                pass  # Token already invalid/expired — user is already logged out
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        response.delete_cookie("fs_refresh", path="/")
+        return response
 
 
 @extend_schema(
@@ -131,9 +150,9 @@ class SecureAuthRefreshView(APIView):
             self._blacklist_token(token)
 
     def post(self, request):
-        raw = request.data.get("refresh")
+        raw = request.COOKIES.get("fs_refresh") or request.data.get("refresh")
         if not raw:
-            return Response({"refresh": ["This field is required."]}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "No refresh token provided."}, status=status.HTTP_401_UNAUTHORIZED)
 
         # Validation du token
         try:
@@ -172,7 +191,7 @@ class SecureAuthRefreshView(APIView):
         # Blacklister l'ancien token après rotation réussie
         self._blacklist_token(outstanding_token)
 
-        new_refresh = data.get("refresh")
+        new_refresh = data.pop("refresh", None)
         if new_refresh:
             try:
                 new_presented = self._get_presented(new_refresh)
@@ -180,7 +199,19 @@ class SecureAuthRefreshView(APIView):
             except TokenError:
                 pass
 
-        return Response(data, status=status.HTTP_200_OK)
+        response = Response(data, status=status.HTTP_200_OK)
+        if new_refresh:
+            secure = not settings.DEBUG
+            response.set_cookie(
+                "fs_refresh",
+                new_refresh,
+                httponly=True,
+                secure=secure,
+                samesite="None" if secure else "Lax",
+                max_age=7 * 24 * 3600,
+                path="/",
+            )
+        return response
 
 
 @extend_schema(
