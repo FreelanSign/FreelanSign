@@ -13,21 +13,22 @@ class TestAuthLogout(APITestCase):
         self.user = User.objects.create_user(email="john@example.com", password="Secret123!")
         # Profile created automatically by signal
 
-        login = self.client.post(LOGIN, {"email": "john@example.com", "password": "Secret123!"}, format="json").json()
-        self.access = login["access"]
-        self.refresh = login["refresh"]
+        # Login: refresh token set as httpOnly cookie (not in body)
+        login_res = self.client.post(LOGIN, {"email": "john@example.com", "password": "Secret123!"}, format="json")
+        self.access = login_res.json()["access"]
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access}")
 
     def test_logout_blacklists_refresh(self):
-        res = self.client.post(LOGOUT, {"refresh": self.refresh}, format="json")
-        print(res.status_code, res.content[:200])
+        # Cookie sent automatically; no body needed
+        res = self.client.post(LOGOUT, {}, format="json")
         assert res.status_code == status.HTTP_204_NO_CONTENT
 
-        # le même refresh ne doit plus être utilisable
-        res2 = self.client.post(REFRESH, {"refresh": self.refresh}, format="json")
+        # Refresh cookie cleared after logout — subsequent refresh should fail
+        res2 = self.client.post(REFRESH, {}, format="json")
         assert res2.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_400_BAD_REQUEST)
 
     def test_logout_with_invalid_token_returns_204(self):
-        # Logout is idempotent: even an invalid/expired token returns 204
-        res = self.client.post(LOGOUT, {"refresh": "not-a-token"}, format="json")
+        # Logout is idempotent: no cookie → still returns 204
+        self.client.cookies.clear()
+        res = self.client.post(LOGOUT, {}, format="json")
         assert res.status_code == status.HTTP_204_NO_CONTENT

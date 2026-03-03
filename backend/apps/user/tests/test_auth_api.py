@@ -12,22 +12,27 @@ class TestAuthApi(APITestCase):
         self.user = User.objects.create_user(email="john@example.com", password="password123")
         # Profile created automatically by signal
 
-    def test_login_success_returns_tokens(self):
+    def test_login_success_returns_access_token_and_sets_cookie(self):
         res = self.client.post(LOGIN, {"email": "john@example.com", "password": "password123"}, format="json")
         assert res.status_code == status.HTTP_200_OK
         body = res.json()
-        assert "access" in body and "refresh" in body
+        # Access token in body; refresh token as httpOnly cookie (not in body)
+        assert "access" in body
+        assert "refresh" not in body
+        assert "fs_refresh" in res.cookies
 
     def test_login_wrong_password_401(self):
         res = self.client.post(LOGIN, {"email": "john@example.com", "password": "wrong!"}, format="json")
         assert res.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_refresh_success_returns_new_access(self):
-        login = self.client.post(LOGIN, {"email": "john@example.com", "password": "password123"}, format="json").json()
-        res = self.client.post(REFRESH, {"refresh": login["refresh"]}, format="json")
+        # Login to get the httpOnly cookie set
+        self.client.post(LOGIN, {"email": "john@example.com", "password": "password123"}, format="json")
+        # Refresh using cookie (sent automatically by test client)
+        res = self.client.post(REFRESH, {}, format="json")
         assert res.status_code == status.HTTP_200_OK
         assert "access" in res.json()
 
     def test_refresh_invalid_token_401(self):
-        res = self.client.post(REFRESH, {"refresh": "not-a-token"}, format="json")
+        res = self.client.post(REFRESH, {}, format="json")
         assert res.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_400_BAD_REQUEST)

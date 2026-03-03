@@ -53,4 +53,8 @@ export const authRepository: AuthPort = {
   async requestPasswordReset(email: string): Promise<void> {
     await apiClient.post(API_ENDPOINTS.requestPasswordReset, { email });
   },
+
+  async resendVerification(): Promise<void> {
+    await apiClient.post(API_ENDPOINTS.resendVerification, {});
+  },
 };

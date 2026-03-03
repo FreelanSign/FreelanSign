@@ -63,6 +63,7 @@ def _user_vm_from_model(u) -> UserViewModel:
     return UserViewModel(
         id=u.id,
         email=u.email,
+        email_verified=getattr(u, "email_verified", False),
         profile=ProfileViewModel(
             first_name=getattr(p, "first_name", None),
             last_name=getattr(p, "last_name", None),
