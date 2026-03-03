@@ -17,8 +17,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from apps.user.adapters.persistence.django_user_repository import DjangoUserRepository
+from apps.user.adapters.providers.brevo_api_token_sender import BrevoApiTokenSender
 from apps.user.adapters.providers.logging_token_sender import LoggingTokenSender
-from apps.user.adapters.providers.smtp_token_provider import SmtpTokenSender
 from apps.user.application.dto.user_inputs import ResetPasswordInput
 from apps.user.application.usecases.request_password_reset import RequestPasswordReset
 from apps.user.application.usecases.reset_password import ResetPassword
@@ -265,9 +265,10 @@ class RequestPasswordResetView(APIView):
         try:
             use_case = RequestPasswordReset(
                 user_repository=DjangoUserRepository(),
-                token_sender=SmtpTokenSender(
+                token_sender=BrevoApiTokenSender(
                     reset_base_url=settings.RESET_PASSWORD_URL,
                     from_email=settings.EMAIL_FROM,
+                    api_key=settings.BREVO_API_KEY,
                 ),
             )
             # Execute password reset in background thread (non-blocking)
