@@ -71,8 +71,8 @@ const router = createBrowserRouter([
     path: '/auth/request-password-reset',
     element: <RequestPasswordResetPage />,
   },
-  { path: '/reset-password', element: <ResetPasswordPage /> },
-  //{ path: '/auth/reset-password', element: <ResetPasswordPage /> },
+  //{ path: '/reset-password', element: <ResetPasswordPage /> },
+  { path: '/auth/reset-password', element: <ResetPasswordPage /> },
   { path: '/verify-email', element: <VerifyEmailPage /> },
 ]);
 

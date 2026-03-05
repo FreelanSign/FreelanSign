@@ -10,8 +10,18 @@ export async function resetPassword(
     body: JSON.stringify({ token, new_password }),
   });
 
-  if (!res.ok) {
+  if (res.ok) return;
+
+  let message = 'Erreur lors de la réinitialisation.';
+  try {
     const body = await res.json();
-    throw new Error(body?.message || 'Erreur lors de la réinitialisation.');
+    if (res.status === 404) {
+      message = 'Lien invalide ou expiré. Demandez un nouveau lien.';
+    } else {
+      message = body?.detail || body?.message || message;
+    }
+  } catch {
+    // body vide (ex: 405)
   }
+  throw new Error(message);
 }
