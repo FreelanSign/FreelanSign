@@ -60,7 +60,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
       try {
         // On page reload, access token is not in memory — try silent refresh via httpOnly cookie
         if (!tokenStorage.getAccess()) {
-          const tokens = await uc.refresh();
+          const tokens = await uc.refresh().catch(() => null);
           if (tokens?.access) tokenStorage.setAccess(tokens.access);
         }
         if (tokenStorage.getAccess()) {

@@ -506,7 +506,6 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 ├── backend
 │   ├── .claude
 │   │   └── settings.local.json
-│   ├── .coverage
 │   ├── .coveragerc
 │   ├── .dockerignore
 │   ├── apps
@@ -1874,7 +1873,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-328 directories, 1090 files
+328 directories, 1089 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1950,5 +1949,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-03-03 21:42:35 CET**
+_Updated_: **2026-03-05 09:05:16 CET**
 <!-- END AUTO: LAST_UPDATED -->
