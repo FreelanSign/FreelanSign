@@ -30,6 +30,7 @@ Intégrez les mentions légales obligatoires (CGV, CGU) et restez en conformité
 
 Centralisez les informations clients et l'historique des devis sur une plateforme organisée.
 
+
 ## Features principales
 
 - Génération rapide de devis avec des lignes personnalisables et des calculs automatisés
