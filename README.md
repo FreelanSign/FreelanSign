@@ -1,5 +1,35 @@
 ![alt text](logo.png)
 
+  # Freelansign - [Archived Project]
+
+  > Note : Ce projet est officiellement passé en mode "Archive" en mars 2026. Le dépôt reste ouvert à des fins de consultation pédagogique sur l'architecture (Django / React / Docker).
+
+**Freelansign est né d'une ambition simple** : simplifier la gestion administrative des freelances en intégrant nativement les aspects juridiques (CGV, mentions légales) dans un générateur de devis intuitif.
+
+## Pourquoi l'arrêt du projet ?
+
+Le paysage de la facturation en France a connu une accélération sans précédent début 2026 avec la **généralisation de la facturation électronique et l'émergence de plateformes agréées (PDP) hautement intégrées aux services de l'État (INPI, Chorus Pro)**.
+
+Face à cette nouvelle donne réglementaire et technique :
+
+**Analyse du Marché** : L'arrivée de solutions certifiées et automatisées par l'IA a déplacé le besoin des utilisateurs vers des outils d'interopérabilité que ce MVP n'avait pas vocation à couvrir initialement.
+
+**Décision d'Ingénieur** : Plutôt que de maintenir une solution technique devenue obsolète face aux nouvelles normes légales, j'ai choisi de clore ce chapitre pour concentrer mon énergie sur de nouveaux défis techniques.
+
+## Ce que ce projet m'a apporté (Stack Technique)
+
+Freelansign a été un laboratoire de développement exceptionnel au-delà de mon cursus de Master :
+
+- Architecture & Backend : Conception d'une API robuste avec Django, gestion des workflows complexes de génération de documents.
+
+- Frontend : Interface réactive et dynamique sous React.
+
+- DevOps & Infra : Conteneurisation complète via Docker, déploiement sur VPS et gestion de base de données PostgreSQL.
+
+- Product Management : Gestion du cycle de vie complet d'un MVP, de l'idée au déploiement en production.
+
+>L'aventure s'arrête ici pour Freelansign, mais l'expertise acquise reste le socle de mes prochains projets en tant que Software Engineer & Freelance.
+
 # FreelanSign
 
 **FreelanSign c'est quoi ?**

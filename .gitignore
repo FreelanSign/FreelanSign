@@ -1,13 +1,16 @@
 environment/
-
-# Perso
-docs/perso
-docs/good-practices
-docs/tmp
-backend/docs
+AGENT.md
+CLAUDE.md
+.claude/
+backend/diagrams/
+SPECIFICATIONS_RGPD.md
+DEPLOY_CHECKLIST.md
+RAILWAY_SETUP.md
+docs/
+backend/doc/
+backend/docs/
+frontend/CLAUDE.md
 database/
-docs/DEPLOY_VPS_BUILD_LOCAL.md
-docs/docker-compose*
 *db-sync*
 
 # Byte-compiled / optimized / DLL files
