@@ -67,8 +67,7 @@ class CreateQuoteUseCase:
 
         validated_data.pop("reference", None)
         raw_discount_total = validated_data.pop("discount_total", ZERO)
-        # Phase 5: Use account_id for reference generation
-        reference = self.ref_generator.next_reference(owner_id=account_id, when=issue_date)
+        reference = self.ref_generator.next_reference(owner_id=requester_id, when=issue_date)
         validated_data["reference"] = reference
 
         # Phase 5: Create with account_id

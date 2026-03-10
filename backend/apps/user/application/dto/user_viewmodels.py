@@ -18,7 +18,7 @@ class ProfileViewModel:
     phone: Optional[str]
     avatar_url: Optional[str]
     role: str
-    full_name_display: str  # Nom complet formaté
+    full_name_display: str
 
 
 @dataclass(frozen=True)
@@ -27,6 +27,7 @@ class UserViewModel:
 
     id: int
     email: str
+    email_verified: bool
     profile: ProfileViewModel
     created_at: datetime
     updated_at: datetime

@@ -186,7 +186,7 @@
       width: 100%;
       table-layout: fixed;
       margin-top: var(--space-section);
-      border-spacing: 12px 0;
+      border-spacing: 0;
     }
 
     .col {
@@ -408,7 +408,7 @@
             {% if meta.work_start_date %}<div style="margin-top: 4px;"><strong>Début des travaux :</strong> {{ meta.work_start_date }}</div>{% endif %}
             {% if meta.work_duration %}<div><strong>Durée estimée :</strong> {{ meta.work_duration }}</div>{% endif %}
             <div class="muted" style="margin-top: 8px; font-size: var(--fs-small);">
-              {{ meta.terms|default:"Conditions générales sur demande." }}
+              {{ meta.terms|default:"Conditions générales sur demande."|linebreaksbr }}
             </div>
           </div>
         </div>
@@ -434,7 +434,7 @@
             <td>
               <strong>{{ l.designation }}</strong>
               {% if l.description %}
-              <div class="muted" style="font-size: var(--fs-small); margin-top: 4px; line-height: 1.4;">{{ l.description }}</div>
+              <div class="muted" style="font-size: var(--fs-small); margin-top: 4px; line-height: 1.4;">{{ l.description|linebreaksbr }}</div>
               {% endif %}
             </td>
             <td class="right">
@@ -490,7 +490,7 @@
       {% if meta.note %}
       <div class="mt-section">
         <h3>Notes</h3>
-        <div class="muted">{{ meta.note }}</div>
+        <div class="muted">{{ meta.note|linebreaksbr }}</div>
       </div>
       {% endif %}
 

@@ -28,6 +28,7 @@ export type RegisterPayload = {
 export type AuthUser = {
   id: number;
   email: string;
+  email_verified: boolean;
   // Optionnel selon ton serializer
   profile?: {
     first_name?: string | null;
@@ -41,8 +42,9 @@ export type AuthUser = {
 export interface AuthPort {
   login(payload: LoginPayload): Promise<TokenPair>;
   register(payload: RegisterPayload): Promise<void>;
-  refresh(refreshToken: string): Promise<TokenPair>;
-  logout(refreshToken: string): Promise<void>;
+  refresh(): Promise<TokenPair>;
+  logout(): Promise<void>;
   getMe(): Promise<AuthUser>;
   requestPasswordReset(email: string): Promise<void>;
+  resendVerification(): Promise<void>;
 }

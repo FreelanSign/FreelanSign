@@ -614,6 +614,11 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   ├── serializers.py
 │   │   │   │   ├── urls.py
 │   │   │   │   └── views.py
+│   │   │   ├── management
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── commands
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── import_catalog.py
 │   │   │   ├── migrations
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── 0001_initial.py
@@ -1070,6 +1075,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │       │   │   ├── django_account_repository.py
 │   │       │   │   └── django_user_repository.py
 │   │       │   ├── providers
+│   │       │   │   ├── brevo_api_token_sender.py
 │   │       │   │   ├── logging_token_sender.py
 │   │       │   │   └── smtp_token_provider.py
 │   │       │   ├── storage
@@ -1249,10 +1255,13 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   ├── __init__.py
 │   │   └── commands
 │   │       ├── __init__.py
-│   │       └── generate_mermaid.py
+│   │       ├── generate_mermaid.py
+│   │       └── import_catalog.py
 │   ├── media
 │   ├── pyproject.toml
 │   ├── pytest.ini
+│   ├── railpack.json
+│   ├── railway.json
 │   ├── requirements
 │   │   ├── dev-requirements.txt
 │   │   └── requirements.txt
@@ -1464,6 +1473,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │           ├── document.html
 │   │           └── preview.html
 │   └── tools
+│       ├── __init__.py
 │       ├── areas.csv
 │       ├── generate_csv.py
 │       ├── import_catalog.py
@@ -1692,7 +1702,8 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   │   │   │   │   ├── request-password-reset-form.module.css
 │   │   │   │   │   ├── RequestPasswordResetForm.tsx
 │   │   │   │   │   ├── reset-password-form.module.css
-│   │   │   │   │   └── ResetPasswordForm.tsx
+│   │   │   │   │   ├── ResetPasswordForm.tsx
+│   │   │   │   │   └── VerificationBanner.tsx
 │   │   │   │   ├── branding
 │   │   │   │   │   └── ThemesForm.tsx
 │   │   │   │   ├── client
@@ -1827,6 +1838,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
 │   ├── tsconfig.json
 │   ├── tsconfig.node.json
 │   ├── tsconfig.test.json
+│   ├── vercel.json
 │   ├── vite.config.ts
 │   └── vitest.config.ts
 ├── LICENSE
@@ -1862,7 +1874,7 @@ In summary: Adopting the Conventional Commit standard promotes clarity, quality 
         ├── test
         └── test.pyi
 
-326 directories, 1080 files
+328 directories, 1090 files
 ```
 <!-- END AUTO: PROJECT_STRUCTURE -->
 
@@ -1938,5 +1950,5 @@ _No package.json found at /Users/bertrandrenaudin/Desktop/DEV/FreelanSign/backen
 
 _Last updated_
 <!-- BEGIN AUTO: LAST_UPDATED -->
-_Updated_: **2026-02-16 16:30:40 CET**
+_Updated_: **2026-03-10 21:42:49 CET**
 <!-- END AUTO: LAST_UPDATED -->

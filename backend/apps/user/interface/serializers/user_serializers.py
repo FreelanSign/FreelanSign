@@ -142,6 +142,7 @@ class UserOutputSerializer(serializers.Serializer):
 
     id = serializers.IntegerField()
     email = serializers.EmailField()
+    email_verified = serializers.BooleanField()
     profile = ProfileOutputSerializer()
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()

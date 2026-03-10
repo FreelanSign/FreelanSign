@@ -89,6 +89,7 @@ EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_FROM = env("EMAIL_FROM", default="noreply@example.com")
+BREVO_API_KEY = env("BREVO_API_KEY")
 RESET_PASSWORD_URL = env("RESET_PASSWORD_URL", default="http://localhost:3000/reset-password")
 EMAIL_VERIFICATION_URL = env("EMAIL_VERIFICATION_URL", default="http://localhost:3000/verify-email")
 

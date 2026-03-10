@@ -1,6 +1,7 @@
 # apps/user/interface/auth_views.py
 import logging
 from datetime import datetime, timezone
+from threading import Thread
 
 from django.contrib.auth import get_user_model
 from drf_spectacular.utils import OpenApiResponse, extend_schema
@@ -16,8 +17,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from apps.user.adapters.persistence.django_user_repository import DjangoUserRepository
+from apps.user.adapters.providers.brevo_api_token_sender import BrevoApiTokenSender
 from apps.user.adapters.providers.logging_token_sender import LoggingTokenSender
-from apps.user.adapters.providers.smtp_token_provider import SmtpTokenSender
 from apps.user.application.dto.user_inputs import ResetPasswordInput
 from apps.user.application.usecases.request_password_reset import RequestPasswordReset
 from apps.user.application.usecases.reset_password import ResetPassword
@@ -34,7 +35,7 @@ logger = logging.getLogger(__name__)
 @extend_schema(
     tags=["Auth"],
     summary="Login with email and password",
-    description="Obtain JWT tokens using email and password.",
+    description="Obtain JWT tokens using email and password. Access token returned in body; refresh token set as httpOnly cookie.",
     request=TokenObtainPairSerializer,
     responses={200: TokenObtainPairSerializer},
 )
@@ -43,30 +44,48 @@ class AuthLoginView(TokenObtainPairView):
     throttle_classes = (ScopedRateThrottle,)
     throttle_scope = "auth"
 
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            refresh = response.data.pop("refresh", None)
+            if refresh:
+                secure = not settings.DEBUG
+                response.set_cookie(
+                    "fs_refresh",
+                    refresh,
+                    httponly=True,
+                    secure=secure,
+                    samesite="None" if secure else "Lax",
+                    max_age=7 * 24 * 3600,
+                    path="/",
+                )
+        return response
+
 
 @extend_schema(
     tags=["Auth"],
     summary="Logout (invalidate refresh token)",
     request=LogoutSerializer,
     responses={
-        204: OpenApiResponse({"detail": "Logged out successfully"}),
-        400: OpenApiResponse({"refresh": ["Invalid token"]}),
+        204: OpenApiResponse(description="Logged out successfully"),
     },
 )
 class AuthLogoutView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
     throttle_classes = (ScopedRateThrottle,)
     throttle_scope = "auth"
 
     def post(self, request):
-        ser = LogoutSerializer(data=request.data)
-        ser.is_valid(raise_exception=True)
-        try:
-            token = RefreshToken(ser.validated_data["refresh"])
-            token.blacklist()
-        except TokenError:
-            return Response({"refresh": ["Invalid token"]}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"detail": "Logged out successfully"}, status=status.HTTP_204_NO_CONTENT)
+        raw = request.COOKIES.get("fs_refresh") or request.data.get("refresh")
+        if raw:
+            try:
+                token = RefreshToken(raw)
+                token.blacklist()
+            except TokenError:
+                pass  # Token already invalid/expired — user is already logged out
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        response.delete_cookie("fs_refresh", path="/")
+        return response
 
 
 @extend_schema(
@@ -131,9 +150,9 @@ class SecureAuthRefreshView(APIView):
             self._blacklist_token(token)
 
     def post(self, request):
-        raw = request.data.get("refresh")
+        raw = request.COOKIES.get("fs_refresh") or request.data.get("refresh")
         if not raw:
-            return Response({"refresh": ["This field is required."]}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "No refresh token provided."}, status=status.HTTP_401_UNAUTHORIZED)
 
         # Validation du token
         try:
@@ -172,7 +191,7 @@ class SecureAuthRefreshView(APIView):
         # Blacklister l'ancien token après rotation réussie
         self._blacklist_token(outstanding_token)
 
-        new_refresh = data.get("refresh")
+        new_refresh = data.pop("refresh", None)
         if new_refresh:
             try:
                 new_presented = self._get_presented(new_refresh)
@@ -180,7 +199,19 @@ class SecureAuthRefreshView(APIView):
             except TokenError:
                 pass
 
-        return Response(data, status=status.HTTP_200_OK)
+        response = Response(data, status=status.HTTP_200_OK)
+        if new_refresh:
+            secure = not settings.DEBUG
+            response.set_cookie(
+                "fs_refresh",
+                new_refresh,
+                httponly=True,
+                secure=secure,
+                samesite="None" if secure else "Lax",
+                max_age=7 * 24 * 3600,
+                path="/",
+            )
+        return response
 
 
 @extend_schema(
@@ -234,12 +265,19 @@ class RequestPasswordResetView(APIView):
         try:
             use_case = RequestPasswordReset(
                 user_repository=DjangoUserRepository(),
-                token_sender=SmtpTokenSender(
+                token_sender=BrevoApiTokenSender(
                     reset_base_url=settings.RESET_PASSWORD_URL,
                     from_email=settings.EMAIL_FROM,
+                    api_key=settings.BREVO_API_KEY,
                 ),
             )
-            use_case.execute(email=ser.validated_data["email"])
+            # Execute password reset in background thread (non-blocking)
+            thread = Thread(
+                target=use_case.execute,
+                kwargs={"email": ser.validated_data["email"]},
+                daemon=True,
+            )
+            thread.start()
 
             return Response(
                 {"detail": "If the email exists, a reset link was sent."},
@@ -359,11 +397,16 @@ class ResendVerificationEmailView(APIView):
             return Response({"detail": "Email already verified."}, status=status.HTTP_200_OK)
 
         try:
-            uc = SendVerificationEmail(
-                verification_base_url=settings.EMAIL_VERIFICATION_URL,
-                from_email=settings.EMAIL_FROM,
+            # Send verification email in background thread (non-blocking)
+            thread = Thread(
+                target=SendVerificationEmail(
+                    verification_base_url=settings.EMAIL_VERIFICATION_URL,
+                    from_email=settings.EMAIL_FROM,
+                ).execute,
+                kwargs={"user_id": user.id, "email": user.email},
+                daemon=True,
             )
-            uc.execute(user_id=user.id, email=user.email)
+            thread.start()
             return Response({"detail": "Verification email sent."}, status=status.HTTP_200_OK)
         except Exception as e:
             return UserErrorHandler.handle_error(e)

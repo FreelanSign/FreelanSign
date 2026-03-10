@@ -9,48 +9,40 @@ import { apiClient } from '../../infrastructure/http/apiClient';
 import { tokenStorage } from '../../infrastructure/storage/tokenStorage';
 import { API_ENDPOINTS } from '../../shared/endpoints';
 
-/**
- * Implémentation concrète des appels Auth contre DRF.
- * On documente explicitement les payloads pour coller aux serializers fournis.
- */
 export const authRepository: AuthPort = {
   async login(payload: LoginPayload): Promise<TokenPair> {
-    // TokenObtainPairSerializer attend { email, password }
     const { data } = await apiClient.post(API_ENDPOINTS.login, payload);
-    const tokens: TokenPair = { access: data.access, refresh: data.refresh };
-    // on enregistre immédiatement
+    // Refresh token set as httpOnly cookie by backend — only access token in body
+    const tokens: TokenPair = { access: data.access };
     tokenStorage.setAccess(tokens.access);
-    if (tokens.refresh) tokenStorage.setRefresh(tokens.refresh);
     return tokens;
   },
 
   async register(payload: RegisterPayload): Promise<void> {
-    // Tu exposes un serializer UserRegistrationSerializer côté back.
-    // Version minimale : { email, password }
     await apiClient.post(API_ENDPOINTS.register, {
       email: payload.email,
       password: payload.password,
-      // Optionnels pour compat:
       full_name: payload.full_name,
       phone: payload.phone,
       profile: payload.profile,
     });
   },
 
-  async refresh(refreshToken: string): Promise<TokenPair> {
-    const { data } = await apiClient.post(API_ENDPOINTS.refresh, {
-      refresh: refreshToken,
-    });
-    const tokens: TokenPair = { access: data.access, refresh: data.refresh };
+  async refresh(): Promise<TokenPair> {
+    // No body — refresh token sent automatically via httpOnly cookie
+    const { data } = await apiClient.post(API_ENDPOINTS.refresh, {});
+    const tokens: TokenPair = { access: data.access };
     tokenStorage.setAccess(tokens.access);
-    if (tokens.refresh) tokenStorage.setRefresh(tokens.refresh);
     return tokens;
   },
 
-  async logout(refreshToken: string): Promise<void> {
-    // AuthLogoutView attend { refresh } et renvoie 204
-    await apiClient.post(API_ENDPOINTS.logout, { refresh: refreshToken });
-    tokenStorage.clearAll();
+  async logout(): Promise<void> {
+    // No body — refresh token read from httpOnly cookie by backend
+    try {
+      await apiClient.post(API_ENDPOINTS.logout, {});
+    } finally {
+      tokenStorage.clearAll();
+    }
   },
 
   async getMe(): Promise<AuthUser> {
@@ -60,5 +52,9 @@ export const authRepository: AuthPort = {
 
   async requestPasswordReset(email: string): Promise<void> {
     await apiClient.post(API_ENDPOINTS.requestPasswordReset, { email });
+  },
+
+  async resendVerification(): Promise<void> {
+    await apiClient.post(API_ENDPOINTS.resendVerification, {});
   },
 };

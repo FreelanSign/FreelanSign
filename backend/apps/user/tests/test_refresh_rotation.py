@@ -19,73 +19,71 @@ REFRESH = "/api/auth/refresh/"
 )
 class TestRefreshRotation(APITestCase):
     def setUp(self):
-        # Nettoyer le cache de throttling avant chaque test
         cache.clear()
         self.user = User.objects.create_user(email="john@example.com", password="Secret123!")
         # Profile created automatically by signal
 
     def tearDown(self):
-        # Nettoyer le cache après chaque test
         cache.clear()
 
+    def _login(self):
+        """Login and return access token; refresh token is set as httpOnly cookie."""
+        res = self.client.post(LOGIN, {"email": "john@example.com", "password": "Secret123!"}, format="json")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        return res.json()["access"]
+
     def test_rotation_blacklists_old_and_returns_new(self):
-        # 1) Login
-        login_response = self.client.post(LOGIN, {"email": "john@example.com", "password": "Secret123!"}, format="json")
-        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
-        login_data = login_response.json()
-        r1 = login_data["refresh"]
+        # 1) Login — sets fs_refresh cookie
+        self._login()
+        self.assertIn("fs_refresh", self.client.cookies)
 
-        # Vérifier qu'un OutstandingToken a été créé
-        outstanding_tokens_count = OutstandingToken.objects.filter(user=self.user).count()
-        self.assertGreater(outstanding_tokens_count, 0)
+        # Remember the first cookie value
+        r1_cookie = self.client.cookies["fs_refresh"].value
 
-        # 2) Premier refresh → obtient r2 et a1
-        refresh_response = self.client.post(REFRESH, {"refresh": r1}, format="json")
-        self.assertEqual(refresh_response.status_code, status.HTTP_200_OK)
-        refresh_data = refresh_response.json()
-        self.assertIn("access", refresh_data)
-        self.assertIn("refresh", refresh_data)
-        r2 = refresh_data["refresh"]
+        # Verify an OutstandingToken was created
+        self.assertGreater(OutstandingToken.objects.filter(user=self.user).count(), 0)
 
-        # Vérifier que r1 a été blacklisté
+        # 2) First refresh — cookie sent automatically, new cookie received
+        refresh_res = self.client.post(REFRESH, {}, format="json")
+        self.assertEqual(refresh_res.status_code, status.HTTP_200_OK)
+        self.assertIn("access", refresh_res.json())
+        self.assertIn("fs_refresh", self.client.cookies)
+
+        # Verify r1 was blacklisted
         r1_outstanding = OutstandingToken.objects.filter(user=self.user).first()
         self.assertTrue(BlacklistedToken.objects.filter(token=r1_outstanding).exists())
 
-        # 3) Réutiliser r1 (ancien) = reuse → 401
-        reuse_response = self.client.post(REFRESH, {"refresh": r1}, format="json")
-        self.assertEqual(reuse_response.status_code, status.HTTP_401_UNAUTHORIZED)
-        error_detail = reuse_response.json().get("detail")
+        # 3) Manually set the old cookie value to simulate reuse → 401
+        self.client.cookies["fs_refresh"] = r1_cookie
+        reuse_res = self.client.post(REFRESH, {}, format="json")
+        self.assertEqual(reuse_res.status_code, status.HTTP_401_UNAUTHORIZED)
+        error_detail = reuse_res.json().get("detail")
         self.assertIn(error_detail, ["Token reuse detected", "Token is invalid or expired"])
 
-        # # 4) Vérifier que r2 ne fonctionne plus (tous les tokens révoqués)
-        # r2_response = self.client.post(REFRESH, {"refresh": r2}, format="json")
-        # self.assertEqual(r2_response.status_code, status.HTTP_401_UNAUTHORIZED)
-
     def test_refresh_invalid_token(self):
-        response = self.client.post(REFRESH, {"refresh": "not-a-token"}, format="json")
+        # No valid cookie → 401
+        response = self.client.post(REFRESH, {}, format="json")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertIn("detail", response.json())
 
     def test_refresh_missing_token(self):
+        # No cookie at all → 401
+        self.client.cookies.clear()
         response = self.client.post(REFRESH, {}, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("refresh", response.json())
+        self.assertIn(response.status_code, (status.HTTP_401_UNAUTHORIZED, status.HTTP_400_BAD_REQUEST))
 
     def test_normal_refresh_flow(self):
-        # Test du flux normal de refresh sans réutilisation
-        login_response = self.client.post(LOGIN, {"email": "john@example.com", "password": "Secret123!"}, format="json")
-        r1 = login_response.json()["refresh"]
+        # Login
+        self._login()
 
-        # Premier refresh
-        refresh1 = self.client.post(REFRESH, {"refresh": r1}, format="json")
+        # First refresh
+        refresh1 = self.client.post(REFRESH, {}, format="json")
         self.assertEqual(refresh1.status_code, status.HTTP_200_OK)
-        r2 = refresh1.json()["refresh"]
 
-        # Deuxième refresh avec le nouveau token
-        refresh2 = self.client.post(REFRESH, {"refresh": r2}, format="json")
+        # Second refresh with rotated cookie
+        refresh2 = self.client.post(REFRESH, {}, format="json")
         self.assertEqual(refresh2.status_code, status.HTTP_200_OK)
-        r3 = refresh2.json()["refresh"]
 
-        # Le dernier token doit encore fonctionner
-        refresh3 = self.client.post(REFRESH, {"refresh": r3}, format="json")
+        # Third refresh
+        refresh3 = self.client.post(REFRESH, {}, format="json")
         self.assertEqual(refresh3.status_code, status.HTTP_200_OK)

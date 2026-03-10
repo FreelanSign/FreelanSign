@@ -106,6 +106,7 @@ class RegisterUser:
         return UserViewModel(
             id=user.id,
             email=user.email,
+            email_verified=user.email_verified,
             profile=ProfileViewModel(
                 first_name=profile.first_name,
                 last_name=profile.last_name,

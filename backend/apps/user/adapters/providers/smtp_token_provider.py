@@ -27,9 +27,13 @@ class SmtpTokenSender(TokenSender):
 
         logger.info("Sending password reset email to %s: %s", email, link)
 
-        EmailMessage(
-            subject=subject,
-            body=body,
-            from_email=self.from_email,
-            to=[email],
-        ).send()
+        try:
+            EmailMessage(
+                subject=subject,
+                body=body,
+                from_email=self.from_email,
+                to=[email],
+            ).send()
+        except Exception as exc:
+            logger.error("Failed to send password reset email to %s: %s", email, exc)
+            raise

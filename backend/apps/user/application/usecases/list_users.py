@@ -39,6 +39,7 @@ class ListUsers:
                 UserViewModel(
                     id=u.id,
                     email=u.email,
+                    email_verified=u.email_verified,
                     profile=ProfileViewModel(
                         first_name=p.first_name,
                         last_name=p.last_name,

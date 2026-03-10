@@ -5,11 +5,14 @@ import { BetaWarningDialog } from '@/components/common/BetaWarningDialog';
 import { FeedbackButton } from '@/components/feedback/FeedbackButton';
 import { useAccountStore } from '../../infrastructure/account/accountStore';
 import { useUIStore } from '../../infrastructure/ui/uiStore';
+import { useAuth } from '../../app/providers/AuthProvider';
 import Footer from '../components/footer/Footer';
 import Navbar from '../components/navbar/Navbar';
 import Sidebar from '../components/sidebar/Sidebar';
+import { VerificationBanner } from '../components/auth/VerificationBanner';
 
 export default function MainLayout() {
+  const { user } = useAuth();
   const { fetchAccounts, accounts, activeAccountId } = useAccountStore();
   const { isSidebarCollapsed, isDismissed, dismissModal } = useUIStore();
   const [showBetaWarning, setShowBetaWarning] = useState(false);
@@ -54,6 +57,8 @@ export default function MainLayout() {
         )}
       >
         <Navbar />
+
+        {user && !user.email_verified && <VerificationBanner />}
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           <Outlet />

@@ -14,7 +14,7 @@ type OriginalRequest = AxiosRequestConfig & { _retry?: boolean };
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: ENV.apiBaseUrl,
-  withCredentials: false,
+  withCredentials: true,
   headers: {
     Accept: 'application/json',
   },
@@ -119,9 +119,6 @@ apiClient.interceptors.response.use(
     const url = originalRequest.url ?? '';
     if (url.includes(API_ENDPOINTS.refresh)) return Promise.reject(error);
 
-    const refreshToken = tokenStorage.getRefresh();
-    if (!refreshToken) return Promise.reject(error);
-
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         pendingQueue.push({ resolve, reject, originalRequest });
@@ -132,9 +129,9 @@ apiClient.interceptors.response.use(
     try {
       const resp = await axios.post<RefreshResponse>(
         ENV.apiBaseUrl + API_ENDPOINTS.refresh,
-        { refresh: refreshToken },
+        {},
         {
-          withCredentials: false,
+          withCredentials: true,
           headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
@@ -143,11 +140,9 @@ apiClient.interceptors.response.use(
       );
 
       const newAccess = resp.data?.access;
-      const newRefresh = resp.data?.refresh;
       if (!newAccess) throw new Error('Refresh OK mais access manquant');
 
       tokenStorage.setAccess(newAccess);
-      if (newRefresh) tokenStorage.setRefresh(newRefresh);
 
       processQueue(null, newAccess);
       return apiClient(originalRequest);
